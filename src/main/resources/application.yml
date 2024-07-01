@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+#log setting
+logging:
+  level:
+    com:
+      USWRandomChat:
+        backend: debug
+
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:tcp://localhost/~/CircleLink
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        #      show_sql: true
+        format_sql: true

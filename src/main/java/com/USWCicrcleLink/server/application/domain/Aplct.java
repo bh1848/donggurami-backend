@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.application.domain;
 
+import com.USWCicrcleLink.server.clubLeaders.domain.Club;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,9 @@ public class Aplct {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long aplctId;
 
-    private Long clubId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "clubId")
+    private Club club;
 
     private Long profileId;
 

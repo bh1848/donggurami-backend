@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.clubLeaders.domain;
 
+import com.USWCicrcleLink.server.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +18,11 @@ public class ClubMembers {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long clubMemberId;
 
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userId")
+    private User user;
 
-    private Long clubId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "clubId")
+    private Club club;
 }

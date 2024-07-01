@@ -11,21 +11,27 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "LEADER_TABLE")
-public class Leader {
-
+@Table(name = "CLUB_INTRO_TABLE")
+public class ClubIntro {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long leaderId;
+    private Long clubIntroId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clubId")
     private Club club;
 
-    private long clubMemberId;
+    private String clubIntro;
 
-    private long leaderAccount;
+    private String introPhotoPath;
 
-    private long leaderPw;
+    private String additionalPhotoPath1;
+
+    private String additionalPhotoPath2;
+
+    @Enumerated(EnumType.STRING)
+    private RecruitmentStatus recruitmentStatus;
+
+    private String aplctFormURL;
 
 }
