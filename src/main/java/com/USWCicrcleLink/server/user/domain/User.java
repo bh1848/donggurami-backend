@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -26,9 +28,9 @@ public class User {
 
     private String email;
 
-    private String userCreatedAt;
+    private LocalDateTime userCreatedAt;
 
-    private String userUpdatedAt;
+    private LocalDateTime userUpdatedAt;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Profile profile;

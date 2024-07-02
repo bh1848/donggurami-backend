@@ -20,6 +20,7 @@ public class Profile {
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "userId")
     private User user;
+
     @Setter
     private String userName;
     @Setter

@@ -7,7 +7,7 @@ import com.USWCicrcleLink.server.profile.domain.dto.ProfileResponse;
 import com.USWCicrcleLink.server.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDateTime;
 
@@ -17,5 +17,23 @@ public class ProfileService {
 
     private final ProfileRepository profileRepository;
 
+    public ProfileResponse updateProfile(User user, ProfileRequest profileRequest){
+        Profile profile = getProfileById(user.getUserId());
+
+        profile.setUserName(profileRequest.getUserName());
+        profile.setStudentNumber(profileRequest.getStudentNumber());
+        profile.setUserHp(profileRequest.getUserHp());
+        profile.setMajor(profileRequest.getMajor());
+        profile.setProfileUpdatedAt(LocalDateTime.now());
+
+        profileRepository.save(profile);
+
+        return new ProfileResponse(profile);
+    }
+
+    private Profile getProfileById(Long userId) {
+        return profileRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Profile not found for user id: " + userId));
+    }
 
 }

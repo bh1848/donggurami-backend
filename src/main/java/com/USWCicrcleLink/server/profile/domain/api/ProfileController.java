@@ -11,8 +11,15 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("profile")
 @RequiredArgsConstructor
-public class Controller {
+public class ProfileController {
 
     private final ProfileService profileService;
+
+    @PatchMapping("/update-profile")
+    public ResponseEntity<ProfileResponse> updateProfile(@RequestHeader("userId") User user, @RequestBody ProfileRequest profileRequest) {
+        ProfileResponse profileResponse = profileService.updateProfile(user, profileRequest);
+        return ResponseEntity.ok(profileResponse);
+    }
+
 
 }
