@@ -2,10 +2,10 @@ package com.USWCicrcleLink.server.user.domain;
 
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.cglib.core.Local;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -21,14 +21,14 @@ public class User {
     private String userUUID;
 
     private String userAccount;
-
+    @Setter
     private String userPw;
 
     private String email;
 
-    private String userCreatedAt;
+    private LocalDateTime userCreatedAt;
 
-    private String userUpdatedAt;
+    private LocalDateTime userUpdatedAt;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Profile profile;
