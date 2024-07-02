@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.user.domain;
 
+import com.USWCicrcleLink.server.profile.domain.Profile;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,5 +29,6 @@ public class User {
     private String userCreatedAt;
 
     private String userUpdatedAt;
+
 
 }

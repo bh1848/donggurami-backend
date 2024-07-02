@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.profile.domain;
 
+import com.USWCicrcleLink.server.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,10 @@ public class Profile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long profileId;
 
-    private Long userId;
+    // pk 설정
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name="userId")
+    private User user;
 
     private String userName;
 
