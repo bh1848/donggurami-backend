@@ -18,7 +18,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    private Long userUUID;
+    private String userUUID;
 
     private String userAccount;
 

@@ -8,6 +8,12 @@ build/
 ### Database ###
 src/main/resources/application.yml
 
+### application.yml ###
+application-local.yml
+application-dev.yml
+application-prod.yml
+application-secret.yml
+
 ### STS ###
 .apt_generated
 .classpath
