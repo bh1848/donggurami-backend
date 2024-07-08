@@ -1,7 +1,7 @@
-package com.USWCicrcleLink.server.clubLeaders.repository;
+package com.USWCicrcleLink.server.club.repository;
 
-import com.USWCicrcleLink.server.clubLeaders.domain.Club;
-import com.USWCicrcleLink.server.clubLeaders.domain.Department;
+import com.USWCicrcleLink.server.club.domain.Club;
+import com.USWCicrcleLink.server.club.domain.Department;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

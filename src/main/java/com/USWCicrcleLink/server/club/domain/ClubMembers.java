@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.clubLeaders.domain;
+package com.USWCicrcleLink.server.club.domain;
 
 import com.USWCicrcleLink.server.user.domain.User;
 import jakarta.persistence.*;

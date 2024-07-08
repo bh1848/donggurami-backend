@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.aplict.repository;
 
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
-import com.USWCicrcleLink.server.clubLeaders.domain.Club;
+import com.USWCicrcleLink.server.club.domain.Club;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

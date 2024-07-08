@@ -1,8 +1,8 @@
-package com.USWCicrcleLink.server.clubLeaders.controller;
+package com.USWCicrcleLink.server.club.controller;
 
-import com.USWCicrcleLink.server.clubLeaders.dto.ClubIntroRequest;
-import com.USWCicrcleLink.server.clubLeaders.dto.ClubIntroResponse;
-import com.USWCicrcleLink.server.clubLeaders.service.ClubIntroService;
+import com.USWCicrcleLink.server.club.dto.ClubIntroRequest;
+import com.USWCicrcleLink.server.club.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.club.service.ClubIntroService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

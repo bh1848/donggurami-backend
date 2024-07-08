@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.profile.api;
+package com.USWCicrcleLink.server.profile.controller;
 
 import com.USWCicrcleLink.server.profile.service.ProfileService;
 import com.USWCicrcleLink.server.profile.dto.ProfileRequest;

@@ -1,14 +1,14 @@
-package com.USWCicrcleLink.server.clubLeaders.service;
+package com.USWCicrcleLink.server.club.service;
 
-import com.USWCicrcleLink.server.clubLeaders.domain.Club;
-import com.USWCicrcleLink.server.clubLeaders.domain.ClubIntro;
-import com.USWCicrcleLink.server.clubLeaders.domain.Leader;
-import com.USWCicrcleLink.server.clubLeaders.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.clubLeaders.dto.ClubIntroRequest;
-import com.USWCicrcleLink.server.clubLeaders.dto.ClubIntroResponse;
-import com.USWCicrcleLink.server.clubLeaders.repository.ClubIntroRepository;
-import com.USWCicrcleLink.server.clubLeaders.repository.ClubRepository;
-import com.USWCicrcleLink.server.clubLeaders.repository.LeaderRepository;
+import com.USWCicrcleLink.server.club.domain.Club;
+import com.USWCicrcleLink.server.club.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.domain.Leader;
+import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.dto.ClubIntroRequest;
+import com.USWCicrcleLink.server.club.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.repository.LeaderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

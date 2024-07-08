@@ -1,8 +1,8 @@
 package com.USWCicrcleLink.server.admin.controller;
 
 import com.USWCicrcleLink.server.admin.service.AdminService;
-import com.USWCicrcleLink.server.clubLeaders.domain.Club;
-import com.USWCicrcleLink.server.clubLeaders.domain.Leader;
+import com.USWCicrcleLink.server.club.domain.Club;
+import com.USWCicrcleLink.server.club.domain.Leader;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
