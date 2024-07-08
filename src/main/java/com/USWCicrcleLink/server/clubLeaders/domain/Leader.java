@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -18,6 +20,9 @@ public class Leader {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long leaderId;
 
+    @Column(columnDefinition = "BINARY(16)",nullable = false, updatable = false)
+    private UUID leaderUUID;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clubId")
     private Club club;
@@ -28,4 +33,8 @@ public class Leader {
 
     private long leaderPw;
 
+    @PrePersist
+    public void prePersist() {
+        this.leaderUUID = UUID.randomUUID();
+    }
 }
