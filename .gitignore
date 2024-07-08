@@ -6,10 +6,10 @@ build/
 !**/src/test/**/build/
 
 ### application.yml ###
-src/main/resources/application-local.yml
-src/main/resources/application-dev.yml
-src/main/resources/application-prod.yml
-src/main/resources/application-secret.yml
+application-local.yml
+application-dev.yml
+application-prod.yml
+application-secret.yml
 
 ### STS ###
 .apt_generated

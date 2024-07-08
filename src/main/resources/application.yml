@@ -1,3 +1,4 @@
+# default
 spring:
   config:
     import:
@@ -7,17 +8,29 @@ spring:
       - classpath:/yaml/application-secret.yml
       - classpath:/yaml/application-file.yml
   profiles:
+    active: local #default
     group:
-      local: local, secret, file
-      dev: dev, secret ,file
-      prod: prod, secret ,file
-    active: local #원하는 환경으로 설정(local, dev, prod)
-
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 2MB
-      max-request-size: 2MB
-
-file:
-  mainPhoto-dir: src/main/resources/static/mainPhoto
+      local:
+        - secret
+        - file # local + secret + file 실행
+      dev:
+        - secret
+        - file
+      prod:
+        - secret
+        - file
+---
+spring:
+  config:
+    activate:
+      on-profile: local # local + secret 실행
+---
+spring:
+  config:
+    activate:
+      on-profile: dev # dev + secret
+---
+spring:
+  config:
+    activate:
+      on-profile: prod # prod + secret
