@@ -78,5 +78,4 @@ public class ProfileService {
         return profileRepository.findByUser_UserId(user.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저Id의 프로필이 존재하지 않습니다.: " + userUUID));
     }
-
 }
