@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -15,22 +16,29 @@ import java.time.LocalDateTime;
 public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long profileId;
+    @Column(name = "profile_id")
+    private Long id;
 
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "userId")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
-    @Setter
+
+    @Column(name = "user_name", nullable = false)
     private String userName;
-    @Setter
+
+    @Column(name = "student_number", nullable = false)
     private String studentNumber;
-    @Setter
+
+    @Column(name = "user_hp", nullable = false)
     private String userHp;
-    @Setter
+
+    @Column(name = "major", nullable = false)
     private String major;
 
+    @Column(name = "profile_created_at", nullable = false)
     private LocalDateTime profileCreatedAt;
+
+    @Column(name = "profile_updated_at", nullable = false)
     @Setter
     private LocalDateTime profileUpdatedAt;
-
 }

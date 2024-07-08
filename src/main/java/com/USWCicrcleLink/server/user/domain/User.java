@@ -2,10 +2,10 @@ package com.USWCicrcleLink.server.user.domain;
 
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.cglib.core.Local;
+
+import java.time.LocalDateTime;
 
 import java.time.LocalDateTime;
 
@@ -20,10 +20,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
+    @Column(name = "uuid", unique = true, nullable = false)
     private String userUUID;
 
     private String userAccount;
-
+    @Setter
     private String userPw;
 
     private String email;
@@ -34,5 +35,4 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Profile profile;
-
 }
