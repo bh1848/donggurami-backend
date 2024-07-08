@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.user.domain.dto;
+package com.USWCicrcleLink.server.user.dto;
 
 import lombok.Data;
 

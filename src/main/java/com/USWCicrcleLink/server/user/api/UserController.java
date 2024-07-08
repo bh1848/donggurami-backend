@@ -1,8 +1,7 @@
-package com.USWCicrcleLink.server.user.domain.api;
+package com.USWCicrcleLink.server.user.api;
 
-import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.domain.dto.UpdatePwRequest;
-import com.USWCicrcleLink.server.user.domain.service.UserService;
+import com.USWCicrcleLink.server.user.dto.UpdatePwRequest;
+import com.USWCicrcleLink.server.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
