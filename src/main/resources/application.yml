@@ -7,6 +7,7 @@ spring:
       - classpath:/yaml/application-local.yml
       - classpath:/yaml/application-secret.yml
       - classpath:/yaml/application-file.yml
+
   profiles:
     active: local #default
     group:

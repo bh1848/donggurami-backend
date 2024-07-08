@@ -2,12 +2,9 @@ package com.USWCicrcleLink.server.user.domain;
 
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.cglib.core.Local;
 
-import java.util.UUID;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,10 +19,10 @@ public class User {
     private Long userId;
 
     @Column(name = "uuid", unique = true, nullable = false)
-    private UUID userUUID;
+    private String userUUID;
 
     private String userAccount;
-
+    @Setter
     private String userPw;
 
     private String email;
