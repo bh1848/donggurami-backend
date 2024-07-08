@@ -43,9 +43,10 @@ public class NoticeService {
 
     //공지사항 생성
     public NoticeResponse createNotice(NoticeRequest noticeRequest) {
+        //이미지 로직
         Notice notice = Notice.builder()
-                .noticeTitle(noticeRequest.getTitle())
-                .noticeContent(noticeRequest.getContent())
+                .noticeTitle(noticeRequest.getNoticeTitle())
+                .noticeContent(noticeRequest.getNoticeContent())
                 .noticeCreatedAt(LocalDateTime.now())
                 .build();
         Notice savedNotice = noticeRepository.save(notice);
@@ -56,8 +57,8 @@ public class NoticeService {
     public NoticeResponse updateNotice(Long id, NoticeRequest noticeRequest) {
         Notice notice = noticeRepository.findById(id).orElse(null);
         if (notice != null) {
-            notice.setNoticeTitle(noticeRequest.getTitle());
-            notice.setNoticeContent(noticeRequest.getContent());
+            notice.setNoticeTitle(noticeRequest.getNoticeTitle());
+            notice.setNoticeContent(noticeRequest.getNoticeContent());
             notice.setNoticeUpdatedAt(LocalDateTime.now());
             Notice updatedNotice = noticeRepository.save(notice);
             return convertToResponse(updatedNotice);
@@ -73,10 +74,10 @@ public class NoticeService {
     private NoticeResponse convertToResponse(Notice notice) {
         return NoticeResponse.builder()
                 .noticeId(notice.getNoticeId())
-                .title(notice.getNoticeTitle())
-                .content(notice.getNoticeContent())
-                .createdAt(notice.getNoticeCreatedAt())
-                .updatedAt(notice.getNoticeUpdatedAt())
+                .noticeTitle(notice.getNoticeTitle())
+                .noticeContent(notice.getNoticeContent())
+                .noticeCreatedAt(notice.getNoticeCreatedAt())
+                .noticeUpdatedAt(notice.getNoticeUpdatedAt())
                 .build();
     }
 }

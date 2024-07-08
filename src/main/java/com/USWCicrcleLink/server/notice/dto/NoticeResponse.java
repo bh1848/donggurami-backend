@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @Builder
 public class NoticeResponse {
     private Long noticeId;
-    private String title;
-    private String content;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private String noticeTitle;
+    private String noticeContent;
+    private LocalDateTime noticeCreatedAt;
+    private LocalDateTime noticeUpdatedAt;
 }

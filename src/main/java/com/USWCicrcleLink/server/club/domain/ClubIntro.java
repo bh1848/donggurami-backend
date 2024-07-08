@@ -22,10 +22,10 @@ public class ClubIntro {
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
 
-    @Column(name = "club_intro")
-    private String clubIntro;
+    @Column(name = "intro_content")
+    private String introContent;
 
-    @Column(name = "club_intro_photo")
+    @Column(name = "intro_photo_path")
     private String introPhotoPath;
 
     @Column(name = "additional_photo_path1")

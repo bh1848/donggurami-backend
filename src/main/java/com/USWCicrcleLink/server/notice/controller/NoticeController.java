@@ -44,16 +44,16 @@ public class NoticeController {
 
     //공지사항 생성
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<NoticeResponse>> createNotice(@RequestBody NoticeRequest noticeRequest) {
-        NoticeResponse createdNotice = noticeService.createNotice(noticeRequest);
+    public ResponseEntity<ApiResponse<NoticeResponse>> createNotice(@RequestBody NoticeRequest request) {
+        NoticeResponse createdNotice = noticeService.createNotice(request);
         ApiResponse<NoticeResponse> response = new ApiResponse<>("공지사항 생성 성공", createdNotice);
         return ResponseEntity.ok(response);
     }
 
     //공지사항 수정
     @PatchMapping("/update/{noticeId}")
-    public ResponseEntity<ApiResponse<NoticeResponse>> updateNotice(@PathVariable("noticeId") Long noticeId, @RequestBody NoticeRequest noticeRequest) {
-        NoticeResponse updatedNotice = noticeService.updateNotice(noticeId, noticeRequest);
+    public ResponseEntity<ApiResponse<NoticeResponse>> updateNotice(@PathVariable("noticeId") Long noticeId, @RequestBody NoticeRequest request) {
+        NoticeResponse updatedNotice = noticeService.updateNotice(noticeId, request);
         ApiResponse<NoticeResponse> response = new ApiResponse<>("공지사항 수정 성공", updatedNotice);
         return ResponseEntity.ok(response);
     }
