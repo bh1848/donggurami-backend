@@ -18,12 +18,10 @@ public class Leader {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long leaderId;
 
-    private long clubId;
+    @Column(name = "leader_account", nullable = false, unique = true)
+    private String leaderAccount;
 
-    private long clubMemberId;
-
-    private long leaderAccount;
-
-    private long leaderPw;
+    @Column(name = "leader_pw", nullable = false)
+    private String leaderPw;
 
 }
