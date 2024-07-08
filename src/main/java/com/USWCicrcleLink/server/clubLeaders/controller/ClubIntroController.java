@@ -1,15 +1,16 @@
 package com.USWCicrcleLink.server.clubLeaders.controller;
 
+import com.USWCicrcleLink.server.clubLeaders.dto.ClubIntroRequest;
 import com.USWCicrcleLink.server.clubLeaders.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.clubLeaders.service.ClubIntroService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,5 +42,11 @@ public class ClubIntroController {
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Location", clubIntroResponse.getGoogleFormUrl())
                 .build();
+    }
+
+    @PostMapping("/save")
+    public ResponseEntity<Boolean> setClubInfo(@Validated ClubIntroRequest clubInfoRequest) throws IOException {
+        clubIntroService.writeClubIntro(clubInfoRequest);
+        return new ResponseEntity<>(true, HttpStatus.OK);
     }
 }

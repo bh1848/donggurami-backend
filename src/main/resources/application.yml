@@ -6,15 +6,19 @@ spring:
       - classpath:/yaml/application-dev.yml
       - classpath:/yaml/application-local.yml
       - classpath:/yaml/application-secret.yml
+      - classpath:/yaml/application-file.yml
   profiles:
+    active: local #default
     group:
-      active: local #default
       local:
-        - secret # local + secret 실행
+        - secret
+        - file # local + secret + file 실행
       dev:
-        - secret # dev + secret
+        - secret
+        - file
       prod:
-        - secret # prod + secret
+        - secret
+        - file
 ---
 spring:
   config:

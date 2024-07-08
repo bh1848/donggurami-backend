@@ -19,14 +19,16 @@ public class Club {
     @Column(name = "club_name")
     private String clubName;
 
-    @Column(name = "department")
-    private Department department;
-
     @Column(name = "main_photo_path")
     private String mainPhotoPath;
 
     @Column(name = "chat_room_url")
     private String chatRoomUrl;
+
+    private String leaderName;
+
+    @Enumerated(EnumType.STRING)
+    private Department department;
 
     @Column(name = "katalik_id")
     private String katalikId;
@@ -41,4 +43,16 @@ public class Club {
 
     @OneToOne(mappedBy = "club", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ClubIntro clubIntro;
+
+    private String katalkID;
+
+    private String clubInsta;
+
+    public void updateClubInfo(String mainPhotoPath, String chatRoomURL, String katalkID, String clubInsta) {
+        this.mainPhotoPath = mainPhotoPath;
+        this.chatRoomUrl = chatRoomURL;
+        this.katalkID = katalkID;
+        this.clubInsta = clubInsta;
+    }
+
 }
