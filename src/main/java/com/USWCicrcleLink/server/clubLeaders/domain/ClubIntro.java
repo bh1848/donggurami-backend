@@ -6,35 +6,32 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Entity
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "LEADER_TABLE")
-public class Leader {
-
+@Table(name = "CLUB_INTRO_TABLE")
+public class ClubIntro {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long leaderId;
-
-    @Column(columnDefinition = "BINARY(16)",nullable = false, updatable = false)
-    private UUID leaderUUID;
+    private Long clubIntroId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clubId")
     private Club club;
 
-    private long clubMemberId;
+    private String clubIntro;
 
-    private long leaderAccount;
+    private String introPhotoPath;
 
-    private long leaderPw;
+    private String additionalPhotoPath1;
 
-    @PrePersist
-    public void prePersist() {
-        this.leaderUUID = UUID.randomUUID();
-    }
+    private String additionalPhotoPath2;
+
+    @Enumerated(EnumType.STRING)
+    private RecruitmentStatus recruitmentStatus;
+
+    private String aplctFormURL;
+
 }

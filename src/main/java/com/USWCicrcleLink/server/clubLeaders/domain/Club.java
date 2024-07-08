@@ -21,17 +21,15 @@ public class Club {
 
     private String leaderName;
 
-    private int totalMembers;
-
     @Enumerated(EnumType.STRING)
     private Department department;
 
-    private String description;
-
-    @Enumerated(EnumType.STRING)
-    private RecruitmentStatus recruitmentStatus;
+    private String mainPhotoPath;
 
     private String chatRoomURL;
 
-    // + 동아리 소개 사진
+    private String katalkID;
+
+    private String clubInsta;
+
 }
