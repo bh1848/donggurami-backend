@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -19,7 +20,7 @@ public class User {
     private Long userId;
 
     @Column(name = "uuid", unique = true, nullable = false)
-    private String userUUID;
+    private UUID userUUID;
 
     private String userAccount;
     @Setter

@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.club.dto;
 
+import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
 import lombok.Getter;
@@ -18,8 +19,6 @@ public class ClubIntroResponse {
     private String additionalPhotoPath2;
     private String googleFormUrl;
     private RecruitmentStatus recruitmentStatus;
-    private LocalDate recruitmentStartDate;
-    private LocalDate recruitmentEndDate;
 
     public ClubIntroResponse(ClubIntro clubIntro, RecruitmentStatus recruitmentStatus) {
         this.clubIntroId = clubIntro.getClubIntroId();
@@ -30,7 +29,5 @@ public class ClubIntroResponse {
         this.additionalPhotoPath2 = clubIntro.getAdditionalPhotoPath2();
         this.googleFormUrl = clubIntro.getGoogleFormUrl();
         this.recruitmentStatus = recruitmentStatus;
-        this.recruitmentStartDate = clubIntro.getRecruitmentStartDate();
-        this.recruitmentEndDate = clubIntro.getRecruitmentEndDate();
     }
 }

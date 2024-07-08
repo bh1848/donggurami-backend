@@ -22,7 +22,7 @@ public class ClubResponse {
         this.department = club.getDepartment();
         this.mainPhotoPath = club.getMainPhotoPath();
         this.chatRoomUrl = club.getChatRoomUrl();
-        this.katalikId = club.getKatalikId();
-        this.instaUrl = club.getInstaUrl();
+        this.katalikId = club.getKatalkID();
+        this.instaUrl = club.getClubInsta();
     }
 }

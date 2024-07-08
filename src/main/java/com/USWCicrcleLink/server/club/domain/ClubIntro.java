@@ -38,10 +38,4 @@ public class ClubIntro {
 
     @Column(name = "googleForm_url")
     private String googleFormUrl;
-
-    @Column(name = "recruitment_start_date")
-    private LocalDate recruitmentStartDate;
-
-    @Column(name = "recruitment_end_date")
-    private LocalDate recruitmentEndDate;
 }

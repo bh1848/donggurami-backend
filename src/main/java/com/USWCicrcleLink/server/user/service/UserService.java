@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +21,7 @@ public class UserService {
     public void init() {
         // Create User
         User user = User.builder()
-                .userUUID("0000")
+                .userUUID(UUID.randomUUID())
                 .userAccount("admin")
                 .userPw("1234")
                 .email("admin")
@@ -31,7 +32,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-        public void updatePW(String uuid, String newPassword, String confirmNewPassword){
+        public void updatePW(UUID uuid, String newPassword, String confirmNewPassword){
 
         User user = userRepository.findByUserUUID(uuid);
         if (user == null) {

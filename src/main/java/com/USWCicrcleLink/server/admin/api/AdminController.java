@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.admin.controller;
+package com.USWCicrcleLink.server.admin.api;
 
 import com.USWCicrcleLink.server.admin.service.AdminService;
 import com.USWCicrcleLink.server.club.domain.Club;

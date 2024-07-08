@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.aplict.controller;
+package com.USWCicrcleLink.server.aplict.api;
 
 import com.USWCicrcleLink.server.aplict.dto.AplictRequest;
 import com.USWCicrcleLink.server.aplict.service.AplictService;

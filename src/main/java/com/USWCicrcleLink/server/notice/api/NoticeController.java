@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.notice.controller;
+package com.USWCicrcleLink.server.notice.api;
 
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.notice.dto.NoticeRequest;
