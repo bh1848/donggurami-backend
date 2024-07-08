@@ -1,7 +1,7 @@
-package com.USWCicrcleLink.server.club.dto;
+package com.USWCicrcleLink.server.clubLeaders.dto;
 
-import com.USWCicrcleLink.server.club.domain.ClubIntro;
-import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.clubLeaders.domain.ClubIntro;
+import com.USWCicrcleLink.server.clubLeaders.domain.RecruitmentStatus;
 import lombok.Getter;
 import lombok.Setter;
 

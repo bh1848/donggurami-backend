@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.club.domain;
+package com.USWCicrcleLink.server.clubLeaders.domain;
 
 public enum RecruitmentStatus {
     OPEN,

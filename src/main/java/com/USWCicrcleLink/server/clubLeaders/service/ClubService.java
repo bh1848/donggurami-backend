@@ -1,13 +1,13 @@
-package com.USWCicrcleLink.server.club.service;
+package com.USWCicrcleLink.server.clubLeaders.service;
 
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.dto.AplictResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
-import com.USWCicrcleLink.server.club.domain.Club;
-import com.USWCicrcleLink.server.club.domain.Department;
-import com.USWCicrcleLink.server.club.dto.ClubByDepartmentResponse;
-import com.USWCicrcleLink.server.club.dto.ClubResponse;
-import com.USWCicrcleLink.server.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.clubLeaders.domain.Club;
+import com.USWCicrcleLink.server.clubLeaders.domain.Department;
+import com.USWCicrcleLink.server.clubLeaders.dto.ClubByDepartmentResponse;
+import com.USWCicrcleLink.server.clubLeaders.dto.ClubResponse;
+import com.USWCicrcleLink.server.clubLeaders.repository.ClubRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

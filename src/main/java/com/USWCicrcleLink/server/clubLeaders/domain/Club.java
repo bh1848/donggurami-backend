@@ -1,6 +1,5 @@
-package com.USWCicrcleLink.server.club.domain;
+package com.USWCicrcleLink.server.clubLeaders.domain;
 
-import com.USWCicrcleLink.server.club.clubLeaders.domain.Leader;
 import jakarta.persistence.*;
 import lombok.*;
 

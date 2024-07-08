@@ -1,10 +1,10 @@
-package com.USWCicrcleLink.server.club.controller;
+package com.USWCicrcleLink.server.clubLeaders.controller;
 
 import com.USWCicrcleLink.server.aplict.dto.AplictResponse;
-import com.USWCicrcleLink.server.club.domain.Department;
-import com.USWCicrcleLink.server.club.dto.ClubByDepartmentResponse;
-import com.USWCicrcleLink.server.club.dto.ClubResponse;
-import com.USWCicrcleLink.server.club.service.ClubService;
+import com.USWCicrcleLink.server.clubLeaders.domain.Department;
+import com.USWCicrcleLink.server.clubLeaders.dto.ClubByDepartmentResponse;
+import com.USWCicrcleLink.server.clubLeaders.dto.ClubResponse;
+import com.USWCicrcleLink.server.clubLeaders.service.ClubService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

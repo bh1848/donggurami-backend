@@ -2,10 +2,10 @@ package com.USWCicrcleLink.server.admin.service;
 
 import com.USWCicrcleLink.server.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.repository.AdminRepository;
-import com.USWCicrcleLink.server.club.domain.Club;
-import com.USWCicrcleLink.server.club.repository.ClubRepository;
-import com.USWCicrcleLink.server.club.clubLeaders.domain.Leader;
-import com.USWCicrcleLink.server.club.clubLeaders.repository.LeaderRepository;
+import com.USWCicrcleLink.server.clubLeaders.domain.Club;
+import com.USWCicrcleLink.server.clubLeaders.repository.ClubRepository;
+import com.USWCicrcleLink.server.clubLeaders.domain.Leader;
+import com.USWCicrcleLink.server.clubLeaders.repository.LeaderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
