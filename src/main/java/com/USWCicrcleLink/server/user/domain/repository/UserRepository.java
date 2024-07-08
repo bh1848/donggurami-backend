@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.user.repository;
+package com.USWCicrcleLink.server.user.domain.repository;
 
 import com.USWCicrcleLink.server.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;

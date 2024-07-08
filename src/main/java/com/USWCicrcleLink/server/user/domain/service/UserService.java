@@ -1,7 +1,7 @@
-package com.USWCicrcleLink.server.user.service;
+package com.USWCicrcleLink.server.user.domain.service;
 
 import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.repository.UserRepository;
+import com.USWCicrcleLink.server.user.domain.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

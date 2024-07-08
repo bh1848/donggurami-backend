@@ -1,6 +1,6 @@
-package com.USWCicrcleLink.server.profile.api;
+package com.USWCicrcleLink.server.profile.domain.api;
 
-import com.USWCicrcleLink.server.profile.service.ProfileService;
+import com.USWCicrcleLink.server.profile.domain.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
