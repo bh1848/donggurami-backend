@@ -32,4 +32,11 @@ public class Club {
 
     private String clubInsta;
 
+    public void updateClubInfo(String mainPhotoPath, String chatRoomURL, String katalkID, String clubInsta) {
+        this.mainPhotoPath = mainPhotoPath;
+        this.chatRoomURL = chatRoomURL;
+        this.katalkID = katalkID;
+        this.clubInsta = clubInsta;
+    }
+
 }
