@@ -1,11 +1,11 @@
-package com.USWCicrcleLink.server.profile.domain.service;
+package com.USWCicrcleLink.server.profile.service;
 
 import com.USWCicrcleLink.server.profile.domain.Profile;
-import com.USWCicrcleLink.server.profile.domain.repository.ProfileRepository;
-import com.USWCicrcleLink.server.profile.domain.dto.ProfileRequest;
-import com.USWCicrcleLink.server.profile.domain.dto.ProfileResponse;
+import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
+import com.USWCicrcleLink.server.profile.dto.ProfileResponse;
 import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.domain.repository.UserRepository;
+import com.USWCicrcleLink.server.user.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
