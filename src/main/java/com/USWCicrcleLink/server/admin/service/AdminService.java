@@ -4,8 +4,8 @@ import com.USWCicrcleLink.server.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
-import com.USWCicrcleLink.server.clubLeaders.domain.Leader;
-import com.USWCicrcleLink.server.clubLeaders.repository.LeaderRepository;
+import com.USWCicrcleLink.server.club.clubLeaders.domain.Leader;
+import com.USWCicrcleLink.server.club.clubLeaders.repository.LeaderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,6 +33,11 @@ public class AdminService {
     //동아리 페이징 리스트 조회
     public Page<Club> getClubs(Pageable pageable) {
         return clubRepository.findAll(pageable);
+    }
+
+    //동아리 상세 페이지 조회
+    public Club getClubById(Long id) {
+        return clubRepository.findById(id).orElse(null);
     }
 
     //동아리 생성

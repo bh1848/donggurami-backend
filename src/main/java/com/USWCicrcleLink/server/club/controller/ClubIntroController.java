@@ -21,20 +21,17 @@ public class ClubIntroController {
 
     //동아리 소개글 조회
     @GetMapping("/{clubId}/clubIntro")
-    public ResponseEntity<ApiResponse> getClubIntroByClubId(@PathVariable("clubId") Long id) {
+    public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubIntroByClubId(@PathVariable("clubId") Long id) {
         ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntroByClubId(id);
-        ApiResponse response = new ApiResponse("동아리 소개글 조회 성공", clubIntroResponse);
+        ApiResponse<ClubIntroResponse> response = new ApiResponse<>("동아리 소개글 조회 성공", clubIntroResponse);
         return ResponseEntity.ok(response);
     }
 
     //지원서 작성 페이지로 이동
     @GetMapping("/{clubId}/apply")
-    public ResponseEntity<ApiResponse> showApplyPage(@PathVariable("clubId") Long id) {
+    public ResponseEntity<ApiResponse<String>> showApplyPage(@PathVariable("clubId") Long id) {
         ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntroByClubId(id);
-        if (clubIntroResponse.getRecruitmentStatus().equals(RecruitmentStatus.CLOSED)) {
-            return new ResponseEntity<>(new ApiResponse("모집이 마감되었습니다."), HttpStatus.FORBIDDEN);
-        }
-        ApiResponse response = new ApiResponse("지원 페이지 이동 성공", clubIntroResponse.getGoogleFormUrl());
+        ApiResponse<String> response = new ApiResponse<>("지원 페이지 이동 성공", clubIntroResponse.getGoogleFormUrl());
         return ResponseEntity.ok(response);
     }
 

@@ -9,9 +9,8 @@ spring:
   profiles:
     group:
       active: local #default
-
       local:
-        - secret # local + secret ??
+        - secret # local + secret 실행
       dev:
         - secret # dev + secret
       prod:
@@ -20,7 +19,7 @@ spring:
 spring:
   config:
     activate:
-      on-profile: local # local + secret ??
+      on-profile: local # local + secret 실행
 ---
 spring:
   config:

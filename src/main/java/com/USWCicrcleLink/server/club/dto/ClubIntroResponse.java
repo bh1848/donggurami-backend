@@ -12,7 +12,7 @@ import java.time.LocalDate;
 public class ClubIntroResponse {
     private Long clubIntroId;
     private Long clubId;
-    private String clubIntro;
+    private String introContent;
     private String introPhotoPath;
     private String additionalPhotoPath1;
     private String additionalPhotoPath2;
@@ -24,7 +24,7 @@ public class ClubIntroResponse {
     public ClubIntroResponse(ClubIntro clubIntro, RecruitmentStatus recruitmentStatus) {
         this.clubIntroId = clubIntro.getClubIntroId();
         this.clubId = clubIntro.getClub().getClubId();
-        this.clubIntro = clubIntro.getClubIntro();
+        this.introContent = clubIntro.getIntroContent();
         this.introPhotoPath = clubIntro.getIntroPhotoPath();
         this.additionalPhotoPath1 = clubIntro.getAdditionalPhotoPath1();
         this.additionalPhotoPath2 = clubIntro.getAdditionalPhotoPath2();

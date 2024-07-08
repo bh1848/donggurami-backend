@@ -17,3 +17,4 @@ public class ClubByDepartmentResponse {
         this.mainPhotoPath = club.getMainPhotoPath();
     }
 }
+

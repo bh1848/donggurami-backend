@@ -1,6 +1,6 @@
 package com.USWCicrcleLink.server.club.domain;
 
-import com.USWCicrcleLink.server.clubLeaders.domain.Leader;
+import com.USWCicrcleLink.server.club.clubLeaders.domain.Leader;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,10 +35,11 @@ public class Club {
     @Column(name = "insta_url")
     private String instaUrl;
 
-//    @OneToOne(mappedBy = "club", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private ClubIntro clubIntro;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "leader_id")
     private Leader leader;
+
+    @OneToOne(mappedBy = "club", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ClubIntro clubIntro;
 }
