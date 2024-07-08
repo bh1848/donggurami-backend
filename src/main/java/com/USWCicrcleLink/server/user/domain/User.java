@@ -1,10 +1,13 @@
 package com.USWCicrcleLink.server.user.domain;
 
+import com.USWCicrcleLink.server.profile.domain.Profile;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -17,7 +20,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    private Long userUUID;
+    private String userUUID;
 
     private String userAccount;
 
@@ -25,8 +28,11 @@ public class User {
 
     private String email;
 
-    private String userCreatedAt;
+    private LocalDateTime userCreatedAt;
 
-    private String userUpdatedAt;
+    private LocalDateTime userUpdatedAt;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Profile profile;
 
 }
