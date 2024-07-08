@@ -2,5 +2,9 @@ package com.USWCicrcleLink.server.clubLeaders.domain;
 
 public enum RecruitmentStatus {
     OPEN,
-    CLOSE
+    CLOSED;
+
+    public boolean isOpen() {
+        return this == OPEN;
+    }
 }

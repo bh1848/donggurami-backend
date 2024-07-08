@@ -3,7 +3,9 @@ package com.USWCicrcleLink.server.clubLeaders.service;
 import com.USWCicrcleLink.server.clubLeaders.domain.Club;
 import com.USWCicrcleLink.server.clubLeaders.domain.ClubIntro;
 import com.USWCicrcleLink.server.clubLeaders.domain.Leader;
+import com.USWCicrcleLink.server.clubLeaders.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.clubLeaders.dto.ClubIntroRequest;
+import com.USWCicrcleLink.server.clubLeaders.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.clubLeaders.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeaders.repository.ClubRepository;
 import com.USWCicrcleLink.server.clubLeaders.repository.LeaderRepository;
@@ -19,7 +21,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -28,14 +32,35 @@ import java.util.UUID;
 @Slf4j
 public class ClubIntroService {
 
+    private final ClubIntroRepository clubIntroRepository;
+    private final LeaderRepository leaderRepository;
+    private final ClubRepository clubRepository;
     @Value("${file.introPhoto-dir}")
     private String introPhotoDir;
     @Value("#{'${file.allowed-extensions}'.split(',')}")
     private List<String> allowedExtensions;
 
-    private final ClubIntroRepository clubIntroRepository;
-    private final LeaderRepository leaderRepository;
-    private final ClubRepository clubRepository;
+    //동아리 소개글 조회
+    @Transactional(readOnly = true)
+    public ClubIntroResponse getClubIntroByClubId(Long clubId) {
+        log.info("동아리 소개 조회 id: {}", clubId);
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId).orElseThrow(() ->
+                new NoSuchElementException("해당 동아리에 대한 소개를 찾을 수 없습니다.")
+        );
+
+        RecruitmentStatus recruitmentStatus = calculateRecruitmentStatus(clubIntro);
+        return new ClubIntroResponse(clubIntro, recruitmentStatus);
+    }
+
+    //동아리 모집상태 확인
+    private RecruitmentStatus calculateRecruitmentStatus(ClubIntro clubIntro) {
+        LocalDate today = LocalDate.now();
+        if (today.isAfter(clubIntro.getRecruitmentStartDate()) && today.isBefore(clubIntro.getRecruitmentEndDate())) {
+            return RecruitmentStatus.OPEN;
+        }
+        return RecruitmentStatus.CLOSED;
+    }
+
 
     public void writeClubIntro(ClubIntroRequest clubIntroRequest) throws IOException {
 
@@ -68,7 +93,7 @@ public class ClubIntroService {
         // 동아리 소개 저장
         ClubIntro clubIntro = ClubIntro.builder()
                 .club(club)
-                .clubIntro(clubIntroRequest.getClubIntro())
+                .introContent(clubIntroRequest.getClubIntro())
                 .introPhotoPath(introPhotoPath)
                 .additionalPhotoPath1(additionalPhotoPath1)
                 .additionalPhotoPath2(additionalPhotoPath2)
@@ -104,7 +129,7 @@ public class ClubIntroService {
         validateFileExtension(extension);
 
         // UUID 이용해서 파일 이름 생성
-        String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFilename;
+        String uniqueFileName = UUID.randomUUID() + "_" + originalFilename;
         String filePath = Paths.get(introPhotoDir, uniqueFileName).toString();
         Files.copy(file.getInputStream(), Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
         return filePath;

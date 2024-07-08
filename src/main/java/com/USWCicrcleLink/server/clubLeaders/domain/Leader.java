@@ -20,6 +20,9 @@ public class Leader {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long leaderId;
 
+    @Column(name = "leader_account", nullable = false, unique = true)
+    private String leaderAccount;
+
     @Column(columnDefinition = "BINARY(16)",nullable = false, updatable = false)
     private UUID leaderUUID;
 
@@ -27,12 +30,8 @@ public class Leader {
     @JoinColumn(name = "clubId")
     private Club club;
 
-    private long clubMemberId;
-
-    private long leaderAccount;
-
-    private long leaderPw;
-
+    @Column(name = "leader_pw", nullable = false)
+    private String leaderPw;
     @PrePersist
     public void prePersist() {
         this.leaderUUID = UUID.randomUUID();

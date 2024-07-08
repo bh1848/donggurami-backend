@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,7 +21,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    private String userUUID;
+    @Column(name = "uuid", unique = true, nullable = false)
+    private UUID userUUID;
 
     private String userAccount;
 
@@ -34,5 +36,4 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Profile profile;
-
 }

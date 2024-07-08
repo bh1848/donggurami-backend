@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +29,7 @@ public class ProfileService {
     public void init() {
         // Create User
         User user = User.builder()
-                .userUUID("0000")
+                .userUUID(UUID.randomUUID())
                 .userAccount("admin")
                 .userPw("1234")
                 .email("admin")
@@ -52,7 +53,7 @@ public class ProfileService {
         profileRepository.save(profile);
     }
 
-    public ProfileResponse updateProfile(String userUUID, ProfileRequest profileRequest){
+    public ProfileResponse updateProfile(UUID userUUID, ProfileRequest profileRequest) {
 
         Profile profile = getProfileByUserUUID(userUUID);
 
@@ -68,7 +69,7 @@ public class ProfileService {
         return new ProfileResponse(profile);
     }
 
-    private Profile getProfileByUserUUID(String userUUID) {
+    private Profile getProfileByUserUUID(UUID userUUID) {
         User user = userRepository.findByUserUUID(userUUID);
         if (user == null) {
             throw new IllegalArgumentException("해당 uuid의 유저가 존재하지 않습니다.: " + userUUID);

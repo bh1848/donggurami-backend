@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("profile")
 @RequiredArgsConstructor
@@ -15,10 +17,8 @@ public class ProfileController {
     private final ProfileService profileService;
 
     @PatchMapping("/update-profile")
-    public ResponseEntity<ProfileResponse> updateProfile(@RequestHeader("userUUId") String userUUID, @RequestBody ProfileRequest profileRequest) {
+    public ResponseEntity<ProfileResponse> updateProfile(@RequestHeader("userUUId") UUID userUUID, @RequestBody ProfileRequest profileRequest) {
         ProfileResponse profileResponse = profileService.updateProfile(userUUID, profileRequest);
         return ResponseEntity.ok(profileResponse);
     }
-
-
 }
