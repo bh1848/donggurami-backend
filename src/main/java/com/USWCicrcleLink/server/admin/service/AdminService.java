@@ -8,8 +8,12 @@ import com.USWCicrcleLink.server.clubLeaders.domain.Leader;
 import com.USWCicrcleLink.server.clubLeaders.repository.LeaderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -20,6 +24,16 @@ public class AdminService {
     private final AdminRepository adminRepository;
     private final ClubRepository clubRepository;
     private final LeaderRepository leaderRepository;
+
+    //동아리 전체 리스트 조회
+    public List<Club> getAllClubs() {
+        return clubRepository.findAll();
+    }
+
+    //동아리 페이징 리스트 조회
+    public Page<Club> getClubs(Pageable pageable) {
+        return clubRepository.findPage(pageable);
+    }
 
     //동아리 생성
     public void createClub(Club club, Leader leader, String adminPassword) {

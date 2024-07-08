@@ -5,6 +5,8 @@ import com.USWCicrcleLink.server.notice.dto.NoticeResponse;
 import com.USWCicrcleLink.server.notice.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,11 @@ public class NoticeService {
         return noticeRepository.findAll().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
+    }
+
+    //공지사항 페이징 목록 조회
+    public Page<NoticeResponse> getNotices(Pageable pageable) {
+        return noticeRepository.findAll(pageable).map(this::convertToResponse);
     }
 
     //공지사항 내용 조회
