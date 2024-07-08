@@ -32,7 +32,7 @@ public class AdminService {
 
     //동아리 페이징 리스트 조회
     public Page<Club> getClubs(Pageable pageable) {
-        return clubRepository.findPage(pageable);
+        return clubRepository.findAll(pageable);
     }
 
     //동아리 생성

@@ -20,33 +20,33 @@ public class AdminController {
 
     //동아리 전체 리스트 조회
     @GetMapping("/clubs")
-    public ResponseEntity<ApiResponse> getAllClubs() {
+    public ResponseEntity<ApiResponse<List<Club>>> getAllClubs() {
         List<Club> clubs = adminService.getAllClubs();
-        ApiResponse response = new ApiResponse("동아리 리스트 조회 성공", clubs);
+        ApiResponse<List<Club>> response = new ApiResponse<>("동아리 리스트 조회 성공", clubs);
         return ResponseEntity.ok(response);
     }
 
     //동아리 페이징 리스트 조회
     @GetMapping("/clubs/paged")
-    public ResponseEntity<ApiResponse> getClubs(Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<Club>>> getClubs(Pageable pageable) {
         Page<Club> clubs = adminService.getClubs(pageable);
-        ApiResponse response = new ApiResponse("동아리 페이징 리스트 조회 성공", clubs);
+        ApiResponse<Page<Club>> response = new ApiResponse<>("동아리 페이징 리스트 조회 성공", clubs);
         return ResponseEntity.ok(response);
     }
 
     //동아리 생성
     @PostMapping("/club/create")
-    public ResponseEntity<ApiResponse> createClub(@RequestBody Club club, @RequestBody Leader leader, @RequestBody String adminPassword) {
+    public ResponseEntity<ApiResponse<Club>> createClub(@RequestBody Club club, @RequestBody Leader leader, @RequestParam String adminPassword) {
         adminService.createClub(club, leader, adminPassword);
-        ApiResponse response = new ApiResponse("동아리 생성 성공", club);
+        ApiResponse<Club> response = new ApiResponse<>("동아리 생성 성공", club);
         return ResponseEntity.ok(response);
     }
 
     //동아리 삭제
     @DeleteMapping("/club/delete/{clubId}")
-    public ResponseEntity<ApiResponse> deleteClub(@PathVariable Long clubId, @RequestBody String adminPassword) {
+    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable Long clubId, @RequestBody String adminPassword) {
         adminService.deleteClub(clubId, adminPassword);
-        ApiResponse response = new ApiResponse("동아리 삭제 성공", clubId);
+        ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공", clubId);
         return ResponseEntity.ok(response);
     }
 }

@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.notice.service;
 
 import com.USWCicrcleLink.server.notice.domain.Notice;
+import com.USWCicrcleLink.server.notice.dto.NoticeRequest;
 import com.USWCicrcleLink.server.notice.dto.NoticeResponse;
 import com.USWCicrcleLink.server.notice.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,10 +42,10 @@ public class NoticeService {
     }
 
     //공지사항 생성
-    public NoticeResponse createNotice(Notice noticeRequest) {
+    public NoticeResponse createNotice(NoticeRequest noticeRequest) {
         Notice notice = Notice.builder()
-                .noticeTitle(noticeRequest.getNoticeTitle())
-                .noticeContent(noticeRequest.getNoticeContent())
+                .noticeTitle(noticeRequest.getTitle())
+                .noticeContent(noticeRequest.getContent())
                 .noticeCreatedAt(LocalDateTime.now())
                 .build();
         Notice savedNotice = noticeRepository.save(notice);
@@ -52,11 +53,11 @@ public class NoticeService {
     }
 
     //공지사항 수정
-    public NoticeResponse updateNotice(Long id, Notice noticeRequest) {
+    public NoticeResponse updateNotice(Long id, NoticeRequest noticeRequest) {
         Notice notice = noticeRepository.findById(id).orElse(null);
         if (notice != null) {
-            notice.setNoticeTitle(noticeRequest.getNoticeTitle());
-            notice.setNoticeContent(noticeRequest.getNoticeContent());
+            notice.setNoticeTitle(noticeRequest.getTitle());
+            notice.setNoticeContent(noticeRequest.getContent());
             notice.setNoticeUpdatedAt(LocalDateTime.now());
             Notice updatedNotice = noticeRepository.save(notice);
             return convertToResponse(updatedNotice);
@@ -72,10 +73,10 @@ public class NoticeService {
     private NoticeResponse convertToResponse(Notice notice) {
         return NoticeResponse.builder()
                 .noticeId(notice.getNoticeId())
-                .noticeTitle(notice.getNoticeTitle())
-                .noticeContent(notice.getNoticeContent())
-                .noticeCreatedAt(notice.getNoticeCreatedAt())
-                .noticeUpdatedAt(notice.getNoticeUpdatedAt())
+                .title(notice.getNoticeTitle())
+                .content(notice.getNoticeContent())
+                .createdAt(notice.getNoticeCreatedAt())
+                .updatedAt(notice.getNoticeUpdatedAt())
                 .build();
     }
 }

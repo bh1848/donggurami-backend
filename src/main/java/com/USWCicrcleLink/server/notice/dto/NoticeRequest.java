@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class NoticeRequest {
-    private String noticeTitle;
-    private String noticeContent;
+    private String title;
+    private String content;
 }
