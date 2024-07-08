@@ -1,9 +1,11 @@
 package com.USWCicrcleLink.server.club.dto;
 
 import com.USWCicrcleLink.server.club.domain.Club;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class ClubByDepartmentResponse {
     private Long clubId;
     private String clubName;
