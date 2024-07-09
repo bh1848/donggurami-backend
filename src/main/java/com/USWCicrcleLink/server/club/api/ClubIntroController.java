@@ -50,8 +50,8 @@ public class ClubIntroController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<Boolean> setClubInfo(@Validated ClubIntroRequest clubInfoRequest) throws IOException {
-        clubIntroService.writeClubIntro(clubInfoRequest);
+    public ResponseEntity<Boolean> setClubInfo(@Validated ClubIntroRequest clubIntroRequest) throws IOException {
+        clubIntroService.writeClubIntro(clubIntroRequest);
         return new ResponseEntity<>(true, HttpStatus.OK);
     }
 }
