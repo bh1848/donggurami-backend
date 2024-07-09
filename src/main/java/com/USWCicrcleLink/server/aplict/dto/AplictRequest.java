@@ -1,8 +1,10 @@
 package com.USWCicrcleLink.server.aplict.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class AplictRequest {
     private String aplictGoogleFormUrl;
 }

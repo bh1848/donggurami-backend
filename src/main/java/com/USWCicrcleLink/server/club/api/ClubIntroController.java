@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.club.api;
 
+import com.USWCicrcleLink.server.aplict.service.AplictService;
 import com.USWCicrcleLink.server.club.domain.Department;
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.dto.ClubByDepartmentResponse;
@@ -22,6 +23,7 @@ import java.util.List;
 public class ClubIntroController {
 
     private final ClubIntroService clubIntroService;
+    private final AplictService aplictService;
 
     //분과별 동아리 조회
     @GetMapping("/department/{department}")
@@ -47,23 +49,6 @@ public class ClubIntroController {
         ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntroByClubId(id);
         ApiResponse<ClubIntroResponse> response = new ApiResponse<>("동아리 소개글 조회 성공", clubIntroResponse);
         return ResponseEntity.ok(response);
-    }
-
-    //지원서 작성 페이지로 이동
-    @GetMapping("/{clubId}/apply")
-    public ResponseEntity<ApiResponse<String>> showApplyPage(@PathVariable("clubId") Long id) {
-        ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntroByClubId(id);
-        ApiResponse<String> response = new ApiResponse<>("지원 페이지 이동 성공", clubIntroResponse.getGoogleFormUrl());
-        return ResponseEntity.ok(response);
-    }
-
-    //구글 폼으로 이동
-    @GetMapping("/{clubId}/apply/form")
-    public ResponseEntity<Void> applyToClub(@PathVariable("clubId") Long id) {
-        ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntroByClubId(id);
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", clubIntroResponse.getGoogleFormUrl())
-                .build();
     }
 
     @PostMapping("/save")
