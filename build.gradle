@@ -24,7 +24,6 @@ repositories {
 }
 
 dependencies {
-
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
@@ -36,13 +35,13 @@ dependencies {
 	runtimeOnly 'com.h2database:h2'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	runtimeOnly 'com.mysql:mysql-connector-j'
+	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
 
 	// validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
 }
 
 tasks.named('test') {

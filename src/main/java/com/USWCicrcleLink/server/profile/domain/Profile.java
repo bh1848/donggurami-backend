@@ -2,15 +2,13 @@ package com.USWCicrcleLink.server.profile.domain;
 
 import com.USWCicrcleLink.server.user.domain.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -18,23 +16,29 @@ import java.time.LocalDateTime;
 public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long profileId;
+    @Column(name = "profile_id")
+    private Long id;
 
-    // pk 설정
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name="userId")
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "user_name", nullable = false)
     private String userName;
 
+    @Column(name = "student_number", nullable = false)
     private String studentNumber;
 
+    @Column(name = "user_hp", nullable = false)
     private String userHp;
 
+    @Column(name = "major", nullable = false)
     private String major;
 
+    @Column(name = "profile_created_at", nullable = false)
     private LocalDateTime profileCreatedAt;
 
+    @Column(name = "profile_updated_at", nullable = false)
+    @Setter
     private LocalDateTime profileUpdatedAt;
-
 }

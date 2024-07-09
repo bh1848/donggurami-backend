@@ -5,20 +5,11 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### Database ###
-src/main/resources/application.yml
-
 ### application.yml ###
 application-local.yml
 application-dev.yml
 application-prod.yml
 application-secret.yml
-
-src/main/resources/application-local.yml
-src/main/resources/application-dev.yml
-src/main/resources/application-prod.yml
-src/main/resources/application-secret.yml
-
 
 ### STS ###
 .apt_generated
@@ -50,4 +41,3 @@ out/
 
 ### VS Code ###
 .vscode/
-

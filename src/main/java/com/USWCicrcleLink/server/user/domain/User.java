@@ -1,13 +1,14 @@
 package com.USWCicrcleLink.server.user.domain;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
 
+import com.USWCicrcleLink.server.profile.domain.Profile;
+import lombok.*;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -21,19 +22,22 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-
+    @Column(name = "uuid", unique = true, nullable = false)
     private UUID userUUID;
 
     private String userAccount;
 
+    @Setter
     private String userPw;
 
     private String email;
 
-    private String userCreatedAt;
+    private LocalDateTime userCreatedAt;
 
-    private String userUpdatedAt;
+    private LocalDateTime userUpdatedAt;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Profile profile;
 
 }
 
