@@ -23,11 +23,11 @@ public class ClubIntro {
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "clubIntro")
     private Club club;
 
-    @Column(name = "intro_content")
-    private String introContent;
+    @Column(name = "club_intro")
+    private String clubIntro;
 
-    @Column(name = "intro_photo_path")
-    private String introPhotoPath;
+    @Column(name = "club_intro_photo_path")
+    private String clubIntroPhotoPath;
 
     @Column(name = "additional_photo_path1")
     private String additionalPhotoPath1;
@@ -37,4 +37,23 @@ public class ClubIntro {
 
     @Column(name = "googleForm_url")
     private String googleFormUrl;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
+
+    public void updateClubIntro(Club club, String clubIntro, String clubIntroPhotoPath,
+                                String additionalPhotoPath1, String additionalPhotoPath2) {
+        this.club = club;
+        this.clubIntro = clubIntro;
+        this.clubIntroPhotoPath = clubIntroPhotoPath;
+        this.additionalPhotoPath1 = additionalPhotoPath1;
+        this.additionalPhotoPath2 = additionalPhotoPath2;
+    }
+
+    public void toggleRecruitmentStatus() {
+        // 현재 모집 상태와 반대로
+        this.recruitmentStatus = this.recruitmentStatus.toggle();
+    }
 }

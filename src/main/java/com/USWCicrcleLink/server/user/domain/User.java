@@ -1,10 +1,13 @@
 package com.USWCicrcleLink.server.user.domain;
 
-import com.USWCicrcleLink.server.profile.domain.Profile;
 import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.cglib.core.Local;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import com.USWCicrcleLink.server.profile.domain.Profile;
+import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -23,6 +26,7 @@ public class User {
     private UUID userUUID;
 
     private String userAccount;
+
     @Setter
     private String userPw;
 
@@ -34,4 +38,6 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Profile profile;
+
 }
+

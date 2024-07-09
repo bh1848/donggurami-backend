@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.club.api;
 
-import com.USWCicrcleLink.server.club.dto.ClubInfoRequest;
 import com.USWCicrcleLink.server.club.service.ClubService;
+import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

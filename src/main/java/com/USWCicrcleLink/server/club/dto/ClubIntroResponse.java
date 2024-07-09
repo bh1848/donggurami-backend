@@ -20,8 +20,8 @@ public class ClubIntroResponse {
     public ClubIntroResponse(ClubIntro clubIntro, RecruitmentStatus recruitmentStatus) {
         this.clubIntroId = clubIntro.getClubIntroId();
         this.clubId = clubIntro.getClub().getClubId();
-        this.introContent = clubIntro.getIntroContent();
-        this.introPhotoPath = clubIntro.getIntroPhotoPath();
+        this.introContent = clubIntro.getClubIntro();
+        this.introPhotoPath = clubIntro.getClubIntroPhotoPath();
         this.additionalPhotoPath1 = clubIntro.getAdditionalPhotoPath1();
         this.additionalPhotoPath2 = clubIntro.getAdditionalPhotoPath2();
         this.googleFormUrl = clubIntro.getGoogleFormUrl();

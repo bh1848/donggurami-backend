@@ -3,17 +3,16 @@ package com.USWCicrcleLink.server.club.api;
 import com.USWCicrcleLink.server.club.domain.Department;
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.dto.ClubByDepartmentResponse;
-import com.USWCicrcleLink.server.club.dto.ClubIntroRequest;
 import com.USWCicrcleLink.server.club.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.service.ClubIntroService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -47,11 +46,5 @@ public class ClubIntroController {
         ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntroByClubId(id);
         ApiResponse<ClubIntroResponse> response = new ApiResponse<>("동아리 소개글 조회 성공", clubIntroResponse);
         return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/save")
-    public ResponseEntity<Boolean> setClubInfo(@Validated ClubIntroRequest clubInfoRequest) throws IOException {
-        clubIntroService.writeClubIntro(clubInfoRequest);
-        return new ResponseEntity<>(true, HttpStatus.OK);
     }
 }

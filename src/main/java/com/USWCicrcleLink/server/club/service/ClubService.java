@@ -1,10 +1,10 @@
 package com.USWCicrcleLink.server.club.service;
 
 import com.USWCicrcleLink.server.club.domain.Club;
-import com.USWCicrcleLink.server.club.domain.Leader;
-import com.USWCicrcleLink.server.club.dto.ClubInfoRequest;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
-import com.USWCicrcleLink.server.club.repository.LeaderRepository;
+import com.USWCicrcleLink.server.clubLeader.domain.Leader;
+import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoRequest;
+import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +25,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class ClubService {
+
     private final ClubRepository clubRepository;
     private final LeaderRepository leaderRepository;
 

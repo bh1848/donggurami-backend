@@ -6,10 +6,10 @@ import com.USWCicrcleLink.server.admin.dto.ClubDetailDto;
 import com.USWCicrcleLink.server.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
-import com.USWCicrcleLink.server.club.domain.Leader;
 import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
-import com.USWCicrcleLink.server.club.repository.LeaderRepository;
+import com.USWCicrcleLink.server.clubLeader.domain.Leader;
+import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -52,7 +52,7 @@ public class AdminService {
                 .instagram(club.getClubInsta())
                 .mainPhotoPath(club.getMainPhotoPath())
                 .chatRoomUrl(club.getChatRoomUrl())
-                .introContent(clubIntro != null ? clubIntro.getIntroContent() : "")
+                .introContent(clubIntro != null ? clubIntro.getClubIntro() : "")
                 .build();
     }
 
@@ -79,8 +79,8 @@ public class AdminService {
 
             ClubIntro clubIntro = ClubIntro.builder()
                     .club(club)
-                    .introContent("")
-                    .introPhotoPath("")
+                    .clubIntro("")
+                    .clubIntroPhotoPath("")
                     .additionalPhotoPath1("")
                     .additionalPhotoPath2("")
                     .googleFormUrl("")

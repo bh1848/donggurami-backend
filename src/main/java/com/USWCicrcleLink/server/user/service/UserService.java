@@ -1,36 +1,26 @@
 package com.USWCicrcleLink.server.user.service;
 
-import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.repository.UserRepository;
-import jakarta.annotation.PostConstruct;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.dto.SignUpRequest;
+import com.USWCicrcleLink.server.user.repository.UserRepository;
+import com.USWCicrcleLink.server.user.repository.UserTempRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.UUID;
 
 @Service
+@Slf4j
+@Transactional
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-
-    @PostConstruct
-    @Transactional
-    public void init() {
-        // Create User
-        User user = User.builder()
-                .userUUID(UUID.randomUUID())
-                .userAccount("admin")
-                .userPw("1234")
-                .email("admin")
-                .userCreatedAt(LocalDateTime.now())
-                .userUpdatedAt(LocalDateTime.now())
-                .build();
-
-        userRepository.save(user);
-    }
+    private final UserTempRepository userTempRepository;
 
         public void updatePW(UUID uuid, String newPassword, String confirmNewPassword){
 
@@ -44,7 +34,15 @@ public class UserService {
 
         user.setUserPw(newPassword);
         userRepository.save(user);
-
     }
 
+    // 임시 회원 가입
+    public UserTemp signUpUserTemp(SignUpRequest request){
+
+        UserTemp userTemp = request.toEntity();
+
+        userTempRepository.save(userTemp);
+
+        return userTempRepository.findByTempEmail(userTemp.getTempEmail());
+        }
 }
