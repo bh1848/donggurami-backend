@@ -45,6 +45,11 @@ public class ClubIntro {
     @Column(name = "recruitment_end_date")
     private LocalDate recruitmentEndDate;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
+
     public void updateClubIntro(Club club, String introContent, String introPhotoPath,
                                 String additionalPhotoPath1, String additionalPhotoPath2) {
         this.club = club;
@@ -52,5 +57,10 @@ public class ClubIntro {
         this.introPhotoPath = introPhotoPath;
         this.additionalPhotoPath1 = additionalPhotoPath1;
         this.additionalPhotoPath2 = additionalPhotoPath2;
+    }
+
+    public void toggleRecruitmentStatus() {
+        // 현재 모집 상태와 반대로
+        this.recruitmentStatus = this.recruitmentStatus.toggle();
     }
 }

@@ -2,11 +2,13 @@ package com.USWCicrcleLink.server.club.service;
 
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;
+import com.USWCicrcleLink.server.clubLeader.dto.RecruitmentRequest;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -177,6 +179,29 @@ public class ClubLeaderService {
         if (!allowedExtensions.contains(extension.toLowerCase())) {
             throw new IOException("지원하지 않는 파일 확장자입니다.: " + extension);
         }
+    }
+
+    // 동아리 모집 상태 변경
+    public RecruitmentStatus toggleRecruitmentStatus(RecruitmentRequest recruitmentRequest) {
+
+        // 원래는 GET 요청임 토큰때문
+
+        // 토큰 적용, 예외 처리 시 변경
+        Leader leader = leaderRepository.findByLeaderUUID(recruitmentRequest.getLeaderUUID())
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
+        log.info("동아리 회장 조회 결과: {}", leader);
+
+        // 동아리 조회
+        Club club = clubRepository.findById(leader.getClub().getClubId())
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
+        log.info("동아리 조회 결과: {}", club);
+
+        ClubIntro clubIntro = club.getClubIntro();
+
+        // 모집 상태 현재와 반전
+        clubIntro.toggleRecruitmentStatus();
+
+        return clubIntro.getRecruitmentStatus();
     }
 
 }
