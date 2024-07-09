@@ -1,0 +1,9 @@
+package com.USWCicrcleLink.server.user.repository;
+
+import com.USWCicrcleLink.server.user.domain.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User,Long> {
+    // 회원 정보 저장
+
+}

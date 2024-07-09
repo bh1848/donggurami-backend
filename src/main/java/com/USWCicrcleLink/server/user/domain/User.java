@@ -1,10 +1,14 @@
 package com.USWCicrcleLink.server.user.domain;
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
+
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -17,7 +21,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    private Long userUUID;
+
+    private UUID userUUID;
 
     private String userAccount;
 
@@ -29,4 +34,6 @@ public class User {
 
     private String userUpdatedAt;
 
+
 }
+
