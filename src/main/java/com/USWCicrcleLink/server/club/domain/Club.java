@@ -3,8 +3,6 @@ package com.USWCicrcleLink.server.club.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-
 @Entity
 @Getter
 @Setter
@@ -27,6 +25,7 @@ public class Club {
     @Column(name = "chat_room_url")
     private String chatRoomUrl;
 
+    @Column(name = "leader_name")
     private String leaderName;
 
     @Column(name = "katalk_id")
@@ -35,21 +34,13 @@ public class Club {
     @Column(name = "club_insta")
     private String clubInsta;
 
-    @Column(name = "department")
+    @Column(name = "department", nullable = false)
     @Enumerated(EnumType.STRING)
     private Department department;
 
-    @Column(name = "recruitment_status")
+    @Column(name = "recruitment_status", nullable = false)
     @Enumerated(EnumType.STRING)
     private RecruitmentStatus recruitmentStatus;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "leader_id")
-    private Leader leader;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "club_intro_id")
-    private ClubIntro clubIntro;
 
     public void updateClubInfo(String mainPhotoPath, String chatRoomURL, String katalkID, String clubInsta) {
         this.mainPhotoPath = mainPhotoPath;

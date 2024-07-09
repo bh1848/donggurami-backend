@@ -15,6 +15,7 @@ import java.util.UUID;
 public class AplictController {
     private final AplictService aplictService;
 
+    //동아리 지원서 제출
     @PostMapping("/submit/{clubId}")
     public ResponseEntity<ApiResponse<Void>> submitAplict(
             @RequestHeader("User-uuid") UUID userUUID,

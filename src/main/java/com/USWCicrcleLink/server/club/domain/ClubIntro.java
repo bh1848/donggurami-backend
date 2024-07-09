@@ -20,8 +20,7 @@ public class ClubIntro {
     @Column(name = "club_intro_id")
     private Long clubIntroId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "club_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "clubIntro")
     private Club club;
 
     @Column(name = "intro_content")

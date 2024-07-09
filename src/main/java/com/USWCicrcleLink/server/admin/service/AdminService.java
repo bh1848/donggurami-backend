@@ -1,11 +1,19 @@
 package com.USWCicrcleLink.server.admin.service;
 
 import com.USWCicrcleLink.server.admin.domain.Admin;
+import com.USWCicrcleLink.server.admin.dto.ClubDetailDto;
 import com.USWCicrcleLink.server.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.club.domain.Club;
+import com.USWCicrcleLink.server.club.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.domain.ClubMembers;
+import com.USWCicrcleLink.server.club.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.domain.Leader;
 import com.USWCicrcleLink.server.club.repository.LeaderRepository;
+import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,6 +31,7 @@ public class AdminService {
 
     private final AdminRepository adminRepository;
     private final ClubRepository clubRepository;
+    private final ClubIntroRepository clubIntroRepository;
     private final LeaderRepository leaderRepository;
 
     //동아리 전체 리스트 조회
@@ -36,17 +45,38 @@ public class AdminService {
     }
 
     //동아리 상세 페이지 조회
-    public Club getClubById(Long id) {
-        return clubRepository.findById(id).orElse(null);
+    public ClubDetailDto getClubById(Long clubId) {
+        Club club = clubRepository.findById(clubId).orElseThrow(() -> new RuntimeException("클럽을 찾을 수 없습니다."));
+        ClubIntro clubIntro = clubIntroRepository.findByClub(club).orElse(null);
+
+        return ClubDetailDto.builder()
+                .clubName(club.getClubName())
+                .leaderName(club.getLeaderName())
+                .phone(club.getKatalkID())
+                .instagram(club.getClubInsta())
+                .mainPhotoPath(club.getMainPhotoPath())
+                .chatRoomUrl(club.getChatRoomUrl())
+                .introContent(clubIntro != null ? clubIntro.getIntroContent() : "")
+                .build();
     }
 
     //동아리 생성
     public void createClub(Club club, Leader leader, String adminPassword) {
         Admin admin = adminRepository.findByAdminAccount("admin").orElse(null);
         if (admin != null && admin.getAdminPw().equals(adminPassword)) {
-            Leader savedLeader = leaderRepository.save(leader);
-            club.setLeader(savedLeader);
+            leaderRepository.save(leader);
             clubRepository.save(club);
+
+            ClubIntro clubIntro = ClubIntro.builder()
+                    .club(club)
+                    .introContent("")
+                    .introPhotoPath("")
+                    .additionalPhotoPath1("")
+                    .additionalPhotoPath2("")
+                    .googleFormUrl("")
+                    .build();
+            clubIntroRepository.save(clubIntro);
+
             return;
         }
         throw new RuntimeException("비밀번호를 확인해주세요");

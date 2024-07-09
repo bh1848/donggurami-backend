@@ -16,13 +16,14 @@ import lombok.NoArgsConstructor;
 public class ClubMembers {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "club_member_id")
     private Long clubMemberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "userId", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "clubId")
+    @JoinColumn(name = "clubId", nullable = false)
     private Club club;
 }

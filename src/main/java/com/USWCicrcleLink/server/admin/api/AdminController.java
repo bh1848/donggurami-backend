@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.admin.api;
 
+import com.USWCicrcleLink.server.admin.dto.ClubDetailDto;
 import com.USWCicrcleLink.server.admin.service.AdminService;
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.Leader;
@@ -33,15 +34,14 @@ public class AdminController {
         ApiResponse<Page<Club>> response = new ApiResponse<>("동아리 페이징 리스트 조회 성공", clubs);
         return ResponseEntity.ok(response);
     }
-    
+
     //동아리 상세 페이지 조회
     @GetMapping("/clubs/{clubId}")
-    public ResponseEntity<ApiResponse<Club>> getClubById(@PathVariable Long clubId) {
-        Club club = adminService.getClubById(clubId);
-        ApiResponse<Club> response = new ApiResponse<>("동아리 상세 조회 성공", club);
+    public ResponseEntity<ApiResponse<ClubDetailDto>> getClubById(@PathVariable Long clubId) {
+        ClubDetailDto clubDetailDto = adminService.getClubById(clubId);
+        ApiResponse<ClubDetailDto> response = new ApiResponse<>("동아리 상세 조회 성공", clubDetailDto);
         return ResponseEntity.ok(response);
     }
-
 
     //동아리 생성
     @PostMapping("/club/create")

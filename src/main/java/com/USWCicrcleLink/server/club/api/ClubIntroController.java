@@ -5,7 +5,6 @@ import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.dto.ClubByDepartmentResponse;
 import com.USWCicrcleLink.server.club.dto.ClubIntroRequest;
 import com.USWCicrcleLink.server.club.dto.ClubIntroResponse;
-import com.USWCicrcleLink.server.club.dto.ClubResponse;
 import com.USWCicrcleLink.server.club.service.ClubIntroService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,7 @@ public class ClubIntroController {
     }
 
     //모집 상태 및 분과별 동아리 조회
-    @GetMapping("/department/{department}/recruiting/{recruitmentStatus}")
+    @GetMapping("/department/{department}/{recruitmentStatus}")
     public ResponseEntity<ApiResponse<List<ClubByDepartmentResponse>>> getClubsByRecruitmentStatusAndDepartment(
             @PathVariable("department") Department department,
             @PathVariable("recruitmentStatus") RecruitmentStatus recruitmentStatus) {

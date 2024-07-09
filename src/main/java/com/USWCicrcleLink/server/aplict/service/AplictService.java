@@ -35,7 +35,7 @@ public class AplictService {
                 .club(clubRepository.findById(clubId).orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다.")))
                 .aplictGoogleFormUrl(request.getAplictGoogleFormUrl())
                 .submittedAt(LocalDateTime.now())
-                .status(AplictStatus.WAIT)
+                .aplictStatus(AplictStatus.WAIT)
                 .build();
 
         Aplict savedAplict = aplictRepository.save(aplict);

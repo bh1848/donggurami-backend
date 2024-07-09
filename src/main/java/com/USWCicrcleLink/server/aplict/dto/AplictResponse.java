@@ -23,7 +23,7 @@ public class AplictResponse {
                 aplict.getProfile(),
                 aplict.getAplictGoogleFormUrl(),
                 aplict.getSubmittedAt(),
-                aplict.getStatus()
+                aplict.getAplictStatus()
         );
     }
 }
