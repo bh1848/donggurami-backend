@@ -25,6 +25,7 @@ public class AplictService {
     private final ClubRepository clubRepository;
     private final ProfileRepository profileRepository;
 
+    //동아리 지원서 제출
     public AplictResponse submitAplict(UUID userUUID, Long clubId, AplictRequest request) {
         //userUUID로 Profile 조회
         Profile profile = profileRepository.findByUser_UserUUID(userUUID)

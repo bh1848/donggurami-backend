@@ -1,19 +1,15 @@
 package com.USWCicrcleLink.server.admin.service;
 
 import com.USWCicrcleLink.server.admin.domain.Admin;
+import com.USWCicrcleLink.server.admin.dto.ClubCreationRequest;
 import com.USWCicrcleLink.server.admin.dto.ClubDetailDto;
 import com.USWCicrcleLink.server.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
-import com.USWCicrcleLink.server.club.domain.ClubMembers;
-import com.USWCicrcleLink.server.club.dto.ClubIntroResponse;
-import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
-import com.USWCicrcleLink.server.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.domain.Leader;
+import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.repository.LeaderRepository;
-import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -60,11 +56,25 @@ public class AdminService {
                 .build();
     }
 
-    //동아리 생성
-    public void createClub(Club club, Leader leader, String adminPassword) {
+    // 동아리 생성
+    public void createClub(ClubCreationRequest request) {
         Admin admin = adminRepository.findByAdminAccount("admin").orElse(null);
-        if (admin != null && admin.getAdminPw().equals(adminPassword)) {
+        if (admin != null && admin.getAdminPw().equals(request.getAdminPw())) {
+            if (!request.getLeaderPw().equals(request.getLeaderPwConfirm())) {
+                throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+            }
+
+            Leader leader = Leader.builder()
+                    .leaderAccount(request.getLeaderAccount())
+                    .leaderPw(request.getLeaderPw())
+                    .build();
             leaderRepository.save(leader);
+
+            Club club = Club.builder()
+                    .clubName(request.getClubName())
+                    .department(request.getDepartment())
+                    .leaderName(request.getLeaderAccount())
+                    .build();
             clubRepository.save(club);
 
             ClubIntro clubIntro = ClubIntro.builder()

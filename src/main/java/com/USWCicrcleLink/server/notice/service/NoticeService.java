@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.notice.service;
 
 import com.USWCicrcleLink.server.notice.domain.Notice;
-import com.USWCicrcleLink.server.notice.dto.NoticeRequest;
+import com.USWCicrcleLink.server.notice.dto.NoticeCreationRequest;
 import com.USWCicrcleLink.server.notice.dto.NoticeResponse;
 import com.USWCicrcleLink.server.notice.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,11 +42,11 @@ public class NoticeService {
     }
 
     //공지사항 생성
-    public NoticeResponse createNotice(NoticeRequest noticeRequest) {
+    public NoticeResponse createNotice(NoticeCreationRequest request) {
         //이미지 로직
         Notice notice = Notice.builder()
-                .noticeTitle(noticeRequest.getNoticeTitle())
-                .noticeContent(noticeRequest.getNoticeContent())
+                .noticeTitle(request.getNoticeTitle())
+                .noticeContent(request.getNoticeContent())
                 .noticeCreatedAt(LocalDateTime.now())
                 .build();
         Notice savedNotice = noticeRepository.save(notice);
@@ -54,11 +54,11 @@ public class NoticeService {
     }
 
     //공지사항 수정
-    public NoticeResponse updateNotice(Long id, NoticeRequest noticeRequest) {
+    public NoticeResponse updateNotice(Long id, NoticeCreationRequest request) {
         Notice notice = noticeRepository.findById(id).orElse(null);
         if (notice != null) {
-            notice.setNoticeTitle(noticeRequest.getNoticeTitle());
-            notice.setNoticeContent(noticeRequest.getNoticeContent());
+            notice.setNoticeTitle(request.getNoticeTitle());
+            notice.setNoticeContent(request.getNoticeContent());
             notice.setNoticeUpdatedAt(LocalDateTime.now());
             Notice updatedNotice = noticeRepository.save(notice);
             return convertToResponse(updatedNotice);

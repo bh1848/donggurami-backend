@@ -1,9 +1,9 @@
 package com.USWCicrcleLink.server.admin.api;
 
+import com.USWCicrcleLink.server.admin.dto.ClubCreationRequest;
 import com.USWCicrcleLink.server.admin.dto.ClubDetailDto;
 import com.USWCicrcleLink.server.admin.service.AdminService;
 import com.USWCicrcleLink.server.club.domain.Club;
-import com.USWCicrcleLink.server.club.domain.Leader;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -45,9 +45,9 @@ public class AdminController {
 
     //동아리 생성
     @PostMapping("/club/create")
-    public ResponseEntity<ApiResponse<Club>> createClub(@RequestBody Club club, @RequestBody Leader leader, @RequestBody String adminPassword) {
-        adminService.createClub(club, leader, adminPassword);
-        ApiResponse<Club> response = new ApiResponse<>("동아리 생성 성공", club);
+    public ResponseEntity<ApiResponse<Club>> createClub(@RequestBody ClubCreationRequest request) {
+        adminService.createClub(request);
+        ApiResponse<Club> response = new ApiResponse<>("동아리 생성 성공", null);
         return ResponseEntity.ok(response);
     }
 

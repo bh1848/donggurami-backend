@@ -1,15 +1,8 @@
 package com.USWCicrcleLink.server.club.service;
 
-import com.USWCicrcleLink.server.aplict.domain.Aplict;
-import com.USWCicrcleLink.server.aplict.dto.AplictResponse;
-import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.domain.Club;
-import com.USWCicrcleLink.server.club.domain.Department;
 import com.USWCicrcleLink.server.club.domain.Leader;
-import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.club.dto.ClubByDepartmentResponse;
 import com.USWCicrcleLink.server.club.dto.ClubInfoRequest;
-import com.USWCicrcleLink.server.club.dto.ClubResponse;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.repository.LeaderRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -35,7 +26,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ClubService {
     private final ClubRepository clubRepository;
-    private final AplictRepository aplictRepository;
     private final LeaderRepository leaderRepository;
 
     //대표 사진 경로
@@ -43,16 +33,6 @@ public class ClubService {
     private String mainPhtoDir;
     @Value("#{'${file.allowed-extensions}'.split(',')}")
     private List<String> allowedExtensions;
-
-
-
-    //해당동아리 지원서 조회
-    public List<AplictResponse> getAplictByClubId(Long clubId) {
-        List<Aplict> aplicts = aplictRepository.findByClub(clubRepository.findById(clubId).orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다.")));
-        return aplicts.stream()
-                .map(AplictResponse::from)
-                .collect(Collectors.toList());
-    }
 
     //동아리 기본 정보 뱐걍
     public void updateClubInfo(ClubInfoRequest clubInfoRequest) throws IOException {

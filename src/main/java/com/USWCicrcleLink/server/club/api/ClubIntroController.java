@@ -1,6 +1,5 @@
 package com.USWCicrcleLink.server.club.api;
 
-import com.USWCicrcleLink.server.aplict.service.AplictService;
 import com.USWCicrcleLink.server.club.domain.Department;
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.dto.ClubByDepartmentResponse;
@@ -23,7 +22,6 @@ import java.util.List;
 public class ClubIntroController {
 
     private final ClubIntroService clubIntroService;
-    private final AplictService aplictService;
 
     //분과별 동아리 조회
     @GetMapping("/department/{department}")
