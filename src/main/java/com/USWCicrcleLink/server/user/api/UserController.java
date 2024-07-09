@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.UUID;
+
 
 import java.util.UUID;
 
@@ -23,7 +25,8 @@ public class UserController {
     private final UserService userService;
 
     @PatchMapping("/update-userPw")
-    public ResponseEntity<String> updateUserPw(@RequestHeader("userUUID") UUID UserUUID, @RequestBody UpdatePwRequest request){
+
+    public ResponseEntity<String> updateUserPw(@RequestHeader("userUUID") UUID UserUUID, @RequestBody UpdatePwRequest request) {
 
         userService.updatePW(UserUUID, request.getNewPassword(), request.getConfirmNewPassword());
 

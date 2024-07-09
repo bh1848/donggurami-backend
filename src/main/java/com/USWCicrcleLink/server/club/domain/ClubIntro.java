@@ -57,3 +57,4 @@ public class ClubIntro {
         this.recruitmentStatus = this.recruitmentStatus.toggle();
     }
 }
+
