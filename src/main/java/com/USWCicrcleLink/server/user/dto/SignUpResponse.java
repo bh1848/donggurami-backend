@@ -16,8 +16,8 @@ public class SignUpResponse {
     private UUID emailTokenId; // 이메일 토큰의 uuid
     private Object data;
 
-    public SignUpResponse(UUID emailTokenId){
-        this.emailTokenId=emailTokenId;
+    public SignUpResponse(UUID emailTokenId) {
+        this.emailTokenId = emailTokenId;
     }
 
 }

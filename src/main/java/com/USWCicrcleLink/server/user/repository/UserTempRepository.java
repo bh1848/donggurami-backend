@@ -8,5 +8,6 @@ public interface UserTempRepository extends JpaRepository<UserTemp, Long> {
 
     // 이메일로 회원 조회
     UserTemp findByTempEmail(String tempEmail);
+
 }
 

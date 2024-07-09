@@ -3,7 +3,6 @@ import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import com.USWCicrcleLink.server.user.service.UserService;
 import jakarta.annotation.PostConstruct;
-import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +25,7 @@ public class UserController {
 
     // 임시 회원 등록
     @PostMapping("/sign-up")
-    public ResponseEntity<UserTemp> SignUp(@Valid @RequestBody SignUpRequest request) throws MessagingException {
+    public ResponseEntity<UserTemp> SignUp(@Valid @RequestBody SignUpRequest request)  {
 
         // 임시 회원 등록
         UserTemp userTemp = userService.signUpUserTemp(request);
