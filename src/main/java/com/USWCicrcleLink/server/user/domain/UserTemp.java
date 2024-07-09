@@ -13,11 +13,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @Table(name = "USERTEMP_TABLE")
 public class UserTemp {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="USERTEMP_ID")
     private Long userTempId;
-
-    private Long emailTokenId;
 
     private String tempAccount;
 
@@ -33,6 +33,14 @@ public class UserTemp {
 
     private String tempEmail;
 
-    private boolean isEmailVerified;
+    private boolean isEmailVerified; // 이메일 인증을 했는지 여부
+
+    public void setEmailVerified(boolean emailVerified) {
+        isEmailVerified = emailVerified;
+    }
+
+        public void emailVerifiedSuccess(){
+        isEmailVerified=true;
+    }
 
 }
