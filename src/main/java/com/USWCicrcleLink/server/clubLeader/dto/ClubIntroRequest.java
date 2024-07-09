@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.club.dto;
+package com.USWCicrcleLink.server.clubLeader.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,17 +10,17 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ClubInfoRequest {
+public class ClubIntroRequest {
 
     // token 대신 uuid(식별 용도)
     private UUID leaderUUID;
 
-    //2MB
-    private MultipartFile mainPhoto;
+    private String clubIntro;
 
-    private String chatRoomURL;
+    private MultipartFile introPhoto;
 
-    private String katalkID;
+    private MultipartFile additionalPhoto1;
 
-    private String clubInsta;
+    private MultipartFile additionalPhoto2;
+
 }

@@ -2,7 +2,10 @@ package com.USWCicrcleLink.server.club.domain;
 
 public enum RecruitmentStatus {
     OPEN,
-    CLOSED;
+    CLOSE;
+    public RecruitmentStatus toggle() {
+        return this == OPEN ? CLOSE : OPEN;
+    }
 
     public boolean isOpen() {
         return this == OPEN;
