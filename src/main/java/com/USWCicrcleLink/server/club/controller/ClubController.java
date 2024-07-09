@@ -3,7 +3,7 @@ package com.USWCicrcleLink.server.club.controller;
 import com.USWCicrcleLink.server.aplict.dto.AplictResponse;
 import com.USWCicrcleLink.server.club.domain.Department;
 import com.USWCicrcleLink.server.club.dto.ClubByDepartmentResponse;
-import com.USWCicrcleLink.server.club.dto.ClubInfoRequest;
+import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoRequest;
 import com.USWCicrcleLink.server.club.dto.ClubResponse;
 import com.USWCicrcleLink.server.club.service.ClubService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
@@ -54,9 +54,4 @@ public class ClubController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/update")
-    public ResponseEntity<Boolean> updateClubInfo(@Validated ClubInfoRequest clubInfoRequest) throws IOException {
-        clubService.updateClubInfo(clubInfoRequest);
-        return new ResponseEntity<>(true, HttpStatus.OK);
-    }
 }

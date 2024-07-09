@@ -1,6 +1,6 @@
 package com.USWCicrcleLink.server.club.controller;
 
-import com.USWCicrcleLink.server.club.dto.ClubIntroRequest;
+import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;
 import com.USWCicrcleLink.server.club.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.service.ClubIntroService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
@@ -44,9 +44,4 @@ public class ClubIntroController {
                 .build();
     }
 
-    @PostMapping("/save")
-    public ResponseEntity<Boolean> setClubInfo(@Validated ClubIntroRequest clubInfoRequest) throws IOException {
-        clubIntroService.writeClubIntro(clubInfoRequest);
-        return new ResponseEntity<>(true, HttpStatus.OK);
-    }
 }

@@ -1,6 +1,6 @@
-package com.USWCicrcleLink.server.club.repository;
+package com.USWCicrcleLink.server.clubLeader.repository;
 
-import com.USWCicrcleLink.server.club.domain.Leader;
+import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

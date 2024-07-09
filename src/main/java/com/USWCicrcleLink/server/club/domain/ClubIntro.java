@@ -44,4 +44,13 @@ public class ClubIntro {
 
     @Column(name = "recruitment_end_date")
     private LocalDate recruitmentEndDate;
+
+    public void updateClubIntro(Club club, String introContent, String introPhotoPath,
+                                String additionalPhotoPath1, String additionalPhotoPath2) {
+        this.club = club;
+        this.introContent = introContent;
+        this.introPhotoPath = introPhotoPath;
+        this.additionalPhotoPath1 = additionalPhotoPath1;
+        this.additionalPhotoPath2 = additionalPhotoPath2;
+    }
 }
