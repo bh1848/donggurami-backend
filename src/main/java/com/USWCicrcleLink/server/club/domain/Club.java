@@ -1,6 +1,5 @@
 package com.USWCicrcleLink.server.club.domain;
 
-import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,28 +25,22 @@ public class Club {
     @Column(name = "chat_room_url")
     private String chatRoomUrl;
 
+    @Column(name = "leader_name")
     private String leaderName;
 
+    @Column(name = "katalk_id")
+    private String katalkID;
+
+    @Column(name = "club_insta")
+    private String clubInsta;
+
+    @Column(name = "department", nullable = false)
     @Enumerated(EnumType.STRING)
     private Department department;
 
-    @Column(name = "katalik_id")
-    private String katalikId;
-
-    @Column(name = "insta_url")
-    private String instaUrl;
-
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "leader_id")
-    private Leader leader;
-
-    @OneToOne(mappedBy = "club", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private ClubIntro clubIntro;
-
-    private String katalkID;
-
-    private String clubInsta;
+    @Column(name = "recruitment_status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private RecruitmentStatus recruitmentStatus;
 
     public void updateClubInfo(String mainPhotoPath, String chatRoomURL, String katalkID, String clubInsta) {
         this.mainPhotoPath = mainPhotoPath;
@@ -55,5 +48,4 @@ public class Club {
         this.katalkID = katalkID;
         this.clubInsta = clubInsta;
     }
-
 }

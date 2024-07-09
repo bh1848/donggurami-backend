@@ -5,9 +5,6 @@ public enum RecruitmentStatus {
     CLOSE;
     public RecruitmentStatus toggle() {
         return this == OPEN ? CLOSE : OPEN;
-    }
 
-    public boolean isOpen() {
-        return this == OPEN;
     }
 }

@@ -3,7 +3,6 @@ package com.USWCicrcleLink.server.user.service;
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.dto.MyPageResponse;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class MypageService {
     private final UserRepository userRepository;
-    private final ClubRepository clubRepository;
     private final ClubMembersRepository clubMembersRepository;
 
     //UUID를 통해 소속된 동아리 조회
@@ -64,8 +62,8 @@ public class MypageService {
         return MyPageResponse.builder()
                 .clubId(club.getClubId())
                 .clubName(club.getClubName())
-                .clubInsta(club.getInstaUrl())
-                .katalkID(club.getKatalikId())
+                .clubInsta(club.getClubInsta())
+                .katalkID(club.getKatalkID())
                 .leaderName(club.getLeaderName())
                 .mainPhotoPath(club.getMainPhotoPath()).build();
     }

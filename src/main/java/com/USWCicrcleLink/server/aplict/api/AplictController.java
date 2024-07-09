@@ -1,34 +1,26 @@
-package com.USWCicrcleLink.server.club.controller;
+package com.USWCicrcleLink.server.aplict.api;
 
-import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;
+import com.USWCicrcleLink.server.aplict.dto.AplictRequest;
+import com.USWCicrcleLink.server.aplict.service.AplictService;
 import com.USWCicrcleLink.server.club.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.service.ClubIntroService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/clubs")
-public class ClubIntroController {
-
+@RequestMapping("/aplict")
+public class AplictController {
+    private final AplictService aplictService;
     private final ClubIntroService clubIntroService;
 
-    //동아리 소개글 조회
-    @GetMapping("/{clubId}/clubIntro")
-    public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubIntroByClubId(@PathVariable("clubId") Long id) {
-        ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntroByClubId(id);
-        ApiResponse<ClubIntroResponse> response = new ApiResponse<>("동아리 소개글 조회 성공", clubIntroResponse);
-        return ResponseEntity.ok(response);
-    }
-
     //지원서 작성 페이지로 이동
-    @GetMapping("/{clubId}/apply")
+    @GetMapping("/{clubId}")
     public ResponseEntity<ApiResponse<String>> showApplyPage(@PathVariable("clubId") Long id) {
         ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntroByClubId(id);
         ApiResponse<String> response = new ApiResponse<>("지원 페이지 이동 성공", clubIntroResponse.getGoogleFormUrl());
@@ -36,7 +28,7 @@ public class ClubIntroController {
     }
 
     //구글 폼으로 이동
-    @GetMapping("/{clubId}/apply/form")
+    @GetMapping("/{clubId}/form")
     public ResponseEntity<Void> applyToClub(@PathVariable("clubId") Long id) {
         ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntroByClubId(id);
         return ResponseEntity.status(HttpStatus.FOUND)
@@ -44,4 +36,14 @@ public class ClubIntroController {
                 .build();
     }
 
+    //동아리 지원서 제출
+    @PostMapping("/submit/{clubId}")
+    public ResponseEntity<ApiResponse<Void>> submitAplict(
+            @RequestHeader("User-uuid") UUID userUUID,
+            @PathVariable("clubId") Long clubId,
+            @RequestBody AplictRequest request) {
+        aplictService.submitAplict(userUUID, clubId, request);
+        ApiResponse<Void> response = new ApiResponse<>("지원서 제출 성공");
+        return ResponseEntity.ok(response);
+    }
 }

@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.club.service;
+package com.USWCicrcleLink.server.clubLeader.service;
 
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
@@ -91,7 +91,7 @@ public class ClubLeaderService {
 
         // 파일 있나 ? 덮어쓰기 : 비워두기
         String introPhotoPath = saveFile(clubIntroRequest.getIntroPhoto(),
-                existingClubIntro.getIntroPhotoPath(), introPhotoDir);
+                existingClubIntro.getClubIntroPhotoPath(), introPhotoDir);
 
         String additionalPhotoPath1 = saveFile(clubIntroRequest.getAdditionalPhoto1(),
                 existingClubIntro.getAdditionalPhotoPath1(), introPhotoDir);
@@ -196,12 +196,13 @@ public class ClubLeaderService {
                 .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
         log.info("동아리 조회 결과: {}", club);
 
-        ClubIntro clubIntro = club.getClubIntro();
+        ClubIntro clubIntro = clubIntroRepository.findByClub(club)
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 소개가 아닙니다."));
+        log.info("동아리 소개 조회 결과: {}", clubIntro);
 
         // 모집 상태 현재와 반전
         clubIntro.toggleRecruitmentStatus();
 
         return clubIntro.getRecruitmentStatus();
     }
-
 }

@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class NoticeRequest {
+public class NoticeCreationRequest {
     private String noticeTitle;
     private String noticeContent;
     private List<MultipartFile> noticePhoto; // 이미지 파일 리스트 추가

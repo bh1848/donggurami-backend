@@ -1,10 +1,10 @@
 package com.USWCicrcleLink.server.clubLeader.api;
 
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.club.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.RecruitmentRequest;
+import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ import java.io.IOException;
 @RequestMapping("/club-leader")
 public class ClubLeaderController {
 
-    private ClubLeaderService clubLeaderService;
+    private final ClubLeaderService clubLeaderService;
 
     @PatchMapping("/info")
     public ResponseEntity<Boolean> updateClubInfo(@Validated ClubInfoRequest clubInfoRequest) throws IOException {

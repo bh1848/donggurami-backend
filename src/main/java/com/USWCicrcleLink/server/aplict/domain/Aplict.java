@@ -36,5 +36,5 @@ public class Aplict {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "aplict_status", nullable = false)
-    private AplictStatus status;
+    private AplictStatus aplictStatus;
 }

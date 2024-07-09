@@ -25,6 +25,7 @@ public class AplictService {
     private final ClubRepository clubRepository;
     private final ProfileRepository profileRepository;
 
+    //동아리 지원서 제출
     public AplictResponse submitAplict(UUID userUUID, Long clubId, AplictRequest request) {
         //userUUID로 Profile 조회
         Profile profile = profileRepository.findByUser_UserUUID(userUUID)
@@ -35,7 +36,7 @@ public class AplictService {
                 .club(clubRepository.findById(clubId).orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다.")))
                 .aplictGoogleFormUrl(request.getAplictGoogleFormUrl())
                 .submittedAt(LocalDateTime.now())
-                .status(AplictStatus.WAIT)
+                .aplictStatus(AplictStatus.WAIT)
                 .build();
 
         Aplict savedAplict = aplictRepository.save(aplict);

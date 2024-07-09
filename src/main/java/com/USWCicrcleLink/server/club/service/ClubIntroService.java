@@ -2,29 +2,20 @@ package com.USWCicrcleLink.server.club.service;
 
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
-import com.USWCicrcleLink.server.clubLeader.domain.Leader;
+import com.USWCicrcleLink.server.club.domain.Department;
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;
+import com.USWCicrcleLink.server.club.dto.ClubByDepartmentResponse;
 import com.USWCicrcleLink.server.club.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
-import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -43,17 +34,33 @@ public class ClubIntroService {
                 new NoSuchElementException("해당 동아리에 대한 소개를 찾을 수 없습니다.")
         );
 
-        RecruitmentStatus recruitmentStatus = calculateRecruitmentStatus(clubIntro);
-        return new ClubIntroResponse(clubIntro, recruitmentStatus);
+        Club club = clubIntro.getClub();
+        return new ClubIntroResponse(clubIntro, club.getRecruitmentStatus());
     }
 
-    //동아리 모집상태 확인
-    private RecruitmentStatus calculateRecruitmentStatus(ClubIntro clubIntro) {
-        LocalDate today = LocalDate.now();
-        if (today.isAfter(clubIntro.getRecruitmentStartDate()) && today.isBefore(clubIntro.getRecruitmentEndDate())) {
-            return RecruitmentStatus.OPEN;
+    //분과별 동아리 조회
+    @Transactional(readOnly = true)
+    public List<ClubByDepartmentResponse> getClubsByDepartment(Department department) {
+        log.info("분과별 동아리 조회: {}", department);
+        List<Club> clubs = clubRepository.findByDepartment(department);
+        if (clubs.isEmpty()) {
+            throw new NoSuchElementException("해당 분과에 속하는 동아리가 없습니다.");
         }
-        return RecruitmentStatus.CLOSED;
+        return clubs.stream()
+                .map(ClubByDepartmentResponse::new)
+                .collect(Collectors.toList());
     }
 
+    //모집 상태에 따른 분과별 동아리 조회
+    @Transactional(readOnly = true)
+    public List<ClubByDepartmentResponse> getClubsByRecruitmentStatusAndDepartment(RecruitmentStatus recruitmentStatus, Department department) {
+        log.info("모집 상태 및 분과별 동아리 조회: recruitmentStatus={}, department={}", recruitmentStatus, department);
+        List<Club> clubs = clubRepository.findByRecruitmentStatusAndDepartment(recruitmentStatus, department);
+        if (clubs.isEmpty()) {
+            throw new NoSuchElementException("해당 조건에 맞는 동아리가 없습니다.");
+        }
+        return clubs.stream()
+                .map(ClubByDepartmentResponse::new)
+                .collect(Collectors.toList());
+    }
 }

@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
-
 @RestController
 @Slf4j
 @RequestMapping("/user")
@@ -29,7 +28,6 @@ public class UserController {
 
         return ResponseEntity.ok("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
-
 
     // 임시 회원 등록
     @PostMapping("/sign-up")
@@ -62,8 +60,4 @@ public class UserController {
 
         userService.signUpUserTemp(request);
     }
-
-
-
-
 }
