@@ -15,4 +15,5 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
     List<Club> findByRecruitmentStatusAndDepartment(RecruitmentStatus recruitmentStatus, Department department);
     @NonNull
     Page<Club> findAll(@NonNull Pageable pageable);
+    Club findByClubId(Long clubId);
 }
