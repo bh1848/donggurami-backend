@@ -37,14 +37,20 @@ public class Club {
     @Enumerated(EnumType.STRING)
     private Department department;
 
-    @Column(name = "recruitment_status", nullable = false)
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    private RecruitmentStatus recruitmentStatus;
+    @Column(nullable = false)
+    private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
 
     public void updateClubInfo(String mainPhotoPath, String chatRoomURL, String katalkID, String clubInsta) {
         this.mainPhotoPath = mainPhotoPath;
         this.chatRoomUrl = chatRoomURL;
         this.katalkID = katalkID;
         this.clubInsta = clubInsta;
+    }
+
+    public void toggleRecruitmentStatus() {
+        // 현재 모집 상태와 반대로
+        this.recruitmentStatus = this.recruitmentStatus.toggle();
     }
 }

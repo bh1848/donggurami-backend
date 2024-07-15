@@ -5,10 +5,8 @@ import com.USWCicrcleLink.server.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
-import com.USWCicrcleLink.server.club.domain.Club;
-import com.USWCicrcleLink.server.club.domain.ClubMembers;
-import com.USWCicrcleLink.server.club.domain.Department;
-import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.domain.*;
+import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.profile.domain.Profile;
@@ -37,6 +35,7 @@ public class DummyData {
     private final ClubRepository clubRepository;
     private final ClubMembersRepository clubMembersRepository;
     private final AplictRepository aplictRepository;
+    private final ClubIntroRepository clubIntroRepository;
 
     @PostConstruct
     public void init(){
@@ -85,6 +84,14 @@ public class DummyData {
                 .build();
 
         clubRepository.save(club);
+
+        ClubIntro clubIntro = ClubIntro.builder()
+                .club(club)
+                .clubIntro("플래그입니다.")
+                .googleFormUrl("flag_google_url")
+                .build();
+
+        clubIntroRepository.save(clubIntro);
 
         ClubMembers clubMembers = ClubMembers.builder()
                 .club(club)

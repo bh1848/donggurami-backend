@@ -29,7 +29,7 @@ public class AplictService {
     private final ProfileRepository profileRepository;
     private final ClubIntroRepository clubIntroRepository;
 
-    //지원서 작성하기(구글 폼 이동)
+    //지원서 작성하기(구글 폼 반환)
     @Transactional(readOnly = true)
     public String getGoogleFormUrlByClubId(Long clubId) {
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId).orElseThrow(() ->

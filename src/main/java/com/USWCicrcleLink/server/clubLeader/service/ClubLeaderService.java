@@ -201,7 +201,7 @@ public class ClubLeaderService {
         log.info("동아리 소개 조회 결과: {}", clubIntro);
 
         // 모집 상태 현재와 반전
-        clubIntro.toggleRecruitmentStatus();
+        club.toggleRecruitmentStatus();
 
         return clubIntro.getRecruitmentStatus();
     }
