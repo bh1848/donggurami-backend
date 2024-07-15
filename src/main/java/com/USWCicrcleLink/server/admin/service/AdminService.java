@@ -33,7 +33,7 @@ public class AdminService {
 
     //관리자 로그인
     public void adminLogin(AdminLoginRequest request) {
-        Admin admin = adminRepository.findByAdminAccount(request.getAdminAccount()).orElseThrow(() -> new RuntimeException("아이디나 비밀번호를 확인해주세요"));
+        Admin admin = adminRepository.findByAdminAccount(request.getAdminAccount()).orElseThrow(() -> new RuntimeException("아이디나 비밀번호를 확인해주세요."));
         if (!admin.getAdminPw().equals(request.getAdminPw())) {
             throw new RuntimeException("아이디나 비밀번호를 확인해주세요.");
         }
