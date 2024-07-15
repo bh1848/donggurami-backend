@@ -21,4 +21,7 @@ public class Admin {
 
     @Column(name = "admin_pw", nullable = false)
     private String adminPw;
+
+    @Column(name = "admin_name", nullable = false)
+    private String adminName;
 }

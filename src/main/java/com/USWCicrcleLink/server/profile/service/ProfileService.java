@@ -24,35 +24,6 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
 
-    @PostConstruct
-    @Transactional
-    public void init() {
-        // Create User
-        User user = User.builder()
-                .userUUID(UUID.randomUUID())
-                .userAccount("admin")
-                .userPw("1234")
-                .email("admin")
-                .userCreatedAt(LocalDateTime.now())
-                .userUpdatedAt(LocalDateTime.now())
-                .build();
-
-        userRepository.save(user);
-
-        // Create Profile
-        Profile profile = Profile.builder()
-                .user(user)
-                .userName("안녕")
-                .studentNumber("1234")
-                .userHp("01012345678")
-                .major("정보보호")
-                .profileCreatedAt(LocalDateTime.now())
-                .profileUpdatedAt(LocalDateTime.now())
-                .build();
-
-        profileRepository.save(profile);
-    }
-
     public ProfileResponse updateProfile(UUID userUUID, ProfileRequest profileRequest) {
 
         Profile profile = getProfileByUserUUID(userUUID);
