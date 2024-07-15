@@ -2,6 +2,7 @@ package com.USWCicrcleLink.server.user.api;
 
 
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import com.USWCicrcleLink.server.user.dto.UpdatePwRequest;
@@ -64,6 +65,17 @@ public class UserController {
 
         userService.signUpUserTemp(request);
     }
+
+    // 이메일 인증 확인 후 회원가입
+    @GetMapping("/confirm-email")
+    public ResponseEntity<ApiResponse> verifyTempUser(@RequestParam @Valid  UUID emailTokenId){
+        UserTemp userTemp = userService.confirmEmail(emailTokenId);
+        User signUpUser = userService.signUpUser(userTemp);
+        ApiResponse response = new ApiResponse( "회원 가입 완료",signUpUser);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 
 
 

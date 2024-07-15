@@ -48,6 +48,17 @@ public class EmailToken {
                 .build();
     }
 
+    // 토큰 사용으로 인한 만료
+    public void useToken(){
+        this.isEmailTokenExpired=true;
+    }
+    // userTempId 조회
+    public Long getUserTempId(){
+        return userTemp.getUserTempId();
+    }
+
+
+
 
 
 

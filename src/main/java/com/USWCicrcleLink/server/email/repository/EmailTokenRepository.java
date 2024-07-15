@@ -13,5 +13,10 @@ import java.util.UUID;
 public interface EmailTokenRepository extends JpaRepository<EmailToken, UUID> {
 
     @EntityGraph(attributePaths = "userTemp")
-    Optional<EmailToken> findById (UUID emailTokenId);
+    Optional<EmailToken> findByEmailTokenId (UUID emailTokenId);
+
+    // userTempId로 이메일 토큰 조회
+    EmailToken findEmailTokenByUserTemp_UserTempId(Long userTempId);
+
+
 }

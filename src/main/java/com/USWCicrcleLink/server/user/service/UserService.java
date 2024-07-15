@@ -3,6 +3,8 @@ package com.USWCicrcleLink.server.user.service;
 
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
+import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
@@ -14,6 +16,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -26,6 +31,7 @@ public class UserService {
     private final UserRepository userRepository ;
     private final UserTempRepository userTempRepository;
     private final EmailService emailService;
+    private final ProfileRepository profileRepository;
 
     public void updatePW(UUID uuid, String newPassword, String confirmNewPassword){
 
@@ -61,6 +67,64 @@ public class UserService {
 
         return emailToken.getEmailTokenId();
     }
+
+    // 인증 메일 검증
+    @SuppressWarnings("all")
+    public UserTemp confirmEmail(UUID emailTokenId){
+
+        // 토큰 검증
+        EmailToken emailToken = emailService.verifyEmailToken(emailTokenId);
+        Optional<UserTemp> findUserTemp = userTempRepository
+                .findById(emailToken.getUserTempId());
+
+        // 임시 회원의 이메일 인증 완료
+        findUserTemp.ifPresent(UserTemp::emailVerifiedSuccess);
+
+        return findUserTemp.get();
+
+    }
+
+    // 회원가입
+    @Transactional
+    public User signUpUser(UserTemp userTemp) {
+
+        //User 객체 생성 및 저장
+        User user = User.builder()
+                .userUUID(UUID.randomUUID())
+                .userAccount(userTemp.getTempAccount())
+                .userPw(userTemp.getTempPw())
+                .email(userTemp.getTempEmail())
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .build();
+
+        //Profile 객체 생성 및 저장
+        Profile profile = Profile.builder()
+                .user(user)
+                .userName(userTemp.getTempName())
+                .studentNumber(userTemp.getTempStudentNumber())
+                .userHp(userTemp.getTempHp())
+                .major(userTemp.getTempMajor())
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .build();
+
+
+        // 회원 정보 저장
+        userRepository.save(user);
+        profileRepository.save(profile);
+
+        // 임시 회원 정보 삭제
+        emailService.deleteTokenByUserTempId(userTemp.getUserTempId());
+        userTempRepository.delete(userTemp);
+
+        log.info("회원가입 완료: {}", user.getUserAccount());
+
+        return user;
+    }
+
+
+
 
 
 }
