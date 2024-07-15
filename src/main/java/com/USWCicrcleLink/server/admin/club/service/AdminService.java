@@ -1,10 +1,10 @@
-package com.USWCicrcleLink.server.admin.service;
+package com.USWCicrcleLink.server.admin.club.service;
 
-import com.USWCicrcleLink.server.admin.domain.Admin;
-import com.USWCicrcleLink.server.admin.dto.ClubCreationRequest;
-import com.USWCicrcleLink.server.admin.dto.ClubDetailResponse;
-import com.USWCicrcleLink.server.admin.dto.ClubListResponse;
-import com.USWCicrcleLink.server.admin.repository.AdminRepository;
+import com.USWCicrcleLink.server.admin.club.domain.Admin;
+import com.USWCicrcleLink.server.admin.club.dto.ClubCreationRequest;
+import com.USWCicrcleLink.server.admin.club.dto.ClubDetailResponse;
+import com.USWCicrcleLink.server.admin.club.dto.ClubListResponse;
+import com.USWCicrcleLink.server.admin.club.repository.AdminRepository;
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;

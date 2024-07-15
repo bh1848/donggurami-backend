@@ -1,10 +1,10 @@
-package com.USWCicrcleLink.server.admin.api;
+package com.USWCicrcleLink.server.admin.club.api;
 
-import com.USWCicrcleLink.server.admin.dto.AdminPwRequest;
-import com.USWCicrcleLink.server.admin.dto.ClubCreationRequest;
-import com.USWCicrcleLink.server.admin.dto.ClubDetailResponse;
-import com.USWCicrcleLink.server.admin.dto.ClubListResponse;
-import com.USWCicrcleLink.server.admin.service.AdminService;
+import com.USWCicrcleLink.server.admin.club.dto.AdminPwRequest;
+import com.USWCicrcleLink.server.admin.club.dto.ClubCreationRequest;
+import com.USWCicrcleLink.server.admin.club.dto.ClubDetailResponse;
+import com.USWCicrcleLink.server.admin.club.dto.ClubListResponse;
+import com.USWCicrcleLink.server.admin.club.service.AdminService;
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;

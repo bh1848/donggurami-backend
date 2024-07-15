@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.admin.dto;
+package com.USWCicrcleLink.server.admin.club.dto;
 
 import lombok.Getter;
 import lombok.Setter;
