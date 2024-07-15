@@ -1,10 +1,7 @@
-package com.USWCicrcleLink.server.admin.club.api;
+package com.USWCicrcleLink.server.admin.api;
 
-import com.USWCicrcleLink.server.admin.club.dto.AdminPwRequest;
-import com.USWCicrcleLink.server.admin.club.dto.ClubCreationRequest;
-import com.USWCicrcleLink.server.admin.club.dto.ClubDetailResponse;
-import com.USWCicrcleLink.server.admin.club.dto.ClubListResponse;
-import com.USWCicrcleLink.server.admin.club.service.AdminService;
+import com.USWCicrcleLink.server.admin.dto.*;
+import com.USWCicrcleLink.server.admin.service.AdminService;
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +15,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
+
+    //관리자 로그인
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<String>> loginAdmin(@RequestBody AdminLoginRequest request) {
+        adminService.adminLogin(request);
+        ApiResponse<String> response = new ApiResponse<>("로그인 성공");
+        return ResponseEntity.ok(response);
+    }
 
     //동아리 전체 리스트 조회
     @GetMapping("/clubs")

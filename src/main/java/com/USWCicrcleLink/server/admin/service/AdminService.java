@@ -1,10 +1,8 @@
-package com.USWCicrcleLink.server.admin.club.service;
+package com.USWCicrcleLink.server.admin.service;
 
-import com.USWCicrcleLink.server.admin.club.domain.Admin;
-import com.USWCicrcleLink.server.admin.club.dto.ClubCreationRequest;
-import com.USWCicrcleLink.server.admin.club.dto.ClubDetailResponse;
-import com.USWCicrcleLink.server.admin.club.dto.ClubListResponse;
-import com.USWCicrcleLink.server.admin.club.repository.AdminRepository;
+import com.USWCicrcleLink.server.admin.domain.Admin;
+import com.USWCicrcleLink.server.admin.dto.*;
+import com.USWCicrcleLink.server.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
@@ -32,6 +30,14 @@ public class AdminService {
     private final ClubIntroRepository clubIntroRepository;
     private final LeaderRepository leaderRepository;
     private final ClubMembersRepository clubMembersRepository;
+
+    //관리자 로그인
+    public void adminLogin(AdminLoginRequest request) {
+        Admin admin = adminRepository.findByAdminAccount(request.getAdminAccount()).orElseThrow(() -> new RuntimeException("아이디나 비밀번호를 확인해주세요"));
+        if (!admin.getAdminPw().equals(request.getAdminPw())) {
+            throw new RuntimeException("아이디나 비밀번호를 확인해주세요.");
+        }
+    }
 
     //동아리 전체 목록 조회
     public List<ClubListResponse> getAllClubs() {

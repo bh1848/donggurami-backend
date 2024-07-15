@@ -1,6 +1,6 @@
 package com.USWCicrcleLink.server.admin.notice.domain;
 
-import com.USWCicrcleLink.server.admin.club.domain.Admin;
+import com.USWCicrcleLink.server.admin.domain.Admin;
 import jakarta.persistence.*;
 import lombok.*;
 
