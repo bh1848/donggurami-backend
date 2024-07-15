@@ -46,6 +46,8 @@ public class MypageService {
     public List<MyClubResponse> getMyClubsByUUID(UUID uuid) {
         User user = getUserByUUID(uuid);
         List<ClubMembers> clubMembers = getClubMembersByUserId(user.getUserId());
+        log.info("소속동아리 조회 완료");
+
         return getMyClubs(clubMembers);
     }
 
@@ -72,6 +74,7 @@ public class MypageService {
         Profile profile = getProfileByUserId(user.getUserId());
 
         List<Aplict> aplicts = getAplictsByProfileId(profile.getId());
+        log.info("지원 동아리 조회 완료");
 
         return aplicts.stream()
                 .map(aplict -> {
