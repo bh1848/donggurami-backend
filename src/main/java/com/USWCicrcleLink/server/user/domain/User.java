@@ -28,7 +28,6 @@ public class User {
 
     private String userAccount;
 
-    @Setter
     private String userPw;
 
     private String email;
@@ -37,5 +36,8 @@ public class User {
 
     private LocalDateTime userUpdatedAt;
 
+    public void updateUserPw(String userPw){
+        this.userPw = userPw;
+    }
 }
 

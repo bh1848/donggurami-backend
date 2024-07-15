@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.user.api;
 
+import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import com.USWCicrcleLink.server.user.dto.UpdatePwRequest;
@@ -22,11 +23,11 @@ public class UserController {
     private final UserService userService;
 
     @PatchMapping("/update-userPw")
-    public ResponseEntity<String> updateUserPw(@RequestHeader("userUUID") UUID UserUUID, @RequestBody UpdatePwRequest request) {
+    public ApiResponse<String> updateUserPw(@RequestParam UUID uuid, @RequestBody UpdatePwRequest request) {
 
-        userService.updatePW(UserUUID, request.getNewPassword(), request.getConfirmNewPassword());
+        userService.updatePW(uuid, request.getNewPassword(), request.getConfirmNewPassword());
 
-        return ResponseEntity.ok("비밀번호가 성공적으로 업데이트 되었습니다.");
+        return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
 
     // 임시 회원 등록
