@@ -35,11 +35,7 @@ public class UserTemp {
 
     private boolean isEmailVerified; // 이메일 인증을 했는지 여부
 
-    public void setEmailVerified(boolean emailVerified) {
-        isEmailVerified = emailVerified;
-    }
-
-        public void emailVerifiedSuccess(){
+    public void emailVerifiedSuccess(){
         isEmailVerified=true;
     }
 

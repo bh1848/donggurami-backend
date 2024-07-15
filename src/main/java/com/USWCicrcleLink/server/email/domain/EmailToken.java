@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -18,18 +19,18 @@ import java.time.LocalDateTime;
 @Table(name = "EMAILTOKEN_TABLE")
 public class EmailToken {
 
-
-    private static final long CERTIFICATION_TIME = 5L;
+    // 이메일 토큰 만료 시간 5분
+    private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 1L;
 
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(length = 36)
-    private String emailTokenId;
+    private UUID emailTokenId;
 
     // 이메일 토큰과 관련된 임시 회원  id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="userTempId")
+    @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    @JoinColumn(name="USERTEMP_ID",unique = true)
     private UserTemp userTemp;
 
     private LocalDateTime certificationTime; // 이메일 인증 시간
@@ -39,13 +40,15 @@ public class EmailToken {
 
     // 이메일 인증 토큰 생성
     public static EmailToken createEmailToken(UserTemp userTemp) {
-        EmailToken emailToken = EmailToken.builder()
-                .certificationTime(LocalDateTime.now().plusMinutes(CERTIFICATION_TIME))
+
+        return EmailToken.builder()
+                .certificationTime(LocalDateTime.now().plusMinutes(EMAIL_TOKEN_CERTIFICATION_TIME_VALUE))
                 .isEmailTokenExpired(false)
                 .userTemp(userTemp)
                 .build();
-
-        return emailToken;
     }
+
+
+
 
 }

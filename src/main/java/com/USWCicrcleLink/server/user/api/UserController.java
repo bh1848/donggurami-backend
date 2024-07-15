@@ -1,10 +1,13 @@
 package com.USWCicrcleLink.server.user.api;
 
+
+import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import com.USWCicrcleLink.server.user.dto.UpdatePwRequest;
 import com.USWCicrcleLink.server.user.service.UserService;
 import jakarta.annotation.PostConstruct;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,17 +32,18 @@ public class UserController {
         return ResponseEntity.ok("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
 
-    // 임시 회원 등록
-    @PostMapping("/sign-up")
-    public ResponseEntity<UserTemp> SignUp(@Valid @RequestBody SignUpRequest request) {
+    // 임시 회원 등록 및 인증 메일 전송
+    @PostMapping("/temp-sign-up")
+    public ResponseEntity<ApiResponse> tempSignUp(@Valid @RequestBody SignUpRequest request) throws MessagingException {
 
-        // 임시 회원 등록
         UserTemp userTemp = userService.signUpUserTemp(request);
-        log.info("회원이메일 = {}  :  임시 회원 등록 완료", request.getEmail());
+        UUID emailTokenId = userService.sendVerifyEmail(userTemp);
+        ApiResponse response = new ApiResponse("인증 메일 전송 완료",emailTokenId);
 
-        return new ResponseEntity<>(userTemp, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
+
 
     // 임시 회원 데이터 생성
     @PostConstruct
@@ -60,4 +64,10 @@ public class UserController {
 
         userService.signUpUserTemp(request);
     }
+
+
+
+
+
+
 }

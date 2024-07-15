@@ -34,11 +34,6 @@ public class SignUpRequest {
     @NotBlank(message = "이메일 필수 입력 값입니다.")
     private String email;
 
-
-    // 이메일 인증 확인을 위한 필드
-
-    //회원가입 정보 주입으로 넣어둠
-
     private Boolean isEmailVerified = false;
 
     public UserTemp toEntity() {

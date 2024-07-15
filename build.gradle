@@ -42,6 +42,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	//mail
+	implementation 'org.springframework.boot:spring-boot-starter-mail:3.3.1'
+
+
+
 }
 
 tasks.named('test') {

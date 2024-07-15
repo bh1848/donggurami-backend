@@ -1,11 +1,15 @@
 package com.USWCicrcleLink.server.user.service;
 
 
+import com.USWCicrcleLink.server.email.domain.EmailToken;
+import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,10 +22,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final UserTempRepository userTempRepository;
 
-        public void updatePW(UUID uuid, String newPassword, String confirmNewPassword){
+    private final UserRepository userRepository ;
+    private final UserTempRepository userTempRepository;
+    private final EmailService emailService;
+
+    public void updatePW(UUID uuid, String newPassword, String confirmNewPassword){
 
         User user = userRepository.findByUserUUID(uuid);
         if (user == null) {
@@ -39,9 +45,22 @@ public class UserService {
     public UserTemp signUpUserTemp(SignUpRequest request){
 
         UserTemp userTemp = request.toEntity();
-
         userTempRepository.save(userTemp);
 
         return userTempRepository.findByTempEmail(userTemp.getTempEmail());
-        }
+    }
+
+
+    // 이메일 전송
+    public UUID sendVerifyEmail(UserTemp userTemp) throws MessagingException {
+        // 이메일 토큰 생성
+        EmailToken emailToken = emailService.createmailToken(userTemp);
+        // 이메일 전송
+        MimeMessage message = emailService.createVerifyLink(userTemp, emailToken);
+        emailService.sendEmail(message);
+
+        return emailToken.getEmailTokenId();
+    }
+
+
 }
