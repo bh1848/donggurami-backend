@@ -9,7 +9,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-public class MyPageResponse {
+public class MyClubResponse {
 
     private Long clubId;
 

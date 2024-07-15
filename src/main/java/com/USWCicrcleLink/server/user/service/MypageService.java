@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.user.service;
 
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
+import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubMembers;
@@ -9,14 +10,14 @@ import com.USWCicrcleLink.server.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.dto.MyPageResponse;
+import com.USWCicrcleLink.server.user.dto.MyAplictResponse;
+import com.USWCicrcleLink.server.user.dto.MyClubResponse;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,26 +33,6 @@ public class MypageService {
     private final AplictRepository aplictRepository;
     private final ClubRepository clubRepository;
 
-    //UUID를 통해 소속된 동아리 조회
-    public List<MyPageResponse> getMyClubsByUUID(UUID uuid) {
-        User user = getUserByUUID(uuid);
-        List<ClubMembers> clubMembers = getClubMembersByUserId(user.getUserId());
-        return getMyClubs(clubMembers);
-    }
-
-    // UUID를 통해 지원한 동아리 조회
-    public List<MyPageResponse> getAplictClubByUUID(UUID uuid) {
-        User user = getUserByUUID(uuid);
-        Profile profile = getProfileByUserId(user.getUserId());
-
-        List<Aplict> aplicts = getAplictsByProfileId(profile.getId());
-
-        return aplicts.stream()
-                .map(aplict -> getClubByAplictId(aplict.getId()))
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
-    }
-
     //UUID를 통해 유저 아이디 조회
     public User getUserByUUID(UUID uuid) {
         User user = userRepository.findByUserUUID(uuid);
@@ -59,6 +40,13 @@ public class MypageService {
             throw new IllegalArgumentException("UUID에 해당하는 유저를 찾을 수 없습니다. " + uuid);
         }
         return user;
+    }
+
+    //UUID를 통해 소속된 동아리 조회
+    public List<MyClubResponse> getMyClubsByUUID(UUID uuid) {
+        User user = getUserByUUID(uuid);
+        List<ClubMembers> clubMembers = getClubMembersByUserId(user.getUserId());
+        return getMyClubs(clubMembers);
     }
 
     //유저아이디를 통해 클럽멤버 조회
@@ -71,10 +59,26 @@ public class MypageService {
     }
 
     //클럽멤버를 통해 클럽아이디 조회
-    private List<MyPageResponse> getMyClubs(List<ClubMembers> clubMembers) {
+    private List<MyClubResponse> getMyClubs(List<ClubMembers> clubMembers) {
         return clubMembers.stream()
                 .map(ClubMembers::getClub)
-                .map(this::convertToResponse)
+                .map(this::myClubResponse)
+                .collect(Collectors.toList());
+    }
+
+    // UUID를 통해 지원한 동아리 조회
+    public List<MyAplictResponse> getAplictClubByUUID(UUID uuid) {
+        User user = getUserByUUID(uuid);
+        Profile profile = getProfileByUserId(user.getUserId());
+
+        List<Aplict> aplicts = getAplictsByProfileId(profile.getId());
+
+        return aplicts.stream()
+                .map(aplict -> {
+                    Club club = getClubByAplictId(aplict.getId());
+                    AplictStatus aplictStatus = aplict.getAplictStatus(); // 어플릭트의 상태 가져오기
+                    return myAplictResponse(club, aplictStatus);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -100,8 +104,18 @@ public class MypageService {
         return clubRepository.findByClubId(aplict.getClub().getClubId());
     }
 
-    private MyPageResponse convertToResponse(Club club){
-        return MyPageResponse.builder()
+    private MyAplictResponse myAplictResponse(Club club, AplictStatus aplictStatus){
+        return MyAplictResponse.builder()
+                .clubId(club.getClubId())
+                .clubName(club.getClubName())
+                .clubInsta(club.getClubInsta())
+                .katalkID(club.getKatalkID())
+                .leaderName(club.getLeaderName())
+                .aplictStatus(aplictStatus)
+                .mainPhotoPath(club.getMainPhotoPath()).build();
+    }
+    private MyClubResponse myClubResponse(Club club){
+        return MyClubResponse.builder()
                 .clubId(club.getClubId())
                 .clubName(club.getClubName())
                 .clubInsta(club.getClubInsta())

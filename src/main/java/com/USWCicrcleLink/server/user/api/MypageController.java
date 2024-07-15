@@ -1,7 +1,8 @@
 package com.USWCicrcleLink.server.user.api;
 
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import com.USWCicrcleLink.server.user.dto.MyPageResponse;
+import com.USWCicrcleLink.server.user.dto.MyAplictResponse;
+import com.USWCicrcleLink.server.user.dto.MyClubResponse;
 import com.USWCicrcleLink.server.user.service.MypageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,14 +22,15 @@ public class MypageController {
 
     //소속된 동아리 조회
     @GetMapping("/myClub")
-    public ApiResponse<List<MyPageResponse>> getMyClubByUUID(@RequestParam UUID uuid){
-        List<MyPageResponse> myClubs = mypageService.getMyClubsByUUID(uuid);
+    public ApiResponse<List<MyClubResponse>> getMyClubByUUID(@RequestParam UUID uuid){
+        List<MyClubResponse> myClubs = mypageService.getMyClubsByUUID(uuid);
         return new ApiResponse<>("소속된 동아리 목록 조회 성공", myClubs);
     }
 
+    //지원한 동아리 조회
     @GetMapping("/aplictClub")
-    public ApiResponse<List<MyPageResponse>> getAplictClubByUUID(@RequestParam UUID uuid){
-        List<MyPageResponse> aplictClubs = mypageService.getAplictClubByUUID(uuid);
+    public ApiResponse<List<MyAplictResponse>> getAplictClubByUUID(@RequestParam UUID uuid){
+        List<MyAplictResponse> aplictClubs = mypageService.getAplictClubByUUID(uuid);
         return new ApiResponse<>("지원한 동아리 목록 조회 성공", aplictClubs);
     }
 
