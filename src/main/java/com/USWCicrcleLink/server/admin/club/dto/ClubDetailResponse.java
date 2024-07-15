@@ -1,11 +1,12 @@
-package com.USWCicrcleLink.server.admin.dto;
+package com.USWCicrcleLink.server.admin.club.dto;
 
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-public class ClubDetailDto {
+public class ClubDetailResponse {
+    private Long clubId;
     private String clubName;
     private String leaderName;
     private String phone;

@@ -1,8 +1,7 @@
-package com.USWCicrcleLink.server.notice.dto;
+package com.USWCicrcleLink.server.admin.notice.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -11,5 +10,5 @@ import java.util.List;
 public class NoticeCreationRequest {
     private String noticeTitle;
     private String noticeContent;
-    private List<MultipartFile> noticePhoto; // 이미지 파일 리스트 추가
+    private List<String> noticePhotos;
 }

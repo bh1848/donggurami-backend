@@ -1,6 +1,6 @@
-package com.USWCicrcleLink.server.notice.repository;
+package com.USWCicrcleLink.server.admin.notice.repository;
 
-import com.USWCicrcleLink.server.notice.domain.Notice;
+import com.USWCicrcleLink.server.admin.notice.domain.Notice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

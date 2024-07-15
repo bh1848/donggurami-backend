@@ -1,5 +1,6 @@
-package com.USWCicrcleLink.server.notice.domain;
+package com.USWCicrcleLink.server.admin.notice.domain;
 
+import com.USWCicrcleLink.server.admin.club.domain.Admin;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,6 +28,7 @@ public class Notice {
     @Column(name = "notice_created_at")
     private LocalDateTime noticeCreatedAt;
 
-    @Column(name = "notice_updated_at")
-    private LocalDateTime noticeUpdatedAt;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", nullable = false)
+    private Admin admin;
 }
