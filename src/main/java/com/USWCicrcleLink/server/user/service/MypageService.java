@@ -56,7 +56,7 @@ public class MypageService {
     public User getUserByUUID(UUID uuid) {
         User user = userRepository.findByUserUUID(uuid);
         if (user == null) {
-            throw new RuntimeException("UUID에 해당하는 유저를 찾을 수 없습니다. " + uuid);
+            throw new IllegalArgumentException("UUID에 해당하는 유저를 찾을 수 없습니다. " + uuid);
         }
         return user;
     }
@@ -65,7 +65,7 @@ public class MypageService {
     private List<ClubMembers> getClubMembersByUserId(Long userId) {
         List<ClubMembers> clubMembers = clubMembersRepository.findByUserUserId(userId);
         if (clubMembers.isEmpty()) {
-            throw new RuntimeException("해당 유저가 소속된 클럽을 찾을 수 없습니다.: " + userId);
+            throw new IllegalArgumentException("해당 유저가 소속된 클럽을 찾을 수 없습니다.: " + userId);
         }
         return clubMembers;
     }
@@ -81,14 +81,14 @@ public class MypageService {
     //유저아이디를 통해 프로필아이디 조회
     private Profile getProfileByUserId(Long userId) {
         return profileRepository.findByUserUserId(userId)
-                .orElseThrow(() -> new RuntimeException("해당 유저의 프로필을 찾을 수 없습니다.: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 프로필을 찾을 수 없습니다.: " + userId));
     }
 
     //프로필아이디를 통해 어플릭트 아이디 조회
     private List<Aplict> getAplictsByProfileId(Long profileId) {
         List<Aplict> aplicts = aplictRepository.findByProfileId(profileId);
         if (aplicts.isEmpty()) {
-            throw new RuntimeException("해당 프로필의 어플리케이션을 찾을 수 없습니다.: " + profileId);
+            throw new IllegalArgumentException("해당 프로필의 어플리케이션을 찾을 수 없습니다.: " + profileId);
         }
         return aplicts;
     }
@@ -96,7 +96,7 @@ public class MypageService {
     // 어플리케이션 ID를 통해 클럽 조회
     private Club getClubByAplictId(Long aplictId) {
         Aplict aplict = aplictRepository.findById(aplictId)
-                .orElseThrow(() -> new RuntimeException("해당 어플리케이션을 찾을 수 없습니다.: " + aplictId));
+                .orElseThrow(() -> new IllegalArgumentException("해당 어플리케이션을 찾을 수 없습니다.: " + aplictId));
         return clubRepository.findByClubId(aplict.getClub().getClubId());
     }
 

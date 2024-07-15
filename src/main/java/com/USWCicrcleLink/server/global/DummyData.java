@@ -102,7 +102,6 @@ public class DummyData {
 
         aplictRepository.save(aplict);
     }
-
     
     //user2, 올어바웃 데이터
     public void initUser2() {
@@ -160,7 +159,6 @@ public class DummyData {
         aplictRepository.save(aplict);
     }
 
-    
     //user3, 굴리세 데이터
     public void initUser3() {
 
