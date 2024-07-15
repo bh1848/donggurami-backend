@@ -2,10 +2,12 @@ package com.USWCicrcleLink.server.admin.notice.service;
 
 import com.USWCicrcleLink.server.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.notice.domain.Notice;
+import com.USWCicrcleLink.server.admin.notice.domain.NoticePhoto;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeCreationRequest;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponseAssembler;
+import com.USWCicrcleLink.server.admin.notice.repository.NoticePhotoRepository;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
 import com.USWCicrcleLink.server.admin.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final NoticeListResponseAssembler noticeListResponseAssembler;
     private final AdminRepository adminRepository;
+    private final NoticePhotoRepository noticePhotoRepository;
 
     //공지사항 전체 리스트 조회
     public List<NoticeListResponse> getAllNotices() {
@@ -45,10 +48,15 @@ public class NoticeService {
 
 
     //공지사항 내용 조회
-    public NoticeDetailResponse getNoticeById(Long id) {
-        return noticeRepository.findById(id)
-                .map(this::convertToDetailResponse)
-                .orElse(null);
+    public NoticeDetailResponse getNoticeById(Long noticeId) {
+        Notice notice = noticeRepository.findById(noticeId).orElse(null);
+        if (notice != null) {
+            List<String> photoPaths = noticePhotoRepository.findByNotice(notice).stream()
+                    .map(NoticePhoto::getPhotoPath)
+                    .collect(Collectors.toList());
+            return convertToDetailResponse(notice, photoPaths);
+        }
+        return null;
     }
 
     //공지사항 생성
@@ -59,18 +67,30 @@ public class NoticeService {
         Notice notice = Notice.builder()
                 .noticeTitle(request.getNoticeTitle())
                 .noticeContent(request.getNoticeContent())
-                .noticePhotos(request.getNoticePhotos())
                 .noticeCreatedAt(LocalDateTime.now())
                 .admin(admin)
                 .build();
+
         Notice savedNotice = noticeRepository.save(notice);
-        return convertToDetailResponse(savedNotice);
+
+        List<NoticePhoto> photos = request.getNoticePhotos().stream()
+                .map(photoPath -> NoticePhoto.builder()
+                        .photoPath(photoPath)
+                        .notice(savedNotice)
+                        .build())
+                .collect(Collectors.toList());
+
+        noticePhotoRepository.saveAll(photos);
+
+        return convertToDetailResponse(savedNotice, photos.stream()
+                .map(NoticePhoto::getPhotoPath)
+                .collect(Collectors.toList()));
     }
 
 
     //공지사항 수정
-    public NoticeDetailResponse updateNotice(Long id, NoticeCreationRequest request) {
-        Notice notice = noticeRepository.findById(id).orElse(null);
+    public NoticeDetailResponse updateNotice(Long noticeId, NoticeCreationRequest request) {
+        Notice notice = noticeRepository.findById(noticeId).orElse(null);
         if (notice != null) {
             if (request.getNoticeTitle() != null) {
                 notice.setNoticeTitle(request.getNoticeTitle());
@@ -79,25 +99,43 @@ public class NoticeService {
                 notice.setNoticeContent(request.getNoticeContent());
             }
             if (request.getNoticePhotos() != null) {
-                notice.setNoticePhotos(request.getNoticePhotos());
+                //기존 사진 삭제 후 새 사진 저장
+                noticePhotoRepository.deleteByNotice(notice);
+
+                List<NoticePhoto> photos = request.getNoticePhotos().stream()
+                        .map(photoPath -> NoticePhoto.builder()
+                                .photoPath(photoPath)
+                                .notice(notice)
+                                .build())
+                        .collect(Collectors.toList());
+
+                noticePhotoRepository.saveAll(photos);
             }
             Notice updatedNotice = noticeRepository.save(notice);
-            return convertToDetailResponse(updatedNotice);
+            List<String> photoPaths = noticePhotoRepository.findByNotice(updatedNotice).stream()
+                    .map(NoticePhoto::getPhotoPath)
+                    .collect(Collectors.toList());
+            return convertToDetailResponse(updatedNotice, photoPaths);
         }
         return null;
     }
 
     //공지사항 삭제
-    public void deleteNotice(Long id) {
-        noticeRepository.deleteById(id);
+    public void deleteNotice(Long noticeId) {
+        Notice notice = noticeRepository.findById(noticeId).orElse(null);
+        if (notice != null) {
+            noticePhotoRepository.deleteByNotice(notice);
+            noticeRepository.delete(notice);
+        }
     }
     
     //공지사항 상세 내용
-    private NoticeDetailResponse convertToDetailResponse(Notice notice) {
+    private NoticeDetailResponse convertToDetailResponse(Notice notice, List<String> photoPaths) {
         return NoticeDetailResponse.builder()
                 .noticeId(notice.getNoticeId())
                 .noticeTitle(notice.getNoticeTitle())
                 .noticeContent(notice.getNoticeContent())
+                .noticePhotos(photoPaths)
                 .noticeCreatedAt(notice.getNoticeCreatedAt())
                 .build();
     }
