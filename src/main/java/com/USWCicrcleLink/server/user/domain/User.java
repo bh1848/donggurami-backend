@@ -20,6 +20,7 @@ import java.util.UUID;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
     @Column(name = "uuid", unique = true, nullable = false)
@@ -35,9 +36,6 @@ public class User {
     private LocalDateTime userCreatedAt;
 
     private LocalDateTime userUpdatedAt;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Profile profile;
 
 }
 
