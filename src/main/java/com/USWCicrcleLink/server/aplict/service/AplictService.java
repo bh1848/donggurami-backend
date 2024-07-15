@@ -5,6 +5,8 @@ import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.dto.AplictRequest;
 import com.USWCicrcleLink.server.aplict.dto.AplictResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
+import com.USWCicrcleLink.server.club.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -24,6 +27,21 @@ public class AplictService {
     private final AplictRepository aplictRepository;
     private final ClubRepository clubRepository;
     private final ProfileRepository profileRepository;
+    private final ClubIntroRepository clubIntroRepository;
+
+    //지원서 작성하기(구글 폼 이동)
+    @Transactional(readOnly = true)
+    public String getGoogleFormUrlByClubId(Long clubId) {
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId).orElseThrow(() ->
+                new NoSuchElementException("해당 동아리에 대한 소개를 찾을 수 없습니다.")
+        );
+
+        String googleFormUrl = clubIntro.getGoogleFormUrl();
+        if (googleFormUrl == null || googleFormUrl.isEmpty()) {
+            throw new NoSuchElementException("구글 폼 URL을 찾을 수 없습니다.");
+        }
+        return googleFormUrl;
+    }
 
     //동아리 지원서 제출
     public AplictResponse submitAplict(UUID userUUID, Long clubId, AplictRequest request) {
