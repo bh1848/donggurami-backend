@@ -40,24 +40,4 @@ public class UserController {
         return new ResponseEntity<>(userTemp, HttpStatus.OK);
 
     }
-
-    // 임시 회원 데이터 생성
-    @PostConstruct
-    public void initializeDummyData() {
-        createAndSignUpMember("account", "password", "suwon", "12343", "art", "email-1");
-        createAndSignUpMember("admin", "1234", "suwonsuwon", "34523", "math", "email-2");
-    }
-
-    private void createAndSignUpMember(String account, String password, String userName, String studentNumber, String major, String email) {
-
-        SignUpRequest request = new SignUpRequest();
-        request.setAccount(account);
-        request.setPassword(password);
-        request.setUserName(userName);
-        request.setStudentNumber(studentNumber);
-        request.setMajor(major);
-        request.setEmail(email);
-
-        userService.signUpUserTemp(request);
-    }
 }
