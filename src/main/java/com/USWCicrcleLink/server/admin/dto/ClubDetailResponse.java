@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class ClubDetailDto {
+public class ClubDetailResponse {
     private String clubName;
     private String leaderName;
     private String phone;

@@ -1,13 +1,17 @@
-package com.USWCicrcleLink.server.notice.service;
+package com.USWCicrcleLink.server.admin.notice.service;
 
-import com.USWCicrcleLink.server.notice.domain.Notice;
-import com.USWCicrcleLink.server.notice.dto.NoticeCreationRequest;
-import com.USWCicrcleLink.server.notice.dto.NoticeResponse;
-import com.USWCicrcleLink.server.notice.repository.NoticeRepository;
+import com.USWCicrcleLink.server.admin.notice.domain.Notice;
+import com.USWCicrcleLink.server.admin.notice.dto.NoticeCreationRequest;
+import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
+import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
+import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponseAssembler;
+import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,28 +25,31 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class NoticeService {
     private final NoticeRepository noticeRepository;
+    private final NoticeListResponseAssembler noticeListResponseAssembler;
 
-    //공지사항 목록 조회
-    public List<NoticeResponse> getAllNotices() {
+    //공지사항 전체 리스트 조회
+    public List<NoticeDetailResponse> getAllNotices() {
         return noticeRepository.findAll().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
-    //공지사항 페이징 목록 조회
-    public Page<NoticeResponse> getNotices(Pageable pageable) {
-        return noticeRepository.findAll(pageable).map(this::convertToResponse);
+    //공지사항 리스트 조회(페이징)
+    public PagedModel<NoticeListResponse> getNotices(Pageable pageable, PagedResourcesAssembler<Notice> pagedResourcesAssembler) {
+        Page<Notice> noticePage = noticeRepository.findAll(pageable);
+        return pagedResourcesAssembler.toModel(noticePage, noticeListResponseAssembler);
     }
 
+
     //공지사항 내용 조회
-    public NoticeResponse getNoticeById(Long id) {
+    public NoticeDetailResponse getNoticeById(Long id) {
         return noticeRepository.findById(id)
                 .map(this::convertToResponse)
                 .orElse(null);
     }
 
     //공지사항 생성
-    public NoticeResponse createNotice(NoticeCreationRequest request) {
+    public NoticeDetailResponse createNotice(NoticeCreationRequest request) {
         //이미지 로직
         Notice notice = Notice.builder()
                 .noticeTitle(request.getNoticeTitle())
@@ -54,12 +61,11 @@ public class NoticeService {
     }
 
     //공지사항 수정
-    public NoticeResponse updateNotice(Long id, NoticeCreationRequest request) {
+    public NoticeDetailResponse updateNotice(Long id, NoticeCreationRequest request) {
         Notice notice = noticeRepository.findById(id).orElse(null);
         if (notice != null) {
             notice.setNoticeTitle(request.getNoticeTitle());
             notice.setNoticeContent(request.getNoticeContent());
-            notice.setNoticeUpdatedAt(LocalDateTime.now());
             Notice updatedNotice = noticeRepository.save(notice);
             return convertToResponse(updatedNotice);
         }
@@ -71,13 +77,12 @@ public class NoticeService {
         noticeRepository.deleteById(id);
     }
 
-    private NoticeResponse convertToResponse(Notice notice) {
-        return NoticeResponse.builder()
+    private NoticeDetailResponse convertToResponse(Notice notice) {
+        return NoticeDetailResponse.builder()
                 .noticeId(notice.getNoticeId())
                 .noticeTitle(notice.getNoticeTitle())
                 .noticeContent(notice.getNoticeContent())
                 .noticeCreatedAt(notice.getNoticeCreatedAt())
-                .noticeUpdatedAt(notice.getNoticeUpdatedAt())
                 .build();
     }
 }

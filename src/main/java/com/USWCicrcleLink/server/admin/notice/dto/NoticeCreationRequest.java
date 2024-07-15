@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.notice.dto;
+package com.USWCicrcleLink.server.admin.notice.dto;
 
 import lombok.Getter;
 import lombok.Setter;
