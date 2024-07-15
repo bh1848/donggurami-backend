@@ -15,10 +15,6 @@ import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +56,7 @@ public class AdminService {
         ClubIntro clubIntro = clubIntroRepository.findByClub(club).orElse(null);
 
         return ClubDetailResponse.builder()
+                .clubId(club.getClubId())
                 .clubName(club.getClubName())
                 .leaderName(club.getLeaderName())
                 .phone(club.getKatalkID())
@@ -108,10 +105,11 @@ public class AdminService {
     }
 
     //동아리 삭제
-    public void deleteClub(Long id, String adminPassword) {
+    public void deleteClub(Long clubId, String adminPw) {
         Admin admin = adminRepository.findByAdminAccount("admin").orElse(null);
-        if (admin != null && admin.getAdminPw().equals(adminPassword)) {
-            clubRepository.deleteById(id);
+        if (admin != null && admin.getAdminPw().equals(adminPw)) {
+            clubIntroRepository.deleteByClubClubId(clubId); //참조된 ClubIntro 데이터 삭제
+            clubRepository.deleteById(clubId); //Club 데이터 삭제
         } else {
             throw new RuntimeException("관리자 비밀번호를 확인해주세요");
         }

@@ -3,9 +3,9 @@ package com.USWCicrcleLink.server.admin.notice.dto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.hateoas.RepresentationModel;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,5 +14,6 @@ public class NoticeDetailResponse{
     private Long noticeId;
     private String noticeTitle;
     private String noticeContent;
+    private List<String> noticePhotos;
     private LocalDateTime noticeCreatedAt;
 }

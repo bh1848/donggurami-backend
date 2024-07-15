@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -24,6 +25,11 @@ public class Notice {
 
     @Column(name = "notice_content")
     private String noticeContent;
+
+    @ElementCollection
+    @CollectionTable(name = "notice_photos", joinColumns = @JoinColumn(name = "notice_id"))
+    @Column(name = "photo_path")
+    private List<String> noticePhotos;
 
     @Column(name = "notice_created_at")
     private LocalDateTime noticeCreatedAt;

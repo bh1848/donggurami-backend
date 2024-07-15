@@ -1,11 +1,13 @@
 package com.USWCicrcleLink.server.admin.notice.service;
 
+import com.USWCicrcleLink.server.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.notice.domain.Notice;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeCreationRequest;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponseAssembler;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
+import com.USWCicrcleLink.server.admin.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,11 +28,12 @@ import java.util.stream.Collectors;
 public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final NoticeListResponseAssembler noticeListResponseAssembler;
+    private final AdminRepository adminRepository;
 
     //공지사항 전체 리스트 조회
-    public List<NoticeDetailResponse> getAllNotices() {
+    public List<NoticeListResponse> getAllNotices() {
         return noticeRepository.findAll().stream()
-                .map(this::convertToResponse)
+                .map(this::convertToListResponse)
                 .collect(Collectors.toList());
     }
 
@@ -44,30 +47,42 @@ public class NoticeService {
     //공지사항 내용 조회
     public NoticeDetailResponse getNoticeById(Long id) {
         return noticeRepository.findById(id)
-                .map(this::convertToResponse)
+                .map(this::convertToDetailResponse)
                 .orElse(null);
     }
 
     //공지사항 생성
-    public NoticeDetailResponse createNotice(NoticeCreationRequest request) {
-        //이미지 로직
+    public NoticeDetailResponse createNotice(NoticeCreationRequest request, Long adminId) {
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("관리자를 찾을 수 없습니다."));
+
         Notice notice = Notice.builder()
                 .noticeTitle(request.getNoticeTitle())
                 .noticeContent(request.getNoticeContent())
+                .noticePhotos(request.getNoticePhotos())
                 .noticeCreatedAt(LocalDateTime.now())
+                .admin(admin)
                 .build();
         Notice savedNotice = noticeRepository.save(notice);
-        return convertToResponse(savedNotice);
+        return convertToDetailResponse(savedNotice);
     }
+
 
     //공지사항 수정
     public NoticeDetailResponse updateNotice(Long id, NoticeCreationRequest request) {
         Notice notice = noticeRepository.findById(id).orElse(null);
         if (notice != null) {
-            notice.setNoticeTitle(request.getNoticeTitle());
-            notice.setNoticeContent(request.getNoticeContent());
+            if (request.getNoticeTitle() != null) {
+                notice.setNoticeTitle(request.getNoticeTitle());
+            }
+            if (request.getNoticeContent() != null) {
+                notice.setNoticeContent(request.getNoticeContent());
+            }
+            if (request.getNoticePhotos() != null) {
+                notice.setNoticePhotos(request.getNoticePhotos());
+            }
             Notice updatedNotice = noticeRepository.save(notice);
-            return convertToResponse(updatedNotice);
+            return convertToDetailResponse(updatedNotice);
         }
         return null;
     }
@@ -76,12 +91,23 @@ public class NoticeService {
     public void deleteNotice(Long id) {
         noticeRepository.deleteById(id);
     }
-
-    private NoticeDetailResponse convertToResponse(Notice notice) {
+    
+    //공지사항 상세 내용
+    private NoticeDetailResponse convertToDetailResponse(Notice notice) {
         return NoticeDetailResponse.builder()
                 .noticeId(notice.getNoticeId())
                 .noticeTitle(notice.getNoticeTitle())
                 .noticeContent(notice.getNoticeContent())
+                .noticeCreatedAt(notice.getNoticeCreatedAt())
+                .build();
+    }
+    
+    //공지사항 리스트
+    private NoticeListResponse convertToListResponse(Notice notice) {
+        return NoticeListResponse.builder()
+                .noticeId(notice.getNoticeId())
+                .noticeTitle(notice.getNoticeTitle())
+                .adminName(notice.getAdmin().getAdminName())
                 .noticeCreatedAt(notice.getNoticeCreatedAt())
                 .build();
     }

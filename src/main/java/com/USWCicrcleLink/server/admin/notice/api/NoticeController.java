@@ -23,9 +23,9 @@ public class NoticeController {
 
     //공지사항 전체 리스트 조회
     @GetMapping("/notices")
-    public ResponseEntity<ApiResponse<List<NoticeDetailResponse>>> getAllNotices() {
-        List<NoticeDetailResponse> notices = noticeService.getAllNotices();
-        ApiResponse<List<NoticeDetailResponse>> response = new ApiResponse<>("공지사항 리스트 조회 성공", notices);
+    public ResponseEntity<ApiResponse<List<NoticeListResponse>>> getAllNotices() {
+        List<NoticeListResponse> notices = noticeService.getAllNotices();
+        ApiResponse<List<NoticeListResponse>> response = new ApiResponse<>("공지사항 리스트 조회 성공", notices);
         return ResponseEntity.ok(response);
     }
 
@@ -46,8 +46,8 @@ public class NoticeController {
 
     //공지사항 생성
     @PostMapping("/notice/create")
-    public ResponseEntity<ApiResponse<NoticeDetailResponse>> createNotice(@RequestBody NoticeCreationRequest request) {
-        NoticeDetailResponse createdNotice = noticeService.createNotice(request);
+    public ResponseEntity<ApiResponse<NoticeDetailResponse>> createNotice(@RequestHeader("admin_id") Long adminId, @RequestBody NoticeCreationRequest request) {
+        NoticeDetailResponse createdNotice = noticeService.createNotice(request, adminId);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 생성 성공", createdNotice);
         return ResponseEntity.ok(response);
     }

@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.admin.api;
 
+import com.USWCicrcleLink.server.admin.dto.AdminPwRequest;
 import com.USWCicrcleLink.server.admin.dto.ClubCreationRequest;
 import com.USWCicrcleLink.server.admin.dto.ClubDetailResponse;
 import com.USWCicrcleLink.server.admin.dto.ClubListResponse;
@@ -28,7 +29,7 @@ public class AdminController {
 
     //동아리 상세 페이지 조회
     @GetMapping("/clubs/{clubId}")
-    public ResponseEntity<ApiResponse<ClubDetailResponse>> getClubById(@PathVariable Long clubId) {
+    public ResponseEntity<ApiResponse<ClubDetailResponse>> getClubById(@PathVariable("clubId") Long clubId) {
         ClubDetailResponse clubDetailResponse = adminService.getClubById(clubId);
         ApiResponse<ClubDetailResponse> response = new ApiResponse<>("동아리 상세 조회 성공", clubDetailResponse);
         return ResponseEntity.ok(response);
@@ -44,8 +45,8 @@ public class AdminController {
 
     //동아리 삭제
     @DeleteMapping("/club/delete/{clubId}")
-    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable Long clubId, @RequestBody String adminPassword) {
-        adminService.deleteClub(clubId, adminPassword);
+    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubId") Long clubId, @RequestBody AdminPwRequest request) {
+        adminService.deleteClub(clubId, request.getAdminPw());
         ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공", clubId);
         return ResponseEntity.ok(response);
     }
