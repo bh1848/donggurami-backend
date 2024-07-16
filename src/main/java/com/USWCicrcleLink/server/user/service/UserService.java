@@ -111,7 +111,7 @@ public class UserService {
         userRepository.save(user);
         profileRepository.save(profile);
         // 임시 회원 정보 삭제
-        emailService.deleteTokenByUserTempId(userTemp.getUserTempId());
+        emailService.deleteToken(userTemp.getUserTempId());
 
         return user;
     }
