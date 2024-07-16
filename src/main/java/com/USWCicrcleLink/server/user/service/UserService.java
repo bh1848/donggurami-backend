@@ -50,19 +50,18 @@ public class UserService {
     // 임시 회원 가입
     public UserTemp signUpUserTemp(SignUpRequest request){
 
-        UserTemp userTemp = request.toEntity();
-        userTempRepository.save(userTemp);
+        userTempRepository.save(request.toEntity());
 
-        return userTempRepository.findByTempEmail(userTemp.getTempEmail());
+        return userTempRepository.findByTempEmail(request.getEmail());
     }
 
 
     // 이메일 전송
-    public UUID sendVerifyEmail(UserTemp userTemp) throws MessagingException {
+    public UUID sendAuthEmail(UserTemp userTemp) throws MessagingException {
         // 이메일 토큰 생성
         EmailToken emailToken = emailService.createmailToken(userTemp);
         // 이메일 전송
-        MimeMessage message = emailService.createVerifyLink(userTemp, emailToken);
+        MimeMessage message = emailService.createAuthLink(userTemp, emailToken);
         emailService.sendEmail(message);
 
         return emailToken.getEmailTokenId();
@@ -70,14 +69,14 @@ public class UserService {
 
     // 인증 메일 검증
     @SuppressWarnings("all")
-    public UserTemp confirmEmail(UUID emailTokenId){
+    public UserTemp checkEmailToken(UUID emailTokenId){
 
         // 토큰 검증
-        EmailToken emailToken = emailService.verifyEmailToken(emailTokenId);
-        Optional<UserTemp> findUserTemp = userTempRepository
-                .findById(emailToken.getUserTempId());
+        EmailToken emailToken = emailService.checkEmailToken(emailTokenId);
 
         // 임시 회원의 이메일 인증 완료
+        Optional<UserTemp> findUserTemp = userTempRepository
+                .findById(emailToken.getUserTempId());
         findUserTemp.ifPresent(UserTemp::emailVerifiedSuccess);
 
         return findUserTemp.get();
@@ -94,8 +93,6 @@ public class UserService {
                 .userAccount(userTemp.getTempAccount())
                 .userPw(userTemp.getTempPw())
                 .email(userTemp.getTempEmail())
-                .userCreatedAt(LocalDateTime.now())
-                .userUpdatedAt(LocalDateTime.now())
                 .build();
 
         //Profile 객체 생성 및 저장
@@ -110,15 +107,11 @@ public class UserService {
                 .build();
 
 
-        // 회원 정보 저장
+        // 회원 가입
         userRepository.save(user);
         profileRepository.save(profile);
-
         // 임시 회원 정보 삭제
         emailService.deleteTokenByUserTempId(userTemp.getUserTempId());
-        userTempRepository.delete(userTemp);
-
-        log.info("회원가입 완료: {}", user.getUserAccount());
 
         return user;
     }
