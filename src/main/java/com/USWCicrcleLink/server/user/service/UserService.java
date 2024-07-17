@@ -18,12 +18,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @Slf4j
-@Transactional
 @RequiredArgsConstructor
 public class UserService {
 
@@ -47,40 +47,35 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // 임시 회원 가입
     public UserTemp signUpUserTemp(SignUpRequest request){
 
         userTempRepository.save(request.toEntity());
-
         return userTempRepository.findByTempEmail(request.getEmail());
     }
 
+    @Transactional
+    public UUID sendEmail(UserTemp userTemp) throws MessagingException {
 
-    // 이메일 전송
-    public UUID sendAuthEmail(UserTemp userTemp) throws MessagingException {
-        // 이메일 토큰 생성
         EmailToken emailToken = emailService.createmailToken(userTemp);
-        // 이메일 전송
         MimeMessage message = emailService.createAuthLink(userTemp, emailToken);
         emailService.sendEmail(message);
 
         return emailToken.getEmailTokenId();
     }
 
-    // 인증 메일 검증
+
     @SuppressWarnings("all")
     public UserTemp checkEmailToken(UUID emailTokenId){
 
         // 토큰 검증
-        EmailToken emailToken = emailService.checkEmailToken(emailTokenId);
+        emailService.checkEmailToken(emailTokenId);
 
         // 임시 회원의 이메일 인증 완료
+        EmailToken token = emailService.getTokenBy(emailTokenId);
         Optional<UserTemp> findUserTemp = userTempRepository
-                .findById(emailToken.getUserTempId());
-        findUserTemp.ifPresent(UserTemp::emailVerifiedSuccess);
+                .findById(token.getUserTempId());
 
         return findUserTemp.get();
-
     }
 
     // 회원가입
@@ -93,6 +88,8 @@ public class UserService {
                 .userAccount(userTemp.getTempAccount())
                 .userPw(userTemp.getTempPw())
                 .email(userTemp.getTempEmail())
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
                 .build();
 
         //Profile 객체 생성 및 저장

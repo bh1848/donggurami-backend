@@ -33,9 +33,12 @@ public class EmailToken {
     @JoinColumn(name="USERTEMP_ID",unique = true)
     private UserTemp userTemp;
 
-    private LocalDateTime certificationTime; // 이메일 인증 시간
+    // 이메일 토큰 만료시간
+    private LocalDateTime certificationTime;
 
-    private boolean isEmailTokenExpired; // 이메일 토큰 만료 여부
+
+    // 이메일 토큰 만료 여부
+    private boolean isEmailTokenExpired;
 
 
     // 이메일 인증 토큰 생성
@@ -48,18 +51,17 @@ public class EmailToken {
                 .build();
     }
 
-    // 토큰 사용으로 인한 만료
-    public void useToken(){
-        this.isEmailTokenExpired=true;
+    public void isExpire(){
+        isEmailTokenExpired=true;
     }
+
     // userTempId 조회
     public Long getUserTempId(){
         return userTemp.getUserTempId();
     }
 
-
-
-
-
-
+    // 토큰 만료 시간 검증
+    public boolean isValid() {
+        return !LocalDateTime.now().isAfter(certificationTime);
+    }
 }
