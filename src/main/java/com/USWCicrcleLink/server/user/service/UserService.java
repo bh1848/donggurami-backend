@@ -18,8 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -64,18 +62,14 @@ public class UserService {
     }
 
 
-    @SuppressWarnings("all")
     public UserTemp checkEmailToken(UUID emailTokenId){
 
         // 토큰 검증
         emailService.checkEmailToken(emailTokenId);
 
-        // 임시 회원의 이메일 인증 완료
         EmailToken token = emailService.getTokenBy(emailTokenId);
-        Optional<UserTemp> findUserTemp = userTempRepository
-                .findById(token.getUserTempId());
 
-        return findUserTemp.get();
+        return token.getUserTemp();
     }
 
     // 회원가입
@@ -108,7 +102,7 @@ public class UserService {
         userRepository.save(user);
         profileRepository.save(profile);
         // 임시 회원 정보 삭제
-        emailService.deleteToken(userTemp.getUserTempId());
+        emailService.deleteTokenBy(userTemp);
 
         return user;
     }

@@ -38,7 +38,7 @@ public class UserController {
     public ResponseEntity<ApiResponse> tempSignUp(@Valid @RequestBody SignUpRequest request) throws MessagingException {
 
         UserTemp userTemp = userService.signUpUserTemp(request);
-        UUID emailTokenId = userService.sendVerifyEmail(userTemp);
+        UUID emailTokenId = userService.sendEmail(userTemp);
         ApiResponse response = new ApiResponse("인증 메일 전송 완료",emailTokenId);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -67,9 +67,9 @@ public class UserController {
     }
 
     // 이메일 인증 확인 후 회원가입
-    @GetMapping("/confirm-email")
-    public ResponseEntity<ApiResponse> verifyTempUser(@RequestParam @Valid  UUID emailTokenId){
-        UserTemp userTemp = userService.confirmEmail(emailTokenId);
+    @GetMapping("/verify-email")
+    public ResponseEntity<ApiResponse> verifyEmail(@RequestParam @Valid  UUID emailTokenId){
+        UserTemp userTemp = userService.checkEmailToken(emailTokenId);
         User signUpUser = userService.signUpUser(userTemp);
         ApiResponse response = new ApiResponse( "회원 가입 완료",signUpUser);
 

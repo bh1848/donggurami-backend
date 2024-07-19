@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Table(name = "EMAILTOKEN_TABLE")
 public class EmailToken {
 
-    // 이메일 토큰 만료 시간 5분
+    // 이메일 토큰 만료 시간 1분
     private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 1L;
 
     @Id
@@ -51,7 +52,7 @@ public class EmailToken {
                 .build();
     }
 
-    public void isExpire(){
+    public void useToken(){
         isEmailTokenExpired=true;
     }
 
@@ -64,4 +65,15 @@ public class EmailToken {
     public boolean isValid() {
         return !LocalDateTime.now().isAfter(certificationTime);
     }
+
+    // 토큰이 만료되었는지 확인하고 처리
+    public void validateAndExpire() {
+        if (!isValid()) {
+            useToken();
+            throw new IllegalStateException("이메일 토큰이 만료 되었습니다. 재인증을 요청해주세요");
+        }
+        useToken();
+    }
+
+
 }

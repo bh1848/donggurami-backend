@@ -11,8 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SignUpRequest {
 
-    // 회원 가입 시 작성한 정보를 받아오는 dto
-
+    // 회원 가입 시 작성해야하는 값
 
     @NotBlank(message = "아이디는 필수 입력 값입니다.")
     private String account;
@@ -23,7 +22,8 @@ public class SignUpRequest {
     @NotBlank(message = "이름 필수 입력 값입니다.")
     private String userName;
 
-    private String telephone; // 전화번호는 필수 값 x
+    // 전화번호는 필수 값 x
+    private String telephone;
 
     @NotBlank(message = "학번 필수 입력 값입니다.")
     private String studentNumber;

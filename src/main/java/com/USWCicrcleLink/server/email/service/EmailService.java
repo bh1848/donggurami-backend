@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -59,24 +58,25 @@ public class EmailService {
         return emailTokenRepository.save(emailToken);
     }
 
+
     // 유효한 토큰 검증
-    @SuppressWarnings("all")
     public void checkEmailToken(UUID emailTokenId) {
 
         // emailToken 이 존재하는지 검사
         EmailToken emailToken = emailTokenRepository.findByEmailTokenId(emailTokenId)
                 .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
 
-        // 해당 토큰의 만료 시간 검사
-        if (!emailToken.isValid()) {
-            expired(emailToken);
-            throw new IllegalStateException("이메일 토큰이 만료 되었습니다. 재인증을 요청해주세요 ");
+        // 해당 토큰의 만료 시간 검사 및 처리
+        try {
+            emailToken.validateAndExpire();
+        } finally {
+            emailTokenRepository.save(emailToken); // 상태 변경 후 저장
         }
-        expired(emailToken);
+
     }
 
-    public void deleteToken(Long id){
-        EmailToken findToken = emailTokenRepository.findByUserTemp_UserTempId(id);
+    public void deleteTokenBy(UserTemp userTemp){
+        EmailToken findToken = emailTokenRepository.findByUserTemp(userTemp);
         emailTokenRepository.delete(findToken);
     }
 
@@ -84,20 +84,6 @@ public class EmailService {
         return emailTokenRepository.findByEmailTokenId(id)
                 .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
     }
-
-    // 토큰 만료 처리
-    @Transactional
-    public void expired(EmailToken token){
-        token.isExpire();
-        emailTokenRepository.save(token);
-    }
-
-
-
-
-
-
-
 
 }
 
