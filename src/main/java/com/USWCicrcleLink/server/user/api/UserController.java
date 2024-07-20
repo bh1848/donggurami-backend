@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.UUID;
 
 @RestController
@@ -68,7 +69,7 @@ public class UserController {
 
     // 이메일 인증 확인 후 회원가입
     @GetMapping("/verify-email")
-    public ResponseEntity<ApiResponse> verifyEmail(@RequestParam @Valid  UUID emailTokenId){
+    public ResponseEntity<ApiResponse>verifyEmail(@RequestParam @Valid  UUID emailTokenId){
         UserTemp userTemp = userService.checkEmailToken(emailTokenId);
         User signUpUser = userService.signUpUser(userTemp);
         ApiResponse response = new ApiResponse( "회원 가입 완료",signUpUser);

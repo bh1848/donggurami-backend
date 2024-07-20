@@ -1,6 +1,5 @@
 package com.USWCicrcleLink.server.user.service;
 
-
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.profile.domain.Profile;
@@ -16,9 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
+
 
 @Service
 @Slf4j
@@ -31,9 +30,10 @@ public class UserService {
     private final EmailService emailService;
     private final ProfileRepository profileRepository;
 
-    public void updatePW(UUID uuid, String newPassword, String confirmNewPassword){
+    public void updatePW(UUID uuid, String newPassword, String confirmNewPassword) {
 
         User user = userRepository.findByUserUUID(uuid);
+
         if (user == null) {
             throw new IllegalArgumentException("해당 UUID를 가진 사용자를 찾을 수 없습니다: " + uuid);
         }
@@ -56,17 +56,16 @@ public class UserService {
 
         EmailToken emailToken = emailService.createmailToken(userTemp);
         MimeMessage message = emailService.createAuthLink(userTemp, emailToken);
+
         emailService.sendEmail(message);
 
         return emailToken.getEmailTokenId();
     }
 
-
     public UserTemp checkEmailToken(UUID emailTokenId){
 
         // 토큰 검증
         emailService.checkEmailToken(emailTokenId);
-
         EmailToken token = emailService.getTokenBy(emailTokenId);
 
         return token.getUserTemp();
@@ -103,12 +102,6 @@ public class UserService {
         profileRepository.save(profile);
         // 임시 회원 정보 삭제
         emailService.deleteTokenBy(userTemp);
-
         return user;
     }
-
-
-
-
-
 }

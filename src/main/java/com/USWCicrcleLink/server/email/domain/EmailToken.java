@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -37,7 +36,6 @@ public class EmailToken {
     // 이메일 토큰 만료시간
     private LocalDateTime certificationTime;
 
-
     // 이메일 토큰 만료 여부
     private boolean isEmailTokenExpired;
 
@@ -56,17 +54,12 @@ public class EmailToken {
         isEmailTokenExpired=true;
     }
 
-    // userTempId 조회
-    public Long getUserTempId(){
-        return userTemp.getUserTempId();
-    }
-
     // 토큰 만료 시간 검증
     public boolean isValid() {
         return !LocalDateTime.now().isAfter(certificationTime);
     }
 
-    // 토큰이 만료되었는지 확인하고 처리
+    // 토큰이 만료되었는지 검증 및 처리
     public void validateAndExpire() {
         if (!isValid()) {
             useToken();
@@ -74,6 +67,4 @@ public class EmailToken {
         }
         useToken();
     }
-
-
 }

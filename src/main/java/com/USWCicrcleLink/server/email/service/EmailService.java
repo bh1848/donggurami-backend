@@ -29,7 +29,10 @@ public class EmailService {
     //이메일 인증 경로
     private static final String CONFIRM_EMAIL_PATH = "/user/verify-email";
 
-
+    @Async
+    public void sendEmail(MimeMessage mimeMessage) {
+        javaMailSender.send(mimeMessage);
+    }
 
     // 인증 링크 생성
     public MimeMessage createAuthLink(UserTemp userTemp,EmailToken token) throws MessagingException {
@@ -46,33 +49,22 @@ public class EmailService {
 
         return message;
     }
-
-    @Async
-    public void sendEmail(MimeMessage mimeMessage) {
-        javaMailSender.send(mimeMessage);
-    }
-
     @Transactional
     public  EmailToken createmailToken(UserTemp userTemp) {
         EmailToken emailToken = EmailToken.createEmailToken(userTemp);
         return emailTokenRepository.save(emailToken);
     }
 
-
     // 유효한 토큰 검증
     public void checkEmailToken(UUID emailTokenId) {
 
-        // emailToken 이 존재하는지 검사
         EmailToken emailToken = emailTokenRepository.findByEmailTokenId(emailTokenId)
                 .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
-
-        // 해당 토큰의 만료 시간 검사 및 처리
         try {
             emailToken.validateAndExpire();
         } finally {
-            emailTokenRepository.save(emailToken); // 상태 변경 후 저장
+            emailTokenRepository.save(emailToken);
         }
-
     }
 
     public void deleteTokenBy(UserTemp userTemp){
@@ -80,8 +72,8 @@ public class EmailService {
         emailTokenRepository.delete(findToken);
     }
 
-    public EmailToken getTokenBy(UUID id){
-        return emailTokenRepository.findByEmailTokenId(id)
+    public EmailToken getTokenBy(UUID emailTokenId){
+        return emailTokenRepository.findByEmailTokenId(emailTokenId)
                 .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
     }
 
