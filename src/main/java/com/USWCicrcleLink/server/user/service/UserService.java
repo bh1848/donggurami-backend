@@ -13,6 +13,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -103,5 +104,12 @@ public class UserService {
         // 임시 회원 정보 삭제
         emailService.deleteTokenBy(userTemp);
         return user;
+    }
+
+    public void checkAccountDuplicate(String account)  {
+        Boolean accountExists = userRepository.existsByUserAccount(account);
+        if(accountExists){
+            throw new IllegalStateException("중복된 ID 입니다. 새로운 ID를 입력해주세요");
+        }
     }
 }

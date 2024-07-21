@@ -12,6 +12,7 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -77,6 +78,12 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    // 회원가입 시의 계정 중복 체크
+    @GetMapping("/check-account-duplicate")
+        public ResponseEntity<ApiResponse>checkAccountDuplicate(@RequestParam @Valid  String account) {
+            userService.checkAccountDuplicate(account);
+            return ResponseEntity.ok(new ApiResponse("사용 가능한 ID 입니다."));
+        }
 
 
 
