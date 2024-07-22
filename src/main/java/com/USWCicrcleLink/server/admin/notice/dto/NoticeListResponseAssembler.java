@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;
 
+/*
+    페이징 처리할때 필요
+ */
 @Component
 @RequiredArgsConstructor
 public class NoticeListResponseAssembler implements RepresentationModelAssembler<Notice, NoticeListResponse> {

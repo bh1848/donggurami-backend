@@ -1,14 +1,13 @@
 package com.USWCicrcleLink.server.admin.notice.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.hateoas.RepresentationModel;
 
 import java.time.LocalDateTime;
 @Builder
 @Getter
-@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class NoticeListResponse extends RepresentationModel<NoticeListResponse> {
     private Long noticeId;
     private String noticeTitle;

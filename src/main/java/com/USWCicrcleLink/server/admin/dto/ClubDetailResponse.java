@@ -1,9 +1,13 @@
 package com.USWCicrcleLink.server.admin.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class ClubDetailResponse {
     private Long clubId;

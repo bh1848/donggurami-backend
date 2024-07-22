@@ -1,14 +1,13 @@
 package com.USWCicrcleLink.server.admin.notice.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class NoticeDetailResponse{
     private Long noticeId;

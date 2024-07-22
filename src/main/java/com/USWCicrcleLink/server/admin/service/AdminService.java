@@ -3,9 +3,11 @@ package com.USWCicrcleLink.server.admin.service;
 import com.USWCicrcleLink.server.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.dto.*;
 import com.USWCicrcleLink.server.admin.repository.AdminRepository;
+import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.dto.ClubMembersLeaderCount;
 import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
@@ -30,6 +32,7 @@ public class AdminService {
     private final ClubIntroRepository clubIntroRepository;
     private final LeaderRepository leaderRepository;
     private final ClubMembersRepository clubMembersRepository;
+    private final AplictRepository aplictRepository;
 
     //관리자 로그인
     public void adminLogin(AdminLoginRequest request) {
@@ -40,23 +43,29 @@ public class AdminService {
     }
 
     //동아리 전체 목록 조회
+    @Transactional(readOnly = true)
     public List<ClubListResponse> getAllClubs() {
-        return clubRepository.findAll().stream()
+        List<ClubMembersLeaderCount> clubCounts = clubRepository.findAllWithMemberAndLeaderCount();
+        return clubCounts.stream()
                 .map(this::toClubListResponse)
                 .collect(Collectors.toList());
     }
 
-    private ClubListResponse toClubListResponse(Club club) {
+    private ClubListResponse toClubListResponse(ClubMembersLeaderCount clubMembersLeaderCount) {
+        Club club = clubRepository.findById(clubMembersLeaderCount.getClubId()).orElseThrow(() -> new RuntimeException("해당 동아리를 찾을 수 없습니다."));
+
         return ClubListResponse.builder()
                 .clubId(club.getClubId())
                 .department(club.getDepartment())
                 .clubName(club.getClubName())
                 .leaderName(club.getLeaderName())
-                .numberOfClubMembers(clubMembersRepository.countByClub(club))
+                .numberOfClubMembers(clubMembersLeaderCount.getMemberCount() + clubMembersLeaderCount.getLeaderCount())  //리더 수를 멤버 수에 포함
                 .build();
     }
 
+
     //동아리 상세 페이지 조회
+    @Transactional(readOnly = true)
     public ClubDetailResponse getClubById(Long clubId) {
         Club club = clubRepository.findById(clubId).orElseThrow(() -> new RuntimeException("해당 동아리를 찾을 수 없습니다."));
         ClubIntro clubIntro = clubIntroRepository.findByClub(club).orElse(null);
@@ -74,8 +83,8 @@ public class AdminService {
     }
 
     //동아리 생성
-    public void createClub(ClubCreationRequest request) {
-        Admin admin = adminRepository.findByAdminAccount("admin").orElse(null);
+    public void createClub(Long adminId, ClubCreationRequest request) {
+        Admin admin = adminRepository.findById(adminId).orElseThrow(() -> new RuntimeException("관리자가 없습니다."));
         if (admin != null && admin.getAdminPw().equals(request.getAdminPw())) {
             if (!request.getLeaderPw().equals(request.getLeaderPwConfirm())) {
                 throw new RuntimeException("동아리 회장 비밀번호가 일치하지 않습니다.");
@@ -111,10 +120,15 @@ public class AdminService {
     }
 
     //동아리 삭제
-    public void deleteClub(Long clubId, String adminPw) {
-        Admin admin = adminRepository.findByAdminAccount("admin").orElse(null);
+    public void deleteClub(Long adminId, Long clubId, String adminPw) {
+        Admin admin = adminRepository.findById(adminId).orElseThrow(() -> new RuntimeException("관리자가 없습니다."));
         if (admin != null && admin.getAdminPw().equals(adminPw)) {
-            clubIntroRepository.deleteByClubClubId(clubId); //참조된 ClubIntro 데이터 삭제
+            //종속된 엔티티를 먼저 삭제
+            aplictRepository.deleteByClubClubId(clubId); //Aplict 데이터 삭제
+            clubIntroRepository.deleteByClubClubId(clubId); //ClubIntro 데이터 삭제
+            clubMembersRepository.deleteByClubClubId(clubId); //ClubMembers 데이터 삭제
+            leaderRepository.deleteByClubClubId(clubId); //Leader 데이터 삭제
+
             clubRepository.deleteById(clubId); //Club 데이터 삭제
         } else {
             throw new RuntimeException("관리자 비밀번호를 확인해주세요");

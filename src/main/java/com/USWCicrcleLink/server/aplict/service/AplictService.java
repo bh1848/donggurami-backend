@@ -5,6 +5,7 @@ import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.dto.AplictRequest;
 import com.USWCicrcleLink.server.aplict.dto.AplictResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
+import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
@@ -45,13 +46,15 @@ public class AplictService {
 
     //동아리 지원서 제출
     public AplictResponse submitAplict(UUID userUUID, Long clubId, AplictRequest request) {
-        //userUUID로 Profile 조회
         Profile profile = profileRepository.findByUser_UserUUID(userUUID)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다."));
+
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new NoSuchElementException("동아리를 찾을 수 없습니다."));
 
         Aplict aplict = Aplict.builder()
                 .profile(profile)
-                .club(clubRepository.findById(clubId).orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다.")))
+                .club(club)
                 .aplictGoogleFormUrl(request.getAplictGoogleFormUrl())
                 .submittedAt(LocalDateTime.now())
                 .aplictStatus(AplictStatus.WAIT)

@@ -2,11 +2,14 @@ package com.USWCicrcleLink.server.club.dto;
 
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ClubIntroResponse {
     private Long clubIntroId;
     private Long clubId;

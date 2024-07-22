@@ -34,6 +34,7 @@ public class NoticeService {
     private final NoticePhotoRepository noticePhotoRepository;
 
     //공지사항 전체 리스트 조회
+    @Transactional(readOnly = true)
     public List<NoticeListResponse> getAllNotices() {
         return noticeRepository.findAll().stream()
                 .map(this::convertToListResponse)
@@ -41,6 +42,7 @@ public class NoticeService {
     }
 
     //공지사항 리스트 조회(페이징)
+    @Transactional(readOnly = true)
     public PagedModel<NoticeListResponse> getNotices(Pageable pageable, PagedResourcesAssembler<Notice> pagedResourcesAssembler) {
         Page<Notice> noticePage = noticeRepository.findAll(pageable);
         return pagedResourcesAssembler.toModel(noticePage, noticeListResponseAssembler);
@@ -48,21 +50,20 @@ public class NoticeService {
 
 
     //공지사항 내용 조회
+    @Transactional(readOnly = true)
     public NoticeDetailResponse getNoticeById(Long noticeId) {
-        Notice notice = noticeRepository.findById(noticeId).orElse(null);
-        if (notice != null) {
-            List<String> photoPaths = noticePhotoRepository.findByNotice(notice).stream()
-                    .map(NoticePhoto::getPhotoPath)
-                    .collect(Collectors.toList());
-            return convertToDetailResponse(notice, photoPaths);
-        }
-        return null;
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
+        List<String> photoPaths = noticePhotoRepository.findByNotice(notice).stream()
+                .map(NoticePhoto::getPhotoPath)
+                .collect(Collectors.toList());
+        return convertToDetailResponse(notice, photoPaths);
     }
 
     //공지사항 생성
     public NoticeDetailResponse createNotice(NoticeCreationRequest request, Long adminId) {
         Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("관리자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new RuntimeException("관리자를 찾을 수 없습니다. ID: " + adminId));
 
         Notice notice = Notice.builder()
                 .noticeTitle(request.getNoticeTitle())
@@ -90,55 +91,55 @@ public class NoticeService {
 
     //공지사항 수정
     public NoticeDetailResponse updateNotice(Long noticeId, NoticeCreationRequest request) {
-        Notice notice = noticeRepository.findById(noticeId).orElse(null);
-        if (notice != null) {
-            if (request.getNoticeTitle() != null) {
-                notice.updateTitle(request.getNoticeTitle());
-            }
-            if (request.getNoticeContent() != null) {
-                notice.updateContent(request.getNoticeContent());
-            }
-            if (request.getNoticePhotos() != null) {
-                List<NoticePhoto> existingPhotos = noticePhotoRepository.findByNotice(notice);
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
 
-                List<NoticePhoto> newPhotos = request.getNoticePhotos().stream()
-                        .map(photoPath -> {
-                            for (NoticePhoto existingPhoto : existingPhotos) {
-                                if (existingPhoto.getPhotoPath().equals(photoPath)) {
-                                    return existingPhoto;
-                                }
-                            }
-                            return NoticePhoto.builder()
-                                    .photoPath(photoPath)
-                                    .notice(notice)
-                                    .build();
-                        })
-                        .collect(Collectors.toList());
-
-                noticePhotoRepository.saveAll(newPhotos);
-
-                List<NoticePhoto> photosToRemove = existingPhotos.stream()
-                        .filter(existingPhoto -> !newPhotos.contains(existingPhoto))
-                        .collect(Collectors.toList());
-
-                noticePhotoRepository.deleteAll(photosToRemove);
-            }
-            Notice updatedNotice = noticeRepository.save(notice);
-            List<String> photoPaths = noticePhotoRepository.findByNotice(updatedNotice).stream()
-                    .map(NoticePhoto::getPhotoPath)
-                    .collect(Collectors.toList());
-            return convertToDetailResponse(updatedNotice, photoPaths);
+        if (request.getNoticeTitle() != null) {
+            notice.updateTitle(request.getNoticeTitle());
         }
-        return null;
+        if (request.getNoticeContent() != null) {
+            notice.updateContent(request.getNoticeContent());
+        }
+        if (request.getNoticePhotos() != null) {
+            List<NoticePhoto> existingPhotos = noticePhotoRepository.findByNotice(notice);
+
+            List<NoticePhoto> newPhotos = request.getNoticePhotos().stream()
+                    .map(photoPath -> {
+                        for (NoticePhoto existingPhoto : existingPhotos) {
+                            if (existingPhoto.getPhotoPath().equals(photoPath)) {
+                                return existingPhoto;
+                            }
+                        }
+                        return NoticePhoto.builder()
+                                .photoPath(photoPath)
+                                .notice(notice)
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+
+            noticePhotoRepository.saveAll(newPhotos);
+
+            List<NoticePhoto> photosToRemove = existingPhotos.stream()
+                    .filter(existingPhoto -> !newPhotos.contains(existingPhoto))
+                    .collect(Collectors.toList());
+
+            noticePhotoRepository.deleteAll(photosToRemove);
+        }
+
+        Notice updatedNotice = noticeRepository.save(notice);
+        List<String> photoPaths = noticePhotoRepository.findByNotice(updatedNotice).stream()
+                .map(NoticePhoto::getPhotoPath)
+                .collect(Collectors.toList());
+        return convertToDetailResponse(updatedNotice, photoPaths);
     }
 
     //공지사항 삭제
     public void deleteNotice(Long noticeId) {
-        Notice notice = noticeRepository.findById(noticeId).orElse(null);
-        if (notice != null) {
-            noticePhotoRepository.deleteByNotice(notice);
-            noticeRepository.delete(notice);
-        }
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
+
+        noticePhotoRepository.deleteByNotice(notice);
+        noticeRepository.delete(notice);
     }
     
     //공지사항 상세 내용

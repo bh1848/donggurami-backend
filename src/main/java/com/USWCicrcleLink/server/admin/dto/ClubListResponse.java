@@ -1,17 +1,16 @@
 package com.USWCicrcleLink.server.admin.dto;
 
 import com.USWCicrcleLink.server.club.domain.Department;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
-@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class ClubListResponse{
     private Long clubId;
     private Department department;
     private String clubName;
     private String leaderName;
-    private int numberOfClubMembers;
+    private long numberOfClubMembers;
 }
