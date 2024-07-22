@@ -243,4 +243,21 @@ public class ClubLeaderService {
         return new ApiResponse<>("소속 동아리원 조회 완료", memberProfiles);
     }
 
+    // 소속 동아리원 삭제
+    public ApiResponse deleteClubMember(Long clubMemberId, UUID leaderUUID) {
+        // 토큰 적용, 예외 처리 시 변경
+        Leader leader = leaderRepository.findByLeaderUUID(leaderUUID)
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
+        log.info("동아리 회장 조회 결과: {}", leader);
+
+        // 동아리 조회
+        Club club = clubRepository.findById(leader.getClub().getClubId())
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
+        log.info("동아리 조회 결과: {}", club);
+
+        // 동아리원 삭제
+        clubMembersRepository.deleteById(clubMemberId);
+        return new ApiResponse<>("동아리원 삭제 완료");
+    }
+
 }

@@ -46,4 +46,9 @@ public class ClubLeaderController {
         return new ResponseEntity<>(clubLeaderService.findClubMembers(leaderUUID), HttpStatus.OK);
     }
 
+    @DeleteMapping("/members/{clubMemberId}")
+    public ResponseEntity<ApiResponse> deleteClubMember(@PathVariable Long clubMemberId, UUID leaderUUID) {
+        return new ResponseEntity<>(clubLeaderService.deleteClubMember(clubMemberId, leaderUUID), HttpStatus.OK);
+    }
+
 }
