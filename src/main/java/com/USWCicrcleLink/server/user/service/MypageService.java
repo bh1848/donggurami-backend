@@ -32,13 +32,6 @@ public class MypageService {
     private final AplictRepository aplictRepository;
     private final ClubRepository clubRepository;
 
-    //UUID를 통해 소속된 동아리 조회
-    public List<MyPageResponse> getMyClubsByUUID(UUID uuid) {
-        User user = getUserByUUID(uuid);
-        List<ClubMembers> clubMembers = getClubMembersByUserId(user.getUserId());
-        return getMyClubs(clubMembers);
-    }
-
     // UUID를 통해 지원한 동아리 조회
     public List<MyPageResponse> getAplictClubByUUID(UUID uuid) {
         User user = getUserByUUID(uuid);
@@ -59,15 +52,6 @@ public class MypageService {
             throw new RuntimeException("UUID에 해당하는 유저를 찾을 수 없습니다. " + uuid);
         }
         return user;
-    }
-
-    //유저아이디를 통해 클럽멤버 조회
-    private List<ClubMembers> getClubMembersByUserId(Long userId) {
-        List<ClubMembers> clubMembers = clubMembersRepository.findByUserUserId(userId);
-        if (clubMembers.isEmpty()) {
-            throw new RuntimeException("해당 유저가 소속된 클럽을 찾을 수 없습니다.: " + userId);
-        }
-        return clubMembers;
     }
 
     //클럽멤버를 통해 클럽아이디 조회

@@ -36,8 +36,5 @@ public class User {
 
     private LocalDateTime userUpdatedAt;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Profile profile;
-
 }
 

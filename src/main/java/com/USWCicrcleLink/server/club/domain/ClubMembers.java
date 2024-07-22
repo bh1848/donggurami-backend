@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.club.domain;
 
+import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -20,8 +21,8 @@ public class ClubMembers {
     private Long clubMemberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
-    private User user;
+    @JoinColumn(name = "id", nullable = false)
+    private Profile profile;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clubId", nullable = false)
