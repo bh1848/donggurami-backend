@@ -1,12 +1,10 @@
 package com.USWCicrcleLink.server.club.dto;
 
 import com.USWCicrcleLink.server.club.domain.Club;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ClubByDepartmentResponse {

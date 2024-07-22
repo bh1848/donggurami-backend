@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.admin.dto;
+package com.USWCicrcleLink.server.admin.admin.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,7 +8,6 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AdminLoginRequest {
-    private String adminAccount;
+public class AdminPwRequest {
     private String adminPw;
 }
