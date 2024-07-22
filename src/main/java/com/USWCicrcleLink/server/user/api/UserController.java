@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.user.api;
 
+import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import com.USWCicrcleLink.server.user.dto.UpdatePwRequest;
@@ -22,11 +23,11 @@ public class UserController {
     private final UserService userService;
 
     @PatchMapping("/update-userPw")
-    public ResponseEntity<String> updateUserPw(@RequestHeader("userUUID") UUID UserUUID, @RequestBody UpdatePwRequest request) {
+    public ApiResponse<String> updateUserPw(@RequestParam UUID uuid, @RequestBody UpdatePwRequest request) {
 
-        userService.updatePW(UserUUID, request.getNewPassword(), request.getConfirmNewPassword());
+        userService.updatePW(uuid, request.getNewPassword(), request.getConfirmNewPassword());
 
-        return ResponseEntity.ok("비밀번호가 성공적으로 업데이트 되었습니다.");
+        return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
 
     // 임시 회원 등록
@@ -39,25 +40,5 @@ public class UserController {
 
         return new ResponseEntity<>(userTemp, HttpStatus.OK);
 
-    }
-
-    // 임시 회원 데이터 생성
-    @PostConstruct
-    public void initializeDummyData() {
-        createAndSignUpMember("account", "password", "suwon", "12343", "art", "email-1");
-        createAndSignUpMember("admin", "1234", "suwonsuwon", "34523", "math", "email-2");
-    }
-
-    private void createAndSignUpMember(String account, String password, String userName, String studentNumber, String major, String email) {
-
-        SignUpRequest request = new SignUpRequest();
-        request.setAccount(account);
-        request.setPassword(password);
-        request.setUserName(userName);
-        request.setStudentNumber(studentNumber);
-        request.setMajor(major);
-        request.setEmail(email);
-
-        userService.signUpUserTemp(request);
     }
 }

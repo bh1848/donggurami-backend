@@ -1,5 +1,6 @@
-package com.USWCicrcleLink.server.notice.domain;
+package com.USWCicrcleLink.server.admin.notice.domain;
 
+import com.USWCicrcleLink.server.admin.domain.Admin;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -7,7 +8,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -27,6 +27,15 @@ public class Notice {
     @Column(name = "notice_created_at")
     private LocalDateTime noticeCreatedAt;
 
-    @Column(name = "notice_updated_at")
-    private LocalDateTime noticeUpdatedAt;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", nullable = false)
+    private Admin admin;
+
+    public void updateTitle(String noticeTitle) {
+        this.noticeTitle = noticeTitle;
+    }
+
+    public void updateContent(String noticeContent) {
+        this.noticeContent = noticeContent;
+    }
 }

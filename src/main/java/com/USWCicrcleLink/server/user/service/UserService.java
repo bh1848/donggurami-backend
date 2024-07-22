@@ -28,11 +28,13 @@ public class UserService {
             throw new IllegalArgumentException("해당 UUID를 가진 사용자를 찾을 수 없습니다: " + uuid);
         }
         if (!confirmNewPassword.equals(user.getUserPw())) {
-            throw new IllegalArgumentException("기존 비밀번호가 일치하지 않습니다.");
+            throw new IllegalArgumentException("기존 비밀번호와 일치하지 않습니다.");
         }
 
-        user.setUserPw(newPassword);
+        user.updateUserPw(newPassword);
         userRepository.save(user);
+
+        log.info("비밀번호 변경 완료: {}",user.getUserUUID());
     }
 
     // 임시 회원 가입

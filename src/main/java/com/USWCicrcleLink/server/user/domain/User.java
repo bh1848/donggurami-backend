@@ -20,6 +20,7 @@ import java.util.UUID;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
     @Column(name = "uuid", unique = true, nullable = false)
@@ -27,7 +28,6 @@ public class User {
 
     private String userAccount;
 
-    @Setter
     private String userPw;
 
     private String email;
@@ -36,5 +36,8 @@ public class User {
 
     private LocalDateTime userUpdatedAt;
 
+    public void updateUserPw(String userPw){
+        this.userPw = userPw;
+    }
 }
 

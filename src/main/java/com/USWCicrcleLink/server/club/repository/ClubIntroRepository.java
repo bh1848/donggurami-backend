@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface ClubIntroRepository extends JpaRepository<ClubIntro, Long> {
     Optional<ClubIntro> findByClubClubId(Long clubId);
     Optional<ClubIntro> findByClub(Club club);
+
+    void deleteByClubClubId(Long clubId);
 }

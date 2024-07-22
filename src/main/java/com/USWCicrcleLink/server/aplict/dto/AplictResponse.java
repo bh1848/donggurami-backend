@@ -5,13 +5,14 @@ import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class AplictResponse {
     private Long id;
     private Profile profile;

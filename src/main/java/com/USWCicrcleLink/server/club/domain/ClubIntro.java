@@ -52,9 +52,4 @@ public class ClubIntro {
         this.additionalPhotoPath1 = additionalPhotoPath1;
         this.additionalPhotoPath2 = additionalPhotoPath2;
     }
-
-    public void toggleRecruitmentStatus() {
-        // 현재 모집 상태와 반대로
-        this.recruitmentStatus = this.recruitmentStatus.toggle();
-    }
 }
