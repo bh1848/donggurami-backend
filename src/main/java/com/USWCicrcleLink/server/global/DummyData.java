@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.global;
 
-import com.USWCicrcleLink.server.admin.domain.Admin;
-import com.USWCicrcleLink.server.admin.repository.AdminRepository;
+import com.USWCicrcleLink.server.admin.admin.domain.Admin;
+import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;

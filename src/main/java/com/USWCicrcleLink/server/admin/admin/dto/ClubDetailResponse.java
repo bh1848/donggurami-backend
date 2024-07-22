@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.admin.dto;
+package com.USWCicrcleLink.server.admin.admin.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

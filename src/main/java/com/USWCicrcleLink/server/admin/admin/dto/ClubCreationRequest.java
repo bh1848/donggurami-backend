@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.admin.dto;
+package com.USWCicrcleLink.server.admin.admin.dto;
 
 import com.USWCicrcleLink.server.club.domain.Department;
 import lombok.AllArgsConstructor;

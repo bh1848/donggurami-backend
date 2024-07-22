@@ -55,7 +55,7 @@ public class MypageService {
         User user = getUserByUUID(uuid);
         Profile profile = getProfileByUserId(user.getUserId());
 
-        List<Aplict> aplicts = getAplictsByProfileId(profile.getId());
+        List<Aplict> aplicts = getAplictsByProfileId(profile.getProfileId());
         log.info("지원 동아리 조회 완료");
 
         return aplicts.stream()
