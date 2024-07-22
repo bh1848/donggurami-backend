@@ -72,8 +72,9 @@ public class ClubLeaderService {
         String mainPhotoPath = saveFile(clubInfoRequest.getMainPhoto(), club.getMainPhotoPath(), mainPhotoDir);
 
         // 동아리 정보 변경
-        club.updateClubInfo(mainPhotoPath, clubInfoRequest.getChatRoomURL(),
+        club.updateClubInfo(mainPhotoPath, clubInfoRequest.getLeaderName(), clubInfoRequest.getLeaderHp(),
                 clubInfoRequest.getKatalkID(), clubInfoRequest.getClubInsta());
+//        , clubInfoRequest.getchatRoomURL);
 
         clubRepository.save(club);
         log.info("동아리 기본 정보 변경 완료: {}", club.getClubName());
