@@ -20,12 +20,6 @@ public class MypageController {
 
     private final MypageService mypageService;
 
-    //소속된 동아리 조회
-    @GetMapping("/myClub")
-    public ApiResponse<List<MyClubResponse>> getMyClubByUUID(@RequestParam UUID uuid){
-        List<MyClubResponse> myClubs = mypageService.getMyClubsByUUID(uuid);
-        return new ApiResponse<>("소속된 동아리 목록 조회 성공", myClubs);
-    }
 
     //지원한 동아리 조회
     @GetMapping("/aplictClub")

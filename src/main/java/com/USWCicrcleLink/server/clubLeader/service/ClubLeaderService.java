@@ -2,14 +2,18 @@ package com.USWCicrcleLink.server.clubLeader.service;
 
 import com.USWCicrcleLink.server.club.domain.Club;
 import com.USWCicrcleLink.server.club.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.club.repository.ClubMembersRepository;
+import com.USWCicrcleLink.server.club.repository.ClubMembersRepositoryImpl;
 import com.USWCicrcleLink.server.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
-import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.RecruitmentRequest;
+import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
+import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +28,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Transactional
@@ -34,6 +41,8 @@ public class ClubLeaderService {
     private final ClubRepository clubRepository;
     private final ClubIntroRepository clubIntroRepository;
     private final LeaderRepository leaderRepository;
+    private final ClubMembersRepository clubMembersRepository;
+    private final ProfileRepository profileRepository;
 
     // 대표 사진 경로
     @Value("${file.mainPhoto-dir}")
@@ -70,6 +79,7 @@ public class ClubLeaderService {
         log.info("동아리 기본 정보 변경 완료: {}", club.getClubName());
     }
 
+    // 동아리 소개 변경
     public void updateClubIntro(ClubIntroRequest clubIntroRequest) throws IOException {
 
         // 토큰 적용, 예외 처리 시 변경
@@ -205,4 +215,49 @@ public class ClubLeaderService {
 
         return clubIntro.getRecruitmentStatus();
     }
+
+    // 소속 동아리원 조회
+    public ApiResponse<List<ClubMembersResponse>> findClubMembers(UUID leaderUUID) {
+        // 토큰 적용, 예외 처리 시 변경
+        Leader leader = leaderRepository.findByLeaderUUID(leaderUUID)
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
+        log.info("동아리 회장 조회 결과: {}", leader);
+
+        // 소속 동아리 조회
+        Club club = clubRepository.findById(leader.getClub().getClubId())
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
+        log.info("동아리 조회 결과: {}", club);
+
+        // 해당 동아리원 조회(성능 비교)
+//        List<ClubMembers> findClubMembers = clubMembersRepository.findByClub(club); // 일반
+        List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfile(club.getClubId()); // 성능
+
+        // 동아리원과 프로필 조회
+        List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
+                .map(cm -> new ClubMembersResponse(
+                        cm.getClubMemberId(),
+                        cm.getProfile()
+                ))
+                .collect(toList());
+
+        return new ApiResponse<>("소속 동아리원 조회 완료", memberProfiles);
+    }
+
+    // 소속 동아리원 삭제
+    public ApiResponse deleteClubMember(Long clubMemberId, UUID leaderUUID) {
+        // 토큰 적용, 예외 처리 시 변경
+        Leader leader = leaderRepository.findByLeaderUUID(leaderUUID)
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
+        log.info("동아리 회장 조회 결과: {}", leader);
+
+        // 동아리 조회
+        Club club = clubRepository.findById(leader.getClub().getClubId())
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
+        log.info("동아리 조회 결과: {}", club);
+
+        // 동아리원 삭제
+        clubMembersRepository.deleteById(clubMemberId);
+        return new ApiResponse<>("동아리원 삭제 완료");
+    }
+
 }

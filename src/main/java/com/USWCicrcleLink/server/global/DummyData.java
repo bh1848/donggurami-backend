@@ -95,7 +95,8 @@ public class DummyData {
 
         ClubMembers clubMembers = ClubMembers.builder()
                 .club(club)
-                .user(user).build();
+                .profile(profile)
+                .build();
 
         clubMembersRepository.save(clubMembers);
 
@@ -151,7 +152,8 @@ public class DummyData {
 
         ClubMembers clubMembers = ClubMembers.builder()
                 .club(club)
-                .user(user).build();
+                .profile(profile)
+                .build();
 
         clubMembersRepository.save(clubMembers);
 
@@ -207,7 +209,8 @@ public class DummyData {
 
         ClubMembers clubMembers = ClubMembers.builder()
                 .club(club)
-                .user(user).build();
+                .profile(profile)
+                .build();
 
         clubMembersRepository.save(clubMembers);
 

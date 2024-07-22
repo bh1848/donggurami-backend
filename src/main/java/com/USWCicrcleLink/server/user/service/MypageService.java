@@ -42,24 +42,6 @@ public class MypageService {
         return user;
     }
 
-    //UUID를 통해 소속된 동아리 조회
-    public List<MyClubResponse> getMyClubsByUUID(UUID uuid) {
-        User user = getUserByUUID(uuid);
-        List<ClubMembers> clubMembers = getClubMembersByUserId(user.getUserId());
-        log.info("소속동아리 조회 완료");
-
-        return getMyClubs(clubMembers);
-    }
-
-    //유저아이디를 통해 클럽멤버 조회
-    private List<ClubMembers> getClubMembersByUserId(Long userId) {
-        List<ClubMembers> clubMembers = clubMembersRepository.findByUserUserId(userId);
-        if (clubMembers.isEmpty()) {
-            throw new IllegalArgumentException("해당 유저가 소속된 클럽을 찾을 수 없습니다.: " + userId);
-        }
-        return clubMembers;
-    }
-
     //클럽멤버를 통해 클럽아이디 조회
     private List<MyClubResponse> getMyClubs(List<ClubMembers> clubMembers) {
         return clubMembers.stream()
