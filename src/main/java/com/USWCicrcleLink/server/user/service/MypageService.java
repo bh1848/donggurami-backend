@@ -75,7 +75,7 @@ public class MypageService {
 
     //프로필아이디를 통해 어플릭트 아이디 조회
     private List<Aplict> getAplictsByProfileId(Long profileId) {
-        List<Aplict> aplicts = aplictRepository.findByProfileId(profileId);
+        List<Aplict> aplicts = aplictRepository.findByProfileProfileId(profileId);
         if (aplicts.isEmpty()) {
             throw new IllegalArgumentException("해당 프로필의 어플리케이션을 찾을 수 없습니다.: " + profileId);
         }
