@@ -36,6 +36,12 @@ public class ClubIntro {
     @Column(name = "additional_photo_path2")
     private String additionalPhotoPath2;
 
+    @Column(name = "additional_photo_path3")
+    private String additionalPhotoPath3;
+
+    @Column(name = "additional_photo_path4")
+    private String additionalPhotoPath4;
+
     @Column(name = "googleForm_url")
     private String googleFormUrl;
 
@@ -44,12 +50,17 @@ public class ClubIntro {
     @Column(nullable = false)
     private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
 
-    public void updateClubIntro(Club club, String clubIntro, String clubIntroPhotoPath,
-                                String additionalPhotoPath1, String additionalPhotoPath2) {
+    public void updateClubIntro(Club club, String clubIntro, String googleFormUrl,
+                                String clubIntroPhotoPath, String additionalPhotoPath1,
+                                String additionalPhotoPath2, String additionalPhotoPath3,
+                                String additionalPhotoPath4) {
         this.club = club;
         this.clubIntro = clubIntro;
+        this.googleFormUrl = googleFormUrl;
         this.clubIntroPhotoPath = clubIntroPhotoPath;
         this.additionalPhotoPath1 = additionalPhotoPath1;
         this.additionalPhotoPath2 = additionalPhotoPath2;
+        this.additionalPhotoPath3 = additionalPhotoPath3;
+        this.additionalPhotoPath4 = additionalPhotoPath4;
     }
 }
