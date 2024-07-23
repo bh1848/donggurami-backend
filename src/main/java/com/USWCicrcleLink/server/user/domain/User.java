@@ -39,6 +39,11 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Profile profile;
 
+    @PrePersist
+    public void prePersist() {
+        this.userUUID = UUID.randomUUID();
+    }
+
     // User 객체 생성
     public static User createUser(UserTemp userTemp){
         return User.builder()
