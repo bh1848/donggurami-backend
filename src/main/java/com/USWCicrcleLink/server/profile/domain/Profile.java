@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.profile.domain;
 
+import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
 import com.USWCicrcleLink.server.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,7 +9,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -39,6 +39,13 @@ public class Profile {
     private LocalDateTime profileCreatedAt;
 
     @Column(name = "profile_updated_at", nullable = false)
-    @Setter
     private LocalDateTime profileUpdatedAt;
+
+    public void updateProfile(ProfileRequest profileRequest){
+        this.userName = profileRequest.getUserName();
+        this.major = profileRequest.getMajor();
+        this.studentNumber = profileRequest.getStudentNumber();
+        this.userHp = profileRequest.getUserHp();
+        this.profileUpdatedAt = LocalDateTime.now();
+    }
 }
