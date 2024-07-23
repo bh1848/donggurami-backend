@@ -24,10 +24,12 @@ public class User {
     @Column(name = "uuid", unique = true, nullable = false)
     private UUID userUUID;
 
+    @Column(unique = true, nullable = false)
     private String userAccount;
 
     private String userPw;
 
+    @Column(unique = true, nullable = false)
     private String email;
 
     private LocalDateTime userCreatedAt;
