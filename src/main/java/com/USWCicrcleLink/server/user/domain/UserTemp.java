@@ -31,12 +31,10 @@ public class UserTemp {
 
     private String tempMajor;
 
+    @Column(nullable = false, unique = true)
     private String tempEmail;
 
     private boolean isEmailVerified; // 이메일 인증을 했는지 여부
 
-    public void emailVerifiedSuccess(){
-        isEmailVerified=true;
-    }
 
 }

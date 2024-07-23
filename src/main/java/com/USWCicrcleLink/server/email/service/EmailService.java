@@ -1,17 +1,22 @@
 package com.USWCicrcleLink.server.email.service;
+
 import com.USWCicrcleLink.server.email.config.EmailConfig;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.repository.EmailTokenRepository;
+
 import com.USWCicrcleLink.server.user.domain.UserTemp;
+
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+
 import lombok.RequiredArgsConstructor;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -28,6 +33,8 @@ public class EmailService {
 
     //이메일 인증 경로
     private static final String CONFIRM_EMAIL_PATH = "/user/verify-email";
+    // 이메일 토큰 만료 시간 1분
+    private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 1L;
 
     @Async
     public void sendEmail(MimeMessage mimeMessage) {
@@ -35,7 +42,10 @@ public class EmailService {
     }
 
     // 인증 링크 생성
-    public MimeMessage createAuthLink(UserTemp userTemp,EmailToken token) throws MessagingException {
+    public MimeMessage createAuthLink(UserTemp userTemp) throws MessagingException {
+
+        // 이메일 토큰 조회
+        EmailToken token = emailTokenRepository.findByUserTemp(userTemp);
 
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -49,14 +59,15 @@ public class EmailService {
 
         return message;
     }
-    @Transactional
-    public  EmailToken createmailToken(UserTemp userTemp) {
+
+
+    public void createEmailToken(UserTemp userTemp) {
         EmailToken emailToken = EmailToken.createEmailToken(userTemp);
-        return emailTokenRepository.save(emailToken);
+        emailTokenRepository.save(emailToken);
     }
 
     // 유효한 토큰 검증
-    public void checkEmailToken(UUID emailTokenId) {
+    public void validateToken (UUID emailTokenId) {
 
         EmailToken emailToken = emailTokenRepository.findByEmailTokenId(emailTokenId)
                 .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
@@ -67,7 +78,7 @@ public class EmailService {
         }
     }
 
-    public void deleteTokenBy(UserTemp userTemp){
+    public void deleteTempUserAndToken(UserTemp userTemp){
         EmailToken findToken = emailTokenRepository.findByUserTemp(userTemp);
         emailTokenRepository.delete(findToken);
     }
@@ -76,7 +87,6 @@ public class EmailService {
         return emailTokenRepository.findByEmailTokenId(emailTokenId)
                 .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
     }
-
 }
 
 

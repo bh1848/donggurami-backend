@@ -41,4 +41,5 @@ public class Profile {
     @Column(name = "profile_updated_at", nullable = false)
     @Setter
     private LocalDateTime profileUpdatedAt;
+
 }

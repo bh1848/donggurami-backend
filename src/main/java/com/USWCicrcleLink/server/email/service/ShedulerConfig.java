@@ -19,13 +19,12 @@ public class ShedulerConfig {
 
 
     // 미인증 회원 삭제
-    @Scheduled(cron = "0 0 * * * *") // 1시간 마다 호출
+    @Scheduled(cron = "0 * * * * *")
     @Transactional
     public void deleteExpiredTokens() {
-
         LocalDateTime time = LocalDateTime.now().minusHours(1);
         List<EmailToken> tokens = emailTokenRepository.findAllByCertificationTimeBefore(time);
         emailTokenRepository.deleteAll(tokens);
-
     }
+
 }

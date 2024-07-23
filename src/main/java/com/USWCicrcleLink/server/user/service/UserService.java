@@ -2,21 +2,25 @@ package com.USWCicrcleLink.server.user.service;
 
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
+
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
+
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -26,7 +30,7 @@ import java.util.UUID;
 public class UserService {
 
 
-    private final UserRepository userRepository ;
+    private final UserRepository userRepository;
     private final UserTempRepository userTempRepository;
     private final EmailService emailService;
     private final ProfileRepository profileRepository;
@@ -46,35 +50,47 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public UserTemp signUpUserTemp(SignUpRequest request){
 
-        userTempRepository.save(request.toEntity());
-        return userTempRepository.findByTempEmail(request.getEmail());
+    public UserTemp registerTempUser(SignUpRequest request) {
+
+        // 임시 회원 테이블 이메일 중복 검증
+        if (isTemporaryUserDuplicate(request.getEmail())) {
+            Optional<UserTemp> userTemp = userTempRepository.findByTempEmail(request.getEmail());
+            emailService.deleteTempUserAndToken(userTemp.get());
+        }
+        // 회원 테이블 이메일 중복 검증
+        if (isUserDuplicate(request.getEmail())) {
+            throw new IllegalArgumentException("이미 존재하는 회원입니다");
+        }
+
+        return userTempRepository.save(request.toEntity());
+    }
+    
+    public boolean isTemporaryUserDuplicate(String email) {
+        return userTempRepository.existsByTempEmail(email);
+    }
+
+    public boolean isUserDuplicate(String email){
+        return userRepository.existsByEmail(email);
     }
 
     @Transactional
-    public UUID sendEmail(UserTemp userTemp) throws MessagingException {
-
-        EmailToken emailToken = emailService.createmailToken(userTemp);
-        MimeMessage message = emailService.createAuthLink(userTemp, emailToken);
-
-        emailService.sendEmail(message);
-
-        return emailToken.getEmailTokenId();
+    public void sendEmail(UserTemp userTemp) throws MessagingException {
+        emailService.createEmailToken(userTemp);
+        emailService.sendEmail(emailService.createAuthLink(userTemp));
     }
 
-    public UserTemp checkEmailToken(UUID emailTokenId){
+    public UserTemp validateEmailToken(UUID emailTokenId) {
 
         // 토큰 검증
-        emailService.checkEmailToken(emailTokenId);
+        emailService.validateToken(emailTokenId);
         EmailToken token = emailService.getTokenBy(emailTokenId);
-
         return token.getUserTemp();
     }
 
     // 회원가입
     @Transactional
-    public User signUpUser(UserTemp userTemp) {
+    public User signUp(UserTemp userTemp) {
 
         //User 객체 생성 및 저장
         User user = User.builder()
@@ -102,13 +118,12 @@ public class UserService {
         userRepository.save(user);
         profileRepository.save(profile);
         // 임시 회원 정보 삭제
-        emailService.deleteTokenBy(userTemp);
+        emailService.deleteTempUserAndToken(userTemp);
         return user;
     }
 
-    public void checkAccountDuplicate(String account)  {
-        Boolean accountExists = userRepository.existsByUserAccount(account);
-        if(accountExists){
+    public void checkAccountDuplicate(String account) {
+        if (userRepository.existsByUserAccount(account)) {
             throw new IllegalStateException("중복된 ID 입니다. 새로운 ID를 입력해주세요");
         }
     }
