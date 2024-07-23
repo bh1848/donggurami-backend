@@ -4,15 +4,17 @@ import com.USWCicrcleLink.server.admin.notice.domain.Notice;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeCreationRequest;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
-import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.admin.notice.service.NoticeService;
+import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -44,18 +46,29 @@ public class NoticeController {
         return ResponseEntity.ok(response);
     }
 
+
     //공지사항 생성
     @PostMapping("/notice/create")
-    public ResponseEntity<ApiResponse<NoticeDetailResponse>> createNotice(@RequestHeader("admin_id") Long adminId, @RequestBody NoticeCreationRequest request) {
-        NoticeDetailResponse createdNotice = noticeService.createNotice(request, adminId);
+    public ResponseEntity<ApiResponse<NoticeDetailResponse>> createNotice(
+            @RequestHeader("adminId") Long adminId,
+            @RequestPart("request") NoticeCreationRequest request,
+            //사진 배열 처리
+            @RequestPart("photos") MultipartFile[] noticePhotos) throws IOException {
+
+        NoticeDetailResponse createdNotice = noticeService.createNotice(adminId, request, noticePhotos);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 생성 성공", createdNotice);
         return ResponseEntity.ok(response);
     }
 
     //공지사항 수정
     @PatchMapping("/notice/update/{noticeId}")
-    public ResponseEntity<ApiResponse<NoticeDetailResponse>> updateNotice(@PathVariable("noticeId") Long noticeId, @RequestBody NoticeCreationRequest request) {
-        NoticeDetailResponse updatedNotice = noticeService.updateNotice(noticeId, request);
+    public ResponseEntity<ApiResponse<NoticeDetailResponse>> updateNotice(
+            @PathVariable("noticeId") Long noticeId,
+            @RequestPart("request") NoticeCreationRequest request,
+            //사진 배열 처리
+            @RequestPart("photos") MultipartFile[] noticePhotos) throws IOException {
+
+        NoticeDetailResponse updatedNotice = noticeService.updateNotice(noticeId, request, noticePhotos);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 수정 성공", updatedNotice);
         return ResponseEntity.ok(response);
     }
