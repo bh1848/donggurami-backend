@@ -2,6 +2,7 @@ package com.USWCicrcleLink.server.profile.domain;
 
 import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
 import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.domain.UserTemp;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -41,6 +42,18 @@ public class Profile {
     @Column(name = "profile_updated_at", nullable = false)
     private LocalDateTime profileUpdatedAt;
 
+
+    public static Profile createProfile(UserTemp userTemp, User user){
+        return Profile.builder()
+                .user(user)
+                .userName(userTemp.getTempName())
+                .studentNumber(userTemp.getTempStudentNumber())
+                .userHp(userTemp.getTempHp())
+                .major(userTemp.getTempMajor())
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .build();
+    }
     public void updateProfile(ProfileRequest profileRequest){
         this.userName = profileRequest.getUserName();
         this.major = profileRequest.getMajor();
@@ -48,4 +61,5 @@ public class Profile {
         this.userHp = profileRequest.getUserHp();
         this.profileUpdatedAt = LocalDateTime.now();
     }
+
 }

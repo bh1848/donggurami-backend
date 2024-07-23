@@ -2,12 +2,16 @@ package com.USWCicrcleLink.server.user.repository;
 
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
-// 임시 회원 정보를 저장하는 리포지토리
+import java.util.Optional;
+import java.util.UUID;
+
 public interface UserTempRepository extends JpaRepository<UserTemp, Long> {
 
-    // 이메일로 회원 조회
-    UserTemp findByTempEmail(String tempEmail);
+    // 이메일로 임시 회원 조회
+    Optional<UserTemp> findByTempEmail(String email);
 
+    Boolean existsByTempEmail(String email);
 }
 

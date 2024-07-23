@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.USWCicrcleLink.server.profile.domain.Profile;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -35,6 +33,21 @@ public class User {
     private LocalDateTime userCreatedAt;
 
     private LocalDateTime userUpdatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.userUUID = UUID.randomUUID();
+    }
+
+    public static User createUser(UserTemp userTemp){
+        return User.builder()
+                .userAccount(userTemp.getTempAccount())
+                .userPw(userTemp.getTempPw())
+                .email(userTemp.getTempEmail())
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .build();
+    }
 
     public void updateUserPw(String userPw){
         this.userPw = userPw;
