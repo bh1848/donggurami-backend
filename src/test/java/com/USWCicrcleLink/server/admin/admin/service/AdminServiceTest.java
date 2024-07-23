@@ -7,16 +7,18 @@ import com.USWCicrcleLink.server.admin.admin.dto.ClubDetailResponse;
 import com.USWCicrcleLink.server.admin.admin.dto.ClubListResponse;
 import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
-import com.USWCicrcleLink.server.club.domain.Club;
-import com.USWCicrcleLink.server.club.domain.ClubIntro;
-import com.USWCicrcleLink.server.club.domain.Department;
-import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.club.dto.ClubMembersLeaderCount;
-import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
-import com.USWCicrcleLink.server.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepositoryCustom;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.club.domain.Department;
+import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.club.dto.ClubMembersLeaderCount;
+import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
+import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepositoryCustom;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,10 +47,16 @@ public class AdminServiceTest {
     private ClubRepository clubRepository;
 
     @Mock
+    private ClubRepositoryCustom clubRepositoryCustom;
+
+    @Mock
     private ClubIntroRepository clubIntroRepository;
 
     @Mock
     private LeaderRepository leaderRepository;
+
+    @Mock
+    private LeaderRepositoryCustom leaderRepositoryCustom;
 
     @Mock
     private ClubMembersRepository clubMembersRepository;
@@ -115,7 +123,7 @@ public class AdminServiceTest {
     void 동아리전체목록조회() {
         //given
         ClubMembersLeaderCount count = new ClubMembersLeaderCount(club.getClubId(), 10L, 1L);
-        when(clubRepository.findAllWithMemberAndLeaderCount()).thenReturn(Arrays.asList(count));
+        when(clubRepositoryCustom.findAllWithMemberAndLeaderCount()).thenReturn(Arrays.asList(count));
         when(clubRepository.findById(club.getClubId())).thenReturn(Optional.of(club));
 
         //when
@@ -196,7 +204,7 @@ public class AdminServiceTest {
         verify(aplictRepository, times(1)).deleteByClubClubId(club.getClubId());
         verify(clubIntroRepository, times(1)).deleteByClubClubId(club.getClubId());
         verify(clubMembersRepository, times(1)).deleteByClubClubId(club.getClubId());
-        verify(leaderRepository, times(1)).deleteByClubClubId(club.getClubId());
+        verify(leaderRepositoryCustom, times(1)).deleteByClubClubId(club.getClubId());
         verify(clubRepository, times(1)).deleteById(club.getClubId());
     }
 

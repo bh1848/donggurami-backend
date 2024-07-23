@@ -1,6 +1,6 @@
-package com.USWCicrcleLink.server.club.dto;
+package com.USWCicrcleLink.server.club.club.dto;
 
-import com.USWCicrcleLink.server.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.Club;
 import lombok.*;
 
 @Getter

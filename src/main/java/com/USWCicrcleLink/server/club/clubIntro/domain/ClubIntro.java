@@ -1,12 +1,12 @@
-package com.USWCicrcleLink.server.club.domain;
+package com.USWCicrcleLink.server.club.clubIntro.domain;
 
+import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
 
 @Entity
 @Getter

@@ -1,10 +1,10 @@
-package com.USWCicrcleLink.server.club.api;
+package com.USWCicrcleLink.server.club.clubIntro.api;
 
-import com.USWCicrcleLink.server.club.domain.Department;
-import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.club.dto.ClubByDepartmentResponse;
-import com.USWCicrcleLink.server.club.dto.ClubIntroResponse;
-import com.USWCicrcleLink.server.club.service.ClubIntroService;
+import com.USWCicrcleLink.server.club.club.domain.Department;
+import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.club.dto.ClubByDepartmentResponse;
+import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
