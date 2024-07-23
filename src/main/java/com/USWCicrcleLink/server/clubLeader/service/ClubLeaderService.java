@@ -49,6 +49,31 @@ public class ClubLeaderService {
     @Value("#{'${file.allowed-extensions}'.split(',')}")
     private List<String> allowedExtensions;
 
+    // 동아리 기본 정보 조회
+    @Transactional(readOnly = true)
+    public ApiResponse<ClubInfoResponse> getClubInfo(LeaderToken token) {
+        // 토큰 적용, 예외 처리 시 변경
+        Leader leader = leaderRepository.findByLeaderUUID(token.getLeaderUUID())
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
+        log.info("동아리 회장 조회 결과: {}", leader);
+
+        // 동아리 조회
+        Club club = clubRepository.findById(leader.getClub().getClubId())
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
+        log.info("동아리 조회 결과: {}", club);
+
+        ClubInfoResponse clubInfoResponse = new ClubInfoResponse(
+                club.getMainPhotoPath(),
+                club.getClubName(),
+                club.getLeaderName(),
+                club.getLeaderHp(),
+                club.getKatalkID(),
+                club.getClubInsta()
+        );
+
+        return new ApiResponse<>("동아리 기본 정보 조회 완료", clubInfoResponse);
+    }
+
     // 동아리 기본 정보 변경
     public void updateClubInfo(LeaderToken token, ClubInfoRequest clubInfoRequest) throws IOException {
 
@@ -77,7 +102,7 @@ public class ClubLeaderService {
     }
 
     // 동아리 소개 변경
-    public void updateClubIntro(LeaderToken token,ClubIntroRequest clubIntroRequest) throws IOException {
+    public void updateClubIntro(LeaderToken token, ClubIntroRequest clubIntroRequest) throws IOException {
 
         // 토큰 적용, 예외 처리 시 변경
         Leader leader = leaderRepository.findByLeaderUUID(token.getLeaderUUID())
@@ -212,6 +237,7 @@ public class ClubLeaderService {
     }
 
     // 소속 동아리원 조회
+    @Transactional(readOnly = true)
     public ApiResponse<List<ClubMembersResponse>> findClubMembers(LeaderToken token) {
 
         // 토큰 적용, 예외 처리 시 변경

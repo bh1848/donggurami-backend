@@ -27,6 +27,9 @@ public class Club {
     @Column(name = "leader_name")
     private String leaderName;
 
+    @Column(name = "leader_hp")
+    private String leaderHp;
+
     @Column(name = "katalk_id")
     private String katalkID;
 

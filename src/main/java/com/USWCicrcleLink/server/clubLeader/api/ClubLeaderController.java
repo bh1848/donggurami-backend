@@ -2,6 +2,7 @@ package com.USWCicrcleLink.server.clubLeader.api;
 
 import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoRequest;
+import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoResponse;
 import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.LeaderToken;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
@@ -20,6 +21,12 @@ import java.io.IOException;
 public class ClubLeaderController {
 
     private final ClubLeaderService clubLeaderService;
+
+    @GetMapping("/info")
+    public ResponseEntity<ApiResponse> getClubInfo(LeaderToken token) {
+        ApiResponse<ClubInfoResponse> clubInfo = clubLeaderService.getClubInfo(token);
+        return new ResponseEntity<>(clubInfo, HttpStatus.OK);
+    }
 
     @PatchMapping("/info")
     public ResponseEntity<Boolean> updateClubInfo(LeaderToken token, @Validated ClubInfoRequest clubInfoRequest) throws IOException {
