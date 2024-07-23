@@ -1,13 +1,17 @@
 package com.USWCicrcleLink.server.clubLeader.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
+import lombok.NoArgsConstructor;
 
 @Data
-public class ClubInfoRequest {
+@NoArgsConstructor
+@AllArgsConstructor
+public class ClubInfoResponse {
 
-    //2MB
-    private MultipartFile mainPhoto;
+    private String mainPhoto;
+
+    private String clubName;
 
     private String leaderName;
 
@@ -17,5 +21,4 @@ public class ClubInfoRequest {
 
     private String clubInsta;
 
-    //    private String chatRoomURL;
 }
