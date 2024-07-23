@@ -5,10 +5,14 @@ import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
-import com.USWCicrcleLink.server.club.domain.*;
-import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
-import com.USWCicrcleLink.server.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
+import com.USWCicrcleLink.server.club.club.domain.Department;
+import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -75,11 +79,11 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("FLAG")
                 .leaderName("개발짱")
-                .mainPhotoPath("resources/static/images/flag.jpg")
+                .mainPhotoPath("src/main/resources/static/mainPhoto/flag.jpg")
                 .department(Department.ACADEMIC)
                 .katalkID("flag_kakao")
                 .clubInsta("flag_insta")
-                .chatRoomUrl("http://flag")
+//                .chatRoomUrl("http://flag")
                 .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
 
@@ -140,11 +144,11 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("올어바웃")
                 .leaderName("춤짱")
-                .mainPhotoPath("resources/static/images/allabout.jpg")
+                .mainPhotoPath("src/main/resources/static/mainPhoto/allabout.jpg")
                 .department(Department.SHOW)
                 .katalkID("allabout_kakao")
                 .clubInsta("allabout_insta")
-                .chatRoomUrl("http://allabout")
+//                .chatRoomUrl("http://allabout")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
 
@@ -197,11 +201,11 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("굴리세")
                 .leaderName("볼링짱")
-                .mainPhotoPath("resources/static/images/gullisae.jpg")
+                .mainPhotoPath("src/main/resources/static/mainPhoto/gullisae.jpg")
                 .department(Department.SPORT)
                 .katalkID("gullisae_kakao")
                 .clubInsta("gullisae_insta")
-                .chatRoomUrl("http://smash")
+//                .chatRoomUrl("http://smash")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
 

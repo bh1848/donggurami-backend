@@ -1,13 +1,14 @@
 package com.USWCicrcleLink.server.club.service;
 
-import com.USWCicrcleLink.server.club.domain.Club;
-import com.USWCicrcleLink.server.club.domain.ClubIntro;
-import com.USWCicrcleLink.server.club.domain.Department;
-import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.club.dto.ClubByDepartmentResponse;
-import com.USWCicrcleLink.server.club.dto.ClubIntroResponse;
-import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
-import com.USWCicrcleLink.server.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
+import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.club.domain.Department;
+import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.club.dto.ClubByDepartmentResponse;
+import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

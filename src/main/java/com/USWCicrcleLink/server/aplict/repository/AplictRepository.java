@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public interface AplictRepository extends JpaRepository<Aplict, Long> {
+public interface AplictRepository extends JpaRepository<Aplict, Long>, AplictRepositoryCustom {
     List<Aplict> findByProfileProfileId(Long profileId);
 
     @Modifying

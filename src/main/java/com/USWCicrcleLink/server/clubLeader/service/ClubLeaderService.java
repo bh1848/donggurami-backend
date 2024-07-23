@@ -1,12 +1,12 @@
 package com.USWCicrcleLink.server.clubLeader.service;
 
-import com.USWCicrcleLink.server.club.domain.Club;
-import com.USWCicrcleLink.server.club.domain.ClubIntro;
-import com.USWCicrcleLink.server.club.domain.ClubMembers;
-import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
-import com.USWCicrcleLink.server.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
+import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
@@ -94,8 +94,9 @@ public class ClubLeaderService {
         String mainPhotoPath = saveFile(clubInfoRequest.getMainPhoto(), club.getMainPhotoPath(), mainPhotoDir);
 
         // 동아리 정보 변경
-        club.updateClubInfo(mainPhotoPath, clubInfoRequest.getChatRoomURL(),
+        club.updateClubInfo(mainPhotoPath, clubInfoRequest.getLeaderName(), clubInfoRequest.getLeaderHp(),
                 clubInfoRequest.getKatalkID(), clubInfoRequest.getClubInsta());
+//        , clubInfoRequest.getchatRoomURL);
 
         clubRepository.save(club);
         log.info("동아리 기본 정보 변경 완료: {}", club.getClubName());
@@ -131,8 +132,17 @@ public class ClubLeaderService {
         String additionalPhotoPath2 = saveFile(clubIntroRequest.getAdditionalPhoto2(),
                 existingClubIntro.getAdditionalPhotoPath2(), introPhotoDir);
 
+        String additionalPhotoPath3 = saveFile(clubIntroRequest.getAdditionalPhoto3(),
+                existingClubIntro.getAdditionalPhotoPath3(), introPhotoDir);
+
+        String additionalPhotoPath4 = saveFile(clubIntroRequest.getAdditionalPhoto4(),
+                existingClubIntro.getAdditionalPhotoPath4(), introPhotoDir);
+
         // 동아리 소개 저장
-        existingClubIntro.updateClubIntro(club, clubIntroRequest.getClubIntro(), introPhotoPath, additionalPhotoPath1, additionalPhotoPath2);
+        existingClubIntro.updateClubIntro(club, clubIntroRequest.getClubIntro(), clubIntroRequest.getGoogleFormUrl(),
+                introPhotoPath, additionalPhotoPath1, additionalPhotoPath2,
+                additionalPhotoPath3, additionalPhotoPath4);
+
         clubIntroRepository.save(existingClubIntro);
         log.info("동아리 소개 저장 완료: {}", existingClubIntro);
     }

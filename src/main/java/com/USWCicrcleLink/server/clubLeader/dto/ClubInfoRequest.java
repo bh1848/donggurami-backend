@@ -9,9 +9,13 @@ public class ClubInfoRequest {
     //2MB
     private MultipartFile mainPhoto;
 
-    private String chatRoomURL;
+    private String leaderName;
+
+    private String leaderHp;
 
     private String katalkID;
 
     private String clubInsta;
+
+    //    private String chatRoomURL;
 }

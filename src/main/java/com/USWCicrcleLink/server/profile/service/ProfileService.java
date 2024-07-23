@@ -28,11 +28,7 @@ public class ProfileService {
 
         Profile profile = getProfileByUserUUID(userUUID);
 
-        profile.setUserName(profileRequest.getUserName());
-        profile.setStudentNumber(profileRequest.getStudentNumber());
-        profile.setUserHp(profileRequest.getUserHp());
-        profile.setMajor(profileRequest.getMajor());
-        profile.setProfileUpdatedAt(LocalDateTime.now());
+        profile.updateProfile(profileRequest);
 
         profileRepository.save(profile);
 

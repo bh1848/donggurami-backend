@@ -1,6 +1,6 @@
 package com.USWCicrcleLink.server.clubLeader.api;
 
-import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoResponse;
 import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;

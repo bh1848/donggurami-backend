@@ -19,7 +19,7 @@ public class ProfileController {
     private final ProfileService profileService;
 
     @PatchMapping("/update-profile")
-    public ResponseEntity<ProfileResponse> updateProfile(@RequestHeader("userUUId") UUID userUUID, @RequestBody ProfileRequest profileRequest) {
+    public ResponseEntity<ProfileResponse> updateProfile(@RequestParam("UUId") UUID userUUID, @RequestBody ProfileRequest profileRequest) {
         ProfileResponse profileResponse = profileService.updateProfile(userUUID, profileRequest);
         return ResponseEntity.ok(profileResponse);
     }

@@ -9,10 +9,16 @@ public class ClubIntroRequest {
 
     private String clubIntro;
 
+    private String googleFormUrl;
+
     private MultipartFile introPhoto;
 
     private MultipartFile additionalPhoto1;
 
     private MultipartFile additionalPhoto2;
+
+    private MultipartFile additionalPhoto3;
+
+    private MultipartFile additionalPhoto4;
 
 }
