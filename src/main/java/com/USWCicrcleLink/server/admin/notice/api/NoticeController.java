@@ -39,7 +39,7 @@ public class NoticeController {
     }
 
     //공지사항 내용 조회
-    @GetMapping("/notice/get/{noticeId}")
+    @GetMapping("/notices/{noticeId}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNoticeById(@PathVariable("noticeId") Long noticeId) {
         NoticeDetailResponse notice = noticeService.getNoticeById(noticeId);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 조회 성공", notice);
@@ -48,7 +48,7 @@ public class NoticeController {
 
 
     //공지사항 생성
-    @PostMapping("/notice/create")
+    @PostMapping("/notices")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> createNotice(
             @RequestHeader("adminId") Long adminId,
             @RequestPart("request") NoticeCreationRequest request,
@@ -61,7 +61,7 @@ public class NoticeController {
     }
 
     //공지사항 수정
-    @PatchMapping("/notice/update/{noticeId}")
+    @PatchMapping("/notices/{noticeId}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> updateNotice(
             @PathVariable("noticeId") Long noticeId,
             @RequestPart("request") NoticeCreationRequest request,
@@ -74,7 +74,7 @@ public class NoticeController {
     }
 
     //공지사항 삭제
-    @DeleteMapping("/notice/delete/{noticeId}")
+    @DeleteMapping("/notices/{noticeId}")
     public ResponseEntity<ApiResponse<Long>> deleteNotice(@PathVariable("noticeId") Long noticeId) {
         noticeService.deleteNotice(noticeId);
         ApiResponse<Long> response = new ApiResponse<>("공지사항 삭제 성공", noticeId);
