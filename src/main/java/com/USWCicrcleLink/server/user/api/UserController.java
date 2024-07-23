@@ -1,15 +1,13 @@
 package com.USWCicrcleLink.server.user.api;
 
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-
 import com.USWCicrcleLink.server.user.domain.User;
-
 import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.dto.LogInRequest;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import com.USWCicrcleLink.server.user.dto.UpdatePwRequest;
 import com.USWCicrcleLink.server.user.service.UserService;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,26 +47,6 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 임시 회원 데이터 생성
-    @PostConstruct
-    public void initializeDummyData() {
-        createAndSignUpMember("account", "password", "suwon", "12343", "art", "email-1");
-        createAndSignUpMember("admin", "1234", "suwonsuwon", "34523", "math", "email-2");
-    }
-
-    private void createAndSignUpMember(String account, String password, String userName, String studentNumber, String major, String email) {
-
-        SignUpRequest request = new SignUpRequest();
-        request.setAccount(account);
-        request.setPassword(password);
-        request.setUserName(userName);
-        request.setStudentNumber(studentNumber);
-        request.setMajor(major);
-        request.setEmail(email);
-
-        userService.registerTempUser(request);
-    }
-
     // 이메일 인증 확인 후 회원가입
     @GetMapping("/verify-email")
     public ResponseEntity<ApiResponse>verifyEmail(@RequestParam @Valid  UUID emailTokenId){
@@ -81,9 +59,18 @@ public class UserController {
 
     // 회원가입 시의 계정 중복 체크
     @GetMapping("/check-account-duplicate")
-        public ResponseEntity<ApiResponse>checkAccountDuplicate(@RequestParam @Valid  String account) {
+    public ResponseEntity<ApiResponse> checkAccountDuplicate(@RequestParam @Valid  String account) {
             userService.checkAccountDuplicate(account);
             return ResponseEntity.ok(new ApiResponse("사용 가능한 ID 입니다."));
     }
+
+    // 로그인
+    @PostMapping("/log-in")
+    public ResponseEntity<ApiResponse> LogIn(@Valid @RequestBody LogInRequest request) {
+        String account  = userService.logIn(request);
+        ApiResponse response = new ApiResponse( "로그인 성공",account);
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
 
 }

@@ -8,6 +8,7 @@ import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.dto.LogInRequest;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
@@ -19,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -112,5 +112,17 @@ public class UserService {
         if (userRepository.existsByUserAccount(account)) {
             throw new IllegalStateException("중복된 ID 입니다. 새로운 ID를 입력해주세요");
         }
+    }
+
+    public String logIn(LogInRequest request)  {
+
+        User user = userRepository.findByUserAccount(request.getAccount())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 ID입니다"));
+
+        if (!user.getUserPw().equals(request.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+        }
+
+        return user.getUserAccount();
     }
 }
