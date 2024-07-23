@@ -79,7 +79,7 @@ public class DummyData {
                 .department(Department.ACADEMIC)
                 .katalkID("flag_kakao")
                 .clubInsta("flag_insta")
-                .chatRoomUrl("http://flag")
+//                .chatRoomUrl("http://flag")
                 .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
 
@@ -144,7 +144,7 @@ public class DummyData {
                 .department(Department.SHOW)
                 .katalkID("allabout_kakao")
                 .clubInsta("allabout_insta")
-                .chatRoomUrl("http://allabout")
+//                .chatRoomUrl("http://allabout")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
 
@@ -201,7 +201,7 @@ public class DummyData {
                 .department(Department.SPORT)
                 .katalkID("gullisae_kakao")
                 .clubInsta("gullisae_insta")
-                .chatRoomUrl("http://smash")
+//                .chatRoomUrl("http://smash")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
 
