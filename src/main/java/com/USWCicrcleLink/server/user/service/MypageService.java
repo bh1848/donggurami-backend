@@ -50,6 +50,24 @@ public class MypageService {
                 .collect(Collectors.toList());
     }
 
+    //프로필을 통해 클럽 멤버 조회
+    private List<ClubMembers>getClubMembersByProfileId(Long profileId){
+        List<ClubMembers> clubMembers = clubMembersRepository.findByProfileProfileId(profileId);
+        if(clubMembers.isEmpty()){
+            throw new IllegalArgumentException("프로필에 해당하는 클럽멤버를 찾을 수 없습니다."+profileId);
+        }
+        return clubMembers;
+    }
+
+    //UUID를 통해 소속된 동아리 조회
+    public List<MyClubResponse> getMyClubByUUID(UUID uuid){
+        User user = getUserByUUID(uuid);
+        Profile profile = getProfileByUserId((user.getUserId()));
+        List<ClubMembers> clubMembers = getClubMembersByProfileId(profile.getProfileId());
+        log.info("소속 동아리 조회 완료");
+        return getMyClubs(clubMembers);
+    }
+
     // UUID를 통해 지원한 동아리 조회
     public List<MyAplictResponse> getAplictClubByUUID(UUID uuid) {
         User user = getUserByUUID(uuid);

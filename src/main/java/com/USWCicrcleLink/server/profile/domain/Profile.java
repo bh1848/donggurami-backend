@@ -42,7 +42,6 @@ public class Profile {
     @Column(name = "profile_updated_at", nullable = false)
     private LocalDateTime profileUpdatedAt;
 
-
     public static Profile createProfile(UserTemp userTemp, User user){
         return Profile.builder()
                 .user(user)
