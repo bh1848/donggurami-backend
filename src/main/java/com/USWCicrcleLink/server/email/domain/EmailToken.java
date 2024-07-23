@@ -42,7 +42,6 @@ public class EmailToken {
 
     // 이메일 인증 토큰 생성
     public static EmailToken createEmailToken(UserTemp userTemp) {
-
         return EmailToken.builder()
                 .certificationTime(LocalDateTime.now().plusMinutes(EMAIL_TOKEN_CERTIFICATION_TIME_VALUE))
                 .isEmailTokenExpired(false)

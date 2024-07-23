@@ -38,5 +38,17 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Profile profile;
+
+    // User 객체 생성
+    public static User createUser(UserTemp userTemp){
+        return User.builder()
+                .userAccount(userTemp.getTempAccount())
+                .userPw(userTemp.getTempPw())
+                .email(userTemp.getTempEmail())
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .build();
+    }
+
 }
 

@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.profile.domain;
 
 import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.domain.UserTemp;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -41,5 +42,19 @@ public class Profile {
     @Column(name = "profile_updated_at", nullable = false)
     @Setter
     private LocalDateTime profileUpdatedAt;
+
+
+    // Profile 객체 생성
+    public static Profile createProfile(UserTemp userTemp, User user){
+        return Profile.builder()
+                .user(user)
+                .userName(userTemp.getTempName())
+                .studentNumber(userTemp.getTempStudentNumber())
+                .userHp(userTemp.getTempHp())
+                .major(userTemp.getTempMajor())
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .build();
+    }
 
 }

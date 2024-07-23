@@ -56,6 +56,7 @@ public class UserService {
         // 임시 회원 테이블 이메일 중복 검증
         if (isTemporaryUserDuplicate(request.getEmail())) {
             Optional<UserTemp> userTemp = userTempRepository.findByTempEmail(request.getEmail());
+            // 해당 임시 회원 정보 삭제
             emailService.deleteTempUserAndToken(userTemp.get());
         }
         // 회원 테이블 이메일 중복 검증
@@ -85,6 +86,7 @@ public class UserService {
         // 토큰 검증
         emailService.validateToken(emailTokenId);
         EmailToken token = emailService.getTokenBy(emailTokenId);
+
         return token.getUserTemp();
     }
 
@@ -92,33 +94,15 @@ public class UserService {
     @Transactional
     public User signUp(UserTemp userTemp) {
 
-        //User 객체 생성 및 저장
-        User user = User.builder()
-                .userUUID(UUID.randomUUID())
-                .userAccount(userTemp.getTempAccount())
-                .userPw(userTemp.getTempPw())
-                .email(userTemp.getTempEmail())
-                .userCreatedAt(LocalDateTime.now())
-                .userUpdatedAt(LocalDateTime.now())
-                .build();
-
-        //Profile 객체 생성 및 저장
-        Profile profile = Profile.builder()
-                .user(user)
-                .userName(userTemp.getTempName())
-                .studentNumber(userTemp.getTempStudentNumber())
-                .userHp(userTemp.getTempHp())
-                .major(userTemp.getTempMajor())
-                .profileCreatedAt(LocalDateTime.now())
-                .profileUpdatedAt(LocalDateTime.now())
-                .build();
-
+        User user = User.createUser(userTemp);
+        Profile profile = Profile.createProfile(userTemp, user);
 
         // 회원 가입
         userRepository.save(user);
         profileRepository.save(profile);
         // 임시 회원 정보 삭제
         emailService.deleteTempUserAndToken(userTemp);
+
         return user;
     }
 
