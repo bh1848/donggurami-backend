@@ -7,15 +7,17 @@ import com.USWCicrcleLink.server.admin.admin.dto.ClubDetailResponse;
 import com.USWCicrcleLink.server.admin.admin.dto.ClubListResponse;
 import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
-import com.USWCicrcleLink.server.club.domain.Club;
-import com.USWCicrcleLink.server.club.domain.ClubIntro;
-import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.club.dto.ClubMembersLeaderCount;
-import com.USWCicrcleLink.server.club.repository.ClubIntroRepository;
-import com.USWCicrcleLink.server.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepositoryCustom;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.club.dto.ClubMembersLeaderCount;
+import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
+import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepositoryCustom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -80,7 +82,7 @@ public class AdminService {
                 .phone(club.getKatalkID())
                 .instagram(club.getClubInsta())
                 .mainPhotoPath(club.getMainPhotoPath())
-                .chatRoomUrl(club.getChatRoomUrl())
+//                .chatRoomUrl(club.getChatRoomUrl())
                 .introContent(clubIntro != null ? clubIntro.getClubIntro() : "")
                 .build();
     }
