@@ -82,7 +82,7 @@ public class AdminService {
                 .phone(club.getKatalkID())
                 .instagram(club.getClubInsta())
                 .mainPhotoPath(club.getMainPhotoPath())
-                .chatRoomUrl(club.getChatRoomUrl())
+//                .chatRoomUrl(club.getChatRoomUrl())
                 .introContent(clubIntro != null ? clubIntro.getClubIntro() : "")
                 .build();
     }

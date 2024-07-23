@@ -79,11 +79,11 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("FLAG")
                 .leaderName("개발짱")
-                .mainPhotoPath("resources/static/images/flag.jpg")
+                .mainPhotoPath("src/main/resources/static/mainPhoto/flag.jpg")
                 .department(Department.ACADEMIC)
                 .katalkID("flag_kakao")
                 .clubInsta("flag_insta")
-                .chatRoomUrl("http://flag")
+//                .chatRoomUrl("http://flag")
                 .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
 
@@ -144,11 +144,11 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("올어바웃")
                 .leaderName("춤짱")
-                .mainPhotoPath("resources/static/images/allabout.jpg")
+                .mainPhotoPath("src/main/resources/static/mainPhoto/allabout.jpg")
                 .department(Department.SHOW)
                 .katalkID("allabout_kakao")
                 .clubInsta("allabout_insta")
-                .chatRoomUrl("http://allabout")
+//                .chatRoomUrl("http://allabout")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
 
@@ -201,11 +201,11 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("굴리세")
                 .leaderName("볼링짱")
-                .mainPhotoPath("resources/static/images/gullisae.jpg")
+                .mainPhotoPath("src/main/resources/static/mainPhoto/gullisae.jpg")
                 .department(Department.SPORT)
                 .katalkID("gullisae_kakao")
                 .clubInsta("gullisae_insta")
-                .chatRoomUrl("http://smash")
+//                .chatRoomUrl("http://smash")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
 

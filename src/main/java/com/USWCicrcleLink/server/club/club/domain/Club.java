@@ -21,11 +21,11 @@ public class Club {
     @Column(name = "main_photo_path")
     private String mainPhotoPath;
 
-    @Column(name = "chat_room_url")
-    private String chatRoomUrl;
-
     @Column(name = "leader_name")
     private String leaderName;
+
+    @Column(name = "leader_hp")
+    private String leaderHp;
 
     @Column(name = "katalk_id")
     private String katalkID;
@@ -42,11 +42,19 @@ public class Club {
     @Column(nullable = false)
     private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
 
-    public void updateClubInfo(String mainPhotoPath, String chatRoomURL, String katalkID, String clubInsta) {
+//    @Column(name = "chat_room_url")
+//    private String chatRoomUrl;
+
+    public void updateClubInfo(String mainPhotoPath, String leaderName,
+                               String leaderHp, String katalkID,
+                               String clubInsta) {
+        //, String chatRoomURL) {
         this.mainPhotoPath = mainPhotoPath;
-        this.chatRoomUrl = chatRoomURL;
+        this.leaderName = leaderName;
+        this.leaderHp = leaderHp;
         this.katalkID = katalkID;
         this.clubInsta = clubInsta;
+//        this.chatRoomUrl = chatRoomURL;
     }
 
     public void toggleRecruitmentStatus() {

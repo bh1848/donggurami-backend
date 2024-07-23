@@ -69,8 +69,9 @@ public class ClubLeaderService {
         String mainPhotoPath = saveFile(clubInfoRequest.getMainPhoto(), club.getMainPhotoPath(), mainPhotoDir);
 
         // 동아리 정보 변경
-        club.updateClubInfo(mainPhotoPath, clubInfoRequest.getChatRoomURL(),
+        club.updateClubInfo(mainPhotoPath, clubInfoRequest.getLeaderName(), clubInfoRequest.getLeaderHp(),
                 clubInfoRequest.getKatalkID(), clubInfoRequest.getClubInsta());
+//        , clubInfoRequest.getchatRoomURL);
 
         clubRepository.save(club);
         log.info("동아리 기본 정보 변경 완료: {}", club.getClubName());
@@ -106,8 +107,17 @@ public class ClubLeaderService {
         String additionalPhotoPath2 = saveFile(clubIntroRequest.getAdditionalPhoto2(),
                 existingClubIntro.getAdditionalPhotoPath2(), introPhotoDir);
 
+        String additionalPhotoPath3 = saveFile(clubIntroRequest.getAdditionalPhoto3(),
+                existingClubIntro.getAdditionalPhotoPath3(), introPhotoDir);
+
+        String additionalPhotoPath4 = saveFile(clubIntroRequest.getAdditionalPhoto4(),
+                existingClubIntro.getAdditionalPhotoPath4(), introPhotoDir);
+
         // 동아리 소개 저장
-        existingClubIntro.updateClubIntro(club, clubIntroRequest.getClubIntro(), introPhotoPath, additionalPhotoPath1, additionalPhotoPath2);
+        existingClubIntro.updateClubIntro(club, clubIntroRequest.getClubIntro(), clubIntroRequest.getGoogleFormUrl(),
+                introPhotoPath, additionalPhotoPath1, additionalPhotoPath2,
+                additionalPhotoPath3, additionalPhotoPath4);
+
         clubIntroRepository.save(existingClubIntro);
         log.info("동아리 소개 저장 완료: {}", existingClubIntro);
     }
