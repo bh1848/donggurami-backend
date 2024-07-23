@@ -24,44 +24,11 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
 
-    @PostConstruct
-    @Transactional
-    public void init() {
-        // Create User
-        User user = User.builder()
-                .userUUID(UUID.randomUUID())
-                .userAccount("admin")
-                .userPw("1234")
-                .email("admin")
-                .userCreatedAt(LocalDateTime.now())
-                .userUpdatedAt(LocalDateTime.now())
-                .build();
-
-        userRepository.save(user);
-
-        // Create Profile
-        Profile profile = Profile.builder()
-                .user(user)
-                .userName("안녕")
-                .studentNumber("1234")
-                .userHp("01012345678")
-                .major("정보보호")
-                .profileCreatedAt(LocalDateTime.now())
-                .profileUpdatedAt(LocalDateTime.now())
-                .build();
-
-        profileRepository.save(profile);
-    }
-
     public ProfileResponse updateProfile(UUID userUUID, ProfileRequest profileRequest) {
 
         Profile profile = getProfileByUserUUID(userUUID);
 
-        profile.setUserName(profileRequest.getUserName());
-        profile.setStudentNumber(profileRequest.getStudentNumber());
-        profile.setUserHp(profileRequest.getUserHp());
-        profile.setMajor(profileRequest.getMajor());
-        profile.setProfileUpdatedAt(LocalDateTime.now());
+        profile.updateProfile(profileRequest);
 
         profileRepository.save(profile);
 
@@ -75,7 +42,7 @@ public class ProfileService {
             throw new IllegalArgumentException("해당 uuid의 유저가 존재하지 않습니다.: " + userUUID);
         }
 
-        return profileRepository.findByUser_UserId(user.getUserId())
+        return profileRepository.findByUserUserId(user.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저Id의 프로필이 존재하지 않습니다.: " + userUUID));
     }
 }

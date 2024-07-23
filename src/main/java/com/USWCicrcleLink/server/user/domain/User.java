@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.USWCicrcleLink.server.profile.domain.Profile;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -20,6 +18,7 @@ import java.util.UUID;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
     @Column(name = "uuid", unique = true, nullable = false)
@@ -27,7 +26,6 @@ public class User {
 
     private String userAccount;
 
-    @Setter
     private String userPw;
 
     private String email;
@@ -36,15 +34,11 @@ public class User {
 
     private LocalDateTime userUpdatedAt;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Profile profile;
-
     @PrePersist
     public void prePersist() {
         this.userUUID = UUID.randomUUID();
     }
 
-    // User 객체 생성
     public static User createUser(UserTemp userTemp){
         return User.builder()
                 .userAccount(userTemp.getTempAccount())
@@ -55,5 +49,8 @@ public class User {
                 .build();
     }
 
+    public void updateUserPw(String userPw){
+        this.userPw = userPw;
+    }
 }
 

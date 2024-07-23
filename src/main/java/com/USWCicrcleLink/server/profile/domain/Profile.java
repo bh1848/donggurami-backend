@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.profile.domain;
 
+import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import jakarta.persistence.*;
@@ -9,7 +10,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -18,7 +18,7 @@ public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "profile_id")
-    private Long id;
+    private Long profileId;
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -40,11 +40,9 @@ public class Profile {
     private LocalDateTime profileCreatedAt;
 
     @Column(name = "profile_updated_at", nullable = false)
-    @Setter
     private LocalDateTime profileUpdatedAt;
 
 
-    // Profile 객체 생성
     public static Profile createProfile(UserTemp userTemp, User user){
         return Profile.builder()
                 .user(user)
@@ -55,6 +53,13 @@ public class Profile {
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
+    }
+    public void updateProfile(ProfileRequest profileRequest){
+        this.userName = profileRequest.getUserName();
+        this.major = profileRequest.getMajor();
+        this.studentNumber = profileRequest.getStudentNumber();
+        this.userHp = profileRequest.getUserHp();
+        this.profileUpdatedAt = LocalDateTime.now();
     }
 
 }

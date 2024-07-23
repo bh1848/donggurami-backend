@@ -1,6 +1,6 @@
 package com.USWCicrcleLink.server.aplict.domain;
 
-import com.USWCicrcleLink.server.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -20,11 +19,11 @@ public class Aplict {
     @Column(name = "aplict_id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", nullable = false)
     private Profile profile;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
 

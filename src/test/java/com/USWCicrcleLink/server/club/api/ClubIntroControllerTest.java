@@ -1,83 +1,95 @@
-//package com.USWCicrcleLink.server.club.controller;
-//
-//import com.USWCicrcleLink.server.club.domain.Club;
-//import com.USWCicrcleLink.server.club.domain.ClubIntro;
-//import com.USWCicrcleLink.server.club.domain.Department;
-//import com.USWCicrcleLink.server.club.domain.RecruitmentStatus;
-//import com.USWCicrcleLink.server.club.service.ClubIntroService;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.MockitoAnnotations;
-//import org.springframework.http.MediaType;
-//import org.springframework.test.web.servlet.MockMvc;
-//import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-//
-//import static org.hamcrest.Matchers.is;
-//import static org.mockito.ArgumentMatchers.anyLong;
-//import static org.mockito.BDDMockito.given;
-//import static org.mockito.Mockito.doNothing;
-//import static org.mockito.Mockito.when;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-//
-//public class ClubIntroControllerTest {
-//
-//    @Mock
-//    private ClubIntroService clubIntroService;
-//
-//    @InjectMocks
-//    private ClubIntroController clubIntroController;
-//
-//    private MockMvc mockMvc;
-//
-//    @BeforeEach
-//    public void setup() {
-//        MockitoAnnotations.openMocks(this);
-//        mockMvc = MockMvcBuilders.standaloneSetup(clubIntroController).build();
-//    }
-//
-//    @Test
-//    public void 동아리소개글조회() throws Exception {
-//        ClubIntro clubIntro = ClubIntro.builder()
-//                .clubIntro("This is a club intro")
-//                .recruitmentStatus(RecruitmentStatus.OPEN)
-//                .googleFormUrl("https://google.com")
-//                .build();
-//
-//        when(clubIntroService.getClubIntroByClubId(anyLong())).thenReturn(clubIntro);
-//
-//        mockMvc.perform(get("/clubs/1/clubIntro"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.message").value("동아리 소개글 조회 성공"))
-//                .andExpect(jsonPath("$.data.clubIntro").value("This is a club intro"));
-//    }
-//
-//    @Test
-//    public void 동아리지원구글폼열기() throws Exception {
-//        ClubIntro clubIntro = ClubIntro.builder()
-//                .recruitmentStatus(RecruitmentStatus.OPEN)
-//                .googleFormUrl("https://google.com")
-//                .build();
-//
-//        when(clubIntroService.getClubIntroByClubId(anyLong())).thenReturn(clubIntro);
-//
-//        mockMvc.perform(get("/clubs/1/apply"))
-//                .andExpect(status().isFound())
-//                .andExpect(header().string("Location", "https://google.com"));
-//    }
-//
-//    @Test
-//    public void 동아리모집마감() throws Exception {
-//        ClubIntro clubIntro = ClubIntro.builder()
-//                .recruitmentStatus(RecruitmentStatus.CLOSE)
-//                .build();
-//
-//        when(clubIntroService.getClubIntroByClubId(anyLong())).thenReturn(clubIntro);
-//
-//        mockMvc.perform(get("/clubs/1/apply"))
-//                .andExpect(status().isForbidden());
-//    }
-//}
+package com.USWCicrcleLink.server.club.api;
+
+import com.USWCicrcleLink.server.club.clubIntro.api.ClubIntroController;
+import com.USWCicrcleLink.server.club.club.domain.Department;
+import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.club.dto.ClubByDepartmentResponse;
+import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Collections;
+import java.util.List;
+
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@ExtendWith(SpringExtension.class)
+@WebMvcTest(ClubIntroController.class)
+public class ClubIntroControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private ClubIntroService clubIntroService;
+
+    @Test
+    void 분과별동아리조회_성공() throws Exception {
+        //given
+        ClubByDepartmentResponse clubResponse = ClubByDepartmentResponse.builder()
+                .clubId(1L)
+                .clubName("Flag")
+                .build();
+        List<ClubByDepartmentResponse> clubResponses = Collections.singletonList(clubResponse);
+        Mockito.when(clubIntroService.getClubsByDepartment(any(Department.class))).thenReturn(clubResponses);
+
+        //when
+        mockMvc.perform(get("/clubs/department/ART")
+                        .contentType(MediaType.APPLICATION_JSON))
+                //then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("분과별 동아리 조회 성공")))
+                .andExpect(jsonPath("$.data[0].clubName", is("Flag")));
+    }
+
+    @Test
+    void 모집상태및분과별동아리조회_성공() throws Exception {
+        //given
+        ClubByDepartmentResponse clubResponse = ClubByDepartmentResponse.builder()
+                .clubId(1L)
+                .clubName("Flag")
+                .build();
+        List<ClubByDepartmentResponse> clubResponses = Collections.singletonList(clubResponse);
+        Mockito.when(clubIntroService.getClubsByRecruitmentStatusAndDepartment(any(RecruitmentStatus.class), any(Department.class)))
+                .thenReturn(clubResponses);
+
+        //when
+        mockMvc.perform(get("/clubs/department/ART/OPEN")
+                        .contentType(MediaType.APPLICATION_JSON))
+                //then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("모집 상태 및 분과별 동아리 조회 성공")))
+                .andExpect(jsonPath("$.data[0].clubName", is("Flag")));
+    }
+
+    @Test
+    void 동아리소개글조회_성공() throws Exception {
+        //given
+        ClubIntroResponse clubIntroResponse = ClubIntroResponse.builder()
+                .clubId(1L)
+                .introContent("Flag")
+                .build();
+        Mockito.when(clubIntroService.getClubIntroByClubId(anyLong())).thenReturn(clubIntroResponse);
+
+        //when
+        mockMvc.perform(get("/clubs/1/clubIntro")
+                        .contentType(MediaType.APPLICATION_JSON))
+                //then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("동아리 소개글 조회 성공")))
+                .andExpect(jsonPath("$.data.introContent", is("Flag")));
+    }
+}
