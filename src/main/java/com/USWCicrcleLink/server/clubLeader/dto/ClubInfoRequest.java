@@ -12,9 +12,6 @@ import java.util.UUID;
 @NoArgsConstructor
 public class ClubInfoRequest {
 
-    // token 대신 uuid(식별 용도)
-    private UUID leaderUUID;
-
     //2MB
     private MultipartFile mainPhoto;
 
