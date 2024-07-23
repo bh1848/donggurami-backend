@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.admin.notice.service;
 
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
+import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.admin.notice.domain.Notice;
 import com.USWCicrcleLink.server.admin.notice.domain.NoticePhoto;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeCreationRequest;
@@ -9,17 +10,22 @@ import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponseAssembler;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticePhotoRepository;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
-import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
+import com.USWCicrcleLink.server.global.util.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +38,10 @@ public class NoticeService {
     private final NoticeListResponseAssembler noticeListResponseAssembler;
     private final AdminRepository adminRepository;
     private final NoticePhotoRepository noticePhotoRepository;
+    private final FileUploadService fileUploadService;
+
+    @Value("${file.noticePhoto-dir}")
+    private String noticePhotoDir;
 
     //공지사항 전체 리스트 조회
     @Transactional(readOnly = true)
@@ -48,20 +58,22 @@ public class NoticeService {
         return pagedResourcesAssembler.toModel(noticePage, noticeListResponseAssembler);
     }
 
-
     //공지사항 내용 조회
     @Transactional(readOnly = true)
     public NoticeDetailResponse getNoticeById(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
-        List<String> photoPaths = noticePhotoRepository.findByNotice(notice).stream()
-                .map(NoticePhoto::getPhotoPath)
+
+        //공지사항에 연결된 사진 조회
+        List<String> noticePhotoPaths = noticePhotoRepository.findByNotice(notice).stream()
+                .map(NoticePhoto::getNoticePhotoPath)
                 .collect(Collectors.toList());
-        return convertToDetailResponse(notice, photoPaths);
+
+        return convertToDetailResponse(notice, noticePhotoPaths);
     }
 
     //공지사항 생성
-    public NoticeDetailResponse createNotice(NoticeCreationRequest request, Long adminId) {
+    public NoticeDetailResponse createNotice(Long adminId, NoticeCreationRequest request, MultipartFile noticePhoto) throws IOException {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("관리자를 찾을 수 없습니다. ID: " + adminId));
 
@@ -71,65 +83,39 @@ public class NoticeService {
                 .noticeCreatedAt(LocalDateTime.now())
                 .admin(admin)
                 .build();
-
         Notice savedNotice = noticeRepository.save(notice);
 
-        List<NoticePhoto> photos = request.getNoticePhotos().stream()
-                .map(photoPath -> NoticePhoto.builder()
-                        .photoPath(photoPath)
-                        .notice(savedNotice)
-                        .build())
-                .collect(Collectors.toList());
+        fileUploadService.createDirectory(noticePhotoDir);
 
-        noticePhotoRepository.saveAll(photos);
+        List<MultipartFile> noticePhotos = new ArrayList<>();
+        if (noticePhoto != null && !noticePhoto.isEmpty()) {
+            noticePhotos.add(noticePhoto);
+        }
 
-        return convertToDetailResponse(savedNotice, photos.stream()
-                .map(NoticePhoto::getPhotoPath)
-                .collect(Collectors.toList()));
+        List<NoticePhoto> savedNoticePhotos = saveNoticePhotos(noticePhotos, savedNotice);
+        noticePhotoRepository.saveAll(savedNoticePhotos);
+
+        return convertToDetailResponse(savedNotice, getPhotoPaths(savedNoticePhotos));
     }
 
-
     //공지사항 수정
-    public NoticeDetailResponse updateNotice(Long noticeId, NoticeCreationRequest request) {
+    public NoticeDetailResponse updateNotice(Long noticeId, NoticeCreationRequest request, MultipartFile noticePhoto) throws IOException {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
 
-        if (request.getNoticeTitle() != null) {
-            notice.updateTitle(request.getNoticeTitle());
+        notice.updateTitle(request.getNoticeTitle());
+        notice.updateContent(request.getNoticeContent());
+
+        List<MultipartFile> noticePhotos = new ArrayList<>();
+        if (noticePhoto != null && !noticePhoto.isEmpty()) {
+            noticePhotos.add(noticePhoto);
         }
-        if (request.getNoticeContent() != null) {
-            notice.updateContent(request.getNoticeContent());
-        }
-        if (request.getNoticePhotos() != null) {
-            List<NoticePhoto> existingPhotos = noticePhotoRepository.findByNotice(notice);
 
-            List<NoticePhoto> newPhotos = request.getNoticePhotos().stream()
-                    .map(photoPath -> {
-                        for (NoticePhoto existingPhoto : existingPhotos) {
-                            if (existingPhoto.getPhotoPath().equals(photoPath)) {
-                                return existingPhoto;
-                            }
-                        }
-                        return NoticePhoto.builder()
-                                .photoPath(photoPath)
-                                .notice(notice)
-                                .build();
-                    })
-                    .collect(Collectors.toList());
-
-            noticePhotoRepository.saveAll(newPhotos);
-
-            List<NoticePhoto> photosToRemove = existingPhotos.stream()
-                    .filter(existingPhoto -> !newPhotos.contains(existingPhoto))
-                    .collect(Collectors.toList());
-
-            noticePhotoRepository.deleteAll(photosToRemove);
-        }
+        updateNoticePhotos(notice, noticePhotos);
 
         Notice updatedNotice = noticeRepository.save(notice);
-        List<String> photoPaths = noticePhotoRepository.findByNotice(updatedNotice).stream()
-                .map(NoticePhoto::getPhotoPath)
-                .collect(Collectors.toList());
+        List<String> photoPaths = getNoticePhotoPaths(updatedNotice);
+
         return convertToDetailResponse(updatedNotice, photoPaths);
     }
 
@@ -138,22 +124,95 @@ public class NoticeService {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
 
+        List<NoticePhoto> photos = noticePhotoRepository.findByNotice(notice);
+
+        //기존 사진 파일 삭제
+        photos.forEach(photo -> deletePhotoFile(photo.getNoticePhotoPath()));
+
+        //공지사항에 연결된 사진 정보 삭제
         noticePhotoRepository.deleteByNotice(notice);
+
+        //공지사항 삭제
         noticeRepository.delete(notice);
     }
-    
-    //공지사항 상세 내용
-    private NoticeDetailResponse convertToDetailResponse(Notice notice, List<String> photoPaths) {
+
+    //공지사항 사진 업로드
+    private List<NoticePhoto> saveNoticePhotos(List<MultipartFile> photos, Notice notice) {
+        if (photos == null) {
+            return new ArrayList<>();
+        }
+
+        return photos.stream()
+                .map(photo -> {
+                    try {
+                        String photoPath = fileUploadService.saveFile(photo, null, noticePhotoDir);
+                        return NoticePhoto.builder()
+                                .noticePhotoPath(photoPath)
+                                .notice(notice)
+                                .build();
+                    } catch (IOException e) {
+                        log.error("사진 파일 저장 중 오류가 발생했습니다.", e);
+                        throw new RuntimeException("사진 파일 저장 중 오류가 발생했습니다.", e);
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    //공지사항 사진 업데이트
+    private void updateNoticePhotos(Notice notice, List<MultipartFile> newPhotos) throws IOException {
+        if (newPhotos == null) {
+            return;
+        }
+
+        List<NoticePhoto> existingPhotos = noticePhotoRepository.findByNotice(notice);
+        List<NoticePhoto> updatedPhotos = saveNoticePhotos(newPhotos, notice);
+
+        noticePhotoRepository.saveAll(updatedPhotos);
+
+        List<NoticePhoto> photosToRemove = existingPhotos.stream()
+                .filter(existingPhoto -> !updatedPhotos.contains(existingPhoto))
+                .collect(Collectors.toList());
+
+        photosToRemove.forEach(photo -> deletePhotoFile(photo.getNoticePhotoPath()));
+
+        noticePhotoRepository.deleteAll(photosToRemove);
+    }
+
+    //기존 사진 삭제
+    private void deletePhotoFile(String photoPath) {
+        try {
+            fileUploadService.deleteFile(Path.of(photoPath));
+        } catch (IOException e) {
+            log.error("사진 파일 삭제 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    //공지사항의 사진 파일 경로 목록 조회
+    private List<String> getNoticePhotoPaths(Notice notice) {
+        return noticePhotoRepository.findByNotice(notice).stream()
+                .map(NoticePhoto::getNoticePhotoPath)
+                .collect(Collectors.toList());
+    }
+
+    //공지사항 사진 객체의 파일 경로 목록 조회
+    private List<String> getPhotoPaths(List<NoticePhoto> photos) {
+        return photos.stream()
+                .map(NoticePhoto::getNoticePhotoPath)
+                .collect(Collectors.toList());
+    }
+
+    //공지사항 상세 내용 변환
+    private NoticeDetailResponse convertToDetailResponse(Notice notice, List<String> noticePhotoPath) {
         return NoticeDetailResponse.builder()
                 .noticeId(notice.getNoticeId())
                 .noticeTitle(notice.getNoticeTitle())
                 .noticeContent(notice.getNoticeContent())
-                .noticePhotos(photoPaths)
+                .noticePhotos(noticePhotoPath)
                 .noticeCreatedAt(notice.getNoticeCreatedAt())
                 .build();
     }
-    
-    //공지사항 리스트
+
+    //공지사항 리스트 변환
     private NoticeListResponse convertToListResponse(Notice notice) {
         return NoticeListResponse.builder()
                 .noticeId(notice.getNoticeId())

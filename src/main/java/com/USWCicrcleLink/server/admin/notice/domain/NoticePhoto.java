@@ -13,11 +13,11 @@ import lombok.*;
 public class NoticePhoto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "photo_id")
-    private Long photoId;
+    @Column(name = "notice_photo_id")
+    private Long noticePhotoId;
 
-    @Column(name = "photo_path", nullable = false)
-    private String photoPath;
+    @Column(name = "notice_photo_path", nullable = false)
+    private String noticePhotoPath;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notice_id", nullable = false)
