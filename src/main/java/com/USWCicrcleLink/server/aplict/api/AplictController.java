@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/aplict")
+@RequestMapping("/apply")
 public class AplictController {
     private final AplictService aplictService;
 
@@ -24,7 +24,7 @@ public class AplictController {
     }
 
     //동아리 지원서 제출
-    @PostMapping("/submit/{clubId}")
+    @PostMapping("/{clubId}")
     public ResponseEntity<ApiResponse<Void>> submitAplict(
             @RequestHeader("User-uuid") UUID userUUID,
             @PathVariable("clubId") Long clubId,
