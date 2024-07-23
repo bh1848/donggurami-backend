@@ -6,7 +6,6 @@ import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
 import com.USWCicrcleLink.server.admin.notice.service.NoticeService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -52,8 +51,9 @@ public class NoticeController {
     @PostMapping("/notice/create")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> createNotice(
             @RequestHeader("adminId") Long adminId,
-            @RequestPart(name = "request") @Valid NoticeCreationRequest request,
-            @RequestPart(name = "photo") MultipartFile noticePhotos) throws IOException {
+            @RequestPart("request") NoticeCreationRequest request,
+            //사진 배열 처리
+            @RequestPart("photos") MultipartFile[] noticePhotos) throws IOException {
 
         NoticeDetailResponse createdNotice = noticeService.createNotice(adminId, request, noticePhotos);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 생성 성공", createdNotice);
@@ -64,8 +64,9 @@ public class NoticeController {
     @PatchMapping("/notice/update/{noticeId}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> updateNotice(
             @PathVariable("noticeId") Long noticeId,
-            @RequestPart(name = "request") @Valid NoticeCreationRequest request,
-            @RequestPart(name = "photo") MultipartFile noticePhotos) throws IOException {
+            @RequestPart("request") NoticeCreationRequest request,
+            //사진 배열 처리
+            @RequestPart("photos") MultipartFile[] noticePhotos) throws IOException {
 
         NoticeDetailResponse updatedNotice = noticeService.updateNotice(noticeId, request, noticePhotos);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 수정 성공", updatedNotice);

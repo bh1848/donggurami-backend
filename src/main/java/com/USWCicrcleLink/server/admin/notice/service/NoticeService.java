@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,7 +74,7 @@ public class NoticeService {
     }
 
     //공지사항 생성
-    public NoticeDetailResponse createNotice(Long adminId, NoticeCreationRequest request, MultipartFile noticePhoto) throws IOException {
+    public NoticeDetailResponse createNotice(Long adminId, NoticeCreationRequest request, MultipartFile[] noticePhotos) throws IOException {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("관리자를 찾을 수 없습니다. ID: " + adminId));
 
@@ -87,11 +88,6 @@ public class NoticeService {
 
         fileUploadService.createDirectory(noticePhotoDir);
 
-        List<MultipartFile> noticePhotos = new ArrayList<>();
-        if (noticePhoto != null && !noticePhoto.isEmpty()) {
-            noticePhotos.add(noticePhoto);
-        }
-
         List<NoticePhoto> savedNoticePhotos = saveNoticePhotos(noticePhotos, savedNotice);
         noticePhotoRepository.saveAll(savedNoticePhotos);
 
@@ -99,17 +95,12 @@ public class NoticeService {
     }
 
     //공지사항 수정
-    public NoticeDetailResponse updateNotice(Long noticeId, NoticeCreationRequest request, MultipartFile noticePhoto) throws IOException {
+    public NoticeDetailResponse updateNotice(Long noticeId, NoticeCreationRequest request, MultipartFile[] noticePhotos) throws IOException {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
 
         notice.updateTitle(request.getNoticeTitle());
         notice.updateContent(request.getNoticeContent());
-
-        List<MultipartFile> noticePhotos = new ArrayList<>();
-        if (noticePhoto != null && !noticePhoto.isEmpty()) {
-            noticePhotos.add(noticePhoto);
-        }
 
         updateNoticePhotos(notice, noticePhotos);
 
@@ -137,12 +128,13 @@ public class NoticeService {
     }
 
     //공지사항 사진 업로드
-    private List<NoticePhoto> saveNoticePhotos(List<MultipartFile> photos, Notice notice) {
+    private List<NoticePhoto> saveNoticePhotos(MultipartFile[] photos, Notice notice) {
         if (photos == null) {
             return new ArrayList<>();
         }
-
-        return photos.stream()
+        
+        //사진 배열 업로드
+        return Arrays.stream(photos)
                 .map(photo -> {
                     try {
                         String photoPath = fileUploadService.saveFile(photo, null, noticePhotoDir);
@@ -159,7 +151,7 @@ public class NoticeService {
     }
 
     //공지사항 사진 업데이트
-    private void updateNoticePhotos(Notice notice, List<MultipartFile> newPhotos) throws IOException {
+    private void updateNoticePhotos(Notice notice, MultipartFile[] newPhotos) {
         if (newPhotos == null) {
             return;
         }

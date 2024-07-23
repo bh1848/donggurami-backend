@@ -16,7 +16,7 @@ public class NoticePhoto {
     @Column(name = "notice_photo_id")
     private Long noticePhotoId;
 
-    @Column(name = "notice_photo_path", nullable = false)
+    @Column(name = "notice_photo_path")
     private String noticePhotoPath;
 
     @ManyToOne(fetch = FetchType.LAZY)
