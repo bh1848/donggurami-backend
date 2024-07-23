@@ -1,6 +1,6 @@
 package com.USWCicrcleLink.server.admin.notice.service;
 
-import com.USWCicrcleLink.server.admin.domain.Admin;
+import com.USWCicrcleLink.server.admin.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.notice.domain.Notice;
 import com.USWCicrcleLink.server.admin.notice.domain.NoticePhoto;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeCreationRequest;
@@ -9,7 +9,7 @@ import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponseAssembler;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticePhotoRepository;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
-import com.USWCicrcleLink.server.admin.repository.AdminRepository;
+import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

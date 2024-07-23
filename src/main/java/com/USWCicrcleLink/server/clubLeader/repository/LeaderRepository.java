@@ -11,11 +11,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 
-public interface LeaderRepository extends JpaRepository<Leader,Long> {
+public interface LeaderRepository extends JpaRepository<Leader,Long>, LeaderRepositoryCustom {
     Optional<Leader> findByLeaderUUID(UUID leaderUUID);
-
-    @Modifying
-    @Transactional
-    @Query("DELETE FROM Leader l WHERE l.club.clubId = :clubId")
-    void deleteByClubClubId(@Param("clubId") Long clubId);
 }

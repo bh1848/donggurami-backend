@@ -3,10 +3,10 @@ package com.USWCicrcleLink.server.user.service;
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
-import com.USWCicrcleLink.server.club.domain.Club;
-import com.USWCicrcleLink.server.club.domain.ClubMembers;
-import com.USWCicrcleLink.server.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
+import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -55,7 +55,7 @@ public class MypageService {
         User user = getUserByUUID(uuid);
         Profile profile = getProfileByUserId(user.getUserId());
 
-        List<Aplict> aplicts = getAplictsByProfileId(profile.getId());
+        List<Aplict> aplicts = getAplictsByProfileId(profile.getProfileId());
         log.info("지원 동아리 조회 완료");
 
         return aplicts.stream()
@@ -75,7 +75,7 @@ public class MypageService {
 
     //프로필아이디를 통해 어플릭트 아이디 조회
     private List<Aplict> getAplictsByProfileId(Long profileId) {
-        List<Aplict> aplicts = aplictRepository.findByProfileId(profileId);
+        List<Aplict> aplicts = aplictRepository.findByProfileProfileId(profileId);
         if (aplicts.isEmpty()) {
             throw new IllegalArgumentException("해당 프로필의 어플리케이션을 찾을 수 없습니다.: " + profileId);
         }
