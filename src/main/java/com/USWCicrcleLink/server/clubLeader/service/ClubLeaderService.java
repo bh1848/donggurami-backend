@@ -55,15 +55,8 @@ public class ClubLeaderService {
     // 동아리 기본 정보 조회
     @Transactional(readOnly = true)
     public ApiResponse<ClubInfoResponse> getClubInfo(LeaderToken token) {
-        // 토큰 적용, 예외 처리 시 변경
-        Leader leader = leaderRepository.findByLeaderUUID(token.getLeaderUUID())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
-        log.info("동아리 회장 조회 결과: {}", leader);
 
-        // 동아리 조회
-        Club club = clubRepository.findById(leader.getClub().getClubId())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
-        log.info("동아리 조회 결과: {}", club);
+        Club club = validateLeader(token);
 
         ClubInfoResponse clubInfoResponse = new ClubInfoResponse(
                 club.getMainPhotoPath(),
@@ -80,15 +73,7 @@ public class ClubLeaderService {
     // 동아리 기본 정보 변경
     public void updateClubInfo(LeaderToken token, ClubInfoRequest clubInfoRequest) throws IOException {
 
-        // 토큰 적용, 예외 처리 시 변경
-        Leader leader = leaderRepository.findByLeaderUUID(token.getLeaderUUID())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
-        log.info("동아리 회장 조회 결과: {}", leader);
-
-        // 동아리 조회
-        Club club = clubRepository.findById(leader.getClub().getClubId())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
-        log.info("동아리 조회 결과: {}", club);
+        Club club = validateLeader(token);
 
         // 사진 파일 업로드 과정
         createMainPhotoDir();// 사진 파일 디렉터리 없는 경우 생성
@@ -108,15 +93,7 @@ public class ClubLeaderService {
     // 동아리 소개 변경
     public void updateClubIntro(LeaderToken token, ClubIntroRequest clubIntroRequest) throws IOException {
 
-        // 토큰 적용, 예외 처리 시 변경
-        Leader leader = leaderRepository.findByLeaderUUID(token.getLeaderUUID())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
-        log.info("동아리 회장 조회 결과: {}", leader);
-
-        // 동아리 조회
-        Club club = clubRepository.findById(leader.getClub().getClubId())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
-        log.info("동아리 조회 결과: {}", club);
+        Club club = validateLeader(token);
 
         // 사진 파일 업로드 과정
         createIntroPhotoDir();// 사진 파일 디렉터리 없는 경우 생성
@@ -162,15 +139,7 @@ public class ClubLeaderService {
     // 동아리 모집 상태 변경
     public RecruitmentStatus toggleRecruitmentStatus(LeaderToken token) {
 
-        // 토큰 적용, 예외 처리 시 변경
-        Leader leader = leaderRepository.findByLeaderUUID(token.getLeaderUUID())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
-        log.info("동아리 회장 조회 결과: {}", leader);
-
-        // 동아리 조회
-        Club club = clubRepository.findById(leader.getClub().getClubId())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
-        log.info("동아리 조회 결과: {}", club);
+        Club club = validateLeader(token);
 
         ClubIntro clubIntro = clubIntroRepository.findByClub(club)
                 .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 소개가 아닙니다."));
@@ -186,15 +155,7 @@ public class ClubLeaderService {
     @Transactional(readOnly = true)
     public ApiResponse<List<ClubMembersResponse>> findClubMembers(LeaderToken token) {
 
-        // 토큰 적용, 예외 처리 시 변경
-        Leader leader = leaderRepository.findByLeaderUUID(token.getLeaderUUID())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
-        log.info("동아리 회장 조회 결과: {}", leader);
-
-        // 동아리 조회
-        Club club = clubRepository.findById(leader.getClub().getClubId())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
-        log.info("동아리 조회 결과: {}", club);
+        Club club = validateLeader(token);
 
         // 해당 동아리원 조회(성능 비교)
 //        List<ClubMembers> findClubMembers = clubMembersRepository.findByClub(club); // 일반
@@ -214,15 +175,7 @@ public class ClubLeaderService {
     // 소속 동아리원 삭제
     public ApiResponse deleteClubMember(Long clubMemberId, LeaderToken token) {
 
-        // 토큰 적용, 예외 처리 시 변경
-        Leader leader = leaderRepository.findByLeaderUUID(token.getLeaderUUID())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
-        log.info("동아리 회장 조회 결과: {}", leader);
-
-        // 동아리 조회
-        Club club = clubRepository.findById(leader.getClub().getClubId())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
-        log.info("동아리 조회 결과: {}", club);
+        Club club = validateLeader(token);
 
         // 동아리원 삭제
         clubMembersRepository.deleteById(clubMemberId);
@@ -232,15 +185,8 @@ public class ClubLeaderService {
     // 소속 동아리원 엑셀 다운
     @Transactional(readOnly = true)
     public void downloadExcel(LeaderToken token, HttpServletResponse response) {
-        // 토큰 적용, 예외 처리 시 변경
-        Leader leader = leaderRepository.findByLeaderUUID(token.getLeaderUUID())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
-        log.info("동아리 회장 조회 결과: {}", leader);
 
-        // 동아리 조회
-        Club club = clubRepository.findById(leader.getClub().getClubId())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
-        log.info("동아리 조회 결과: {}", club);
+        Club club = validateLeader(token);
 
         // 해당 동아리원 조회
         List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfile(club.getClubId());
@@ -322,5 +268,20 @@ public class ClubLeaderService {
         cellStyle.setBorderTop(BorderStyle.THIN);
         cellStyle.setBorderRight(BorderStyle.THIN);
         cellStyle.setBorderBottom(BorderStyle.THIN);
+    }
+
+    // 회장 검증 및 소속 동아리
+    private Club validateLeader(LeaderToken token) {
+        // 토큰 적용, 예외 처리 시 변경
+        Leader leader = leaderRepository.findByLeaderUUID(token.getLeaderUUID())
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
+        log.info("동아리 회장 조회 결과: {}", leader);
+
+        // 동아리 조회
+        Club club = clubRepository.findById(leader.getClub().getClubId())
+                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
+        log.info("동아리 조회 결과: {}", club);
+
+        return club;
     }
 }
