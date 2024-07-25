@@ -7,12 +7,14 @@ import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.LeaderToken;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 @RestController
@@ -55,6 +57,12 @@ public class ClubLeaderController {
     @DeleteMapping("/members/{clubMemberId}")
     public ResponseEntity<ApiResponse> deleteClubMember(@PathVariable Long clubMemberId, LeaderToken token) {
         return new ResponseEntity<>(clubLeaderService.deleteClubMember(clubMemberId, token), HttpStatus.OK);
+    }
+
+    @GetMapping("/members/export")
+    public void exportClubMembers(LeaderToken token, HttpServletResponse response) {
+        // 엑셀 파일 생성
+        clubLeaderService.downloadExcel(token, response);
     }
 
 }
