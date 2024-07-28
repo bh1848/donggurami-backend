@@ -80,5 +80,14 @@ public class UserController {
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
+    // 아이디 찾기
+    @GetMapping ("/find-user-account")
+    ResponseEntity<ApiResponse> findUserAccount(@Valid @RequestParam String email) throws MessagingException {
+        User findUser= userService.findUser(email);
+        userService.sendEmailInfo(findUser);
+        ApiResponse response = new ApiResponse( "Account 정보 전송 완료",findUser.getUserAccount());
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
 
 }
