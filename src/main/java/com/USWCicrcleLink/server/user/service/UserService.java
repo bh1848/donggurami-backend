@@ -2,10 +2,8 @@ package com.USWCicrcleLink.server.user.service;
 
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
-
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
-
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.LogInRequest;
@@ -14,6 +12,7 @@ import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 
 import jakarta.mail.MessagingException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,26 +55,19 @@ public class UserService {
     public UserTemp registerTempUser(SignUpRequest request) {
 
         // 임시 회원 테이블 이메일 중복 검증
-        if (isTemporaryUserDuplicate(request.getEmail())) {
+        if (userTempRepository.existsByTempEmail(request.getEmail())) {
             Optional<UserTemp> userTemp = userTempRepository.findByTempEmail(request.getEmail());
             // 해당 임시 회원 정보 삭제
             emailService.deleteTempUserAndToken(userTemp.get());
         }
         // 회원 테이블 이메일 중복 검증
-        if (isUserDuplicate(request.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("이미 존재하는 회원입니다");
         }
 
         return userTempRepository.save(request.toEntity());
     }
-    
-    public boolean isTemporaryUserDuplicate(String email) {
-        return userTempRepository.existsByTempEmail(email);
-    }
 
-    public boolean isUserDuplicate(String email){
-        return userRepository.existsByEmail(email);
-    }
 
     @Transactional
     public void sendEmail(UserTemp userTemp) throws MessagingException {
@@ -125,4 +117,6 @@ public class UserService {
 
         return user.getUserAccount();
     }
+
+
 }
