@@ -26,6 +26,7 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework:spring-web'
 
 	// lombok
 	annotationProcessor 'org.projectlombok:lombok'
@@ -47,7 +48,9 @@ dependencies {
 	//mail
 	implementation 'org.springframework.boot:spring-boot-starter-mail:3.3.1'
 
-
+	// excel
+	// https://mvnrepository.com/artifact/org.apache.poi/poi
+	implementation 'org.apache.poi:poi-ooxml:5.3.0'
 
 }
 

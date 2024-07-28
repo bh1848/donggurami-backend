@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.user.api;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.dto.CheckPasswordRequest;
 import com.USWCicrcleLink.server.user.dto.LogInRequest;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import com.USWCicrcleLink.server.user.dto.UpdatePwRequest;
@@ -62,6 +63,13 @@ public class UserController {
     public ResponseEntity<ApiResponse> checkAccountDuplicate(@RequestParam @Valid  String account) {
             userService.checkAccountDuplicate(account);
             return ResponseEntity.ok(new ApiResponse("사용 가능한 ID 입니다."));
+    }
+
+    // 비밀번호 일치 확인
+    @GetMapping("/check-passwords-match")
+    public ResponseEntity<ApiResponse> comparePasswords(@Valid @RequestBody CheckPasswordRequest request ){
+        userService.comparePasswords(request);
+        return ResponseEntity.ok(new ApiResponse<>("비밀번호가 일치합니다"));
     }
 
     // 로그인
