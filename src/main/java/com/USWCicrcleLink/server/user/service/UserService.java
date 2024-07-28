@@ -8,6 +8,7 @@ import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.dto.CheckPasswordRequest;
 import com.USWCicrcleLink.server.user.dto.LogInRequest;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
@@ -124,5 +125,11 @@ public class UserService {
         }
 
         return user.getUserAccount();
+    }
+
+    public void comparePasswords(CheckPasswordRequest request) {
+        if(!request.getPassword().equals(request.getConfirmPassword())){
+            throw new IllegalStateException("비밀번호가 일치 하지 않습니다");
+        }
     }
 }
