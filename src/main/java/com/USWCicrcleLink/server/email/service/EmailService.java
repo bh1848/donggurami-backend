@@ -3,7 +3,7 @@ package com.USWCicrcleLink.server.email.service;
 import com.USWCicrcleLink.server.email.config.EmailConfig;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.repository.EmailTokenRepository;
-
+import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 
 import jakarta.mail.MessagingException;
@@ -33,8 +33,6 @@ public class EmailService {
 
     //이메일 인증 경로
     private static final String CONFIRM_EMAIL_PATH = "/user/verify-email";
-    // 이메일 토큰 만료 시간 1분
-    private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 1L;
 
     @Async
     public void sendEmail(MimeMessage mimeMessage) {
@@ -47,8 +45,8 @@ public class EmailService {
         // 이메일 토큰 조회
         EmailToken token = emailTokenRepository.findByUserTemp(userTemp);
 
-        MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         helper.setTo(userTemp.getTempEmail() + "@suwon.ac.kr");
         helper.setSubject("회원가입 이메일 인증");
         helper.setFrom("wg1004s@naver.com");
@@ -57,7 +55,7 @@ public class EmailService {
                 = "<a href='" + emailConfig.getBaseUrl() + CONFIRM_EMAIL_PATH + "?emailTokenId=" +token.getEmailTokenId() + "'> verify-email </a>";
         helper.setText(emailContent, true);
 
-        return message;
+        return mimeMessage;
     }
 
 
@@ -78,6 +76,17 @@ public class EmailService {
         }
     }
 
+    public void sendEmailInfo(User findUser) throws MessagingException {
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
+        helper.setTo(findUser.getEmail() + "@suwon.ac.kr"); // 수신자 이메일 설정
+        helper.setSubject("동구라미의 아이디를 찾기 위한 메일입니다."); // 이메일 제목
+        helper.setText("회원님의 아이디는  "  + findUser.getUserAccount() + " 입니다."); // 이메일 내용 설정
+        helper.setFrom("wg1004s@naver.com");
+
+        javaMailSender.send(mimeMessage);
+    }
+
     public void deleteTempUserAndToken(UserTemp userTemp){
         EmailToken findToken = emailTokenRepository.findByUserTemp(userTemp);
         emailTokenRepository.delete(findToken);
@@ -87,6 +96,8 @@ public class EmailService {
         return emailTokenRepository.findByEmailTokenId(emailTokenId)
                 .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
     }
+
+
 }
 
 
