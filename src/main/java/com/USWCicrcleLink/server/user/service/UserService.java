@@ -119,7 +119,7 @@ public class UserService {
         return user.getUserAccount();
     }
 
-    public User findUser(String email) {
+    public Optional<User> findUser(String email) {
 
         if(!userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("존재하지 않는 이메일 입니다.");

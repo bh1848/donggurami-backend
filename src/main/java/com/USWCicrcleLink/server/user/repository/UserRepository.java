@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.user.repository;
 
 import com.USWCicrcleLink.server.user.domain.User;
+import org.apache.poi.sl.draw.geom.GuideIf;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -13,6 +14,6 @@ public interface UserRepository extends JpaRepository <User,Long> {
     Optional<User> findByUserAccount(String account);
     Boolean existsByEmail(String email);
 
-    User findByEmail(String email);
+    Optional <User>  findByEmail(String email);
 }
 

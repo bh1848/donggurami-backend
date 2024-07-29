@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -83,9 +84,9 @@ public class UserController {
     // 아이디 찾기
     @GetMapping ("/find-user-account")
     ResponseEntity<ApiResponse> findUserAccount(@Valid @RequestParam String email) throws MessagingException {
-        User findUser= userService.findUser(email);
-        userService.sendEmailInfo(findUser);
-        ApiResponse response = new ApiResponse( "Account 정보 전송 완료",findUser.getUserAccount());
+        Optional<User> findUser= userService.findUser(email);
+        userService.sendEmailInfo(findUser.get());
+        ApiResponse response = new ApiResponse( "Account 정보 전송 완료",findUser.get().getUserAccount());
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
