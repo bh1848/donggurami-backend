@@ -31,10 +31,9 @@ public class UserController {
     @PatchMapping("/update-userPw")
     public ApiResponse<String> updateUserPw(@RequestParam UUID uuid, @RequestBody UpdatePwRequest request) {
 
-        userService.updatePW(uuid, request.getNewPassword(), request.getConfirmNewPassword());
+        userService.updateNewPW(uuid, request.getUserPw(),request.getNewPw(), request.getConfirmNewPw());
 
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
-
     }
 
     // 임시 회원 등록 및 인증 메일 전송
