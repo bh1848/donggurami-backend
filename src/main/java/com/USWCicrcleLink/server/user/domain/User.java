@@ -54,5 +54,6 @@ public class User {
     public void updateUserPw(String userPw){
         this.userPw = userPw;
     }
+
 }
 

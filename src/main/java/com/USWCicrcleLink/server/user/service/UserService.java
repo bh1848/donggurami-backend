@@ -34,6 +34,7 @@ public class UserService {
     private final UserTempRepository userTempRepository;
     private final EmailService emailService;
     private final ProfileRepository profileRepository;
+    private final AuthCodeRepository authCodeRepository;
 
     public void updatePW(UUID uuid, String newPassword, String confirmNewPassword) {
 
@@ -119,6 +120,13 @@ public class UserService {
         return user.getUserAccount();
     }
 
+    // 비밀번호 일치 확인
+    public void comparePasswords(CheckPasswordRequest request) {
+        if(!request.getPassword().equals(request.getConfirmPassword())){
+            throw new IllegalStateException("비밀번호가 일치 하지 않습니다");
+        }
+    }
+
     public Optional<User> findUser(String email) {
 
         if(!userRepository.existsByEmail(email)) {
@@ -131,9 +139,19 @@ public class UserService {
         emailService.sendEmailInfo(findUser);
     }
 
-    public void comparePasswords(CheckPasswordRequest request) {
-        if(!request.getPassword().equals(request.getConfirmPassword())){
-            throw new IllegalStateException("비밀번호가 일치 하지 않습니다");
+    public void validateAccountAndEmail(String userAccount, String email) {
+
+        Optional<User> user = userRepository.findByEmailAndUserAccount(email,userAccount);
+        if(user.isEmpty()){
+            throw new IllegalArgumentException("올바르지 않은 아이디 혹은 이메일 입니다");
         }
+
     }
+    public void sendAuthCode(String email) throws MessagingException {
+        emailService.sendAuthCode(email);
+    }
+
+
+
+
 }
