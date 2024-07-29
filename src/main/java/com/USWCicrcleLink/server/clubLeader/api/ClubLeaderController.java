@@ -1,11 +1,9 @@
 package com.USWCicrcleLink.server.clubLeader.api;
 
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoResponse;
-import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.LeaderToken;
+import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
+import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 @RestController
@@ -23,6 +20,7 @@ import java.io.IOException;
 public class ClubLeaderController {
 
     private final ClubLeaderService clubLeaderService;
+    private final FcmServiceImpl fcmService;
 
     @GetMapping("/info")
     public ResponseEntity<ApiResponse> getClubInfo(LeaderToken token) {
@@ -65,4 +63,9 @@ public class ClubLeaderController {
         clubLeaderService.downloadExcel(token, response);
     }
 
+    @PostMapping("/application")
+    public ResponseEntity<Integer> pushMessage(@RequestBody @Validated FcmSendDto fcmSendDto) throws IOException {
+        int result = fcmService.sendMessageTo(fcmSendDto);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
 }

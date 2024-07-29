@@ -4,6 +4,8 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+### firebase-key ###
+usw-circle-link-firebase-adminsdk-u25m3-791f80d22c.json
 
 ### application.yml ###
 application-local.yml
