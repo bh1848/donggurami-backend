@@ -22,14 +22,14 @@ import java.util.UUID;
 
 @RestController
 @Slf4j
-@RequestMapping("/user")
+@RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @PatchMapping("/update-userPw")
-    public ApiResponse<String> updateUserPw(@RequestParam UUID uuid, @RequestBody UpdatePwRequest request) {
+    @PatchMapping("/{uuid}/userpw")
+    public ApiResponse<String> updateUserPw(@PathVariable UUID uuid, @RequestBody UpdatePwRequest request) {
 
         userService.updateNewPW(uuid, request.getUserPw(),request.getNewPw(), request.getConfirmNewPw());
 
