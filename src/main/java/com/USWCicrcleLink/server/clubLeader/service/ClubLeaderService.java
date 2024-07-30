@@ -1,5 +1,8 @@
 package com.USWCicrcleLink.server.clubLeader.service;
 
+import com.USWCicrcleLink.server.aplict.domain.Aplict;
+import com.USWCicrcleLink.server.aplict.dto.ApplicantsResponse;
+import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
@@ -21,6 +24,10 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +52,7 @@ public class ClubLeaderService {
     private final LeaderRepository leaderRepository;
     private final ClubMembersRepository clubMembersRepository;
     private final FileUploadService fileUploadService;
+    private final AplictRepository aplictRepository;
 
     // 대표 사진 경로
     @Value("${file.mainPhoto-dir}")
@@ -202,7 +210,7 @@ public class ClubLeaderService {
         String fileName = club.getClubName() + " 회원 명단.xlsx";
         String encodedFileName;
         try {
-            encodedFileName =URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
+            encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
         } catch (IOException e) {
             throw new RuntimeException("파일 이름 인코딩에 실패했습니다.", e);
         }
@@ -268,6 +276,23 @@ public class ClubLeaderService {
         cellStyle.setBorderTop(BorderStyle.THIN);
         cellStyle.setBorderRight(BorderStyle.THIN);
         cellStyle.setBorderBottom(BorderStyle.THIN);
+    }
+
+    // 동아리 지원자 조회
+    public Page<ApplicantsResponse> getApplicants(LeaderToken token, int page, int size) {
+        Club club = validateLeader(token);
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubId(club.getClubId(), pageable);
+        List<ApplicantsResponse> applicants = aplicts.stream()
+                .map(ap -> new ApplicantsResponse(
+                        ap.getId(),
+                        ap.getProfile()
+                ))
+                .collect(toList());
+
+        return new PageImpl<>(applicants, pageable, aplicts.getTotalElements());
     }
 
     // 회장 검증 및 소속 동아리

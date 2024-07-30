@@ -20,12 +20,12 @@ public class Aplict {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "profile_id", nullable = false)
-    private Profile profile;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_id", nullable = false)
+    private Profile profile;
 
     @Column(name = "aplict_google_form_url", nullable = false)
     private String aplictGoogleFormUrl;
