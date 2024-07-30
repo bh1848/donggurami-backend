@@ -7,5 +7,5 @@ import org.springframework.data.domain.Pageable;
 public interface AplictRepositoryCustom {
     void deleteByClubClubId(Long clubId);
 
-    Page<Aplict> findAllWithProfileByClubId(Long clubId, Pageable pageable);
+    Page<Aplict> findAllWithProfileByClubId(Long clubId, Pageable pageable, boolean checked);
 }

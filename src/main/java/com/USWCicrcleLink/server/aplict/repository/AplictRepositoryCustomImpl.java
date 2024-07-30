@@ -28,9 +28,9 @@ public class AplictRepositoryCustomImpl implements AplictRepositoryCustom {
     }
 
     @Override
-    public Page<Aplict> findAllWithProfileByClubId(Long clubId, Pageable pageable) {
+    public Page<Aplict> findAllWithProfileByClubId(Long clubId, Pageable pageable, boolean checked) {
         String jpql = "SELECT ap FROM Aplict ap JOIN FETCH ap.profile p" +
-                " WHERE ap.club.id = :clubId";
+                " WHERE ap.club.id = :clubId AND ap.checked = :checked";
         TypedQuery<Aplict> query = em.createQuery(jpql, Aplict.class);
 
         query.setParameter("clubId", clubId);

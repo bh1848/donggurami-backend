@@ -288,7 +288,8 @@ public class ClubLeaderService {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubId(club.getClubId(), pageable);
+        // 합/불 처리되지 않은 동아리 지원자 조회
+        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubId(club.getClubId(), pageable, false);
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
                         ap.getId(),
