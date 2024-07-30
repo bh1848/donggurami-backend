@@ -123,10 +123,11 @@ public class UserController {
     // 비밀번호 재설정
     @PatchMapping("/reset-password/{uuid}")
     public ApiResponse<String> resetUserPw(@PathVariable UUID uuid, @RequestBody UpdatePwRequest request) {
+
         User user = userService.findByUuid(uuid);
         userService.resetPW(user,request);
-        return new ApiResponse<>("비밀번호가 변경되었습니다.");
 
+        return new ApiResponse<>("비밀번호가 변경되었습니다.");
     }
 
 

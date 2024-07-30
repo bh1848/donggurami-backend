@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -163,7 +162,7 @@ public class UserService {
         user.updateUserPw(request.getNewPassword());
         userRepository.save(user);
 
-        log.info("새로운 비밀번호 변경 완료: {}",user.getUserUUID());
+        log.info("새로운 비밀번호 변경 완료: {}", user.getUserUUID());
     }
 
     public User findByUuid(UUID uuid) {
