@@ -43,12 +43,12 @@ public class EmailService {
         javaMailSender.send(mimeMessage);
     }
 
-    // 인증 링크 생성
-    public MimeMessage createAuthLink(UserTemp userTemp) throws MessagingException {
+    public MimeMessage createTokenAndEmail(UserTemp userTemp) throws MessagingException {
 
-        // 이메일 토큰 조회
-        EmailToken token = emailTokenRepository.findByUserTemp(userTemp);
+        // 이메일 토큰 생성
+        EmailToken emailToken = createEmailToken(userTemp);
 
+        // 회원 가입 인증 메일 생성
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         helper.setTo(userTemp.getTempEmail() + "@suwon.ac.kr");
@@ -56,16 +56,15 @@ public class EmailService {
         helper.setFrom("wg1004s@naver.com");
 
         String emailContent
-                = "<a href='" + emailConfig.getBaseUrl() + CONFIRM_EMAIL_PATH + "?emailTokenId=" +token.getEmailTokenId()+ "'> verify-email </a>";
+                = "<a href='" + emailConfig.getBaseUrl() + CONFIRM_EMAIL_PATH + "?emailTokenId=" +emailToken.getEmailTokenId()+ "'> verify-email </a>";
         helper.setText(emailContent, true);
 
         return mimeMessage;
     }
 
-
-    public void createEmailToken(UserTemp userTemp) {
+    private EmailToken createEmailToken(UserTemp userTemp) {
         EmailToken emailToken = EmailToken.createEmailToken(userTemp);
-        emailTokenRepository.save(emailToken);
+        return emailTokenRepository.save(emailToken);
     }
 
     // 유효한 토큰 검증
@@ -91,7 +90,7 @@ public class EmailService {
         javaMailSender.send(mimeMessage);
     }
 
-    public void deleteTempUserAndToken(UserTemp userTemp){
+    public void deleteUserTempAndEmailToken(UserTemp userTemp){
         EmailToken findToken = emailTokenRepository.findByUserTemp(userTemp);
         emailTokenRepository.delete(findToken);
     }

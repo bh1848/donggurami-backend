@@ -39,7 +39,7 @@ public class UserController {
     @PostMapping("/temp-sign-up")
     public ResponseEntity<ApiResponse> registerTemporaryUser (@Valid @RequestBody SignUpRequest request) throws MessagingException {
 
-        UserTemp userTemp = userService.registerTempUser(request);
+        UserTemp userTemp = userService.registerUserTemp(request);
         userService.sendEmail(userTemp);
         ApiResponse response = new ApiResponse("인증 메일 전송 완료");
 

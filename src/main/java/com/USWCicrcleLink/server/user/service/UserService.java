@@ -62,13 +62,14 @@ public class UserService {
         log.info("비밀번호 변경 완료: {}",user.getUserUUID());
     }
 
-    public UserTemp registerTempUser(SignUpRequest request) {
+    // 임시 회원 저장
+    public UserTemp registerUserTemp(SignUpRequest request) {
 
         // 임시 회원 테이블 이메일 중복 검증
         if (userTempRepository.existsByTempEmail(request.getEmail())) {
             Optional<UserTemp> userTemp = userTempRepository.findByTempEmail(request.getEmail());
             // 해당 임시 회원 정보 삭제
-            emailService.deleteTempUserAndToken(userTemp.get());
+            emailService.deleteUserTempAndEmailToken(userTemp.get());
         }
         // 회원 테이블 이메일 중복 검증
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -81,8 +82,7 @@ public class UserService {
 
     @Transactional
     public void sendEmail(UserTemp userTemp) throws MessagingException {
-        emailService.createEmailToken(userTemp);
-        emailService.sendEmail(emailService.createAuthLink(userTemp));
+        emailService.sendEmail(emailService.createTokenAndEmail(userTemp));
     }
 
     public UserTemp validateEmailToken(UUID emailTokenId) {
@@ -105,7 +105,7 @@ public class UserService {
         userRepository.save(user);
         profileRepository.save(profile);
         // 임시 회원 정보 삭제
-        emailService.deleteTempUserAndToken(userTemp);
+        emailService.deleteUserTempAndEmailToken(userTemp);
 
         return user;
     }
