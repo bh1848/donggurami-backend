@@ -33,7 +33,20 @@ public class Aplict {
     @Column(name = "aplict_submitted_at", nullable = false)
     private LocalDateTime submittedAt;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "aplict_status", nullable = false)
-    private AplictStatus aplictStatus;
+    private AplictStatus aplictStatus = AplictStatus.WAIT;
+
+    @Column(name = "checked")
+    private boolean checked;
+
+    @Column(name = "delete_after")
+    private LocalDateTime deleteAfter;
+
+    public void updateAplictStatus(AplictStatus newStatus, boolean checked, LocalDateTime deleteAfter) {
+        this.aplictStatus = newStatus;
+        this.checked = checked;
+        this.deleteAfter = deleteAfter;
+    }
 }

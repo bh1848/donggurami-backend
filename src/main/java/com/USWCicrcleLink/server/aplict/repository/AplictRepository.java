@@ -8,9 +8,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AplictRepository extends JpaRepository<Aplict, Long>, AplictRepositoryCustom {
     List<Aplict> findByProfileProfileId(Long profileId);
+
+    Optional<Aplict> findByClub_ClubIdAndIdAndChecked (Long clubId, Long aplictId, boolean checked);
 
     @Modifying
     @Transactional

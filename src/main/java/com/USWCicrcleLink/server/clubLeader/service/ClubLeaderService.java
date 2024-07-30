@@ -1,6 +1,8 @@
 package com.USWCicrcleLink.server.clubLeader.service;
 
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
+import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
+import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantsResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
@@ -38,6 +40,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -279,6 +282,7 @@ public class ClubLeaderService {
     }
 
     // 동아리 지원자 조회
+    @Transactional(readOnly = true)
     public Page<ApplicantsResponse> getApplicants(LeaderToken token, int page, int size) {
         Club club = validateLeader(token);
 
@@ -293,6 +297,29 @@ public class ClubLeaderService {
                 .collect(toList());
 
         return new PageImpl<>(applicants, pageable, aplicts.getTotalElements());
+    }
+
+    // 동아리 지원자 합격/불합격 처리
+    public void updateApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) {
+        Club club = validateLeader(token);
+
+        // 지원자 검증(지원한 동아리 + 지원서 + check안된 상태)
+        for (ApplicantResultsRequest result : results) {
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndChecked(club.getClubId(), result.getAplictId(), false)
+                    .orElseThrow(() -> new IllegalArgumentException("유효한 지원자가 아닙니다."));
+
+            // 합격 불합격 상태 업데이트
+            // 합/불, checked, 삭제 날짜
+            if (result.getAplictStatus() == AplictStatus.PASS) {
+                applicant.updateAplictStatus(result.getAplictStatus(), true, LocalDateTime.now().plusDays(4));
+                log.debug("합격 처리 완료: {}", applicant.getId());
+            } else if (result.getAplictStatus() == AplictStatus.FAIL) {
+                applicant.updateAplictStatus(result.getAplictStatus(), true, LocalDateTime.now().plusDays(4));
+                log.debug("불합격 처리 완료: {}", applicant.getId());
+            }
+
+            aplictRepository.save(applicant);
+        }
     }
 
     // 회장 검증 및 소속 동아리

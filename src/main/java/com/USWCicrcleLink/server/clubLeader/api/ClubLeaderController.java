@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.clubLeader.api;
 
+import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantsResponse;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
@@ -15,6 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -71,6 +73,12 @@ public class ClubLeaderController {
     }
 
     @PostMapping("/applicants/notifyMultiple")
+    public ResponseEntity<ApiResponse> pushApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) {
+        clubLeaderService.updateApplicantResults(token, results);
+        return new ResponseEntity<>(new ApiResponse<>("지원 결과 처리 완료: {}"), HttpStatus.OK);
+    }
+
+    @PostMapping("/applicants/notify")
     public ResponseEntity<Integer> pushMessage(@RequestBody @Validated FcmSendDto fcmSendDto) throws IOException {
         int result = fcmService.sendMessageTo(fcmSendDto);
         return new ResponseEntity<>(result, HttpStatus.OK);
