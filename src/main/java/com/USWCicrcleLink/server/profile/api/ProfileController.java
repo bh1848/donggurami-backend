@@ -12,15 +12,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("profile")
+@RequestMapping("profiles")
 @RequiredArgsConstructor
 public class ProfileController {
 
     private final ProfileService profileService;
 
-    @PatchMapping("/update-profile")
-    public ResponseEntity<ProfileResponse> updateProfile(@RequestParam("UUId") UUID userUUID, @RequestBody ProfileRequest profileRequest) {
-        ProfileResponse profileResponse = profileService.updateProfile(userUUID, profileRequest);
+    @PatchMapping("/{uuid}")
+    public ResponseEntity<ProfileResponse> updateProfile(@PathVariable UUID uuid, @RequestBody ProfileRequest profileRequest) {
+        ProfileResponse profileResponse = profileService.updateProfile(uuid, profileRequest);
         return ResponseEntity.ok(profileResponse);
     }
 }

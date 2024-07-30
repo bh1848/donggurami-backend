@@ -35,7 +35,7 @@ public class EmailService {
     private final AuthTokenService authTokenService;
 
     //이메일 인증 경로
-    private static final String CONFIRM_EMAIL_PATH = "/user/verify-email";
+    private static final String CONFIRM_EMAIL_PATH = "/users/verify-email";
 
 
     @Async

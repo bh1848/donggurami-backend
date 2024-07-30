@@ -23,37 +23,44 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class UserService {
-
 
     private final UserRepository userRepository;
     private final UserTempRepository userTempRepository;
     private final EmailService emailService;
     private final ProfileRepository profileRepository;
     private final AuthTokenRepository authTokenRepository;
+    private final MypageService mypageService;
 
 
-    public void updatePW(UUID uuid, String newPassword, String confirmNewPassword) {
+    public boolean confirmPW(UUID uuid, String userpw){
+        User user = mypageService.getUserByUUID(uuid);
+        return user.getUserPw().equals(userpw);
+    }
 
-        User user = userRepository.findByUserUUID(uuid);
+    public void updateNewPW(UUID uuid, String userPw, String newPW, String confirmNewPW){
 
-        if (user == null) {
-            throw new IllegalArgumentException("해당 UUID를 가진 사용자를 찾을 수 없습니다: " + uuid);
+        if (newPW.trim().isEmpty() || confirmNewPW.trim().isEmpty()) {
+            throw new IllegalArgumentException("새 비밀번호와 비밀번호 확인은 빈칸일 수 없습니다.");
         }
-        if (!confirmNewPassword.equals(user.getUserPw())) {
-            throw new IllegalArgumentException("기존 비밀번호와 일치하지 않습니다.");
+
+        if (!newPW.equals(confirmNewPW)) {
+            throw new IllegalArgumentException("새 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         }
 
-        user.updateUserPw(newPassword);
+        if (!confirmPW(uuid, userPw)) {
+            throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
+        }
+
+        User user = mypageService.getUserByUUID(uuid);
+        user.updateUserPw(newPW);
         userRepository.save(user);
 
         log.info("비밀번호 변경 완료: {}",user.getUserUUID());
     }
-
 
     public UserTemp registerTempUser(SignUpRequest request) {
 
@@ -155,11 +162,11 @@ public class UserService {
 
     public void resetPW(User user, UpdatePwRequest request) {
 
-        if(!request.getNewPassword().equals(request.getConfirmNewPassword())){
+        if(!request.getNewPw().equals(request.getConfirmNewPw())){
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
         }
 
-        user.updateUserPw(request.getNewPassword());
+        user.updateUserPw(request.getNewPw());
         userRepository.save(user);
 
         log.info("새로운 비밀번호 변경 완료: {}", user.getUserUUID());

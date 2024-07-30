@@ -27,6 +27,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String userAccount;
 
+    @Column(nullable = false)
     private String userPw;
 
     @Column(unique = true, nullable = false)
