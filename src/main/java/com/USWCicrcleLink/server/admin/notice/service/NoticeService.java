@@ -132,7 +132,11 @@ public class NoticeService {
         if (photos == null) {
             return new ArrayList<>();
         }
-        
+
+        if (photos.length > 5) {
+            throw new IllegalArgumentException("최대 5개의 사진을 업로드할 수 있습니다.");
+        }
+
         //사진 배열 업로드
         return Arrays.stream(photos)
                 .map(photo -> {
@@ -154,6 +158,10 @@ public class NoticeService {
     private void updateNoticePhotos(Notice notice, MultipartFile[] newPhotos) {
         if (newPhotos == null) {
             return;
+        }
+
+        if (newPhotos.length > 5) {
+            throw new IllegalArgumentException("최대 5개의 사진을 업로드할 수 있습니다.");
         }
 
         List<NoticePhoto> existingPhotos = noticePhotoRepository.findByNotice(notice);
