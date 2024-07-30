@@ -12,5 +12,5 @@ public class FindUserInfoRequest {
     private String userAccount;
     private String userPw;
     private String email;
-    private String AuthCode; // 인증 코드
+    private String authCode; // 인증 코드
 }

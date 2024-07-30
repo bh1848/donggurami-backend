@@ -4,6 +4,7 @@ import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.*;
+import com.USWCicrcleLink.server.user.service.AuthTokenService;
 import com.USWCicrcleLink.server.user.service.UserService;
 
 import jakarta.mail.MessagingException;
@@ -15,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -25,6 +25,7 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final AuthTokenService authTokenService;
 
     @PatchMapping("/update-userPw")
     public ApiResponse<String> updateUserPw(@RequestParam UUID uuid, @RequestBody UpdatePwRequest request) {
@@ -89,9 +90,9 @@ public class UserController {
     @GetMapping ("/find-user-account")
     ResponseEntity<ApiResponse> findUserAccount(@Valid @RequestParam String email) throws MessagingException {
 
-        Optional<User> findUser= userService.findUser(email);
-        userService.sendEmailInfo(findUser.get());
-        ApiResponse response = new ApiResponse( "Account 정보 전송 완료",findUser.get().getUserAccount());
+        User findUser= userService.findUser(email);
+        userService.sendEmailInfo(findUser);
+        ApiResponse response = new ApiResponse( "Account 정보 전송 완료",findUser.getUserAccount());
 
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
@@ -100,11 +101,32 @@ public class UserController {
     @GetMapping("/find-user-password")
     ResponseEntity<ApiResponse> findUserPassword (@Valid @RequestBody FindUserInfoRequest request) throws MessagingException {
 
-        userService.validateAccountAndEmail(request.getUserAccount(), request.getEmail());
-        userService.sendAuthCode(request.getEmail());
+        User user = userService.validateAccountAndEmail(request);
+        userService.sendAuthCode(user,request);
         ApiResponse response = new ApiResponse("인증코드가 전송 되었습니다");
 
         return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
+    // 인증 코드 검증
+    @GetMapping("validate-auth-token/{uuid}")
+    public ResponseEntity<ApiResponse> validateAuthToken (@PathVariable UUID uuid, @RequestBody FindUserInfoRequest request) {
+
+        userService.validateAuthToken(uuid, request);
+        authTokenService.deleteAuthToken(uuid);
+        ApiResponse response = new ApiResponse("인증 코드 검증이 완료되었습니다");
+
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
+
+    // 비밀번호 재설정
+    @PatchMapping("/reset-password/{uuid}")
+    public ApiResponse<String> resetUserPw(@PathVariable UUID uuid, @RequestBody UpdatePwRequest request) {
+        User user = userService.findByUuid(uuid);
+        userService.resetPW(user,request);
+        return new ApiResponse<>("비밀번호가 변경되었습니다.");
+
     }
 
 

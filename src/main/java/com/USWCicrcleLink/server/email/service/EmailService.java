@@ -3,9 +3,13 @@ package com.USWCicrcleLink.server.email.service;
 import com.USWCicrcleLink.server.email.config.EmailConfig;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.repository.EmailTokenRepository;
+import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 
+import com.USWCicrcleLink.server.user.repository.AuthTokenRepository;
+import com.USWCicrcleLink.server.user.service.AuthTokenService;
+import com.USWCicrcleLink.server.user.service.UserService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
@@ -19,6 +23,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
@@ -31,7 +36,7 @@ public class EmailService {
     private final EmailConfig emailConfig;
     private final EmailTokenRepository emailTokenRepository;
     private final JavaMailSender javaMailSender;
-
+    private final AuthTokenService authTokenService;
 
     //이메일 인증 경로
     private static final String CONFIRM_EMAIL_PATH = "/user/verify-email";
@@ -101,9 +106,13 @@ public class EmailService {
     }
 
 
-    public void sendAuthCode(String email) throws MessagingException {
+    public void sendAuthCode(User user, String email) throws MessagingException {
 
-        makeRandomNumber();
+        // 인증 토큰 생성 및 저장
+        String authNumber = makeRandomNumber();
+        authTokenService.createAndSaveAuthToken(user, authNumber);
+
+        // 이메일 전송
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
         helper.setTo(email + "@suwon.ac.kr");
@@ -114,13 +123,13 @@ public class EmailService {
         javaMailSender.send(mimeMessage);
     }
 
-    private void  makeRandomNumber() {
+    private String  makeRandomNumber() {
             Random r = new Random();
             StringBuilder randomNumber = new StringBuilder();
             for(int i = 0; i < 4; i++) {
                 randomNumber.append(r.nextInt(10));
             }
-            authNumber= randomNumber.toString();
+            return authNumber= randomNumber.toString();
     }
 
 

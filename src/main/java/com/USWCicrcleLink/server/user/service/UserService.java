@@ -4,11 +4,11 @@ import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
-import com.USWCicrcleLink.server.user.dto.CheckPasswordRequest;
-import com.USWCicrcleLink.server.user.dto.LogInRequest;
-import com.USWCicrcleLink.server.user.dto.SignUpRequest;
+import com.USWCicrcleLink.server.user.dto.*;
+import com.USWCicrcleLink.server.user.repository.AuthTokenRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 
@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,7 +35,8 @@ public class UserService {
     private final UserTempRepository userTempRepository;
     private final EmailService emailService;
     private final ProfileRepository profileRepository;
-    private final AuthCodeRepository authCodeRepository;
+    private final AuthTokenRepository authTokenRepository;
+
 
     public void updatePW(UUID uuid, String newPassword, String confirmNewPassword) {
 
@@ -127,7 +129,7 @@ public class UserService {
         }
     }
 
-    public Optional<User> findUser(String email) {
+    public User findUser(String email) {
 
         if(!userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("존재하지 않는 이메일 입니다.");
@@ -139,19 +141,46 @@ public class UserService {
         emailService.sendEmailInfo(findUser);
     }
 
-    public void validateAccountAndEmail(String userAccount, String email) {
+    public User validateAccountAndEmail(FindUserInfoRequest request) {
 
-        Optional<User> user = userRepository.findByEmailAndUserAccount(email,userAccount);
+        Optional<User> user = userRepository.findByEmailAndUserAccount(request.getEmail(),request.getUserAccount());
         if(user.isEmpty()){
             throw new IllegalArgumentException("올바르지 않은 아이디 혹은 이메일 입니다");
         }
-
+        return user.get();
     }
-    public void sendAuthCode(String email) throws MessagingException {
-        emailService.sendAuthCode(email);
+    public void sendAuthCode(User user, FindUserInfoRequest request) throws MessagingException {
+        emailService.sendAuthCode(user,request.getEmail());
     }
 
 
+    public void resetPW(User user, UpdatePwRequest request) {
 
+        if(!request.getNewPassword().equals(request.getConfirmNewPassword())){
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+        }
 
+        user.updateUserPw(request.getNewPassword());
+        userRepository.save(user);
+
+        log.info("새로운 비밀번호 변경 완료: {}",user.getUserUUID());
+    }
+
+    public User findByUuid(UUID uuid) {
+        User user = userRepository.findByUserUUID(uuid);
+
+        if (user == null) {
+            throw new IllegalArgumentException("해당 UUID를 가진 사용자를 찾을 수 없습니다: " + uuid);
+        }
+        return  user;
+    }
+
+    public void validateAuthToken(UUID uuid, FindUserInfoRequest request) {
+        AuthToken authToken = authTokenRepository.findByUserUserUUID(uuid)
+                .orElseThrow(() -> new IllegalArgumentException("인증 코드를 찾을 수 없습니다"));
+
+        if(!authToken.isAuthCodeValid(request.getAuthCode())){
+            throw new IllegalArgumentException("인증코드가 일치 하지않습니다");
+        }
+    }
 }
