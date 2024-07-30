@@ -42,6 +42,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -307,6 +309,12 @@ public class ClubLeaderService {
     public void updateApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) {
         Club club = validateLeader(token);
 
+        // 동아리 지원자 전원 조회(최초 합격)
+        List<Aplict> applicants = aplictRepository.findByClub_ClubIdAndChecked(club.getClubId(), false);
+
+        // 선택된 지원자 수와 전체 동아리 지원자 수 비교
+        validateTotalApplicants(applicants, results);
+
         // 지원자 검증(지원한 동아리 + 지원서 + check안된 상태)
         for (ApplicantResultsRequest result : results) {
             Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndChecked(
@@ -329,7 +337,22 @@ public class ClubLeaderService {
         }
     }
 
-    // 불합격 지원자 조회
+    // 선택된 지원자 수와 전체 지원자 수 비교
+    private void validateTotalApplicants(List<Aplict> applicants, List<ApplicantResultsRequest> results) {
+        Set<Long> applicantIds = applicants.stream()
+                .map(Aplict::getId)
+                .collect(Collectors.toSet());
+
+        Set<Long> requestedApplicantIds = results.stream()
+                .map(ApplicantResultsRequest::getAplictId)
+                .collect(Collectors.toSet());
+
+        if (!requestedApplicantIds.equals(applicantIds)) {
+            throw new IllegalArgumentException("선택한 지원자의 수와 전체 지원자 수가 일치하지 않습니다.");
+        }
+    }
+
+    // 불합격자 조회
     @Transactional(readOnly = true)
     public Page<ApplicantsResponse> getFailedApplicants(LeaderToken token, int page, int size) {
         Club club = validateLeader(token);
