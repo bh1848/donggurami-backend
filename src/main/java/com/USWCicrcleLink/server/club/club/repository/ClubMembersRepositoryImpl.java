@@ -31,4 +31,15 @@ public class ClubMembersRepositoryImpl implements ClubMembersRepositoryCustom {
                 .setParameter("clubId", clubId)
                 .executeUpdate();
     }
+
+    @Override
+    @Transactional
+    public List<Long> findClubIdsByUserId(Long userId) {
+        return em.createQuery(
+                        "select cm.club.clubId from ClubMembers cm" +
+                                " where cm.profile.user.userId = :userId",
+                        Long.class
+                ).setParameter("userId", userId)
+                .getResultList();
+    }
 }

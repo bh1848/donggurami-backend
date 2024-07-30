@@ -22,7 +22,7 @@ public class ClubIntroController {
 
     private final ClubIntroService clubIntroService;
 
-    //분과별 동아리 조회
+    //분과별 동아리 조회(모바일)
     @GetMapping("/{department}")
     public ResponseEntity<ApiResponse<List<ClubByDepartmentResponse>>> getClubsByDepartment(@PathVariable("department") Department department) {
         List<ClubByDepartmentResponse> clubs = clubIntroService.getClubsByDepartment(department);
@@ -30,7 +30,7 @@ public class ClubIntroController {
         return ResponseEntity.ok(response);
     }
 
-    //모집 상태 및 분과별 동아리 조회
+    //모집 상태 및 분과별 동아리 조회(모바일)
     @GetMapping("/{department}/{recruitmentStatus}")
     public ResponseEntity<ApiResponse<List<ClubByDepartmentResponse>>> getClubsByRecruitmentStatusAndDepartment(
             @PathVariable("department") Department department,
@@ -40,7 +40,7 @@ public class ClubIntroController {
         return ResponseEntity.ok(response);
     }
 
-    //동아리 소개글 조회
+    //동아리 소개글 조회(모바일)
     @GetMapping("/{clubId}")
     public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubIntroByClubId(@PathVariable("clubId") Long id) {
         ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntroByClubId(id);

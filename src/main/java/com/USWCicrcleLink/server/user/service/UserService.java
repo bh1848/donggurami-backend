@@ -1,7 +1,11 @@
 package com.USWCicrcleLink.server.user.service;
 
+import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
+import com.USWCicrcleLink.server.global.security.domain.Role;
+import com.USWCicrcleLink.server.global.security.dto.TokenDto;
+import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -17,9 +21,15 @@ import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,6 +43,11 @@ public class UserService {
     private final EmailService emailService;
     private final ProfileRepository profileRepository;
     private final MypageService mypageService;
+    private final AuthenticationConfiguration authenticationConfiguration;
+    private final UserDetailsService userDetailsService;
+    private final JwtProvider jwtProvider;
+    private final ClubMembersRepository clubMembersRepository;
+
 
     public boolean confirmPW(UUID uuid, String userpw){
         User user = mypageService.getUserByUUID(uuid);
@@ -114,8 +129,9 @@ public class UserService {
         }
     }
 
-    public String logIn(LogInRequest request)  {
-
+    // 로그인
+    public TokenDto logIn(LogInRequest request) throws Exception {
+        log.debug("로그인 요청: {}", request.getAccount());
         User user = userRepository.findByUserAccount(request.getAccount())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 ID입니다"));
 
@@ -123,7 +139,21 @@ public class UserService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
         }
 
-        return user.getUserAccount();
+        log.debug("사용자 인증 시도");
+        AuthenticationManager authenticationManager = authenticationConfiguration.getAuthenticationManager();
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getAccount(), request.getPassword())
+        );
+
+        log.debug("사용자 정보 로드");
+        userDetailsService.loadUserByUsername(request.getAccount());
+        List<Role> roles = List.of(user.getRoles());
+        List<Long> clubIds = clubMembersRepository.findClubIdsByUserId(user.getUserId());
+
+        log.debug("JWT 생성");
+        String token = jwtProvider.createAccessToken(user.getUserUUID().toString(), roles, clubIds);
+        log.debug("로그인 성공, 토큰: {}", token);
+        return new TokenDto(token);
     }
 
     public User findUser(String email) {

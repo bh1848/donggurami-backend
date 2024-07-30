@@ -44,7 +44,7 @@ public class NoticeService {
     @Value("${file.noticePhoto-dir}")
     private String noticePhotoDir;
 
-    //공지사항 전체 리스트 조회
+    //공지사항 전체 리스트 조회(웹)
     @Transactional(readOnly = true)
     public List<NoticeListResponse> getAllNotices() {
         return noticeRepository.findAll().stream()
@@ -52,14 +52,14 @@ public class NoticeService {
                 .collect(Collectors.toList());
     }
 
-    //공지사항 리스트 조회(페이징)
+    //공지사항 리스트 조회(페이징)(웹)
     @Transactional(readOnly = true)
     public PagedModel<NoticeListResponse> getNotices(Pageable pageable, PagedResourcesAssembler<Notice> pagedResourcesAssembler) {
         Page<Notice> noticePage = noticeRepository.findAll(pageable);
         return pagedResourcesAssembler.toModel(noticePage, noticeListResponseAssembler);
     }
 
-    //공지사항 내용 조회
+    //공지사항 내용 조회(웹)
     @Transactional(readOnly = true)
     public NoticeDetailResponse getNoticeById(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
@@ -73,7 +73,7 @@ public class NoticeService {
         return convertToDetailResponse(notice, noticePhotoPaths);
     }
 
-    //공지사항 생성
+    //공지사항 생성(웹)
     public NoticeDetailResponse createNotice(Long adminId, NoticeCreationRequest request, MultipartFile[] noticePhotos) throws IOException {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("관리자를 찾을 수 없습니다. ID: " + adminId));
@@ -94,7 +94,7 @@ public class NoticeService {
         return convertToDetailResponse(savedNotice, getPhotoPaths(savedNoticePhotos));
     }
 
-    //공지사항 수정
+    //공지사항 수정(웹)
     public NoticeDetailResponse updateNotice(Long noticeId, NoticeCreationRequest request, MultipartFile[] noticePhotos) throws IOException {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
@@ -110,7 +110,7 @@ public class NoticeService {
         return convertToDetailResponse(updatedNotice, photoPaths);
     }
 
-    //공지사항 삭제
+    //공지사항 삭제(웹)
     public void deleteNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));

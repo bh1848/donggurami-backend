@@ -30,7 +30,7 @@ public class AplictService {
     private final ProfileRepository profileRepository;
     private final ClubIntroRepository clubIntroRepository;
 
-    //지원서 작성하기(구글 폼 반환)
+    //지원서 작성하기(구글 폼 반환)(모바일)
     @Transactional(readOnly = true)
     public String getGoogleFormUrlByClubId(Long clubId) {
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId).orElseThrow(() ->
@@ -44,7 +44,7 @@ public class AplictService {
         return googleFormUrl;
     }
 
-    //동아리 지원서 제출
+    //동아리 지원서 제출(모바일)
     public AplictResponse submitAplict(UUID userUUID, Long clubId, AplictRequest request) {
         Profile profile = profileRepository.findByUser_UserUUID(userUUID)
                 .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다."));

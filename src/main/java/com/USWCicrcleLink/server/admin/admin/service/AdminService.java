@@ -37,7 +37,7 @@ public class AdminService {
     private final ClubMembersRepository clubMembersRepository;
     private final AplictRepository aplictRepository;
 
-    //관리자 로그인
+    //관리자 로그인(웹)
     public void adminLogin(AdminLoginRequest request) {
         Admin admin = adminRepository.findByAdminAccount(request.getAdminAccount()).orElseThrow(() -> new RuntimeException("아이디나 비밀번호를 확인해주세요."));
         if (!admin.getAdminPw().equals(request.getAdminPw())) {
@@ -45,7 +45,7 @@ public class AdminService {
         }
     }
 
-    //동아리 전체 목록 조회
+    //동아리 전체 목록 조회(웹)
     @Transactional(readOnly = true)
     public List<ClubListResponse> getAllClubs() {
         List<ClubMembersLeaderCount> clubCounts = clubRepository.findAllWithMemberAndLeaderCount();
@@ -67,7 +67,7 @@ public class AdminService {
     }
 
 
-    //동아리 상세 페이지 조회
+    //동아리 상세 페이지 조회(웹)
     @Transactional(readOnly = true)
     public ClubDetailResponse getClubById(Long clubId) {
         Club club = clubRepository.findById(clubId).orElseThrow(() -> new RuntimeException("해당 동아리를 찾을 수 없습니다."));
@@ -85,7 +85,7 @@ public class AdminService {
                 .build();
     }
 
-    //동아리 생성
+    //동아리 생성(웹)
     public void createClub(Long adminId, ClubCreationRequest request) {
         Admin admin = adminRepository.findById(adminId).orElseThrow(() -> new RuntimeException("관리자가 없습니다."));
         if (admin != null && admin.getAdminPw().equals(request.getAdminPw())) {
@@ -122,7 +122,7 @@ public class AdminService {
         throw new RuntimeException("관리자 비밀번호를 확인해주세요");
     }
 
-    //동아리 삭제
+    //동아리 삭제(웹)
     public void deleteClub(Long adminId, Long clubId, String adminPw) {
         Admin admin = adminRepository.findById(adminId).orElseThrow(() -> new RuntimeException("관리자가 없습니다."));
         if (admin != null && admin.getAdminPw().equals(adminPw)) {

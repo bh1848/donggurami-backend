@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.user.api;
 
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.CheckPasswordRequest;
@@ -73,10 +74,10 @@ public class UserController {
 
     // 로그인
     @PostMapping("/log-in")
-    public ResponseEntity<ApiResponse> LogIn(@Valid @RequestBody LogInRequest request) {
-        String account  = userService.logIn(request);
-        ApiResponse response = new ApiResponse( "로그인 성공",account);
-        return new ResponseEntity<>(response,HttpStatus.OK);
+    public ResponseEntity<ApiResponse<TokenDto>> logIn(@Valid @RequestBody LogInRequest request) throws Exception {
+        TokenDto tokenDto = userService.logIn(request);
+        ApiResponse<TokenDto> response = new ApiResponse<>("로그인 성공", tokenDto);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 아이디 찾기
