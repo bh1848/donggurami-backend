@@ -6,6 +6,7 @@ import com.USWCicrcleLink.server.email.repository.EmailTokenRepository;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 
+import com.USWCicrcleLink.server.user.service.AuthTokenService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
@@ -19,6 +20,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.UUID;
 
 
@@ -30,9 +32,11 @@ public class EmailService {
     private final EmailConfig emailConfig;
     private final EmailTokenRepository emailTokenRepository;
     private final JavaMailSender javaMailSender;
+    private final AuthTokenService authTokenService;
 
     //이메일 인증 경로
-    private static final String CONFIRM_EMAIL_PATH = "/user/verify-email";
+    private static final String CONFIRM_EMAIL_PATH = "/users/verify-email";
+
 
     @Async
     public void sendEmail(MimeMessage mimeMessage) {
@@ -52,7 +56,7 @@ public class EmailService {
         helper.setFrom("wg1004s@naver.com");
 
         String emailContent
-                = "<a href='" + emailConfig.getBaseUrl() + CONFIRM_EMAIL_PATH + "?emailTokenId=" +token.getEmailTokenId() + "'> verify-email </a>";
+                = "<a href='" + emailConfig.getBaseUrl() + CONFIRM_EMAIL_PATH + "?emailTokenId=" +token.getEmailTokenId()+ "'> verify-email </a>";
         helper.setText(emailContent, true);
 
         return mimeMessage;
@@ -79,9 +83,9 @@ public class EmailService {
     public void sendEmailInfo(User findUser) throws MessagingException {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
-        helper.setTo(findUser.getEmail() + "@suwon.ac.kr"); // 수신자 이메일 설정
-        helper.setSubject("동구라미의 아이디를 찾기 위한 메일입니다."); // 이메일 제목
-        helper.setText("회원님의 아이디는  "  + findUser.getUserAccount() + " 입니다."); // 이메일 내용 설정
+        helper.setTo(findUser.getEmail() + "@suwon.ac.kr");
+        helper.setSubject("동구라미의 아이디를 찾기 위한 메일입니다.");
+        helper.setText("회원님의 아이디는  "  + findUser.getUserAccount() + " 입니다.");
         helper.setFrom("wg1004s@naver.com");
 
         javaMailSender.send(mimeMessage);
@@ -96,6 +100,34 @@ public class EmailService {
         return emailTokenRepository.findByEmailTokenId(emailTokenId)
                 .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
     }
+
+
+    public void sendAuthCode(User user, String email) throws MessagingException {
+
+        // 인증 토큰 생성 및 저장
+        String authNumber = makeRandomNumber();
+        authTokenService.createAndSaveAuthToken(user, authNumber);
+
+        // 이메일 전송
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
+        helper.setTo(email + "@suwon.ac.kr");
+        helper.setSubject("비밀번호 찾기 메일 입니다.");
+        helper.setText("인증코드는  "  + authNumber+ " 입니다.");
+        helper.setFrom("wg1004s@naver.com");
+
+        javaMailSender.send(mimeMessage);
+    }
+
+    private String  makeRandomNumber() {
+            Random r = new Random();
+            StringBuilder randomNumber = new StringBuilder();
+            for(int i = 0; i < 4; i++) {
+                randomNumber.append(r.nextInt(10));
+            }
+            return randomNumber.toString();
+    }
+
 
 
 }

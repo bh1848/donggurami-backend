@@ -3,10 +3,8 @@ package com.USWCicrcleLink.server.user.api;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
-import com.USWCicrcleLink.server.user.dto.CheckPasswordRequest;
-import com.USWCicrcleLink.server.user.dto.LogInRequest;
-import com.USWCicrcleLink.server.user.dto.SignUpRequest;
-import com.USWCicrcleLink.server.user.dto.UpdatePwRequest;
+import com.USWCicrcleLink.server.user.dto.*;
+import com.USWCicrcleLink.server.user.service.AuthTokenService;
 import com.USWCicrcleLink.server.user.service.UserService;
 
 import jakarta.mail.MessagingException;
@@ -27,6 +25,7 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final AuthTokenService authTokenService;
 
     @PatchMapping("/{uuid}/userpw")
     public ApiResponse<String> updateUserPw(@PathVariable UUID uuid, @RequestBody UpdatePwRequest request) {
@@ -50,6 +49,7 @@ public class UserController {
     // 이메일 인증 확인 후 회원가입
     @GetMapping("/verify-email")
     public ResponseEntity<ApiResponse>verifyEmail(@RequestParam @Valid  UUID emailTokenId){
+
         UserTemp userTemp = userService.validateEmailToken(emailTokenId);
         User signUpUser = userService.signUp(userTemp);
         ApiResponse response = new ApiResponse( "회원 가입 완료",signUpUser);
@@ -60,32 +60,73 @@ public class UserController {
     // 회원가입 시의 계정 중복 체크
     @GetMapping("/check-account-duplicate")
     public ResponseEntity<ApiResponse> checkAccountDuplicate(@RequestParam @Valid  String account) {
+
             userService.checkAccountDuplicate(account);
+
             return ResponseEntity.ok(new ApiResponse("사용 가능한 ID 입니다."));
     }
 
     // 비밀번호 일치 확인
     @GetMapping("/check-passwords-match")
     public ResponseEntity<ApiResponse> comparePasswords(@Valid @RequestBody CheckPasswordRequest request ){
+
         userService.comparePasswords(request);
+
         return ResponseEntity.ok(new ApiResponse<>("비밀번호가 일치합니다"));
     }
 
     // 로그인
     @PostMapping("/log-in")
     public ResponseEntity<ApiResponse> LogIn(@Valid @RequestBody LogInRequest request) {
+
         String account  = userService.logIn(request);
         ApiResponse response = new ApiResponse( "로그인 성공",account);
+
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
     // 아이디 찾기
     @GetMapping ("/find-user-account")
     ResponseEntity<ApiResponse> findUserAccount(@Valid @RequestParam String email) throws MessagingException {
+
         User findUser= userService.findUser(email);
         userService.sendEmailInfo(findUser);
         ApiResponse response = new ApiResponse( "Account 정보 전송 완료",findUser.getUserAccount());
+
         return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
+    // 인증 코드 전송 기능
+    @GetMapping("/find-user-password")
+    ResponseEntity<ApiResponse> findUserPassword (@Valid @RequestBody FindUserInfoRequest request) throws MessagingException {
+
+        User user = userService.validateAccountAndEmail(request);
+        userService.sendAuthCode(user,request);
+        ApiResponse response = new ApiResponse("인증코드가 전송 되었습니다");
+
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
+    // 인증 코드 검증
+    @GetMapping("validate-auth-token/{uuid}")
+    public ResponseEntity<ApiResponse> validateAuthToken (@PathVariable UUID uuid, @RequestBody FindUserInfoRequest request) {
+
+        userService.validateAuthToken(uuid, request);
+        authTokenService.deleteAuthToken(uuid);
+        ApiResponse response = new ApiResponse("인증 코드 검증이 완료되었습니다");
+
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
+
+    // 비밀번호 재설정
+    @PatchMapping("/reset-password/{uuid}")
+    public ApiResponse<String> resetUserPw(@PathVariable UUID uuid, @RequestBody UpdatePwRequest request) {
+
+        User user = userService.findByUuid(uuid);
+        userService.resetPW(user,request);
+
+        return new ApiResponse<>("비밀번호가 변경되었습니다.");
     }
 
 

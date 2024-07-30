@@ -49,13 +49,6 @@ public class EmailToken {
                 .build();
     }
 
-    //필드 갱신
-    public void updateToken(LocalDateTime certificationTime, boolean isEmailTokenExpired) {
-        this.certificationTime=certificationTime;
-        this.isEmailTokenExpired=isEmailTokenExpired;
-    }
-
-
     public void useToken(){
         isEmailTokenExpired=true;
     }
