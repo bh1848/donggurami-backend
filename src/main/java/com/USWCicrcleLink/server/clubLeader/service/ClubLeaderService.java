@@ -289,7 +289,10 @@ public class ClubLeaderService {
         Pageable pageable = PageRequest.of(page, size);
 
         // 합/불 처리되지 않은 동아리 지원자 조회
-        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubId(club.getClubId(), pageable, false);
+        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubId(
+                club.getClubId(),
+                pageable,
+                false);
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
                         ap.getId(),
@@ -306,7 +309,10 @@ public class ClubLeaderService {
 
         // 지원자 검증(지원한 동아리 + 지원서 + check안된 상태)
         for (ApplicantResultsRequest result : results) {
-            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndChecked(club.getClubId(), result.getAplictId(), false)
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndChecked(
+                            club.getClubId(),
+                            result.getAplictId(),
+                            false)
                     .orElseThrow(() -> new IllegalArgumentException("유효한 지원자가 아닙니다."));
 
             // 합격 불합격 상태 업데이트
@@ -318,6 +324,52 @@ public class ClubLeaderService {
                 applicant.updateAplictStatus(result.getAplictStatus(), true, LocalDateTime.now().plusDays(4));
                 log.debug("불합격 처리 완료: {}", applicant.getId());
             }
+
+            aplictRepository.save(applicant);
+        }
+    }
+
+    // 불합격 지원자 조회
+    @Transactional(readOnly = true)
+    public Page<ApplicantsResponse> getFailedApplicants(LeaderToken token, int page, int size) {
+        Club club = validateLeader(token);
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 불합격자 동아리 지원자 조회
+        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubIdAndFailed(
+                club.getClubId(),
+                pageable,
+                true,
+                AplictStatus.FAIL);
+        List<ApplicantsResponse> applicants = aplicts.stream()
+                .map(ap -> new ApplicantsResponse(
+                        ap.getId(),
+                        ap.getProfile()
+                ))
+                .collect(toList());
+
+        return new PageImpl<>(applicants, pageable, aplicts.getTotalElements());
+    }
+
+    // 동아리 지원자 추가 합격 처리
+    public void updateFailedApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) {
+        Club club = validateLeader(token);
+
+        // 지원자 검증(지원한 동아리 + 지원서 + check된 상태 + 불합)
+        for (ApplicantResultsRequest result : results) {
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndCheckedAndAplictStatus(
+                            club.getClubId(),
+                            result.getAplictId(),
+                            true,
+                            AplictStatus.FAIL
+                    )
+                    .orElseThrow(() -> new IllegalArgumentException("유효한 추합 대상자가 아닙니다."));
+
+            // 합격 불합격 상태 업데이트
+            // 합격
+            applicant.updateFailedAplictStatus(result.getAplictStatus());
+            log.debug("합격 처리 완료: {}", applicant.getId());
 
             aplictRepository.save(applicant);
         }

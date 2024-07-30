@@ -49,4 +49,8 @@ public class Aplict {
         this.checked = checked;
         this.deleteAfter = deleteAfter;
     }
+
+    public void updateFailedAplictStatus(AplictStatus newStatus) {
+        this.aplictStatus = newStatus;
+    }
 }

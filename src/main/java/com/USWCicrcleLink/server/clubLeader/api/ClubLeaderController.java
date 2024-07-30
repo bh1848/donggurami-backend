@@ -78,6 +78,17 @@ public class ClubLeaderController {
         return new ResponseEntity<>(new ApiResponse<>("지원 결과 처리 완료: {}"), HttpStatus.OK);
     }
 
+    @GetMapping("/failed-applicants")
+    public Page<ApplicantsResponse> getFailedApplicants(@RequestBody LeaderToken token, @RequestParam int page, @RequestParam int size) {
+        return clubLeaderService.getFailedApplicants(token, page, size);
+    }
+
+    @PostMapping("/failed-applicants/notifyMultiple")
+    public ResponseEntity<ApiResponse> pushFailedApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) {
+        clubLeaderService.updateFailedApplicantResults(token, results);
+        return new ResponseEntity<>(new ApiResponse<>("추합 결과 처리 완료: {}"), HttpStatus.OK);
+    }
+
     @PostMapping("/applicants/notify")
     public ResponseEntity<Integer> pushMessage(@RequestBody @Validated FcmSendDto fcmSendDto) throws IOException {
         int result = fcmService.sendMessageTo(fcmSendDto);
