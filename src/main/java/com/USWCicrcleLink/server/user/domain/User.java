@@ -40,7 +40,7 @@ public class User {
     private LocalDateTime userUpdatedAt;
 
     @Enumerated(EnumType.STRING)
-    private Role roles;
+    private Role role;
 
     @PrePersist
     public void prePersist() {

@@ -11,9 +11,4 @@ import java.util.List;
 
 public interface AplictRepository extends JpaRepository<Aplict, Long>, AplictRepositoryCustom {
     List<Aplict> findByProfileProfileId(Long profileId);
-
-    @Modifying
-    @Transactional
-    @Query("DELETE FROM Aplict a WHERE a.club.clubId = :clubId")
-    void deleteByClubClubId(@Param("clubId") Long clubId);
 }

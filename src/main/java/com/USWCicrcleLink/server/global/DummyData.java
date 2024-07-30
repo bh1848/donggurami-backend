@@ -62,7 +62,7 @@ public class DummyData {
                 .email("user1")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
-                .roles(Role.USER)
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);
@@ -128,7 +128,7 @@ public class DummyData {
                 .email("user2")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
-                .roles(Role.USER)
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);
@@ -186,7 +186,7 @@ public class DummyData {
                 .email("user3")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
-                .roles(Role.USER)
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);

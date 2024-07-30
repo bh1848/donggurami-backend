@@ -2,12 +2,10 @@ package com.USWCicrcleLink.server.global.security.util;
 
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
-
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +17,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -49,9 +46,9 @@ public class JwtProvider {
     }
 
     // 엑세스 토큰 생성
-    public String createAccessToken(String userUUID, List<Role> roles, List<Long> clubIds) {
+    public String createAccessToken(String userUUID, Role role, List<Long> clubIds) {
         Claims claims = Jwts.claims().setSubject(userUUID);
-        claims.put("roles", roles.stream().map(Role::name).collect(Collectors.toList()));
+        claims.put("roles", role);
         claims.put("clubIds", clubIds);
         Date now = new Date();
         return Jwts.builder()
@@ -60,11 +57,6 @@ public class JwtProvider {
                 .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRATION_TIME))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
-    }
-
-    // 엑세스 토큰을 HTTP 응답 헤더에 추가
-    public void addAccessTokenToHeader(HttpServletResponse response, String accessToken) {
-        response.addHeader(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken);
     }
 
     // 엑세스 토큰에서 사용자 UUID 추출
@@ -76,12 +68,6 @@ public class JwtProvider {
     public UserDetails getUserDetails(String userUUID) {
         return customUserDetailsService.loadUserByUsername(userUUID);
     }
-
-//    // 엑세스 토큰 기반으로 사용자 인증 객체 반환
-//    public Authentication getAuthentication(String accessToken) {
-//        UserDetails userDetails = customUserDetailsService.loadUserByUsername(getUserUUID(accessToken));
-//        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-//    }
 
     // 엑세스 토큰 유효성 검증
     public boolean validateAccessToken(String accessToken) {
