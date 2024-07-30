@@ -85,10 +85,11 @@ public class UserService {
         emailService.sendEmail(emailService.createTokenAndEmail(userTemp));
     }
 
-    public UserTemp validateEmailToken(UUID emailTokenId) {
+    public UserTemp verifyToken (UUID emailTokenId) {
 
         // 토큰 검증
         emailService.validateToken(emailTokenId);
+        // 검증된 임시 회원 가져오기
         EmailToken token = emailService.getTokenBy(emailTokenId);
 
         return token.getUserTemp();

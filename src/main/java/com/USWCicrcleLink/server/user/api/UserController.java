@@ -47,15 +47,16 @@ public class UserController {
     }
 
     // 이메일 인증 확인 후 회원가입
-    @GetMapping("/verify-email")
-    public ResponseEntity<ApiResponse>verifyEmail(@RequestParam @Valid  UUID emailTokenId){
+    @GetMapping("/verify/{emailTokenId}")
+    public ResponseEntity<ApiResponse> verifyEmail (@PathVariable  UUID emailTokenId){
 
-        UserTemp userTemp = userService.validateEmailToken(emailTokenId);
+        UserTemp userTemp = userService.verifyToken(emailTokenId);
         User signUpUser = userService.signUp(userTemp);
         ApiResponse response = new ApiResponse( "회원 가입 완료",signUpUser);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 
     // 회원가입 시의 계정 중복 체크
     @GetMapping("/check-account-duplicate")

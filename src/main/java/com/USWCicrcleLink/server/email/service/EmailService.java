@@ -35,7 +35,7 @@ public class EmailService {
     private final AuthTokenService authTokenService;
 
     //이메일 인증 경로
-    private static final String CONFIRM_EMAIL_PATH = "/users/verify-email";
+    private static final String VERIFY_EMAIL_PATH = "/users/verify/";
 
 
     @Async
@@ -56,7 +56,7 @@ public class EmailService {
         helper.setFrom("wg1004s@naver.com");
 
         String emailContent
-                = "<a href='" + emailConfig.getBaseUrl() + CONFIRM_EMAIL_PATH + "?emailTokenId=" +emailToken.getEmailTokenId()+ "'> verify-email </a>";
+                = "<a href='" + emailConfig.getBaseUrl() + VERIFY_EMAIL_PATH + emailToken.getEmailTokenId() + "'> click here  </a>";
         helper.setText(emailContent, true);
 
         return mimeMessage;
@@ -73,7 +73,7 @@ public class EmailService {
         EmailToken emailToken = emailTokenRepository.findByEmailTokenId(emailTokenId)
                 .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
         try {
-            emailToken.validateAndExpire();
+            emailToken.validateExpireTime();
         } finally {
             emailTokenRepository.save(emailToken);
         }
