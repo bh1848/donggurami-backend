@@ -112,14 +112,14 @@ public class UserService {
 
     public void checkAccountDuplicate(String account) {
         if (userRepository.existsByUserAccount(account)) {
-            throw new IllegalStateException("중복된 ID 입니다. 새로운 ID를 입력해주세요 ");
+            throw new IllegalStateException("중복된 ID 입니다. 새로운 ID를 입력해주세요");
         }
     }
 
     public String logIn(LogInRequest request)  {
 
         User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 ID 입니다"));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 ID입니다"));
 
         if (!user.getUserPw().equals(request.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");

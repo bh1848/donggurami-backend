@@ -50,7 +50,7 @@ public class UserController {
     }
 
     // 이메일 인증 확인 후 회원가입
-    @GetMapping("/verify/{emailTokenId}")
+    @PostMapping("/verify/{emailTokenId}")
     public ResponseEntity<ApiResponse<User>> verifyEmail (@PathVariable  UUID emailTokenId) {
 
         UserTemp userTemp = userService.verifyToken(emailTokenId);
@@ -71,7 +71,7 @@ public class UserController {
     }
 
     // 비밀번호 일치 확인
-    @GetMapping("/check-passwords-match")
+    @PostMapping("/check-passwords-match")
     public ResponseEntity<ApiResponse<Void>> comparePasswords(@Valid @RequestBody PasswordRequest request) {
 
         userService.comparePasswords(request);
@@ -102,7 +102,7 @@ public class UserController {
     }
 
     // 인증 코드 전송
-    @GetMapping("/send-auth-code")
+    @PostMapping("/send-auth-code")
     ResponseEntity<ApiResponse<Void>> sendAuthCode (@Valid @RequestBody UserInfoDto request) throws MessagingException {
 
         User user = userService.validateEmailAndAccount(request);
@@ -113,7 +113,7 @@ public class UserController {
     }
 
     // 인증 코드 검증
-    @GetMapping("validate-auth-token/{uuid}")
+    @PostMapping("validate-auth-token/{uuid}")
     public ResponseEntity<ApiResponse<String>> validateAuthToken (@PathVariable UUID uuid, @RequestBody UserInfoDto request) {
 
         authTokenService.validateAuthToken(uuid, request);
