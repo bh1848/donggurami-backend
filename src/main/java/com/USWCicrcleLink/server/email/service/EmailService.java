@@ -5,13 +5,13 @@ import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.repository.EmailTokenRepository;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
-
+import com.USWCicrcleLink.server.user.dto.UserInfoDto;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
+
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.mail.javamail.JavaMailSender;
@@ -43,7 +43,8 @@ public class EmailService {
         javaMailSender.send(mimeMessage);
     }
 
-    public MimeMessage createTokenAndEmail(UserTemp userTemp) throws MessagingException {
+    // 회원가입 링크 생성
+    public MimeMessage createSingUpLink(UserTemp userTemp) throws MessagingException {
 
         // 이메일 토큰 생성
         EmailToken emailToken = createEmailToken(userTemp);
@@ -62,6 +63,7 @@ public class EmailService {
         return mimeMessage;
     }
 
+
     private EmailToken createEmailToken(UserTemp userTemp) {
         EmailToken emailToken = EmailToken.createEmailToken(userTemp);
         return emailTokenRepository.save(emailToken);
@@ -79,7 +81,8 @@ public class EmailService {
         }
     }
 
-    public void sendEmailInfo(User findUser) throws MessagingException {
+    public void sendAccountInfo(User findUser) throws MessagingException {
+
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
         helper.setTo(findUser.getEmail() + "@suwon.ac.kr");
@@ -101,21 +104,21 @@ public class EmailService {
     }
 
 
-    public void sendAuthCode(User user, String email) throws MessagingException {
+    public  MimeMessage createAuthToken(User user) throws MessagingException {
 
         // 인증 토큰 생성 및 저장
         String authNumber = makeRandomNumber();
-        authTokenService.createAndSaveAuthToken(user, authNumber);
+        authTokenService.createAndSaveAuthToken(user,authNumber);
 
-        // 이메일 전송
+        // 메세지 생성
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
-        helper.setTo(email + "@suwon.ac.kr");
+        helper.setTo(user.getEmail() + "@suwon.ac.kr");
         helper.setSubject("비밀번호 찾기 메일 입니다.");
         helper.setText("인증코드는  "  + authNumber+ " 입니다.");
         helper.setFrom("wg1004s@naver.com");
 
-        javaMailSender.send(mimeMessage);
+        return mimeMessage;
     }
 
     private String  makeRandomNumber() {
