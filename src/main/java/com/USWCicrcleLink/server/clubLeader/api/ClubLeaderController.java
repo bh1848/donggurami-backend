@@ -73,9 +73,9 @@ public class ClubLeaderController {
     }
 
     @PostMapping("/applicants/notifyMultiple")
-    public ResponseEntity<ApiResponse> pushApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) {
+    public ResponseEntity<ApiResponse> pushApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) throws IOException {
         clubLeaderService.updateApplicantResults(token, results);
-        return new ResponseEntity<>(new ApiResponse<>("지원 결과 처리 완료: {}"), HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResponse<>("지원 결과 처리 완료"), HttpStatus.OK);
     }
 
     @GetMapping("/failed-applicants")
@@ -84,14 +84,15 @@ public class ClubLeaderController {
     }
 
     @PostMapping("/failed-applicants/notifyMultiple")
-    public ResponseEntity<ApiResponse> pushFailedApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) {
+    public ResponseEntity<ApiResponse> pushFailedApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) throws IOException {
         clubLeaderService.updateFailedApplicantResults(token, results);
-        return new ResponseEntity<>(new ApiResponse<>("추합 결과 처리 완료: {}"), HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResponse<>("추합 결과 처리 완료"), HttpStatus.OK);
     }
 
-    @PostMapping("/applicants/notify")
-    public ResponseEntity<Integer> pushMessage(@RequestBody @Validated FcmSendDto fcmSendDto) throws IOException {
-        int result = fcmService.sendMessageTo(fcmSendDto);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+    // fcm token 저장 테스트 실제로는 로그인에서 처리해야함
+    @PostMapping("/fcm-token")
+    public ResponseEntity<String> getFcmToken(FcmTokenTestRequest fcmTestRequest) {
+        clubLeaderService.updateFcmToken(fcmTestRequest);
+        return new ResponseEntity<>("fcm token: " + fcmTestRequest.getFcmToken(), HttpStatus.OK);
     }
 }

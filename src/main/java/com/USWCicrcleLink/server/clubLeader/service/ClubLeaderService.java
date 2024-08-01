@@ -16,6 +16,10 @@ import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import com.USWCicrcleLink.server.global.util.FileUploadService;
 import lombok.RequiredArgsConstructor;
@@ -56,8 +60,12 @@ public class ClubLeaderService {
     private final ClubIntroRepository clubIntroRepository;
     private final LeaderRepository leaderRepository;
     private final ClubMembersRepository clubMembersRepository;
-    private final FileUploadService fileUploadService;
     private final AplictRepository aplictRepository;
+    private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
+
+    private final FileUploadService fileUploadService;
+    private final FcmServiceImpl fcmService;
 
     // 대표 사진 경로
     @Value("${file.mainPhoto-dir}")
@@ -306,7 +314,7 @@ public class ClubLeaderService {
     }
 
     // 동아리 지원자 합격/불합격 처리
-    public void updateApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) {
+    public void updateApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) throws IOException {
         Club club = validateLeader(token);
 
         // 동아리 지원자 전원 조회(최초 합격)
@@ -325,11 +333,15 @@ public class ClubLeaderService {
 
             // 합격 불합격 상태 업데이트
             // 합/불, checked, 삭제 날짜
-            if (result.getAplictStatus() == AplictStatus.PASS) {
-                applicant.updateAplictStatus(result.getAplictStatus(), true, LocalDateTime.now().plusDays(4));
+
+            AplictStatus aplictResult = result.getAplictStatus();// 지원 결과 PASS/ FAIL
+            if (aplictResult == AplictStatus.PASS) {
+                applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
+                fcmService.sendMessageTo(applicant, aplictResult);
                 log.debug("합격 처리 완료: {}", applicant.getId());
-            } else if (result.getAplictStatus() == AplictStatus.FAIL) {
-                applicant.updateAplictStatus(result.getAplictStatus(), true, LocalDateTime.now().plusDays(4));
+            } else if (aplictResult == AplictStatus.FAIL) {
+                applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
+                fcmService.sendMessageTo(applicant, aplictResult);
                 log.debug("불합격 처리 완료: {}", applicant.getId());
             }
 
@@ -376,7 +388,7 @@ public class ClubLeaderService {
     }
 
     // 동아리 지원자 추가 합격 처리
-    public void updateFailedApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) {
+    public void updateFailedApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) throws IOException {
         Club club = validateLeader(token);
 
         // 지원자 검증(지원한 동아리 + 지원서 + check된 상태 + 불합)
@@ -391,11 +403,25 @@ public class ClubLeaderService {
 
             // 합격 불합격 상태 업데이트
             // 합격
-            applicant.updateFailedAplictStatus(result.getAplictStatus());
+            AplictStatus aplictResult = result.getAplictStatus();
+            applicant.updateFailedAplictStatus(aplictResult);
+            fcmService.sendMessageTo(applicant, aplictResult);
             log.debug("합격 처리 완료: {}", applicant.getId());
 
             aplictRepository.save(applicant);
         }
+    }
+
+    public void updateFcmToken(FcmTokenTestRequest fcmTokenTestRequest) {
+        User user = userRepository.findByUserAccount(fcmTokenTestRequest.getUserAccount())
+            .orElseThrow(()-> new RuntimeException("유효한 회원이 없습니다."));
+
+        Profile profile = profileRepository.findById(user.getUserId())
+                .orElseThrow(()-> new RuntimeException("유효한 회원이 없습니다."));
+
+        profile.updateFcmToken(fcmTokenTestRequest.getFcmToken());
+        profileRepository.save(profile);
+        log.debug("fcmToken 업데이트: {}", user.getUserAccount());
     }
 
     // 회장 검증 및 소속 동아리
