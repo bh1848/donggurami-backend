@@ -49,19 +49,17 @@ public class UserController {
         userService.sendSignUpMail(userTemp,emailToken);
 
         ApiResponse<UserTemp> response = new ApiResponse<>("인증 메일 전송 완료",userTemp);
-
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 이메일 인증 확인 후 회원가입
     @PostMapping("/verify/{emailTokenId}")
-    public ResponseEntity<ApiResponse<User>> verifySignUp (@PathVariable  UUID emailTokenId) {
+    public ResponseEntity<ApiResponse<User>> verifySignUp(@PathVariable  UUID emailTokenId) {
 
         UserTemp userTemp = userService.verifyEmailToken(emailTokenId);
         User signUpUser = userService.signUp(userTemp);
 
         ApiResponse<User> response = new ApiResponse<>( "회원 가입 완료",signUpUser);
-
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -72,7 +70,6 @@ public class UserController {
         userService.verifyAccountDuplicate(account);
 
         ApiResponse<String> response = new ApiResponse<>("사용 가능한 ID 입니다.", account);
-
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -92,7 +89,6 @@ public class UserController {
         String account  = userService.logIn(request);
 
         ApiResponse<String> response = new ApiResponse<>("로그인 성공", account);
-
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -104,7 +100,6 @@ public class UserController {
         userService.sendAccountInfoMail(findUser);
 
         ApiResponse<String> response = new ApiResponse<>("계정 정보 전송 완료", findUser.getUserAccount());
-
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -118,7 +113,6 @@ public class UserController {
         userService.sendAuthCodeMail(user,authToken);
 
         ApiResponse<Void> response = new ApiResponse<>("인증코드가 전송 되었습니다");
-
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
@@ -128,8 +122,8 @@ public class UserController {
 
         authTokenService.verifyAuthToken(uuid, request);
         authTokenService.deleteAuthToken(uuid);
-        ApiResponse<String> response = new ApiResponse<>("인증 코드 검증이 완료되었습니다",request.getUserAccount());
 
+        ApiResponse<String> response = new ApiResponse<>("인증 코드 검증이 완료되었습니다",request.getUserAccount());
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
@@ -142,6 +136,17 @@ public class UserController {
         userService.resetPW(user,request);
 
         return new ApiResponse<>("비밀번호가 변경되었습니다.");
+    }
+
+    //이메일 재인증
+    @PostMapping("/resend-confirm-email/{emailTokenId}")
+    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@PathVariable UUID emailTokenId) throws MessagingException {
+
+        EmailToken emailToken = emailTokenService.updateCertificationTime(emailTokenId);
+        userService.sendSignUpMail(emailToken.getUserTemp(),emailToken);
+
+        ApiResponse<UUID> response = new ApiResponse<>("이메일 재인증을 해주세요", emailTokenId);
+        return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
 

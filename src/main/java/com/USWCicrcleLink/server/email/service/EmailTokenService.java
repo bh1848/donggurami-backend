@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -49,5 +50,15 @@ public class EmailTokenService {
                 .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
     }
 
+    // 이메일 인증 토큰 업데이트
+   public EmailToken updateCertificationTime (UUID emailTokenId) {
 
+       EmailToken findToken = getEmailToken(emailTokenId);
+
+       // 이메일 토큰 필드 갱신
+       findToken.updateExpiredToken();
+       emailTokenRepository.save(findToken);
+
+        return findToken;
+    }
 }
