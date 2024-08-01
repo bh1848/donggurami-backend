@@ -39,10 +39,7 @@ public class EmailService {
     }
 
     // 회원가입 링크 생성
-    public MimeMessage createSingUpLink(UserTemp userTemp) throws MessagingException {
-
-        // 이메일 토큰 생성
-        EmailToken emailToken = emailTokenService.createEmailToken(userTemp);
+    public MimeMessage createSingUpLink(UserTemp userTemp,EmailToken emailToken) throws MessagingException {
 
         // 회원 가입 인증 메일 생성
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
@@ -73,10 +70,7 @@ public class EmailService {
     }
 
     // 인증 코드 메일 생성
-    public  MimeMessage AuthCodeMail(User user) throws MessagingException {
-
-        // 인증 토큰 생성
-        AuthToken authToken = authTokenService.createAuthToken(user);
+    public  MimeMessage AuthCodeMail(User user,AuthToken authToken) throws MessagingException {
 
         // 메세지 생성
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();

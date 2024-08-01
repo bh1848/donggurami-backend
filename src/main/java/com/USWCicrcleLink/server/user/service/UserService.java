@@ -5,6 +5,7 @@ import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.*;
@@ -86,8 +87,8 @@ public class UserService {
 
 
     @Transactional
-    public void sendSignUpMail(UserTemp userTemp) throws MessagingException {
-        MimeMessage message = emailService.createSingUpLink(userTemp);
+    public void sendSignUpMail(UserTemp userTemp,EmailToken emailToken) throws MessagingException {
+        MimeMessage message = emailService.createSingUpLink(userTemp,emailToken);
         emailService.sendEmail(message);
     }
 
@@ -177,8 +178,8 @@ public class UserService {
     }
 
     @Transactional
-    public void sendAuthCodeMail(User user) throws MessagingException {
-        MimeMessage message = emailService.AuthCodeMail(user);
+    public void sendAuthCodeMail(User user, AuthToken authToken) throws MessagingException {
+        MimeMessage message = emailService.AuthCodeMail(user,authToken);
         emailService.sendEmail(message);
     }
 

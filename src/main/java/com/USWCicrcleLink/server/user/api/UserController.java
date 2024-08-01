@@ -1,6 +1,9 @@
 package com.USWCicrcleLink.server.user.api;
 
+import com.USWCicrcleLink.server.email.domain.EmailToken;
+import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.*;
@@ -27,6 +30,7 @@ public class UserController {
 
     private final UserService userService;
     private final AuthTokenService authTokenService;
+    private final EmailTokenService emailTokenService;
 
     @PatchMapping("/{uuid}/userpw")
     public ApiResponse<String> updateUserPw(@PathVariable UUID uuid, @RequestBody UpdatePwRequest request) {
@@ -41,7 +45,9 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserTemp>> registerTemporaryUser(@Valid @RequestBody SignUpRequest request) throws MessagingException {
 
         UserTemp userTemp = userService.registerUserTemp(request);
-        userService.sendSignUpMail(userTemp);
+        EmailToken emailToken = emailTokenService.createEmailToken(userTemp);
+        userService.sendSignUpMail(userTemp,emailToken);
+
         ApiResponse<UserTemp> response = new ApiResponse<>("인증 메일 전송 완료",userTemp);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -53,6 +59,7 @@ public class UserController {
 
         UserTemp userTemp = userService.verifyEmailToken(emailTokenId);
         User signUpUser = userService.signUp(userTemp);
+
         ApiResponse<User> response = new ApiResponse<>( "회원 가입 완료",signUpUser);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -63,6 +70,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> verifyAccountDuplicate(@PathVariable String account) {
 
         userService.verifyAccountDuplicate(account);
+
         ApiResponse<String> response = new ApiResponse<>("사용 가능한 ID 입니다.", account);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -82,6 +90,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> LogIn(@Valid @RequestBody LogInRequest request) {
 
         String account  = userService.logIn(request);
+
         ApiResponse<String> response = new ApiResponse<>("로그인 성공", account);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -104,7 +113,10 @@ public class UserController {
     ResponseEntity<ApiResponse<Void>> sendAuthCode (@Valid @RequestBody UserInfoDto request) throws MessagingException {
 
         User user = userService.verifyAccountAndEmail(request);
-        userService.sendAuthCodeMail(user);
+
+        AuthToken authToken = authTokenService.createAuthToken(user);
+        userService.sendAuthCodeMail(user,authToken);
+
         ApiResponse<Void> response = new ApiResponse<>("인증코드가 전송 되었습니다");
 
         return new ResponseEntity<>(response,HttpStatus.OK);
