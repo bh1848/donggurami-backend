@@ -7,10 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FindUserInfoRequest {
+public class UserInfoDto {
 
     private String userAccount;
     private String userPw;
     private String email;
     private String authCode; // 인증 코드
+
 }
