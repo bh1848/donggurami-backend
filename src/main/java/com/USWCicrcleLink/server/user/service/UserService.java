@@ -2,6 +2,7 @@ package com.USWCicrcleLink.server.user.service;
 
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
+import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -30,6 +31,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserTempRepository userTempRepository;
     private final EmailService emailService;
+    private final EmailTokenService emailTokenService;
     private final ProfileRepository profileRepository;
     private final MypageService mypageService;
 
@@ -74,7 +76,7 @@ public class UserService {
 
         // 임시 회원 테이블 이메일 중복 검증
         Optional<UserTemp> findUserTemp = userTempRepository.findByTempEmail(email);
-        findUserTemp.ifPresent(emailService::deleteUserTempAndEmailToken);
+        findUserTemp.ifPresent(emailTokenService::deleteEmailTokenAndUserTemp);
 
         // 회원 테이블 이메일 중복 검증
         if (userRepository.existsByEmail(email)) {
@@ -92,9 +94,9 @@ public class UserService {
     public UserTemp verifyEmailToken(UUID emailTokenId) {
 
         // 토큰 검증
-        emailService.verifyEmailToken(emailTokenId);
+        emailTokenService.verifyEmailToken(emailTokenId);
         // 검증된 임시 회원 가져오기
-        EmailToken token = emailService.getTokenBy(emailTokenId);
+        EmailToken token = emailTokenService.getEmailToken(emailTokenId);
 
         return token.getUserTemp();
     }
@@ -110,12 +112,12 @@ public class UserService {
         userRepository.save(user);
         profileRepository.save(profile);
         // 임시 회원 정보 삭제
-        emailService.deleteUserTempAndEmailToken(userTemp);
+        emailTokenService.deleteEmailTokenAndUserTemp(userTemp);
 
         return user;
     }
 
-    public void validateAccountDuplicate(String account) {
+    public void verifyAccountDuplicate(String account) {
         if (userRepository.existsByUserAccount(account)) {
             throw new IllegalStateException("중복된 ID 입니다. 새로운 ID를 입력해주세요");
         }
@@ -174,10 +176,15 @@ public class UserService {
         return  user;
     }
 
-
     @Transactional
     public void sendAuthCodeMail(User user) throws MessagingException {
-        MimeMessage message = emailService.createAuthToken(user);
+        MimeMessage message = emailService.AuthCodeMail(user);
+        emailService.sendEmail(message);
+    }
+
+    @Transactional
+    public void sendAccountInfoMail (User findUser) throws MessagingException {
+        MimeMessage message = emailService.AccountInfoMail(findUser);
         emailService.sendEmail(message);
     }
 }

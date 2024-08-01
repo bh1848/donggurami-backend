@@ -17,10 +17,11 @@ public class AuthTokenService {
 
     private final AuthTokenRepository authTokenRepository;
 
+    // 인증 코드 토큰 생성
     @Transactional
-    public void createAndSaveAuthToken(User user, String authNumber) {
-        AuthToken authToken = AuthToken.createAuthToken(user, authNumber);
-        authTokenRepository.save(authToken);
+    public  AuthToken createAuthToken(User user) {
+        AuthToken authToken = AuthToken.createAuthToken(user);
+        return authTokenRepository.save(authToken);
     }
 
     // 인증 코드 토큰 검증
@@ -34,7 +35,7 @@ public class AuthTokenService {
         }
     }
 
-    // 인증 완료된 토큰 삭제
+    // 검증 완료된 인증 코드 토큰 삭제
     @Transactional
     public void deleteAuthToken(UUID uuid){
 

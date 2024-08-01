@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Random;
+import java.util.UUID;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -25,13 +28,26 @@ public class AuthToken {
 
     private String authCode;
 
-    public static AuthToken createAuthToken(User user, String authCode) {
+
+    public static AuthToken createAuthToken(User user) {
+        String authCode = generateRandomAuthCode();
         return AuthToken.builder()
                 .user(user)
                 .authCode(authCode)
                 .build();
     }
 
+    // 인증 코드 생성
+    private static String generateRandomAuthCode() {
+            Random r = new Random();
+            StringBuilder randomNumber = new StringBuilder();
+            for(int i = 0; i < 4; i++) {
+                randomNumber.append(r.nextInt(10));
+            }
+            return randomNumber.toString();
+    }
+
+    // 인증 코드 검증
     public boolean isAuthCodeValid(String authCode) {
         return this.authCode.equals(authCode);
     }

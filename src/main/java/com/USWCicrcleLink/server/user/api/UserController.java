@@ -1,6 +1,5 @@
 package com.USWCicrcleLink.server.user.api;
 
-import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
@@ -28,7 +27,6 @@ public class UserController {
 
     private final UserService userService;
     private final AuthTokenService authTokenService;
-    private final EmailService emailService;
 
     @PatchMapping("/{uuid}/userpw")
     public ApiResponse<String> updateUserPw(@PathVariable UUID uuid, @RequestBody UpdatePwRequest request) {
@@ -51,7 +49,7 @@ public class UserController {
 
     // 이메일 인증 확인 후 회원가입
     @PostMapping("/verify/{emailTokenId}")
-    public ResponseEntity<ApiResponse<User>> verifyEmail(@PathVariable  UUID emailTokenId) {
+    public ResponseEntity<ApiResponse<User>> verifySignUp (@PathVariable  UUID emailTokenId) {
 
         UserTemp userTemp = userService.verifyEmailToken(emailTokenId);
         User signUpUser = userService.signUp(userTemp);
@@ -61,10 +59,10 @@ public class UserController {
     }
 
     // 회원가입 시의 계정 중복 체크
-    @GetMapping("/validate/duplicate/{account}")
-    public ResponseEntity<ApiResponse<String>> validateAccountDuplicate(@PathVariable String account) {
+    @GetMapping("/verify/duplicate/{account}")
+    public ResponseEntity<ApiResponse<String>> verifyAccountDuplicate(@PathVariable String account) {
 
-        userService.validateAccountDuplicate(account);
+        userService.verifyAccountDuplicate(account);
         ApiResponse<String> response = new ApiResponse<>("사용 가능한 ID 입니다.", account);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -94,7 +92,7 @@ public class UserController {
     ResponseEntity<ApiResponse<String>> findUserAccount(@PathVariable String email) throws MessagingException {
 
         User findUser= userService.findUser(email);
-        emailService.sendAccountInfo(findUser);
+        userService.sendAccountInfoMail(findUser);
 
         ApiResponse<String> response = new ApiResponse<>("계정 정보 전송 완료", findUser.getUserAccount());
 
