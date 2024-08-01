@@ -60,20 +60,29 @@ public class UserService {
         log.info("비밀번호 변경 완료: {}",user.getUserUUID());
     }
 
-    // 임시 회원 저장
+    // 임시 회원 생성 및 저장
     public UserTemp registerUserTemp(SignUpRequest request) {
 
-        // 임시 회원 테이블 이메일 중복 검증
-        Optional<UserTemp> findUserTemp = userTempRepository.findByTempEmail(request.getEmail());
-        findUserTemp.ifPresent(emailService::deleteUserTempAndEmailToken);
-
-        // 회원 테이블 이메일 중복 검증
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("이미 존재하는 회원입니다");
-        }
+        // 중복 검증
+        validateDuplicate(request.getEmail());
 
         return userTempRepository.save(request.toEntity());
     }
+
+    // 이메일 중복 검증
+    private void validateDuplicate(String email) {
+
+        // 임시 회원 테이블 이메일 중복 검증
+        Optional<UserTemp> findUserTemp = userTempRepository.findByTempEmail(email);
+        findUserTemp.ifPresent(emailService::deleteUserTempAndEmailToken);
+
+        // 회원 테이블 이메일 중복 검증
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("이미 존재하는 회원입니다");
+        }
+    }
+
+
 
 
     @Transactional
