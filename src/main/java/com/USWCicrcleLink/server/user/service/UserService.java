@@ -64,13 +64,13 @@ public class UserService {
     public UserTemp registerUserTemp(SignUpRequest request) {
 
         // 중복 검증
-        validateDuplicate(request.getEmail());
+        verificationDuplicate(request.getEmail());
 
         return userTempRepository.save(request.toEntity());
     }
 
     // 이메일 중복 검증
-    private void validateDuplicate(String email) {
+    private void verificationDuplicate(String email) {
 
         // 임시 회원 테이블 이메일 중복 검증
         Optional<UserTemp> findUserTemp = userTempRepository.findByTempEmail(email);
@@ -83,18 +83,16 @@ public class UserService {
     }
 
 
-
-
     @Transactional
     public void sendSignUpMail(UserTemp userTemp) throws MessagingException {
         MimeMessage message = emailService.createSingUpLink(userTemp);
         emailService.sendEmail(message);
     }
 
-    public UserTemp verifyToken (UUID emailTokenId) {
+    public UserTemp verifyEmailToken(UUID emailTokenId) {
 
         // 토큰 검증
-        emailService.validateToken(emailTokenId);
+        emailService.verifyEmailToken(emailTokenId);
         // 검증된 임시 회원 가져오기
         EmailToken token = emailService.getTokenBy(emailTokenId);
 
@@ -117,7 +115,7 @@ public class UserService {
         return user;
     }
 
-    public void checkAccountDuplicate(String account) {
+    public void validateAccountDuplicate(String account) {
         if (userRepository.existsByUserAccount(account)) {
             throw new IllegalStateException("중복된 ID 입니다. 새로운 ID를 입력해주세요");
         }
@@ -136,7 +134,7 @@ public class UserService {
     }
 
 
-    public void comparePasswords(PasswordRequest request) {
+    public void validatePasswordsMatch(PasswordRequest request) {
         if(!request.getPassword().equals(request.getConfirmPassword())){
             throw new IllegalStateException("비밀번호가 일치 하지 않습니다");
         }
@@ -147,7 +145,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 입니다"));
     }
 
-    public User validateEmailAndAccount(UserInfoDto request) {
+    public User verifyAccountAndEmail(UserInfoDto request) {
         return  userRepository.findByUserAccountAndEmail(request.getUserAccount(), request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("올바르지 않은 이메일 혹은 아이디 입니다"));
     }
@@ -156,7 +154,7 @@ public class UserService {
     public void resetPW(User user, PasswordRequest request) {
 
         // 비밀번호 일치 확인
-        comparePasswords(request);
+        validatePasswordsMatch(request);
 
         // 새로운 비밀번호로 업데이트
         user.updateUserPw(request.getPassword());

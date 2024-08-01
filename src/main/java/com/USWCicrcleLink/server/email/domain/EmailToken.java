@@ -59,7 +59,7 @@ public class EmailToken {
     }
 
     // 토큰이 만료되었는지 검증 및 처리
-    public void validateExpireTime() {
+    public void verifyExpireTime() {
         if (!isValidTime()) {
             useToken();
             throw new IllegalStateException("이메일 토큰이 만료 되었습니다. 재인증을 요청해주세요");

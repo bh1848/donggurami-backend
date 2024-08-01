@@ -71,12 +71,12 @@ public class EmailService {
     }
 
     // 유효한 토큰 검증
-    public void validateToken (UUID emailTokenId) {
+    public void verifyEmailToken (UUID emailTokenId) {
 
         EmailToken emailToken = emailTokenRepository.findByEmailTokenId(emailTokenId)
                 .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
         try {
-            emailToken.validateExpireTime();
+            emailToken.verifyExpireTime();
         } finally {
             emailTokenRepository.save(emailToken);
         }

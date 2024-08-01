@@ -40,7 +40,7 @@ public class UserController {
 
     // 임시 회원 등록 및 인증 메일 전송
     @PostMapping("/temp-sign-up")
-    public ResponseEntity<ApiResponse<UserTemp>> registerTemporaryUser (@Valid @RequestBody SignUpRequest request) throws MessagingException {
+    public ResponseEntity<ApiResponse<UserTemp>> registerTemporaryUser(@Valid @RequestBody SignUpRequest request) throws MessagingException {
 
         UserTemp userTemp = userService.registerUserTemp(request);
         userService.sendSignUpMail(userTemp);
@@ -51,9 +51,9 @@ public class UserController {
 
     // 이메일 인증 확인 후 회원가입
     @PostMapping("/verify/{emailTokenId}")
-    public ResponseEntity<ApiResponse<User>> verifyEmail (@PathVariable  UUID emailTokenId) {
+    public ResponseEntity<ApiResponse<User>> verifyEmail(@PathVariable  UUID emailTokenId) {
 
-        UserTemp userTemp = userService.verifyToken(emailTokenId);
+        UserTemp userTemp = userService.verifyEmailToken(emailTokenId);
         User signUpUser = userService.signUp(userTemp);
         ApiResponse<User> response = new ApiResponse<>( "회원 가입 완료",signUpUser);
 
@@ -61,20 +61,20 @@ public class UserController {
     }
 
     // 회원가입 시의 계정 중복 체크
-    @GetMapping("/check/duplicate/{account}")
-    public ResponseEntity<ApiResponse<String>> checkAccountDuplicate(@PathVariable String account) {
+    @GetMapping("/validate/duplicate/{account}")
+    public ResponseEntity<ApiResponse<String>> validateAccountDuplicate(@PathVariable String account) {
 
-        userService.checkAccountDuplicate(account);
+        userService.validateAccountDuplicate(account);
         ApiResponse<String> response = new ApiResponse<>("사용 가능한 ID 입니다.", account);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 비밀번호 일치 확인
-    @PostMapping("/check-passwords-match")
-    public ResponseEntity<ApiResponse<Void>> comparePasswords(@Valid @RequestBody PasswordRequest request) {
+    @PostMapping("/validate-passwords-match")
+    public ResponseEntity<ApiResponse<Void>> validatePasswordsMatch(@Valid @RequestBody PasswordRequest request) {
 
-        userService.comparePasswords(request);
+        userService.validatePasswordsMatch(request);
 
         return ResponseEntity.ok(new ApiResponse<>("비밀번호가 일치합니다"));
     }
@@ -105,7 +105,7 @@ public class UserController {
     @PostMapping("/send-auth-code")
     ResponseEntity<ApiResponse<Void>> sendAuthCode (@Valid @RequestBody UserInfoDto request) throws MessagingException {
 
-        User user = userService.validateEmailAndAccount(request);
+        User user = userService.verifyAccountAndEmail(request);
         userService.sendAuthCodeMail(user);
         ApiResponse<Void> response = new ApiResponse<>("인증코드가 전송 되었습니다");
 
@@ -113,10 +113,10 @@ public class UserController {
     }
 
     // 인증 코드 검증
-    @PostMapping("validate-auth-token/{uuid}")
-    public ResponseEntity<ApiResponse<String>> validateAuthToken (@PathVariable UUID uuid, @RequestBody UserInfoDto request) {
+    @PostMapping("verify-auth-token/{uuid}")
+    public ResponseEntity<ApiResponse<String>> verifyAuthToken(@PathVariable UUID uuid, @RequestBody UserInfoDto request) {
 
-        authTokenService.validateAuthToken(uuid, request);
+        authTokenService.verifyAuthToken(uuid, request);
         authTokenService.deleteAuthToken(uuid);
         ApiResponse<String> response = new ApiResponse<>("인증 코드 검증이 완료되었습니다",request.getUserAccount());
 

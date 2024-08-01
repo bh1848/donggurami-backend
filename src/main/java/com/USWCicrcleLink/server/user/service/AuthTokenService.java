@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -25,7 +24,7 @@ public class AuthTokenService {
     }
 
     // 인증 코드 토큰 검증
-    public void validateAuthToken(UUID uuid, UserInfoDto request) {
+    public void verifyAuthToken(UUID uuid, UserInfoDto request) {
 
         AuthToken authToken = authTokenRepository.findByUserUserUUID(uuid)
                 .orElseThrow(() -> new NoSuchElementException("uuid 값이 올바르지 않습니다"));
