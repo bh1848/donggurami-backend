@@ -41,13 +41,13 @@ public class Aplict {
     @Column(name = "checked")
     private boolean checked;
 
-    @Column(name = "delete_after")
-    private LocalDateTime deleteAfter;
+    @Column(name = "delete_date")
+    private LocalDateTime deleteDate;
 
-    public void updateAplictStatus(AplictStatus newStatus, boolean checked, LocalDateTime deleteAfter) {
+    public void updateAplictStatus(AplictStatus newStatus, boolean checked, LocalDateTime deleteDate) {
         this.aplictStatus = newStatus;
         this.checked = checked;
-        this.deleteAfter = deleteAfter;
+        this.deleteDate = deleteDate;
     }
 
     public void updateFailedAplictStatus(AplictStatus newStatus) {

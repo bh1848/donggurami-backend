@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +21,8 @@ public interface AplictRepository extends JpaRepository<Aplict, Long>, AplictRep
     List<Aplict> findByClub_ClubIdAndChecked (Long clubId, boolean checked);
 
     Optional<Aplict> findByClub_ClubIdAndIdAndCheckedAndAplictStatus (Long clubId, Long aplictId, boolean checked, AplictStatus status);
+
+    List<Aplict> findAllByDeleteDateBefore(LocalDateTime dateTime);
 
     @Modifying
     @Transactional
