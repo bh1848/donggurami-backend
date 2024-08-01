@@ -18,6 +18,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
 import java.util.Random;
@@ -93,6 +94,7 @@ public class EmailService {
         javaMailSender.send(mimeMessage);
     }
 
+    @Transactional
     public void deleteUserTempAndEmailToken(UserTemp userTemp){
         EmailToken findToken = emailTokenRepository.findByUserTemp(userTemp);
         emailTokenRepository.delete(findToken);

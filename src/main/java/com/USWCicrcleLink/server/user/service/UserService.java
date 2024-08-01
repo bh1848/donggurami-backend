@@ -64,11 +64,9 @@ public class UserService {
     public UserTemp registerUserTemp(SignUpRequest request) {
 
         // 임시 회원 테이블 이메일 중복 검증
-        if (userTempRepository.existsByTempEmail(request.getEmail())) {
-            Optional<UserTemp> userTemp = userTempRepository.findByTempEmail(request.getEmail());
-            // 해당 임시 회원 정보 삭제
-            emailService.deleteUserTempAndEmailToken(userTemp.get());
-        }
+        Optional<UserTemp> findUserTemp = userTempRepository.findByTempEmail(request.getEmail());
+        findUserTemp.ifPresent(emailService::deleteUserTempAndEmailToken);
+
         // 회원 테이블 이메일 중복 검증
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("이미 존재하는 회원입니다");
