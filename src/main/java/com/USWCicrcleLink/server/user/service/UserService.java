@@ -85,13 +85,6 @@ public class UserService {
         }
     }
 
-
-    @Transactional
-    public void sendSignUpMail(UserTemp userTemp,EmailToken emailToken) throws MessagingException {
-        MimeMessage message = emailService.createSingUpLink(userTemp,emailToken);
-        emailService.sendEmail(message);
-    }
-
     public UserTemp verifyEmailToken(UUID emailTokenId) {
 
         // 토큰 검증
@@ -148,7 +141,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 입니다"));
     }
 
-    public User verifyAccountAndEmail(UserInfoDto request) {
+    public User validateAccountAndEmail(UserInfoDto request) {
         return  userRepository.findByUserAccountAndEmail(request.getUserAccount(), request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("올바르지 않은 이메일 혹은 아이디 입니다"));
     }
@@ -178,14 +171,20 @@ public class UserService {
     }
 
     @Transactional
+    public void sendSignUpMail(UserTemp userTemp,EmailToken emailToken) throws MessagingException {
+        MimeMessage message = emailService.createSingUpLink(userTemp,emailToken);
+        emailService.sendEmail(message);
+    }
+
+    @Transactional
     public void sendAuthCodeMail(User user, AuthToken authToken) throws MessagingException {
-        MimeMessage message = emailService.AuthCodeMail(user,authToken);
+        MimeMessage message = emailService.createAuthCodeMail(user,authToken);
         emailService.sendEmail(message);
     }
 
     @Transactional
     public void sendAccountInfoMail (User findUser) throws MessagingException {
-        MimeMessage message = emailService.AccountInfoMail(findUser);
+        MimeMessage message = emailService.createAccountInfoMail(findUser);
         emailService.sendEmail(message);
     }
 }

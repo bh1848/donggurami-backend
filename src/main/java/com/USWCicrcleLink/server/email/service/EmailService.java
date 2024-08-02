@@ -26,8 +26,6 @@ public class EmailService {
 
     private final EmailConfig emailConfig;
     private final JavaMailSender javaMailSender;
-    private final AuthTokenService authTokenService;
-    private final EmailTokenService emailTokenService;
 
     //이메일 인증 경로
     private static final String VERIFY_EMAIL_PATH = "/users/verify/";
@@ -57,7 +55,7 @@ public class EmailService {
 
 
    // 아이디 찾기 메일 생성
-    public  MimeMessage AccountInfoMail (User findUser) throws MessagingException {
+    public  MimeMessage createAccountInfoMail (User findUser) throws MessagingException {
 
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
@@ -70,7 +68,7 @@ public class EmailService {
     }
 
     // 인증 코드 메일 생성
-    public  MimeMessage AuthCodeMail(User user,AuthToken authToken) throws MessagingException {
+    public  MimeMessage createAuthCodeMail(User user,AuthToken authToken) throws MessagingException {
 
         // 메세지 생성
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();

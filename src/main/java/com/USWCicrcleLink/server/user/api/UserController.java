@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+
 @RestController
 @Slf4j
 @RequestMapping("/users")
@@ -107,7 +108,7 @@ public class UserController {
     @PostMapping("/send-auth-code")
     ResponseEntity<ApiResponse<Void>> sendAuthCode (@Valid @RequestBody UserInfoDto request) throws MessagingException {
 
-        User user = userService.verifyAccountAndEmail(request);
+        User user = userService.validateAccountAndEmail(request);
 
         AuthToken authToken = authTokenService.createAuthToken(user);
         userService.sendAuthCodeMail(user,authToken);
