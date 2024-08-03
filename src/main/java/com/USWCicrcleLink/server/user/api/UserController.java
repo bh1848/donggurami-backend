@@ -109,7 +109,6 @@ public class UserController {
     ResponseEntity<ApiResponse<Void>> sendAuthCode (@Valid @RequestBody UserInfoDto request) throws MessagingException {
 
         User user = userService.validateAccountAndEmail(request);
-
         AuthToken authToken = authTokenService.createAuthToken(user);
         userService.sendAuthCodeMail(user,authToken);
 
@@ -139,7 +138,7 @@ public class UserController {
         return new ApiResponse<>("비밀번호가 변경되었습니다.");
     }
 
-    //이메일 재인증
+    // 이메일 재인증
     @PostMapping("/resend-confirm-email/{emailTokenId}")
     public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@PathVariable UUID emailTokenId) throws MessagingException {
 
@@ -149,6 +148,5 @@ public class UserController {
         ApiResponse<UUID> response = new ApiResponse<>("이메일 재인증을 해주세요", emailTokenId);
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
-
 
 }
