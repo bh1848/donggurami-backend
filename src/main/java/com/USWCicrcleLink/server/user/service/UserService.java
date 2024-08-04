@@ -67,22 +67,26 @@ public class UserService {
     public UserTemp registerUserTemp(SignUpRequest request) {
 
         // 중복 검증
-        verificationDuplicate(request.getEmail());
+        verifyUserTempDuplicate(request.getEmail());
+        verifyUserDuplicate(request.getEmail());
 
         return userTempRepository.save(request.toEntity());
     }
 
-    // 이메일 중복 검증
-    private void verificationDuplicate(String email) {
+    // 임시 회원 테이블 이메일 중복 검증
+    private void verifyUserTempDuplicate(String email) {
+        // 임시 데이터 존재 시 삭제
+        userTempRepository.findByTempEmail(email)
+                .ifPresent(emailTokenService::deleteEmailTokenAndUserTemp);
+    }
 
-        // 임시 회원 테이블 이메일 중복 검증
-        Optional<UserTemp> findUserTemp = userTempRepository.findByTempEmail(email);
-        findUserTemp.ifPresent(emailTokenService::deleteEmailTokenAndUserTemp);
+    // 회원 테이블 이메일 중복 검증
+    private void verifyUserDuplicate(String email){
 
-        // 회원 테이블 이메일 중복 검증
-        if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("이미 존재하는 회원입니다");
-        }
+        userRepository.findByEmail(email)
+                .ifPresent(user-> {
+                    throw new IllegalStateException("이미 존재하는 회원 입니다");
+                });
     }
 
     public UserTemp verifyEmailToken(UUID emailTokenId) {
@@ -112,9 +116,10 @@ public class UserService {
     }
 
     public void verifyAccountDuplicate(String account) {
-        if (userRepository.existsByUserAccount(account)) {
-            throw new IllegalStateException("중복된 ID 입니다. 새로운 ID를 입력해주세요");
-        }
+            userRepository.findByUserAccount(account)
+                    .ifPresent(user-> {
+                        throw new IllegalStateException("이미 존재하는 계정 입니다");
+                    });
     }
 
     public String logIn(LogInRequest request)  {

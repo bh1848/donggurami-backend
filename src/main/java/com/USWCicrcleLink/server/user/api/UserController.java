@@ -65,7 +65,7 @@ public class UserController {
     }
 
     // 회원가입 시의 계정 중복 체크
-    @GetMapping("/verify/duplicate/{account}")
+    @GetMapping("/verify-duplicate/{account}")
     public ResponseEntity<ApiResponse<String>> verifyAccountDuplicate(@PathVariable String account) {
 
         userService.verifyAccountDuplicate(account);
@@ -117,7 +117,7 @@ public class UserController {
     }
 
     // 인증 코드 검증
-    @PostMapping("verify-auth-token/{uuid}")
+    @PostMapping("/verify-auth-token/{uuid}")
     public ResponseEntity<ApiResponse<String>> verifyAuthToken(@PathVariable UUID uuid, @RequestBody UserInfoDto request) {
 
         authTokenService.verifyAuthToken(uuid, request);
