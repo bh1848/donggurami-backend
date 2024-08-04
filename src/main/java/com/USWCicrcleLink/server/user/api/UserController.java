@@ -43,13 +43,13 @@ public class UserController {
 
     // 임시 회원 등록 및 인증 메일 전송
     @PostMapping("/temp-sign-up")
-    public ResponseEntity<ApiResponse<UserTemp>> registerTemporaryUser(@Valid @RequestBody SignUpRequest request) throws MessagingException {
+    public ResponseEntity<ApiResponse<UUID>> registerTemporaryUser(@Valid @RequestBody SignUpRequest request) throws MessagingException {
 
         UserTemp userTemp = userService.registerUserTemp(request);
         EmailToken emailToken = emailTokenService.createEmailToken(userTemp);
         userService.sendSignUpMail(userTemp,emailToken);
 
-        ApiResponse<UserTemp> response = new ApiResponse<>("인증 메일 전송 완료",userTemp);
+        ApiResponse<UUID> response = new ApiResponse<>("인증 메일 전송 완료",emailToken.getEmailTokenId());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -106,13 +106,13 @@ public class UserController {
 
     // 인증 코드 전송
     @PostMapping("/send-auth-code")
-    ResponseEntity<ApiResponse<Void>> sendAuthCode (@Valid @RequestBody UserInfoDto request) throws MessagingException {
+    ResponseEntity<ApiResponse<UUID>> sendAuthCode (@Valid @RequestBody UserInfoDto request) throws MessagingException {
 
         User user = userService.validateAccountAndEmail(request);
         AuthToken authToken = authTokenService.createAuthToken(user);
         userService.sendAuthCodeMail(user,authToken);
 
-        ApiResponse<Void> response = new ApiResponse<>("인증코드가 전송 되었습니다");
+        ApiResponse<UUID> response = new ApiResponse<>("인증코드가 전송 되었습니다",user.getUserUUID());
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
