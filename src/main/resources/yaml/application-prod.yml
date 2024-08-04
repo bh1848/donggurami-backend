@@ -15,18 +15,18 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://3.35.83.91:3306/CircleLinkProd?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username:
-    password:
+    url: jdbc:mysql://43.200.140.186:3306/circle_link_prod?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: circlelink
+    password: 12345678
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create-drop
     properties:
       hibernate:
         format_sql: false
 
-  data:
-    redis:
-      host: prod-redis-server
-      port: 6379
+#  data:
+#    redis:
+#      host: prod-redis-server
+#      port: 6379

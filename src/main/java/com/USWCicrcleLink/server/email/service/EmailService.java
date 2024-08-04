@@ -2,24 +2,21 @@ package com.USWCicrcleLink.server.email.service;
 
 import com.USWCicrcleLink.server.email.config.EmailConfig;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
-import com.USWCicrcleLink.server.email.repository.EmailTokenRepository;
+import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.service.AuthTokenService;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import java.util.NoSuchElementException;
-import java.util.UUID;
 
 
 @Service
@@ -28,23 +25,26 @@ import java.util.UUID;
 public class EmailService {
 
     private final EmailConfig emailConfig;
-    private final EmailTokenRepository emailTokenRepository;
     private final JavaMailSender javaMailSender;
+    private final AuthTokenService authTokenService;
+    private final EmailTokenService emailTokenService;
 
     //이메일 인증 경로
-    private static final String CONFIRM_EMAIL_PATH = "/user/verify-email";
+    private static final String VERIFY_EMAIL_PATH = "/users/verify/";
+
 
     @Async
     public void sendEmail(MimeMessage mimeMessage) {
         javaMailSender.send(mimeMessage);
     }
 
-    // 인증 링크 생성
-    public MimeMessage createAuthLink(UserTemp userTemp) throws MessagingException {
+    // 회원가입 링크 생성
+    public MimeMessage createSingUpLink(UserTemp userTemp) throws MessagingException {
 
-        // 이메일 토큰 조회
-        EmailToken token = emailTokenRepository.findByUserTemp(userTemp);
+        // 이메일 토큰 생성
+        EmailToken emailToken = emailTokenService.createEmailToken(userTemp);
 
+        // 회원 가입 인증 메일 생성
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         helper.setTo(userTemp.getTempEmail() + "@suwon.ac.kr");
@@ -52,49 +52,41 @@ public class EmailService {
         helper.setFrom("wg1004s@naver.com");
 
         String emailContent
-                = "<a href='" + emailConfig.getBaseUrl() + CONFIRM_EMAIL_PATH + "?emailTokenId=" +token.getEmailTokenId() + "'> verify-email </a>";
+                = "<a href='" + emailConfig.getBaseUrl() + VERIFY_EMAIL_PATH + emailToken.getEmailTokenId() + "'> click here  </a>";
         helper.setText(emailContent, true);
 
         return mimeMessage;
     }
 
 
-    public void createEmailToken(UserTemp userTemp) {
-        EmailToken emailToken = EmailToken.createEmailToken(userTemp);
-        emailTokenRepository.save(emailToken);
-    }
+   // 아이디 찾기 메일 생성
+    public  MimeMessage AccountInfoMail (User findUser) throws MessagingException {
 
-    // 유효한 토큰 검증
-    public void validateToken (UUID emailTokenId) {
-
-        EmailToken emailToken = emailTokenRepository.findByEmailTokenId(emailTokenId)
-                .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
-        try {
-            emailToken.validateAndExpire();
-        } finally {
-            emailTokenRepository.save(emailToken);
-        }
-    }
-
-    public void sendEmailInfo(User findUser) throws MessagingException {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
-        helper.setTo(findUser.getEmail() + "@suwon.ac.kr"); // 수신자 이메일 설정
-        helper.setSubject("동구라미의 아이디를 찾기 위한 메일입니다."); // 이메일 제목
-        helper.setText("회원님의 아이디는  "  + findUser.getUserAccount() + " 입니다."); // 이메일 내용 설정
+        helper.setTo(findUser.getEmail() + "@suwon.ac.kr");
+        helper.setSubject("동구라미의 아이디를 찾기 위한 메일입니다.");
+        helper.setText("회원님의 아이디는  "  + findUser.getUserAccount() + " 입니다.");
         helper.setFrom("wg1004s@naver.com");
 
-        javaMailSender.send(mimeMessage);
+        return mimeMessage;
     }
 
-    public void deleteTempUserAndToken(UserTemp userTemp){
-        EmailToken findToken = emailTokenRepository.findByUserTemp(userTemp);
-        emailTokenRepository.delete(findToken);
-    }
+    // 인증 코드 메일 생성
+    public  MimeMessage AuthCodeMail(User user) throws MessagingException {
 
-    public EmailToken getTokenBy(UUID emailTokenId){
-        return emailTokenRepository.findByEmailTokenId(emailTokenId)
-                .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
+        // 인증 토큰 생성
+        AuthToken authToken = authTokenService.createAuthToken(user);
+
+        // 메세지 생성
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
+        helper.setTo(user.getEmail() + "@suwon.ac.kr");
+        helper.setSubject("비밀번호 찾기 메일 입니다.");
+        helper.setText("인증코드는  "  + authToken.getAuthCode()+ " 입니다.");
+        helper.setFrom("wg1004s@naver.com");
+
+        return mimeMessage;
     }
 
 

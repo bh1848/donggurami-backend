@@ -172,15 +172,36 @@ public class ClubLeaderService {
         return clubIntro.getRecruitmentStatus();
     }
 
+    // 소속 동아리원 조회(구, 성능 비교용)
+//    @Transactional(readOnly = true)
+//    public ApiResponse<List<ClubMembersResponse>> findClubMembers(LeaderToken token) {
+//
+//        Club club = validateLeader(token);
+//
+//        // 해당 동아리원 조회(성능 비교)
+////        List<ClubMembers> findClubMembers = clubMembersRepository.findByClub(club); // 일반
+//        List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfile(club.getClubId()); // 성능
+//
+//        // 동아리원과 프로필 조회
+//        List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
+//                .map(cm -> new ClubMembersResponse(
+//                        cm.getClubMemberId(),
+//                        cm.getProfile()
+//                ))
+//                .collect(toList());
+//
+//        return new ApiResponse<>("소속 동아리원 조회 완료", memberProfiles);
+//    }
+
     // 소속 동아리원 조회
     @Transactional(readOnly = true)
-    public ApiResponse<List<ClubMembersResponse>> findClubMembers(LeaderToken token) {
+    public ApiResponse<Page<ClubMembersResponse>> getClubMembers(LeaderToken token, int page, int size) {
 
         Club club = validateLeader(token);
 
-        // 해당 동아리원 조회(성능 비교)
-//        List<ClubMembers> findClubMembers = clubMembersRepository.findByClub(club); // 일반
-        List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfile(club.getClubId()); // 성능
+        PageRequest pageable = PageRequest.of(page, size);
+
+        Page<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfileByClubId(club.getClubId(), pageable);
 
         // 동아리원과 프로필 조회
         List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
@@ -190,7 +211,9 @@ public class ClubLeaderService {
                 ))
                 .collect(toList());
 
-        return new ApiResponse<>("소속 동아리원 조회 완료", memberProfiles);
+        PageImpl<ClubMembersResponse> clubMembersResponses = new PageImpl<>(memberProfiles, pageable, findClubMembers.getTotalElements());
+
+        return new ApiResponse<>("소속 동아리원 조회 완료", clubMembersResponses);
     }
 
     // 소속 동아리원 삭제

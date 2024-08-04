@@ -13,9 +13,9 @@
 //import org.springframework.boot.test.mock.mockito.MockBean;
 //import org.springframework.data.domain.PageImpl;
 //import org.springframework.data.domain.PageRequest;
-//import org.springframework.data.web.PagedResourcesAssembler;
 //import org.springframework.hateoas.PagedModel;
 //import org.springframework.http.MediaType;
+//import org.springframework.mock.web.MockMultipartFile;
 //import org.springframework.test.context.junit.jupiter.SpringExtension;
 //import org.springframework.test.web.servlet.MockMvc;
 //
@@ -102,7 +102,7 @@
 //        Mockito.when(noticeService.getNoticeById(anyLong())).thenReturn(notice);
 //
 //        //when
-//        mockMvc.perform(get("/admin/notice/get/1")
+//        mockMvc.perform(get("/admin/notices/1")
 //                        .contentType(MediaType.APPLICATION_JSON))
 //                //then
 //                .andExpect(status().isOk())
@@ -125,13 +125,16 @@
 //                .noticeCreatedAt(LocalDateTime.now())
 //                .build();
 //
-//        Mockito.when(noticeService.createNotice(any(), any())).thenReturn(response);
+//        MockMultipartFile requestPart = new MockMultipartFile("request", "", "application/json", objectMapper.writeValueAsBytes(request));
+//        MockMultipartFile photo = new MockMultipartFile("photos", "photo.jpg", "image/jpeg", "photo content".getBytes());
+//
+//        Mockito.when(noticeService.createNotice(any(), any(), any())).thenReturn(response);
 //
 //        //when
-//        mockMvc.perform(post("/admin/notice/create")
-//                        .header("admin_id", 1L)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
+//        mockMvc.perform(multipart("/admin/notices")
+//                        .file(requestPart)
+//                        .file(photo)
+//                        .header("adminId", 1L))
 //                //then
 //                .andExpect(status().isOk())
 //                .andExpect(jsonPath("$.message", is("공지사항 생성 성공")))
@@ -141,7 +144,7 @@
 //    @Test
 //    void 공지사항수정_성공() throws Exception {
 //        //given
-//        NoticeCreationRequest request = NoticeCreationRequest.builder()
+//        NoticeCreationRequest noticeRequest = NoticeCreationRequest.builder()
 //                .noticeTitle("공지사항 수정")
 //                .noticeContent("수정된 내용")
 //                .build();
@@ -153,23 +156,33 @@
 //                .noticeCreatedAt(LocalDateTime.now())
 //                .build();
 //
-//        Mockito.when(noticeService.updateNotice(anyLong(), any())).thenReturn(response);
+//        MockMultipartFile requestPart = new MockMultipartFile("request", "", "application/json", objectMapper.writeValueAsBytes(noticeRequest));
+//        MockMultipartFile photo = new MockMultipartFile("photos", "photo.jpg", "image/jpeg", "photo content".getBytes());
+//
+//        Mockito.when(noticeService.updateNotice(anyLong(), any(), any())).thenReturn(response);
 //
 //        //when
-//        mockMvc.perform(patch("/admin/notice/update/1")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
+//        mockMvc.perform(multipart("/admin/notices/1")
+//                        .file(requestPart)
+//                        .file(photo)
+//                        .contentType(MediaType.MULTIPART_FORM_DATA)
+//                        .with(req -> {
+//                            req.setMethod("PATCH");
+//                            return req;
+//                        }))
 //                //then
 //                .andExpect(status().isOk())
 //                .andExpect(jsonPath("$.message", is("공지사항 수정 성공")))
 //                .andExpect(jsonPath("$.data.noticeTitle", is("공지사항 수정")));
 //    }
 //
+//
+//
 //    @Test
 //    void 공지사항삭제_성공() throws Exception {
 //        //given
 //        //when
-//        mockMvc.perform(delete("/admin/notice/delete/1")
+//        mockMvc.perform(delete("/admin/notices/1")
 //                        .contentType(MediaType.APPLICATION_JSON))
 //                //then
 //                .andExpect(status().isOk())

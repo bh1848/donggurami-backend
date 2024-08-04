@@ -27,6 +27,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String userAccount;
 
+    @Column(nullable = false)
     private String userPw;
 
     @Column(unique = true, nullable = false)
@@ -54,5 +55,6 @@ public class User {
     public void updateUserPw(String userPw){
         this.userPw = userPw;
     }
+
 }
 

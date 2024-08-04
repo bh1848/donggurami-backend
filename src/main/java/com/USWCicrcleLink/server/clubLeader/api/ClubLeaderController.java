@@ -50,10 +50,17 @@ public class ClubLeaderController {
         return new ResponseEntity<>(clubLeaderService.toggleRecruitmentStatus(token), HttpStatus.OK);
     }
 
+//    @GetMapping("/v1/members")
+//    public ResponseEntity<ApiResponse> getClubMembers(LeaderToken token) {
+//        // 원래는 GET 요청임 토큰때문
+//        return new ResponseEntity<>(clubLeaderService.findClubMembers(token), HttpStatus.OK);
+//    }
+
+    // 소속 동아리원 조회
     @GetMapping("/members")
-    public ResponseEntity<ApiResponse> getClubMembers(LeaderToken token) {
+    public ResponseEntity<ApiResponse> getClubMembers(LeaderToken token, @RequestParam int page, @RequestParam int size) {
         // 원래는 GET 요청임 토큰때문
-        return new ResponseEntity<>(clubLeaderService.findClubMembers(token), HttpStatus.OK);
+        return new ResponseEntity<>(clubLeaderService.getClubMembers(token, page, size), HttpStatus.OK);
     }
 
     @DeleteMapping("/members/{clubMemberId}")

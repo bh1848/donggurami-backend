@@ -2,10 +2,12 @@ package com.USWCicrcleLink.server.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-public class CheckPasswordRequest {
+@NoArgsConstructor
+public class PasswordRequest {
 
     private String password;
     private String confirmPassword;
