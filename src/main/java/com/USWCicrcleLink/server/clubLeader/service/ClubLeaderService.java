@@ -7,7 +7,6 @@ import com.USWCicrcleLink.server.aplict.dto.ApplicantsResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
-import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
@@ -16,6 +15,7 @@ import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.global.response.PageResponse;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -47,6 +47,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -75,9 +76,9 @@ public class ClubLeaderService {
 
     // 동아리 기본 정보 조회
     @Transactional(readOnly = true)
-    public ApiResponse<ClubInfoResponse> getClubInfo(LeaderToken token) {
+    public ApiResponse<ClubInfoResponse> getClubInfo(String leaderUUID) {
 
-        Club club = validateLeader(token);
+        Club club = validateLeader(leaderUUID);
 
         ClubInfoResponse clubInfoResponse = new ClubInfoResponse(
                 club.getMainPhotoPath(),
@@ -92,9 +93,9 @@ public class ClubLeaderService {
     }
 
     // 동아리 기본 정보 변경
-    public ApiResponse updateClubInfo(LeaderToken token, ClubInfoRequest clubInfoRequest) throws IOException {
+    public ApiResponse updateClubInfo(String leaderUUID, ClubInfoRequest clubInfoRequest) throws IOException {
 
-        Club club = validateLeader(token);
+        Club club = validateLeader(leaderUUID);
 
         // 사진 파일 업로드 과정
         createMainPhotoDir();// 사진 파일 디렉터리 없는 경우 생성
@@ -113,9 +114,9 @@ public class ClubLeaderService {
     }
 
     // 동아리 소개 변경
-    public ApiResponse updateClubIntro(LeaderToken token, ClubIntroRequest clubIntroRequest) throws IOException {
+    public ApiResponse updateClubIntro(String leaderUUID, ClubIntroRequest clubIntroRequest) throws IOException {
 
-        Club club = validateLeader(token);
+        Club club = validateLeader(leaderUUID);
 
         // 사진 파일 업로드 과정
         createIntroPhotoDir();// 사진 파일 디렉터리 없는 경우 생성
@@ -160,16 +161,17 @@ public class ClubLeaderService {
     }
 
     // 동아리 모집 상태 변경
-    public ApiResponse toggleRecruitmentStatus(LeaderToken token) {
+    public ApiResponse toggleRecruitmentStatus(String leaderUUID) {
 
-        Club club = validateLeader(token);
+        Club club = validateLeader(leaderUUID);
 
         ClubIntro clubIntro = clubIntroRepository.findByClub(club)
                 .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 소개가 아닙니다."));
         log.info("동아리 소개 조회 결과: {}", clubIntro);
 
         // 모집 상태 현재와 반전
-        club.toggleRecruitmentStatus();
+        clubIntro.toggleRecruitmentStatus();
+        clubRepository.save(club);
 
         return new ApiResponse<>("동아리 모집 상태 변경 완료", clubIntro.getRecruitmentStatus());
     }
@@ -197,14 +199,16 @@ public class ClubLeaderService {
 
     // 소속 동아리원 조회
     @Transactional(readOnly = true)
-    public ApiResponse<Page<ClubMembersResponse>> getClubMembers(LeaderToken token, int page, int size) {
+    public ApiResponse<PageResponse<ClubMembersResponse>> getClubMembers(String leaderUUID, int page, int size) {
 
-        Club club = validateLeader(token);
+        Club club = validateLeader(leaderUUID);
 
         PageRequest pageable = PageRequest.of(page, size);
 
         Page<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfileByClubId(club.getClubId(), pageable);
 
+        log.info("Fetched Club Members: {}", findClubMembers.getContent());
+        log.info("Club Member IDs: {}", findClubMembers.stream().map(ClubMembers::getClubMemberId).collect(Collectors.toList()));
         // 동아리원과 프로필 조회
         List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
                 .map(cm -> new ClubMembersResponse(
@@ -213,15 +217,21 @@ public class ClubLeaderService {
                 ))
                 .collect(toList());
 
-        PageImpl<ClubMembersResponse> clubMembersResponses = new PageImpl<>(memberProfiles, pageable, findClubMembers.getTotalElements());
+        PageResponse<ClubMembersResponse> pageResponse = new PageResponse<>(
+                memberProfiles,
+                findClubMembers.getNumber(),
+                findClubMembers.getSize(),
+                findClubMembers.getTotalElements(),
+                findClubMembers.getTotalPages()
+        );
 
-        return new ApiResponse<>("소속 동아리원 조회 완료", clubMembersResponses);
+        return new ApiResponse<>("소속 동아리원 조회 완료", pageResponse);
     }
 
     // 소속 동아리원 삭제
-    public ApiResponse deleteClubMember(Long clubMemberId, LeaderToken token) {
+    public ApiResponse deleteClubMember(Long clubMemberId, String leaderUUID) {
 
-        Club club = validateLeader(token);
+        Club club = validateLeader(leaderUUID);
 
         // 동아리원 삭제
         clubMembersRepository.deleteById(clubMemberId);
@@ -230,9 +240,9 @@ public class ClubLeaderService {
 
     // 소속 동아리원 엑셀 다운
     @Transactional(readOnly = true)
-    public void downloadExcel(LeaderToken token, HttpServletResponse response) {
+    public void downloadExcel(String leaderUUID, HttpServletResponse response) {
 
-        Club club = validateLeader(token);
+        Club club = validateLeader(leaderUUID);
 
         // 해당 동아리원 조회
         List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfile(club.getClubId());
@@ -318,8 +328,8 @@ public class ClubLeaderService {
 
     // 동아리 지원자 조회
     @Transactional(readOnly = true)
-    public Page<ApplicantsResponse> getApplicants(LeaderToken token, int page, int size) {
-        Club club = validateLeader(token);
+    public Page<ApplicantsResponse> getApplicants(String leaderUUID, int page, int size) {
+        Club club = validateLeader(leaderUUID);
 
         Pageable pageable = PageRequest.of(page, size);
 
@@ -339,8 +349,8 @@ public class ClubLeaderService {
     }
 
     // 동아리 지원자 합격/불합격 처리
-    public void updateApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) throws IOException {
-        Club club = validateLeader(token);
+    public void updateApplicantResults(String leaderUUID, List<ApplicantResultsRequest> results) throws IOException {
+        Club club = validateLeader(leaderUUID);
 
         // 동아리 지원자 전원 조회(최초 합격)
         List<Aplict> applicants = aplictRepository.findByClub_ClubIdAndChecked(club.getClubId(), false);
@@ -391,8 +401,8 @@ public class ClubLeaderService {
 
     // 불합격자 조회
     @Transactional(readOnly = true)
-    public Page<ApplicantsResponse> getFailedApplicants(LeaderToken token, int page, int size) {
-        Club club = validateLeader(token);
+    public Page<ApplicantsResponse> getFailedApplicants(String leaderUUID, int page, int size) {
+        Club club = validateLeader(leaderUUID);
 
         Pageable pageable = PageRequest.of(page, size);
 
@@ -413,8 +423,8 @@ public class ClubLeaderService {
     }
 
     // 동아리 지원자 추가 합격 처리
-    public void updateFailedApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) throws IOException {
-        Club club = validateLeader(token);
+    public void updateFailedApplicantResults(String leaderUUID, List<ApplicantResultsRequest> results) throws IOException {
+        Club club = validateLeader(leaderUUID);
 
         // 지원자 검증(지원한 동아리 + 지원서 + check된 상태 + 불합)
         for (ApplicantResultsRequest result : results) {
@@ -450,16 +460,16 @@ public class ClubLeaderService {
     }
 
     // 회장 검증 및 소속 동아리
-    private Club validateLeader(LeaderToken token) {
+    private Club validateLeader(String leaderUUID) {
         // 토큰 적용, 예외 처리 시 변경
-        Leader leader = leaderRepository.findByLeaderUUID(token.getLeaderUUID())
+        Leader leader = leaderRepository.findByLeaderUUID(leaderUUID)
                 .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
         log.info("동아리 회장 조회 결과: {}", leader);
 
         // 동아리 조회
         Club club = clubRepository.findById(leader.getClub().getClubId())
                 .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
-        log.info("동아리 조회 결과: {}", club);
+        log.info("동아리 조회 결과: {}", club.getClubName());
 
         return club;
     }

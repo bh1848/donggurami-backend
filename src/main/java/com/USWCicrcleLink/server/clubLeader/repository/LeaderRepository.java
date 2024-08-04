@@ -12,5 +12,5 @@ import java.util.UUID;
 
 
 public interface LeaderRepository extends JpaRepository<Leader,Long>, LeaderRepositoryCustom {
-    Optional<Leader> findByLeaderUUID(UUID leaderUUID);
+    Optional<Leader> findByLeaderUUID(String leaderUUID);
 }

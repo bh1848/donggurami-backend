@@ -13,6 +13,8 @@ import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.clubLeader.domain.Leader;
+import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -40,6 +42,7 @@ public class DummyData {
     private final ClubMembersRepository clubMembersRepository;
     private final AplictRepository aplictRepository;
     private final ClubIntroRepository clubIntroRepository;
+    private final LeaderRepository leaderRepository;
 
     @PostConstruct
     public void init(){
@@ -53,7 +56,7 @@ public class DummyData {
     //user1 , flag 데이터
     public void initUser1() {
 
-        User user = User.builder()
+        User user1 = User.builder()
                 .userUUID(UUID.randomUUID())
                 .userAccount("user1")
                 .userPw("1234")
@@ -62,10 +65,21 @@ public class DummyData {
                 .userUpdatedAt(LocalDateTime.now())
                 .build();
 
-        userRepository.save(user);
+        userRepository.save(user1);
 
-        Profile profile = Profile.builder()
-                .user(user)
+        User user2 = User.builder()
+                .userUUID(UUID.randomUUID())
+                .userAccount("user222")
+                .userPw("1234")
+                .email("user222")
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .build();
+
+        userRepository.save(user2);
+
+        Profile profile1 = Profile.builder()
+                .user(user1)
                 .userName("김땡떙")
                 .studentNumber("1234")
                 .userHp("01012345678")
@@ -74,20 +88,40 @@ public class DummyData {
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
 
-        profileRepository.save(profile);
+        profileRepository.save(profile1);
+
+        Profile profile2 = Profile.builder()
+                .user(user2)
+                .userName("김빵빵")
+                .studentNumber("1234")
+                .userHp("01012345678")
+                .major("정뽀호")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .build();
+
+        profileRepository.save(profile2);
 
         Club club = Club.builder()
                 .clubName("FLAG")
                 .leaderName("개발짱")
+                .leaderHp("01012341234")
                 .mainPhotoPath("src/main/resources/static/mainPhoto/flag.jpg")
                 .department(Department.ACADEMIC)
                 .katalkID("flag_kakao")
                 .clubInsta("flag_insta")
 //                .chatRoomUrl("http://flag")
-                .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
 
         clubRepository.save(club);
+
+        Leader leader = Leader.builder()
+                .leaderAccount("flag")
+                .leaderPw("1234")
+                .club(club)
+                .build();
+
+        leaderRepository.save(leader);
 
         ClubIntro clubIntro = ClubIntro.builder()
                 .club(club)
@@ -97,15 +131,21 @@ public class DummyData {
 
         clubIntroRepository.save(clubIntro);
 
-        ClubMembers clubMembers = ClubMembers.builder()
+        ClubMembers clubMembers1 = ClubMembers.builder()
                 .club(club)
-                .profile(profile)
+                .profile(profile1)
+                .build();
+        clubMembersRepository.save(clubMembers1);
+
+        ClubMembers clubMembers2 = ClubMembers.builder()
+                .club(club)
+                .profile(profile2)
                 .build();
 
-        clubMembersRepository.save(clubMembers);
+        clubMembersRepository.save(clubMembers2);
 
         Aplict aplict = Aplict.builder()
-                .profile(profile)
+                .profile(profile1)
                 .club(club)
                 .aplictGoogleFormUrl("flag_google_url1")
                 .submittedAt(LocalDateTime.now())
@@ -149,7 +189,6 @@ public class DummyData {
                 .katalkID("allabout_kakao")
                 .clubInsta("allabout_insta")
 //                .chatRoomUrl("http://allabout")
-                .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
 
         clubRepository.save(club);
@@ -206,7 +245,6 @@ public class DummyData {
                 .katalkID("gullisae_kakao")
                 .clubInsta("gullisae_insta")
 //                .chatRoomUrl("http://smash")
-                .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
 
         clubRepository.save(club);

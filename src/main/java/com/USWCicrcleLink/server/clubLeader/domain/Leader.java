@@ -24,8 +24,8 @@ public class Leader {
     @Column(name = "leader_account", nullable = false, unique = true)
     private String leaderAccount;
 
-    @Column(columnDefinition = "BINARY(16)",nullable = false, updatable = false)
-    private UUID leaderUUID;
+    @Column(name = "leader_uuid",nullable = false, updatable = false)
+    private String leaderUUID;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clubId")
@@ -35,6 +35,6 @@ public class Leader {
     private String leaderPw;
     @PrePersist
     public void prePersist() {
-        this.leaderUUID = UUID.randomUUID();
+        this.leaderUUID = UUID.randomUUID().toString();
     }
 }
