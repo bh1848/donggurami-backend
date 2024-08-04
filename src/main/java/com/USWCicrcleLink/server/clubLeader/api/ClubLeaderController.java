@@ -1,20 +1,22 @@
 package com.USWCicrcleLink.server.clubLeader.api;
 
+import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
+import com.USWCicrcleLink.server.aplict.dto.ApplicantsResponse;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.ClubInfoResponse;
-import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.LeaderToken;
+import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
+import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ import java.io.IOException;
 public class ClubLeaderController {
 
     private final ClubLeaderService clubLeaderService;
+    private final FcmServiceImpl fcmService;
 
     @GetMapping("/info")
     public ResponseEntity<ApiResponse> getClubInfo(LeaderToken token) {
@@ -71,4 +74,32 @@ public class ClubLeaderController {
         clubLeaderService.downloadExcel(token, response);
     }
 
+    @GetMapping("/applicants")
+    public Page<ApplicantsResponse> getApplicants(@RequestBody LeaderToken token, @RequestParam int page, @RequestParam int size) {
+        return clubLeaderService.getApplicants(token, page, size);
+    }
+
+    @PostMapping("/applicants/notifyMultiple")
+    public ResponseEntity<ApiResponse> pushApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) throws IOException {
+        clubLeaderService.updateApplicantResults(token, results);
+        return new ResponseEntity<>(new ApiResponse<>("지원 결과 처리 완료"), HttpStatus.OK);
+    }
+
+    @GetMapping("/failed-applicants")
+    public Page<ApplicantsResponse> getFailedApplicants(@RequestBody LeaderToken token, @RequestParam int page, @RequestParam int size) {
+        return clubLeaderService.getFailedApplicants(token, page, size);
+    }
+
+    @PostMapping("/failed-applicants/notifyMultiple")
+    public ResponseEntity<ApiResponse> pushFailedApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) throws IOException {
+        clubLeaderService.updateFailedApplicantResults(token, results);
+        return new ResponseEntity<>(new ApiResponse<>("추합 결과 처리 완료"), HttpStatus.OK);
+    }
+
+    // fcm token 저장 테스트 실제로는 로그인에서 처리해야함
+    @PostMapping("/fcm-token")
+    public ResponseEntity<String> getFcmToken(FcmTokenTestRequest fcmTestRequest) {
+        clubLeaderService.updateFcmToken(fcmTestRequest);
+        return new ResponseEntity<>("fcm token: " + fcmTestRequest.getFcmToken(), HttpStatus.OK);
+    }
 }

@@ -42,6 +42,9 @@ public class Profile {
     @Column(name = "profile_updated_at", nullable = false)
     private LocalDateTime profileUpdatedAt;
 
+    @Column(name = "fcm-token")
+    private String fcmToken;
+
     public static Profile createProfile(UserTemp userTemp, User user){
         return Profile.builder()
                 .user(user)
@@ -61,4 +64,7 @@ public class Profile {
         this.profileUpdatedAt = LocalDateTime.now();
     }
 
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 }

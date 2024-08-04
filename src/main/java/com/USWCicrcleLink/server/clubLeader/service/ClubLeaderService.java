@@ -1,5 +1,10 @@
 package com.USWCicrcleLink.server.clubLeader.service;
 
+import com.USWCicrcleLink.server.aplict.domain.Aplict;
+import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
+import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
+import com.USWCicrcleLink.server.aplict.dto.ApplicantsResponse;
+import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
@@ -11,6 +16,10 @@ import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import com.USWCicrcleLink.server.global.util.FileUploadService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +33,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +44,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -47,7 +60,12 @@ public class ClubLeaderService {
     private final ClubIntroRepository clubIntroRepository;
     private final LeaderRepository leaderRepository;
     private final ClubMembersRepository clubMembersRepository;
+    private final AplictRepository aplictRepository;
+    private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
+
     private final FileUploadService fileUploadService;
+    private final FcmServiceImpl fcmService;
 
     // 대표 사진 경로
     @Value("${file.mainPhoto-dir}")
@@ -228,7 +246,7 @@ public class ClubLeaderService {
         String fileName = club.getClubName() + " 회원 명단.xlsx";
         String encodedFileName;
         try {
-            encodedFileName =URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
+            encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
         } catch (IOException e) {
             throw new RuntimeException("파일 이름 인코딩에 실패했습니다.", e);
         }
@@ -294,6 +312,139 @@ public class ClubLeaderService {
         cellStyle.setBorderTop(BorderStyle.THIN);
         cellStyle.setBorderRight(BorderStyle.THIN);
         cellStyle.setBorderBottom(BorderStyle.THIN);
+    }
+
+    // 동아리 지원자 조회
+    @Transactional(readOnly = true)
+    public Page<ApplicantsResponse> getApplicants(LeaderToken token, int page, int size) {
+        Club club = validateLeader(token);
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 합/불 처리되지 않은 동아리 지원자 조회
+        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubId(
+                club.getClubId(),
+                pageable,
+                false);
+        List<ApplicantsResponse> applicants = aplicts.stream()
+                .map(ap -> new ApplicantsResponse(
+                        ap.getId(),
+                        ap.getProfile()
+                ))
+                .collect(toList());
+
+        return new PageImpl<>(applicants, pageable, aplicts.getTotalElements());
+    }
+
+    // 동아리 지원자 합격/불합격 처리
+    public void updateApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) throws IOException {
+        Club club = validateLeader(token);
+
+        // 동아리 지원자 전원 조회(최초 합격)
+        List<Aplict> applicants = aplictRepository.findByClub_ClubIdAndChecked(club.getClubId(), false);
+
+        // 선택된 지원자 수와 전체 동아리 지원자 수 비교
+        validateTotalApplicants(applicants, results);
+
+        // 지원자 검증(지원한 동아리 + 지원서 + check안된 상태)
+        for (ApplicantResultsRequest result : results) {
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndChecked(
+                            club.getClubId(),
+                            result.getAplictId(),
+                            false)
+                    .orElseThrow(() -> new IllegalArgumentException("유효한 지원자가 아닙니다."));
+
+            // 합격 불합격 상태 업데이트
+            // 합/불, checked, 삭제 날짜
+
+            AplictStatus aplictResult = result.getAplictStatus();// 지원 결과 PASS/ FAIL
+            if (aplictResult == AplictStatus.PASS) {
+                applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
+                fcmService.sendMessageTo(applicant, aplictResult);
+                log.debug("합격 처리 완료: {}", applicant.getId());
+            } else if (aplictResult == AplictStatus.FAIL) {
+                applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
+                fcmService.sendMessageTo(applicant, aplictResult);
+                log.debug("불합격 처리 완료: {}", applicant.getId());
+            }
+
+            aplictRepository.save(applicant);
+        }
+    }
+
+    // 선택된 지원자 수와 전체 지원자 수 비교
+    private void validateTotalApplicants(List<Aplict> applicants, List<ApplicantResultsRequest> results) {
+        Set<Long> applicantIds = applicants.stream()
+                .map(Aplict::getId)
+                .collect(Collectors.toSet());
+
+        Set<Long> requestedApplicantIds = results.stream()
+                .map(ApplicantResultsRequest::getAplictId)
+                .collect(Collectors.toSet());
+
+        if (!requestedApplicantIds.equals(applicantIds)) {
+            throw new IllegalArgumentException("선택한 지원자의 수와 전체 지원자 수가 일치하지 않습니다.");
+        }
+    }
+
+    // 불합격자 조회
+    @Transactional(readOnly = true)
+    public Page<ApplicantsResponse> getFailedApplicants(LeaderToken token, int page, int size) {
+        Club club = validateLeader(token);
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 불합격자 동아리 지원자 조회
+        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubIdAndFailed(
+                club.getClubId(),
+                pageable,
+                true,
+                AplictStatus.FAIL);
+        List<ApplicantsResponse> applicants = aplicts.stream()
+                .map(ap -> new ApplicantsResponse(
+                        ap.getId(),
+                        ap.getProfile()
+                ))
+                .collect(toList());
+
+        return new PageImpl<>(applicants, pageable, aplicts.getTotalElements());
+    }
+
+    // 동아리 지원자 추가 합격 처리
+    public void updateFailedApplicantResults(LeaderToken token, List<ApplicantResultsRequest> results) throws IOException {
+        Club club = validateLeader(token);
+
+        // 지원자 검증(지원한 동아리 + 지원서 + check된 상태 + 불합)
+        for (ApplicantResultsRequest result : results) {
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndCheckedAndAplictStatus(
+                            club.getClubId(),
+                            result.getAplictId(),
+                            true,
+                            AplictStatus.FAIL
+                    )
+                    .orElseThrow(() -> new IllegalArgumentException("유효한 추합 대상자가 아닙니다."));
+
+            // 합격 불합격 상태 업데이트
+            // 합격
+            AplictStatus aplictResult = result.getAplictStatus();
+            applicant.updateFailedAplictStatus(aplictResult);
+            fcmService.sendMessageTo(applicant, aplictResult);
+            log.debug("합격 처리 완료: {}", applicant.getId());
+
+            aplictRepository.save(applicant);
+        }
+    }
+
+    public void updateFcmToken(FcmTokenTestRequest fcmTokenTestRequest) {
+        User user = userRepository.findByUserAccount(fcmTokenTestRequest.getUserAccount())
+            .orElseThrow(()-> new RuntimeException("유효한 회원이 없습니다."));
+
+        Profile profile = profileRepository.findById(user.getUserId())
+                .orElseThrow(()-> new RuntimeException("유효한 회원이 없습니다."));
+
+        profile.updateFcmToken(fcmTokenTestRequest.getFcmToken());
+        profileRepository.save(profile);
+        log.debug("fcmToken 업데이트: {}", user.getUserAccount());
     }
 
     // 회장 검증 및 소속 동아리

@@ -20,12 +20,12 @@ public class Aplict {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "profile_id", nullable = false)
-    private Profile profile;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_id", nullable = false)
+    private Profile profile;
 
     @Column(name = "aplict_google_form_url", nullable = false)
     private String aplictGoogleFormUrl;
@@ -33,7 +33,24 @@ public class Aplict {
     @Column(name = "aplict_submitted_at", nullable = false)
     private LocalDateTime submittedAt;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "aplict_status", nullable = false)
-    private AplictStatus aplictStatus;
+    private AplictStatus aplictStatus = AplictStatus.WAIT;
+
+    @Column(name = "checked")
+    private boolean checked;
+
+    @Column(name = "delete_date")
+    private LocalDateTime deleteDate;
+
+    public void updateAplictStatus(AplictStatus newStatus, boolean checked, LocalDateTime deleteDate) {
+        this.aplictStatus = newStatus;
+        this.checked = checked;
+        this.deleteDate = deleteDate;
+    }
+
+    public void updateFailedAplictStatus(AplictStatus newStatus) {
+        this.aplictStatus = newStatus;
+    }
 }
