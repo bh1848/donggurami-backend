@@ -92,7 +92,7 @@ public class ClubLeaderService {
     }
 
     // 동아리 기본 정보 변경
-    public void updateClubInfo(LeaderToken token, ClubInfoRequest clubInfoRequest) throws IOException {
+    public ApiResponse updateClubInfo(LeaderToken token, ClubInfoRequest clubInfoRequest) throws IOException {
 
         Club club = validateLeader(token);
 
@@ -109,10 +109,11 @@ public class ClubLeaderService {
 
         clubRepository.save(club);
         log.info("동아리 기본 정보 변경 완료: {}", club.getClubName());
+        return new ApiResponse<>("동아리 기본 정보 변경 완료", club.getClubName());
     }
 
     // 동아리 소개 변경
-    public void updateClubIntro(LeaderToken token, ClubIntroRequest clubIntroRequest) throws IOException {
+    public ApiResponse updateClubIntro(LeaderToken token, ClubIntroRequest clubIntroRequest) throws IOException {
 
         Club club = validateLeader(token);
 
@@ -146,6 +147,7 @@ public class ClubLeaderService {
 
         clubIntroRepository.save(existingClubIntro);
         log.info("동아리 소개 저장 완료: {}", existingClubIntro);
+        return new ApiResponse<>("동아리 소개 변경 완료", club.getClubName());
     }
 
     // 사진 파일 저장 디렉터리 없는 경우 생성
@@ -158,7 +160,7 @@ public class ClubLeaderService {
     }
 
     // 동아리 모집 상태 변경
-    public RecruitmentStatus toggleRecruitmentStatus(LeaderToken token) {
+    public ApiResponse toggleRecruitmentStatus(LeaderToken token) {
 
         Club club = validateLeader(token);
 
@@ -169,7 +171,7 @@ public class ClubLeaderService {
         // 모집 상태 현재와 반전
         club.toggleRecruitmentStatus();
 
-        return clubIntro.getRecruitmentStatus();
+        return new ApiResponse<>("동아리 모집 상태 변경 완료", clubIntro.getRecruitmentStatus());
     }
 
     // 소속 동아리원 조회(구, 성능 비교용)

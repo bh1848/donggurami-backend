@@ -33,19 +33,17 @@ public class ClubLeaderController {
     }
 
     @PatchMapping("/info")
-    public ResponseEntity<Boolean> updateClubInfo(LeaderToken token, @Validated ClubInfoRequest clubInfoRequest) throws IOException {
-        clubLeaderService.updateClubInfo(token, clubInfoRequest);
-        return new ResponseEntity<>(true, HttpStatus.OK);
+    public ResponseEntity<ApiResponse> updateClubInfo(LeaderToken token, @Validated ClubInfoRequest clubInfoRequest) throws IOException {
+        return new ResponseEntity<>(clubLeaderService.updateClubInfo(token, clubInfoRequest), HttpStatus.OK);
     }
 
     @PatchMapping("/intro")
-    public ResponseEntity<Boolean> setClubInfo(LeaderToken token, @Validated ClubIntroRequest clubInfoRequest) throws IOException {
-        clubLeaderService.updateClubIntro(token, clubInfoRequest);
-        return new ResponseEntity<>(true, HttpStatus.OK);
+    public ResponseEntity<ApiResponse> setClubInfo(LeaderToken token, @Validated ClubIntroRequest clubInfoRequest) throws IOException {
+        return new ResponseEntity<>(clubLeaderService.updateClubIntro(token, clubInfoRequest), HttpStatus.OK);
     }
 
     @PatchMapping("/toggle-recruitment")
-    public ResponseEntity<RecruitmentStatus> setClubInfo(LeaderToken token) {
+    public ResponseEntity<ApiResponse> setClubInfo(LeaderToken token) {
         // 원래는 Patch 요청임 토큰때문
         return new ResponseEntity<>(clubLeaderService.toggleRecruitmentStatus(token), HttpStatus.OK);
     }
