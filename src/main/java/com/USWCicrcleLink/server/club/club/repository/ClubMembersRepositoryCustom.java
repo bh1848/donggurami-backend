@@ -7,7 +7,5 @@ import java.util.List;
 public interface ClubMembersRepositoryCustom {
     List<ClubMembers> findAllWithProfile(Long clubId);
 
-    void deleteByClubClubId(Long clubId);
-
     List<Long> findClubIdsByUserId(Long userId);
 }

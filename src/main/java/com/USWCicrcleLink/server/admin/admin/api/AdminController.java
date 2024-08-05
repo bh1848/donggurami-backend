@@ -20,7 +20,7 @@ public class AdminController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<TokenDto>> loginAdmin(@RequestBody AdminLoginRequest loginRequest) {
         TokenDto tokenDto = adminService.adminLogin(loginRequest);
-        ApiResponse<TokenDto> response = new ApiResponse<>("로인 성공", tokenDto);
+        ApiResponse<TokenDto> response = new ApiResponse<>("로그인 성공", tokenDto);
         return ResponseEntity.ok(response);
     }
 

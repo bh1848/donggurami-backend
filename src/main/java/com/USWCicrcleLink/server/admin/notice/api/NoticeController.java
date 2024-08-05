@@ -50,12 +50,11 @@ public class NoticeController {
     //공지사항 생성(웹)
     @PostMapping("/notices")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> createNotice(
-            @RequestHeader("adminId") Long adminId,
             @RequestPart("request") NoticeCreationRequest request,
             //사진 배열 처리
             @RequestPart("photos") MultipartFile[] noticePhotos) throws IOException {
 
-        NoticeDetailResponse createdNotice = noticeService.createNotice(adminId, request, noticePhotos);
+        NoticeDetailResponse createdNotice = noticeService.createNotice(request, noticePhotos);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 생성 성공", createdNotice);
         return ResponseEntity.ok(response);
     }
