@@ -1,5 +1,7 @@
 package com.USWCicrcleLink.server.user.service;
 
+import com.USWCicrcleLink.server.admin.admin.domain.Admin;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminLoginRequest;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
@@ -129,7 +131,7 @@ public class UserService {
     }
 
     // 로그인
-    public ResponseEntity<TokenDto> logIn(LogInRequest request) throws Exception {
+    public TokenDto logIn(LogInRequest request) {
         log.info("로그인 요청: {}", request.getAccount());
         User user = userRepository.findByUserAccount(request.getAccount())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 ID입니다"));
@@ -143,13 +145,10 @@ public class UserService {
         List<Long> clubIds = clubMembersRepository.findClubIdsByUserId(user.getUserId());
 
         log.info("JWT 생성");
-        String token = jwtProvider.createAccessToken(user.getUserUUID().toString(), user.getRole(), clubIds);
+        String accessToken = jwtProvider.createAccessToken(user.getUserUUID().toString(), user.getRole(), clubIds);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(JwtProvider.AUTHORIZATION_HEADER, JwtProvider.BEARER_PREFIX + token);
-
-        log.info("로그인 성공, 토큰: {}", token);
-        return new ResponseEntity<>(new TokenDto(token), headers, HttpStatus.OK);
+        log.info("로그인 성공, 토큰: {}", accessToken);
+        return new TokenDto(accessToken);
     }
 
     public User findUser(String email) {

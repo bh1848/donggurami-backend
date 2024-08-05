@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.user.api;
 
+import com.USWCicrcleLink.server.admin.admin.dto.AdminLoginRequest;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -15,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.antlr.v4.runtime.Token;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -74,11 +76,11 @@ public class UserController {
     }
 
     // 로그인
-    @PostMapping("/open/log-in")
-    public ResponseEntity<ApiResponse<TokenDto>> logIn(@Validated @RequestBody LogInRequest request) throws Exception {
-        ResponseEntity<TokenDto> responseEntity = userService.logIn(request);
-        ApiResponse<TokenDto> response = new ApiResponse<>("로그인 성공", responseEntity.getBody());
-        return new ResponseEntity<>(response, responseEntity.getHeaders(), responseEntity.getStatusCode());
+    @PostMapping("/log-in")
+    public ResponseEntity<ApiResponse<TokenDto>> logIn(@Validated @RequestBody LogInRequest request) {
+        TokenDto tokenDto = userService.logIn(request);
+        ApiResponse<TokenDto> response = new ApiResponse<>("로그인 성공", tokenDto);
+        return ResponseEntity.ok(response);
     }
 
     // 아이디 찾기
