@@ -40,6 +40,7 @@ public class User {
     private LocalDateTime userUpdatedAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "role")
     private Role role;
 
     @PrePersist

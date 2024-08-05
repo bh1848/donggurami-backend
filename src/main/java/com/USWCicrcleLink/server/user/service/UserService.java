@@ -138,7 +138,7 @@ public class UserService {
             throw new RuntimeException("비밀번호가 일치하지 않습니다");
         }
 
-        log.info("사용자 정보 로드");
+        log.info("사용자 정보 조회(clubId)");
         userDetailsService.loadUserByUsername(user.getUserUUID().toString());
         List<Long> clubIds = clubMembersRepository.findClubIdsByUserId(user.getUserId());
 

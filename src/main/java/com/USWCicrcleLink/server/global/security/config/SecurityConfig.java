@@ -5,6 +5,7 @@ import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -30,12 +31,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // CSRF 보호는 REST API 사용 시 일반적으로 비활성화
+                .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/users/log-in").permitAll(); // 로그인 경로 추가
-                    auth.requestMatchers("/open/**").permitAll(); // 공개 경로 추가
+                    auth.requestMatchers("/users/log-in", "/admin/login").permitAll(); // 로그인 경로 추가
+                    auth.requestMatchers(HttpMethod.POST, "/admin/clubs").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/clubs").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs/**").hasRole("ADMIN");
                     auth.anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -46,7 +49,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("*"); // 실제 운영 환경에서는 구체적인 도메인으로 제한
+        configuration.addAllowedOriginPattern("*"); // 실제 운영 환경에서는 구체적인 도메인으로 제한
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);

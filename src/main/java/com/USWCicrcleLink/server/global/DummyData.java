@@ -252,9 +252,11 @@ public class DummyData {
     //어드민 데이터
     public void initAdmin(){
         Admin admin = Admin.builder()
+                .adminUUID(UUID.randomUUID())
                 .adminAccount("admin")
                 .adminPw("1234")
                 .adminName("관리자")
+                .role(Role.ADMIN)
                 .build();
 
         adminRepository.save(admin);

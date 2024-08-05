@@ -74,7 +74,7 @@ public class UserController {
     }
 
     // 로그인
-    @PostMapping("/log-in")
+    @PostMapping("/open/log-in")
     public ResponseEntity<ApiResponse<TokenDto>> logIn(@Validated @RequestBody LogInRequest request) throws Exception {
         ResponseEntity<TokenDto> responseEntity = userService.logIn(request);
         ApiResponse<TokenDto> response = new ApiResponse<>("로그인 성공", responseEntity.getBody());
