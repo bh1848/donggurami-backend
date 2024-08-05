@@ -12,17 +12,10 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface ClubRepository extends JpaRepository<Club, Long> {
+public interface ClubRepository extends JpaRepository<Club, Long>, ClubRepositoryCustom{
     List<Club> findByDepartment(Department department);
     List<Club> findByRecruitmentStatusAndDepartment(RecruitmentStatus recruitmentStatus, Department department);
     @NonNull
     Page<Club> findAll(@NonNull Pageable pageable);
     Club findByClubId(Long clubId);
-
-    @Query("SELECT new com.USWCicrcleLink.server.admin.admin.dto.ClubListResponse(c, COUNT(m), COUNT(l)) " +
-            "FROM Club c " +
-            "LEFT JOIN ClubMembers m ON c.clubId = m.club.clubId " +
-            "LEFT JOIN Leader l ON c.clubId = l.club.clubId " +
-            "GROUP BY c")
-    List<ClubListResponse> findAllWithMemberAndLeaderCount();
 }

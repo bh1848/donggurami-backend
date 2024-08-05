@@ -36,9 +36,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/users/log-in", "/admin/login").permitAll(); // 로그인 경로 추가
-                    auth.requestMatchers(HttpMethod.POST, "/admin/clubs").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/admin/clubs").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.POST, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/notices", "/admin/notices/paged").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.PATCH, "/admin/notices").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
                     auth.anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
