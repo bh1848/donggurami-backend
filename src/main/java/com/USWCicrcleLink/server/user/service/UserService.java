@@ -3,6 +3,8 @@ package com.USWCicrcleLink.server.user.service;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -44,21 +46,25 @@ public class UserService {
     public void updateNewPW(UUID uuid, String userPw, String newPW, String confirmNewPW){
 
         if (newPW.trim().isEmpty() || confirmNewPW.trim().isEmpty()) {
-            throw new IllegalArgumentException("새 비밀번호와 비밀번호 확인은 빈칸일 수 없습니다.");
+            throw new UserException(ExceptionType.PASSWORD_NOT_INPUT);
         }
 
         if (!newPW.equals(confirmNewPW)) {
-            throw new IllegalArgumentException("새 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+            throw new UserException(ExceptionType.NEW_PASSWORD_NOT_MATCH);
         }
 
         if (!confirmPW(uuid, userPw)) {
-            throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
+            throw new UserException(ExceptionType.PASSWORD_NOT_MATCH);
         }
 
         User user = mypageService.getUserByUUID(uuid);
         user.updateUserPw(newPW);
-        userRepository.save(user);
+        User updateUserPw = userRepository.save(user);
 
+        if(updateUserPw == null){
+            log.error("비밀번호 업데이트 실패");
+            throw new UserException(ExceptionType.PROFILE_UPDATE_FAIL);
+        }
         log.info("비밀번호 변경 완료: {}",user.getUserUUID());
     }
 
