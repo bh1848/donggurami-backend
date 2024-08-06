@@ -22,6 +22,14 @@ public enum ExceptionType {
     SERVER_ERROR("SER-501", "서버 오류 입니다. 관리자에게 문의해주세요", INTERNAL_SERVER_ERROR),
 
     /**
+     * Domain: EmailToken
+     */
+    EMAIL_TOKEN_NOT_FOUND("EMAIL_TOKEN-001", "해당 토큰이 존재하지 않습니다.", BAD_REQUEST),
+    EMAIL_TOKEN_IS_EXPIRED("EMAIL_TOKEN-002", "토큰이 만료되었습니다. 다시 이메일인증 해주세요", BAD_REQUEST),
+
+
+
+    /**
      * Domain: User
      */
     USER_NOT_EXISTS("USR-201", "사용자가 존재하지 않습니다.", BAD_REQUEST),

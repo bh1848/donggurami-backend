@@ -2,13 +2,14 @@ package com.USWCicrcleLink.server.email.service;
 
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.repository.EmailTokenRepository;
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.MailException;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -29,7 +30,7 @@ public class EmailTokenService {
     public void verifyEmailToken (UUID emailTokenId) {
 
         EmailToken emailToken = emailTokenRepository.findByEmailTokenId(emailTokenId)
-                .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
+                .orElseThrow(() -> new MailException(ExceptionType.EMAIL_TOKEN_NOT_FOUND));
         try {
             emailToken.verifyExpireTime();
         } finally {
@@ -46,7 +47,7 @@ public class EmailTokenService {
 
     public EmailToken getEmailToken(UUID emailTokenId){
         return emailTokenRepository.findByEmailTokenId(emailTokenId)
-                .orElseThrow(() -> new NoSuchElementException("해당 emailTokenId 를 가진 회원이 없습니다"));
+                .orElseThrow(() -> new MailException(ExceptionType.EMAIL_TOKEN_NOT_FOUND));
     }
 
     // 이메일 인증 토큰 업데이트

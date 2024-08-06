@@ -176,7 +176,6 @@ public class UserService {
         if (user == null) {
             throw new UserException(ExceptionType.USER_NOT_EXISTS);
         }
-
         return  user;
     }
 
