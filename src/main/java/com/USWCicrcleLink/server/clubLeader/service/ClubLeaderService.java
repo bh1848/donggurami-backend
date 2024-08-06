@@ -251,11 +251,9 @@ public class ClubLeaderService {
 
         // 파일 이름 설정
         String fileName = club.getClubName() + "_회원_명단.xlsx";
-        log.info("파일 이름: {}", fileName);
         String encodedFileName;
         try {
             encodedFileName = URLEncoder.encode(fileName, "UTF-8");
-            log.info("파일 이름: {}", encodedFileName);
         } catch (IOException e) {
             throw new RuntimeException("파일 이름 인코딩에 실패했습니다.", e);
         }
@@ -300,7 +298,7 @@ public class ClubLeaderService {
             workbook.write(outputStream);
             outputStream.writeTo(response.getOutputStream());
             response.flushBuffer();
-
+            log.debug("{} 파일 추출 완료", club.getClubName());
         } catch (IOException e) {
             throw new RuntimeException("엑셀 파일 생성에 실패했습니다.", e);
         }
