@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.security.auth.login.AccountException;
 import java.util.UUID;
 
 @Service
@@ -71,21 +72,12 @@ public class UserService {
     // 임시 회원 생성 및 저장
     public UserTemp registerUserTemp(SignUpRequest request) {
 
-        // 중복 검증
-        verifyUserTempDuplicate(request.getEmail());
+        // 회원 테이블 이메일 중복 검증
         verifyUserDuplicate(request.getEmail());
 
         return userTempRepository.save(request.toEntity());
     }
 
-    // 임시 회원 테이블 이메일 중복 검증
-    private void verifyUserTempDuplicate(String email) {
-        // 임시 데이터 존재 시 삭제
-        userTempRepository.findByTempEmail(email)
-                .ifPresent(emailTokenService::deleteEmailTokenAndUserTemp);
-    }
-
-    // 회원 테이블 이메일 중복 검증
     private void verifyUserDuplicate(String email){
 
         userRepository.findByEmail(email)
@@ -94,19 +86,19 @@ public class UserService {
                 });
     }
 
-    public UserTemp verifyEmailToken(UUID emailTokenId) {
+    public UserTemp verifyEmailToken(VerifyEmailRequest request) {
 
         // 토큰 검증
-        emailTokenService.verifyEmailToken(emailTokenId);
+        emailTokenService.verifyEmailToken(request.getEmailTokenId());
         // 검증된 임시 회원 가져오기
-        EmailToken token = emailTokenService.getEmailToken(emailTokenId);
+        EmailToken token = emailTokenService.getEmailToken(request.getEmailTokenId());
 
         return token.getUserTemp();
     }
 
     // 회원가입
     @Transactional
-    public User signUp(UserTemp userTemp) {
+    public void signUp(UserTemp userTemp) {
 
         User user = User.createUser(userTemp);
         Profile profile = Profile.createProfile(userTemp, user);
@@ -116,8 +108,6 @@ public class UserService {
         profileRepository.save(profile);
         // 임시 회원 정보 삭제
         emailTokenService.deleteEmailTokenAndUserTemp(userTemp);
-
-        return user;
     }
 
     public void verifyAccountDuplicate(String account) {
@@ -127,16 +117,15 @@ public class UserService {
                     });
     }
 
-    public String logIn(LogInRequest request)  {
+    public UUID logIn(LogInRequest request)  {
 
-        User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
+        User user = userRepository.findByUserAccount(request.getAccount()).get();
 
-        if (!user.getUserPw().equals(request.getPassword())) {
-            throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
+        if(!user.getUserPw().equals(request.getPassword())){
+            throw new UserException(ExceptionType.USER_NOT_EXISTS);
         }
 
-        return user.getUserAccount();
+        return user.getUserUUID();
     }
 
 
@@ -170,15 +159,10 @@ public class UserService {
     }
 
     public User findByUuid(UUID uuid) {
-
-        User user = userRepository.findByUserUUID(uuid);
-
-        if (user == null) {
-            throw new UserException(ExceptionType.USER_NOT_EXISTS);
-        }
-        return  user;
+        return userRepository.findByUserUUID(uuid).orElseThrow(() -> new UserException(ExceptionType.UUID_NOT_FOUND));
     }
 
+    // 회원 가입 메일 생성 및 전송
     @Transactional
     public void sendSignUpMail(UserTemp userTemp,EmailToken emailToken) throws MessagingException {
         MimeMessage message = emailService.createSingUpLink(userTemp,emailToken);
@@ -195,5 +179,15 @@ public class UserService {
     public void sendAccountInfoMail (User findUser) throws MessagingException {
         MimeMessage message = emailService.createAccountInfoMail(findUser);
         emailService.sendEmail(message);
+    }
+
+    // 회원 가입 확인
+    @Transactional(readOnly = true)
+    public Boolean signUpFinish(VerifyEmailRequest request) {
+        // 계정이 존재하는지 확인
+        userRepository.findByUserAccount(request.getAccount())
+                .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
+
+        return true;
     }
 }
