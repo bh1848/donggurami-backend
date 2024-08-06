@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.email.domain;
 
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.MailException;
+import com.USWCicrcleLink.server.global.exception.errortype.EmailException;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -64,7 +64,7 @@ public class EmailToken {
     public void verifyExpireTime() {
         if (!isValidTime()) {
             useToken();
-            throw new MailException(ExceptionType.EMAIL_TOKEN_IS_EXPIRED);
+            throw new EmailException(ExceptionType.EMAIL_TOKEN_IS_EXPIRED);
         }
         // 사용된 토큰 처리
         useToken();

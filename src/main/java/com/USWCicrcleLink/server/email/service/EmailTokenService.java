@@ -3,7 +3,7 @@ package com.USWCicrcleLink.server.email.service;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.repository.EmailTokenRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.MailException;
+import com.USWCicrcleLink.server.global.exception.errortype.EmailException;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class EmailTokenService {
     public void verifyEmailToken (UUID emailTokenId) {
 
         EmailToken emailToken = emailTokenRepository.findByEmailTokenId(emailTokenId)
-                .orElseThrow(() -> new MailException(ExceptionType.EMAIL_TOKEN_NOT_FOUND));
+                .orElseThrow(() -> new EmailException(ExceptionType.EMAIL_TOKEN_NOT_FOUND));
         try {
             emailToken.verifyExpireTime();
         } finally {
@@ -47,7 +47,7 @@ public class EmailTokenService {
 
     public EmailToken getEmailToken(UUID emailTokenId){
         return emailTokenRepository.findByEmailTokenId(emailTokenId)
-                .orElseThrow(() -> new MailException(ExceptionType.EMAIL_TOKEN_NOT_FOUND));
+                .orElseThrow(() -> new EmailException(ExceptionType.EMAIL_TOKEN_NOT_FOUND));
     }
 
     // 이메일 인증 토큰 업데이트

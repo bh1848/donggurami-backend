@@ -15,7 +15,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class ShedulerConfig {
+public class SchedulerConfig {
 
     private final EmailTokenRepository emailTokenRepository;
     private final AplictRepository aplictRepository;
