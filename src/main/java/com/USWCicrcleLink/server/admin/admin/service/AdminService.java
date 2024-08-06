@@ -10,6 +10,7 @@ import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
@@ -45,7 +46,7 @@ public class AdminService {
         }
 
         log.info("JWT 생성");
-        String accessToken = jwtProvider.createAccessToken(admin.getAdminUUID().toString(), admin.getRole(), List.of());
+        String accessToken = jwtProvider.createAccessToken(admin.getAdminUUID().toString());
 
         log.info("로그인 성공, 엑세스 토큰: {}", accessToken);
         return new TokenDto(accessToken);
@@ -92,9 +93,10 @@ public class AdminService {
                 Leader leader = Leader.builder()
                         .leaderAccount(clubRequest.getLeaderAccount())
                         .leaderPw(clubRequest.getLeaderPw())
+                        .role(Role.LEADER)
                         .build();
                 leaderRepository.save(leader);
-                log.info("동아리 회장 저장 성공: {}", leader.getLeaderAccount());
+                log.info("동아리 회장 생성 성공: {}", leader.getLeaderAccount());
 
                 Club club = Club.builder()
                         .clubName(clubRequest.getClubName())
@@ -103,7 +105,7 @@ public class AdminService {
                         .recruitmentStatus(RecruitmentStatus.CLOSE)
                         .build();
                 clubRepository.save(club);
-                log.info("동아리 저장 성공: {}", club.getClubName());
+                log.info("동아리 생성 성공: {}", club.getClubName());
 
                 ClubIntro clubIntro = ClubIntro.builder()
                         .club(club)
@@ -114,7 +116,7 @@ public class AdminService {
                         .googleFormUrl("")
                         .build();
                 clubIntroRepository.save(clubIntro);
-                log.info("동아리 소개 저장 성공: {}", clubIntro.getClubIntro());
+                log.info("동아리 소개 생성 성공: {}", clubIntro.getClubIntro());
 
                 return new ClubCreationResponse(club);
             } else {

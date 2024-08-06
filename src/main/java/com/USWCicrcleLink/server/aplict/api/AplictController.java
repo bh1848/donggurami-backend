@@ -26,10 +26,9 @@ public class AplictController {
     //동아리 지원서 제출(모바일)
     @PostMapping("/{clubId}")
     public ResponseEntity<ApiResponse<Void>> submitAplict(
-            @RequestHeader("User-uuid") UUID userUUID,
             @PathVariable("clubId") Long clubId,
             @RequestBody AplictRequest request) {
-        aplictService.submitAplict(userUUID, clubId, request);
+        aplictService.submitAplict(clubId, request);
         ApiResponse<Void> response = new ApiResponse<>("지원서 제출 성공");
         return ResponseEntity.ok(response);
     }

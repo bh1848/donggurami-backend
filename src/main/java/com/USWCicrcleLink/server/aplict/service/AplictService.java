@@ -6,19 +6,22 @@ import com.USWCicrcleLink.server.aplict.dto.AplictRequest;
 import com.USWCicrcleLink.server.aplict.dto.AplictResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
-import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -45,8 +48,13 @@ public class AplictService {
     }
 
     //동아리 지원서 제출(모바일)
-    public AplictResponse submitAplict(UUID userUUID, Long clubId, AplictRequest request) {
-        Profile profile = profileRepository.findByUser_UserUUID(userUUID)
+    public void submitAplict(Long clubId, AplictRequest request) {
+        // SecurityContextHolder에서 인증 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        User user = userDetails.user();
+
+        Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
                 .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다."));
 
         Club club = clubRepository.findById(clubId)
@@ -61,6 +69,6 @@ public class AplictService {
                 .build();
 
         Aplict savedAplict = aplictRepository.save(aplict);
-        return AplictResponse.from(savedAplict);
+        AplictResponse.from(savedAplict);
     }
 }

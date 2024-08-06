@@ -43,18 +43,42 @@ public class JwtProvider {
     @PostConstruct
     protected void init() {
         this.secretKey = Keys.hmacShaKeyFor(secretKeyString.getBytes(StandardCharsets.UTF_8));
-        log.debug("JWT 비밀 키 초기화 완료");
     }
 
     // 엑세스 토큰 생성
-    public String createAccessToken(String uuid, Role role, List<Long> clubIds) {
+    public String createAccessToken(String uuid) {
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(uuid);
+        Role role;
+        List<Long> clubIds;
+
         Claims claims = Jwts.claims().setSubject(uuid);
-        claims.put("role", role.name());
-        claims.put("clubIds", clubIds);
+        if (userDetails instanceof CustomUserDetails customUserDetails) {
+            role = customUserDetails.user().getRole();
+            clubIds = customUserDetails.getClubIds();
+            claims.put("role", role.name());
+            claims.put("clubIds", clubIds);
+            log.debug("role: USER");
+
+        } else if (userDetails instanceof CustomLeaderDetails customLeaderDetails) {
+            role = customLeaderDetails.leader().getRole();
+            clubIds = customLeaderDetails.getClubIds();
+            claims.put("role", role.name());
+            claims.put("clubIds", clubIds);
+            log.debug("role: LEADER");
+
+        } else if (userDetails instanceof CustomAdminDetails customAdminDetails) {
+            role = customAdminDetails.admin().getRole();
+            claims.put("role", role.name());
+            log.debug("role: ADMIN");
+
+        } else {
+            throw new IllegalArgumentException("해당 역할 토큰 생성 불가");
+        }
+
         Date now = new Date();
-        String token = buildToken(claims, now, ACCESS_TOKEN_EXPIRATION_TIME);
-        log.debug("엑세스 토큰 생성: {}", token);
-        return token;
+        String accessToken = buildToken(claims, now, ACCESS_TOKEN_EXPIRATION_TIME);
+        log.debug("엑세스 토큰 생성: {}", accessToken);
+        return accessToken;
     }
 
     // 리프레시 토큰 생성

@@ -52,7 +52,7 @@ public class AdminController {
     @DeleteMapping("/clubs/{clubId}")
     public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubId") Long clubId, @RequestBody AdminPwRequest pwRequest) {
         adminService.deleteClub(clubId, pwRequest.getAdminPw());
-        ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공: clubId = {}", clubId);
+        ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공: clubId", clubId);
         return ResponseEntity.ok(response);
     }
 }

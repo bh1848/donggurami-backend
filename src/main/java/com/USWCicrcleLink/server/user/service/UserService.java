@@ -140,14 +140,10 @@ public class UserService {
             throw new RuntimeException("비밀번호가 일치하지 않습니다");
         }
 
-        log.info("사용자 정보 조회(clubId)");
-        userDetailsService.loadUserByUsername(user.getUserUUID().toString());
-        List<Long> clubIds = clubMembersRepository.findClubIdsByUserId(user.getUserId());
-
         log.info("JWT 생성");
-        String accessToken = jwtProvider.createAccessToken(user.getUserUUID().toString(), user.getRole(), clubIds);
+        String accessToken = jwtProvider.createAccessToken(user.getUserUUID().toString());
 
-        log.info("로그인 성공, 토큰: {}", accessToken);
+        log.info("로그인 성공, 엑세스 토큰: {}", accessToken);
         return new TokenDto(accessToken);
     }
 
