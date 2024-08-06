@@ -39,7 +39,7 @@ public class Club {
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "club_recruitment_status", nullable = false)
     private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
 
 //    @Column(name = "chat_room_url")

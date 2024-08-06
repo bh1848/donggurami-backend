@@ -31,7 +31,6 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,13 +40,11 @@ import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -109,7 +106,7 @@ public class ClubLeaderService {
 //        , clubInfoRequest.getchatRoomURL);
 
         clubRepository.save(club);
-        log.info("동아리 기본 정보 변경 완료: {}", club.getClubName());
+        log.debug("동아리 기본 정보 변경 완료: {}", club.getClubName());
         return new ApiResponse<>("동아리 기본 정보 변경 완료", club.getClubName());
     }
 
@@ -147,7 +144,7 @@ public class ClubLeaderService {
                 additionalPhotoPath3, additionalPhotoPath4);
 
         clubIntroRepository.save(existingClubIntro);
-        log.info("동아리 소개 저장 완료: {}", existingClubIntro);
+        log.debug("동아리 소개 저장 완료: {}", existingClubIntro);
         return new ApiResponse<>("동아리 소개 변경 완료", club.getClubName());
     }
 
@@ -167,7 +164,7 @@ public class ClubLeaderService {
 
         ClubIntro clubIntro = clubIntroRepository.findByClub(club)
                 .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 소개가 아닙니다."));
-        log.info("동아리 소개 조회 결과: {}", clubIntro);
+        log.debug("동아리 소개 조회 결과: {}", clubIntro);
 
         // 모집 상태 현재와 반전
         clubIntro.toggleRecruitmentStatus();
@@ -207,8 +204,6 @@ public class ClubLeaderService {
 
         Page<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfileByClubId(club.getClubId(), pageable);
 
-        log.info("Fetched Club Members: {}", findClubMembers.getContent());
-        log.info("Club Member IDs: {}", findClubMembers.stream().map(ClubMembers::getClubMemberId).collect(Collectors.toList()));
         // 동아리원과 프로필 조회
         List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
                 .map(cm -> new ClubMembersResponse(
@@ -255,10 +250,12 @@ public class ClubLeaderService {
                 .collect(toList());
 
         // 파일 이름 설정
-        String fileName = club.getClubName() + " 회원 명단.xlsx";
+        String fileName = club.getClubName() + "_회원_명단.xlsx";
+        log.info("파일 이름: {}", fileName);
         String encodedFileName;
         try {
-            encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
+            encodedFileName = URLEncoder.encode(fileName, "UTF-8");
+            log.info("파일 이름: {}", encodedFileName);
         } catch (IOException e) {
             throw new RuntimeException("파일 이름 인코딩에 실패했습니다.", e);
         }
@@ -266,7 +263,7 @@ public class ClubLeaderService {
         // Content-Disposition 헤더 설정
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition",
-                "attachment; filename=\"" + encodedFileName + "\"; filename*=UTF-8''" + encodedFileName);
+                "attachment; filename=" + encodedFileName);
 
         // 엑셀 파일 생성
         try (Workbook workbook = new XSSFWorkbook();
@@ -328,7 +325,7 @@ public class ClubLeaderService {
 
     // 동아리 지원자 조회
     @Transactional(readOnly = true)
-    public Page<ApplicantsResponse> getApplicants(String leaderUUID, int page, int size) {
+    public ApiResponse<PageResponse> getApplicants(String leaderUUID, int page, int size) {
         Club club = validateLeader(leaderUUID);
 
         Pageable pageable = PageRequest.of(page, size);
@@ -345,10 +342,18 @@ public class ClubLeaderService {
                 ))
                 .collect(toList());
 
-        return new PageImpl<>(applicants, pageable, aplicts.getTotalElements());
+        PageResponse<ApplicantsResponse> pageResponse = new PageResponse<>(
+                applicants,
+                aplicts.getNumber(),
+                aplicts.getSize(),
+                aplicts.getTotalElements(),
+                aplicts.getTotalPages()
+        );
+
+        return new ApiResponse<>("지원자 조회 완료", pageResponse);
     }
 
-    // 동아리 지원자 합격/불합격 처리
+    // 최초 합격자 알림
     public void updateApplicantResults(String leaderUUID, List<ApplicantResultsRequest> results) throws IOException {
         Club club = validateLeader(leaderUUID);
 
@@ -401,7 +406,7 @@ public class ClubLeaderService {
 
     // 불합격자 조회
     @Transactional(readOnly = true)
-    public Page<ApplicantsResponse> getFailedApplicants(String leaderUUID, int page, int size) {
+    public ApiResponse<PageResponse> getFailedApplicants(String leaderUUID, int page, int size) {
         Club club = validateLeader(leaderUUID);
 
         Pageable pageable = PageRequest.of(page, size);
@@ -412,6 +417,7 @@ public class ClubLeaderService {
                 pageable,
                 true,
                 AplictStatus.FAIL);
+
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
                         ap.getId(),
@@ -419,7 +425,15 @@ public class ClubLeaderService {
                 ))
                 .collect(toList());
 
-        return new PageImpl<>(applicants, pageable, aplicts.getTotalElements());
+        PageResponse<ApplicantsResponse> pageResponse = new PageResponse<>(
+                applicants,
+                aplicts.getNumber(),
+                aplicts.getSize(),
+                aplicts.getTotalElements(),
+                aplicts.getTotalPages()
+        );
+
+        return new ApiResponse<>("불합격자 조회 완료", pageResponse);
     }
 
     // 동아리 지원자 추가 합격 처리
@@ -464,12 +478,12 @@ public class ClubLeaderService {
         // 토큰 적용, 예외 처리 시 변경
         Leader leader = leaderRepository.findByLeaderUUID(leaderUUID)
                 .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
-        log.info("동아리 회장 조회 결과: {}", leader);
+        log.debug("동아리 회장 조회 결과: {}", leader);
 
         // 동아리 조회
         Club club = clubRepository.findById(leader.getClub().getClubId())
                 .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 아닙니다."));
-        log.info("동아리 조회 결과: {}", club.getClubName());
+        log.debug("동아리 조회 결과: {}", club.getClubName());
 
         return club;
     }

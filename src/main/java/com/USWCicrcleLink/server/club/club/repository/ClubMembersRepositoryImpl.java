@@ -4,7 +4,6 @@ import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +28,7 @@ public class ClubMembersRepositoryImpl implements ClubMembersRepositoryCustom {
                 .getResultList();
     }
 
+    // 동아리원과 프로필 조회
     @Override
     public Page<ClubMembers> findAllWithProfileByClubId(Long clubId, Pageable pageable) {
         /*

@@ -78,6 +78,28 @@ public class DummyData {
 
         userRepository.save(user2);
 
+        User user3 = User.builder()
+                .userUUID(UUID.randomUUID())
+                .userAccount("user333")
+                .userPw("1234")
+                .email("user333")
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .build();
+
+        userRepository.save(user3);
+
+        User user4 = User.builder()
+                .userUUID(UUID.randomUUID())
+                .userAccount("user444")
+                .userPw("1234")
+                .email("user444")
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .build();
+
+        userRepository.save(user4);
+
         Profile profile1 = Profile.builder()
                 .user(user1)
                 .userName("김땡떙")
@@ -101,6 +123,30 @@ public class DummyData {
                 .build();
 
         profileRepository.save(profile2);
+
+        Profile profile3 = Profile.builder()
+                .user(user3)
+                .userName("user3")
+                .studentNumber("1234")
+                .userHp("01012345678")
+                .major("정보보호")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .build();
+
+        profileRepository.save(profile3);
+
+        Profile profile4 = Profile.builder()
+                .user(user4)
+                .userName("user4")
+                .studentNumber("1234")
+                .userHp("01012345678")
+                .major("정뽀호")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .build();
+
+        profileRepository.save(profile4);
 
         Club club = Club.builder()
                 .clubName("FLAG")
@@ -144,15 +190,47 @@ public class DummyData {
 
         clubMembersRepository.save(clubMembers2);
 
-        Aplict aplict = Aplict.builder()
+        // 일반 지원자
+        Aplict aplict1 = Aplict.builder()
                 .profile(profile1)
                 .club(club)
                 .aplictGoogleFormUrl("flag_google_url1")
                 .submittedAt(LocalDateTime.now())
-                .aplictStatus(AplictStatus.PASS)
                 .build();
 
-        aplictRepository.save(aplict);
+        aplictRepository.save(aplict1);
+
+        Aplict aplict2 = Aplict.builder()
+                .profile(profile2)
+                .club(club)
+                .aplictGoogleFormUrl("flag_google_url1")
+                .submittedAt(LocalDateTime.now())
+                .build();
+
+        aplictRepository.save(aplict2);
+
+        // 불합격자
+        Aplict aplict3 = Aplict.builder()
+                .profile(profile3)
+                .club(club)
+                .aplictGoogleFormUrl("flag_google_url1")
+                .submittedAt(LocalDateTime.now())
+                .checked(true)
+                .aplictStatus(AplictStatus.FAIL)
+                .build();
+
+        aplictRepository.save(aplict3);
+
+        Aplict aplict4 = Aplict.builder()
+                .profile(profile4)
+                .club(club)
+                .aplictGoogleFormUrl("flag_google_url1")
+                .submittedAt(LocalDateTime.now())
+                .checked(true)
+                .aplictStatus(AplictStatus.FAIL)
+                .build();
+
+        aplictRepository.save(aplict4);
     }
     
     //user2, 올어바웃 데이터

@@ -47,7 +47,7 @@ public class ClubIntro {
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "club_intro_recruitment_status", nullable = false)
     private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
 
     public void updateClubIntro(Club club, String clubIntro, String googleFormUrl,

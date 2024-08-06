@@ -28,6 +28,7 @@ public class AplictRepositoryCustomImpl implements AplictRepositoryCustom {
                 .executeUpdate();
     }
 
+    // 동아리 지원자 조회
     @Override
     public Page<Aplict> findAllWithProfileByClubId(Long clubId, Pageable pageable, boolean checked) {
         String jpql = "SELECT ap FROM Aplict ap JOIN FETCH ap.profile p" +
@@ -46,6 +47,7 @@ public class AplictRepositoryCustomImpl implements AplictRepositoryCustom {
         return new PageImpl<>(resultList, pageable, total);
     }
 
+    // 불합격자 동아리 지원자 조회
     @Override
     public Page<Aplict> findAllWithProfileByClubIdAndFailed(Long clubId, Pageable pageable, boolean checked, AplictStatus status) {
         String jpql = "SELECT ap FROM Aplict ap JOIN FETCH ap.profile p" +

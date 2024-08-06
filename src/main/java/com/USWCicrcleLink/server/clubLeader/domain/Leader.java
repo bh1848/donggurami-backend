@@ -28,7 +28,7 @@ public class Leader {
     private String leaderUUID;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "clubId")
+    @JoinColumn(name = "club_id")
     private Club club;
 
     @Column(name = "leader_pw", nullable = false)

@@ -24,6 +24,6 @@ public class ClubMembers {
     private Profile profile;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "clubId", nullable = false)
+    @JoinColumn(name = "club_Id", nullable = false)
     private Club club;
 }
