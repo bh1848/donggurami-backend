@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -47,15 +46,15 @@ public class UserService {
     public void updateNewPW(UUID uuid, String userPw, String newPW, String confirmNewPW){
 
         if (newPW.trim().isEmpty() || confirmNewPW.trim().isEmpty()) {
-            throw new UserException(ExceptionType.PASSWORD_NOT_INPUT);
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_INPUT);
         }
 
         if (!newPW.equals(confirmNewPW)) {
-            throw new UserException(ExceptionType.NEW_PASSWORD_NOT_MATCH);
+            throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
         }
 
         if (!confirmPW(uuid, userPw)) {
-            throw new UserException(ExceptionType.PASSWORD_NOT_MATCH);
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
 
         User user = mypageService.getUserByUUID(uuid);
@@ -91,7 +90,7 @@ public class UserService {
 
         userRepository.findByEmail(email)
                 .ifPresent(user-> {
-                    throw new IllegalStateException("이미 존재하는 회원 입니다");
+                    throw new UserException(ExceptionType.USER_OVERLAP);
                 });
     }
 
@@ -124,17 +123,17 @@ public class UserService {
     public void verifyAccountDuplicate(String account) {
             userRepository.findByUserAccount(account)
                     .ifPresent(user-> {
-                        throw new IllegalStateException("이미 존재하는 계정 입니다");
+                        throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
                     });
     }
 
     public String logIn(LogInRequest request)  {
 
         User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 ID입니다"));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
 
         if (!user.getUserPw().equals(request.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
 
         return user.getUserAccount();
@@ -143,18 +142,18 @@ public class UserService {
 
     public void validatePasswordsMatch(PasswordRequest request) {
         if(!request.getPassword().equals(request.getConfirmPassword())){
-            throw new IllegalStateException("비밀번호가 일치 하지 않습니다");
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
     }
 
     public User findUser(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 입니다"));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
     }
 
     public User validateAccountAndEmail(UserInfoDto request) {
-        return  userRepository.findByUserAccountAndEmail(request.getUserAccount(), request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("올바르지 않은 이메일 혹은 아이디 입니다"));
+        return userRepository.findByUserAccountAndEmail(request.getUserAccount(), request.getEmail())
+                .orElseThrow(() -> new UserException(ExceptionType.USER_INVALID_ACCOUNT_AND_EMAIL));
     }
 
     // 비밀번호 재설정
@@ -175,7 +174,7 @@ public class UserService {
         User user = userRepository.findByUserUUID(uuid);
 
         if (user == null) {
-            throw new IllegalArgumentException("해당 UUID를 가진 사용자를 찾을 수 없습니다: " + uuid);
+            throw new UserException(ExceptionType.USER_NOT_EXISTS);
         }
 
         return  user;
