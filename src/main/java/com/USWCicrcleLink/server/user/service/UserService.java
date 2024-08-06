@@ -7,6 +7,7 @@ import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.*;
@@ -72,29 +73,26 @@ public class UserService {
     public UserTemp registerUserTemp(SignUpRequest request) {
 
         // 중복 검증
-        verificationDuplicate(request.getEmail());
+        verifyUserTempDuplicate(request.getEmail());
+        verifyUserDuplicate(request.getEmail());
 
         return userTempRepository.save(request.toEntity());
     }
 
-    // 이메일 중복 검증
-    private void verificationDuplicate(String email) {
-
-        // 임시 회원 테이블 이메일 중복 검증
-        Optional<UserTemp> findUserTemp = userTempRepository.findByTempEmail(email);
-        findUserTemp.ifPresent(emailTokenService::deleteEmailTokenAndUserTemp);
-
-        // 회원 테이블 이메일 중복 검증
-        if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("이미 존재하는 회원입니다");
-        }
+    // 임시 회원 테이블 이메일 중복 검증
+    private void verifyUserTempDuplicate(String email) {
+        // 임시 데이터 존재 시 삭제
+        userTempRepository.findByTempEmail(email)
+                .ifPresent(emailTokenService::deleteEmailTokenAndUserTemp);
     }
 
+    // 회원 테이블 이메일 중복 검증
+    private void verifyUserDuplicate(String email){
 
-    @Transactional
-    public void sendSignUpMail(UserTemp userTemp) throws MessagingException {
-        MimeMessage message = emailService.createSingUpLink(userTemp);
-        emailService.sendEmail(message);
+        userRepository.findByEmail(email)
+                .ifPresent(user-> {
+                    throw new IllegalStateException("이미 존재하는 회원 입니다");
+                });
     }
 
     public UserTemp verifyEmailToken(UUID emailTokenId) {
@@ -124,9 +122,10 @@ public class UserService {
     }
 
     public void verifyAccountDuplicate(String account) {
-        if (userRepository.existsByUserAccount(account)) {
-            throw new IllegalStateException("중복된 ID 입니다. 새로운 ID를 입력해주세요");
-        }
+            userRepository.findByUserAccount(account)
+                    .ifPresent(user-> {
+                        throw new IllegalStateException("이미 존재하는 계정 입니다");
+                    });
     }
 
     public String logIn(LogInRequest request)  {
@@ -153,7 +152,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 입니다"));
     }
 
-    public User verifyAccountAndEmail(UserInfoDto request) {
+    public User validateAccountAndEmail(UserInfoDto request) {
         return  userRepository.findByUserAccountAndEmail(request.getUserAccount(), request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("올바르지 않은 이메일 혹은 아이디 입니다"));
     }
@@ -183,14 +182,20 @@ public class UserService {
     }
 
     @Transactional
-    public void sendAuthCodeMail(User user) throws MessagingException {
-        MimeMessage message = emailService.AuthCodeMail(user);
+    public void sendSignUpMail(UserTemp userTemp,EmailToken emailToken) throws MessagingException {
+        MimeMessage message = emailService.createSingUpLink(userTemp,emailToken);
+        emailService.sendEmail(message);
+    }
+
+    @Transactional
+    public void sendAuthCodeMail(User user, AuthToken authToken) throws MessagingException {
+        MimeMessage message = emailService.createAuthCodeMail(user,authToken);
         emailService.sendEmail(message);
     }
 
     @Transactional
     public void sendAccountInfoMail (User findUser) throws MessagingException {
-        MimeMessage message = emailService.AccountInfoMail(findUser);
+        MimeMessage message = emailService.createAccountInfoMail(findUser);
         emailService.sendEmail(message);
     }
 }
