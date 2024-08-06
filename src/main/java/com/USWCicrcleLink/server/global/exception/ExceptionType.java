@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+import java.util.UUID;
+
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
@@ -28,7 +30,6 @@ public enum ExceptionType {
     EMAIL_TOKEN_IS_EXPIRED("EMAIL_TOKEN-002", "토큰이 만료되었습니다. 다시 이메일인증 해주세요", BAD_REQUEST),
 
 
-
     /**
      * Domain: User
      */
@@ -41,7 +42,6 @@ public enum ExceptionType {
     USER_ACCOUNT_OVERLAP("USR-207", "계정이 중복됩니다.", INTERNAL_SERVER_ERROR),
     USER_ACCOUNT_NOT_EXISTS("USR-208", "존재하지 않는 계정입니다.", BAD_REQUEST),
     USER_INVALID_ACCOUNT_AND_EMAIL("USR-209", "올바르지 않은 이메일 혹은 아이디 입니다.", BAD_REQUEST),
-
 
 
     /**
@@ -58,7 +58,15 @@ public enum ExceptionType {
     /**
      * Domain : Aplict
      */
-    APLICT_NOT_EXISTS("APT_201","지원서가 존재하지 않습니다.",BAD_REQUEST);
+    APLICT_NOT_EXISTS("APT_201","지원서가 존재하지 않습니다.",BAD_REQUEST),
+
+    /**
+     * Domain : VerificationCode
+     */
+    INVALID_AUTH_CODE("VC-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
+    UUID_NOT_FOUND("VC-102","회원의 uuid를 찾을 수 없습니다.",BAD_REQUEST);
+
+
 
 
     private final String code;

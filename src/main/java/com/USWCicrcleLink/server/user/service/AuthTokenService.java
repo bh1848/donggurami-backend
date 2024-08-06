@@ -1,5 +1,7 @@
 package com.USWCicrcleLink.server.user.service;
 
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.dto.UserInfoDto;
@@ -28,10 +30,10 @@ public class AuthTokenService {
     public void verifyAuthToken(UUID uuid, UserInfoDto request) {
 
         AuthToken authToken = authTokenRepository.findByUserUserUUID(uuid)
-                .orElseThrow(() -> new NoSuchElementException("uuid 값이 올바르지 않습니다"));
+                .orElseThrow(()-> new UserException(ExceptionType.UUID_NOT_FOUND));
 
         if (!authToken.isAuthCodeValid(request.getAuthCode())) {
-            throw new IllegalArgumentException("인증코드가 일치 하지않습니다");
+            throw new UserException(ExceptionType.INVALID_AUTH_CODE);
         }
     }
 
@@ -40,7 +42,7 @@ public class AuthTokenService {
     public void deleteAuthToken(UUID uuid){
 
         AuthToken authToken = authTokenRepository.findByUserUserUUID(uuid)
-                .orElseThrow(() -> new NoSuchElementException("uuid 값이 올바르지 않습니다"));
+                .orElseThrow(()-> new UserException(ExceptionType.UUID_NOT_FOUND));
 
         authTokenRepository.delete(authToken);
     }
