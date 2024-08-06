@@ -53,10 +53,12 @@ public class ClubMembersRepositoryImpl implements ClubMembersRepositoryCustom {
 
     @Override
     @Transactional
-    public void deleteByClubClubId(Long clubId) {
-        String jpql = "DELETE FROM ClubMembers cm WHERE cm.club.clubId = :clubId";
-        em.createQuery(jpql)
-                .setParameter("clubId", clubId)
-                .executeUpdate();
+    public List<Long> findClubIdsByUserId(Long userId) {
+        return em.createQuery(
+                        "select cm.club.clubId from ClubMembers cm" +
+                                " where cm.profile.user.userId = :userId",
+                        Long.class
+                ).setParameter("userId", userId)
+                .getResultList();
     }
 }

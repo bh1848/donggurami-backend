@@ -3,23 +3,23 @@ package com.USWCicrcleLink.server.user.api;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
 import com.USWCicrcleLink.server.user.service.UserService;
-
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -85,12 +85,10 @@ public class UserController {
 
     // 로그인
     @PostMapping("/log-in")
-    public ResponseEntity<ApiResponse<String>> LogIn(@Valid @RequestBody LogInRequest request) {
-
-        String account  = userService.logIn(request);
-
-        ApiResponse<String> response = new ApiResponse<>("로그인 성공", account);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<TokenDto>> logIn(@Validated @RequestBody LogInRequest request) {
+        TokenDto tokenDto = userService.logIn(request);
+        ApiResponse<TokenDto> response = new ApiResponse<>("로그인 성공", tokenDto);
+        return ResponseEntity.ok(response);
     }
 
     // 아이디 찾기

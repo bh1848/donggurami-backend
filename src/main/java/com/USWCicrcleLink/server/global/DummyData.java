@@ -13,6 +13,7 @@ import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.UUID;
 
 @Component
@@ -60,6 +62,7 @@ public class DummyData {
                 .email("user1")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);
@@ -125,6 +128,7 @@ public class DummyData {
                 .email("user2")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);
@@ -182,6 +186,7 @@ public class DummyData {
                 .email("user3")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);
@@ -247,9 +252,11 @@ public class DummyData {
     //어드민 데이터
     public void initAdmin(){
         Admin admin = Admin.builder()
+                .adminUUID(UUID.randomUUID())
                 .adminAccount("admin")
                 .adminPw("1234")
                 .adminName("관리자")
+                .role(Role.ADMIN)
                 .build();
 
         adminRepository.save(admin);

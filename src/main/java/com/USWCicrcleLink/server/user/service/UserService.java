@@ -1,25 +1,29 @@
 package com.USWCicrcleLink.server.user.service;
 
+import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
+import com.USWCicrcleLink.server.global.security.dto.TokenDto;
+import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
-import com.USWCicrcleLink.server.user.dto.*;
+import com.USWCicrcleLink.server.user.dto.LogInRequest;
+import com.USWCicrcleLink.server.user.dto.PasswordRequest;
+import com.USWCicrcleLink.server.user.dto.SignUpRequest;
+import com.USWCicrcleLink.server.user.dto.UserInfoDto;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
-
 import jakarta.mail.MessagingException;
-
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +41,7 @@ public class UserService {
     private final EmailTokenService emailTokenService;
     private final ProfileRepository profileRepository;
     private final MypageService mypageService;
+    private final JwtProvider jwtProvider;
 
 
     public boolean confirmPW(UUID uuid, String userpw){
@@ -128,16 +133,21 @@ public class UserService {
                     });
     }
 
-    public String logIn(LogInRequest request)  {
-
+    // 로그인
+    public TokenDto logIn(LogInRequest request) {
+        log.info("로그인 요청: {}", request.getAccount());
         User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 ID입니다"));
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 ID입니다"));
 
         if (!user.getUserPw().equals(request.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+            throw new RuntimeException("비밀번호가 일치하지 않습니다");
         }
 
-        return user.getUserAccount();
+        log.info("JWT 생성");
+        String accessToken = jwtProvider.createAccessToken(user.getUserUUID().toString());
+
+        log.info("로그인 성공, 엑세스 토큰: {}", accessToken);
+        return new TokenDto(accessToken);
     }
 
 
@@ -172,13 +182,7 @@ public class UserService {
 
     public User findByUuid(UUID uuid) {
 
-        User user = userRepository.findByUserUUID(uuid);
-
-        if (user == null) {
-            throw new IllegalArgumentException("해당 UUID를 가진 사용자를 찾을 수 없습니다: " + uuid);
-        }
-
-        return  user;
+        return userRepository.findByUserUUID(uuid).orElseThrow(() -> new RuntimeException("해당 UUID를 가진 사용자를 찾을 수 없습니다: " + uuid));
     }
 
     @Transactional

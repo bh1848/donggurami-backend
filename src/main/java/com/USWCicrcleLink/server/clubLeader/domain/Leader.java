@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.clubLeader.domain;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,6 +34,11 @@ public class Leader {
 
     @Column(name = "leader_pw", nullable = false)
     private String leaderPw;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role;
+
     @PrePersist
     public void prePersist() {
         this.leaderUUID = UUID.randomUUID();
