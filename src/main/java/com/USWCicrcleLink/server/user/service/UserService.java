@@ -159,7 +159,7 @@ public class UserService {
     }
 
     public User findByUuid(UUID uuid) {
-        return userRepository.findByUserUUID(uuid).orElseThrow(() -> new UserException(ExceptionType.UUID_NOT_FOUND));
+        return userRepository.findByUserUUID(uuid).orElseThrow(() -> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
     }
 
     // 회원 가입 메일 생성 및 전송
