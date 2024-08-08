@@ -189,11 +189,11 @@ public class UserService {
 
     // 회원 가입 확인
     @Transactional(readOnly = true)
-    public Boolean signUpFinish(VerifyEmailRequest request) {
+    public String signUpFinish(String account) {
         // 계정이 존재하는지 확인
-        userRepository.findByUserAccount(request.getAccount())
+        userRepository.findByUserAccount(account)
                 .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
 
-        return true;
+        return "true";
     }
 }
