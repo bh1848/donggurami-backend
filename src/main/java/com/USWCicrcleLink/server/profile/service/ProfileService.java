@@ -27,6 +27,7 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
 
+    //프로필 업데이트
     public ProfileResponse updateProfile(UUID userUUID, ProfileRequest profileRequest) {
 
         Profile profile = getProfileByUserUUID(userUUID);
@@ -54,5 +55,11 @@ public class ProfileService {
         return profileRepository.findByUserUserId(user.getUserId())
                 .orElseThrow(()-> {log.error("존재하지 않는 프로필");
                     throw new ProfileException(ExceptionType.PROFILE_NOT_EXISTS);});
+    }
+
+    //프로필 조회
+    public ProfileResponse getMyProfile(UUID uuid){
+        Profile profile = getProfileByUserUUID(uuid);
+        return new ProfileResponse(profile);
     }
 }

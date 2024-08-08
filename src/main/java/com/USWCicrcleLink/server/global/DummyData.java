@@ -79,7 +79,7 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("FLAG")
                 .leaderName("개발짱")
-                .mainPhotoPath("src/main/resources/static/mainPhoto/flag.jpg")
+                .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/flag.jpg")
                 .department(Department.ACADEMIC)
                 .katalkID("flag_kakao")
                 .clubInsta("flag_insta")
@@ -113,6 +113,43 @@ public class DummyData {
                 .build();
 
         aplictRepository.save(aplict);
+
+        Club club2 = Club.builder()
+                .clubName("와우시날")
+                .leaderName("영화짱")
+                .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/allabout.jpg")
+                .department(Department.ACADEMIC)
+                .katalkID("wow_kakao")
+                .clubInsta("wow_insta")
+                .recruitmentStatus(RecruitmentStatus.OPEN)
+                .build();
+
+        clubRepository.save(club2);
+
+        ClubIntro clubIntro2 = ClubIntro.builder()
+                .club(club2)
+                .clubIntro("와우시날입니다.")
+                .googleFormUrl("wow_google_url")
+                .build();
+
+        clubIntroRepository.save(clubIntro2);
+
+        ClubMembers clubMembers2 = ClubMembers.builder()
+                .club(club2)
+                .profile(profile)
+                .build();
+
+        clubMembersRepository.save(clubMembers2);
+
+        Aplict aplict2 = Aplict.builder()
+                .profile(profile)
+                .club(club2)
+                .aplictGoogleFormUrl("wow_google_url1")
+                .submittedAt(LocalDateTime.now())
+                .aplictStatus(AplictStatus.WAIT)
+                .build();
+
+        aplictRepository.save(aplict2);
     }
     
     //user2, 올어바웃 데이터
@@ -144,7 +181,7 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("올어바웃")
                 .leaderName("춤짱")
-                .mainPhotoPath("src/main/resources/static/mainPhoto/allabout.jpg")
+                .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/allabout.jpg")
                 .department(Department.SHOW)
                 .katalkID("allabout_kakao")
                 .clubInsta("allabout_insta")
@@ -201,7 +238,7 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("굴리세")
                 .leaderName("볼링짱")
-                .mainPhotoPath("src/main/resources/static/mainPhoto/gullisae.jpg")
+                .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/gullisae.jpg")
                 .department(Department.SPORT)
                 .katalkID("gullisae_kakao")
                 .clubInsta("gullisae_insta")

@@ -24,4 +24,10 @@ public class ProfileController {
         ProfileResponse profileResponse = profileService.updateProfile(uuid, profileRequest);
         return new ApiResponse<>("프로필 수정 성공", profileResponse);
     }
+
+    @GetMapping("/{uuid}")
+    public ApiResponse<ProfileResponse> getMyprofile(@PathVariable UUID uuid){
+        ProfileResponse profileResponse = profileService.getMyProfile(uuid);
+        return new ApiResponse<>("프로필 조회 성공", profileResponse);
+    }
 }
