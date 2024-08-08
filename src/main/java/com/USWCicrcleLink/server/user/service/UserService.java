@@ -1,22 +1,29 @@
 package com.USWCicrcleLink.server.user.service;
 
+import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.UserException;
+import com.USWCicrcleLink.server.global.security.dto.TokenDto;
+import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
-import com.USWCicrcleLink.server.user.dto.*;
+import com.USWCicrcleLink.server.user.dto.LogInRequest;
+import com.USWCicrcleLink.server.user.dto.PasswordRequest;
+import com.USWCicrcleLink.server.user.dto.SignUpRequest;
+import com.USWCicrcleLink.server.user.dto.UserInfoDto;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
-
 import jakarta.mail.MessagingException;
-
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +41,7 @@ public class UserService {
     private final EmailTokenService emailTokenService;
     private final ProfileRepository profileRepository;
     private final MypageService mypageService;
+    private final JwtProvider jwtProvider;
 
 
     public boolean confirmPW(UUID uuid, String userpw){
@@ -44,21 +52,25 @@ public class UserService {
     public void updateNewPW(UUID uuid, String userPw, String newPW, String confirmNewPW){
 
         if (newPW.trim().isEmpty() || confirmNewPW.trim().isEmpty()) {
-            throw new IllegalArgumentException("새 비밀번호와 비밀번호 확인은 빈칸일 수 없습니다.");
+            throw new UserException(ExceptionType.PASSWORD_NOT_INPUT);
         }
 
         if (!newPW.equals(confirmNewPW)) {
-            throw new IllegalArgumentException("새 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+            throw new UserException(ExceptionType.NEW_PASSWORD_NOT_MATCH);
         }
 
         if (!confirmPW(uuid, userPw)) {
-            throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
+            throw new UserException(ExceptionType.PASSWORD_NOT_MATCH);
         }
 
         User user = mypageService.getUserByUUID(uuid);
         user.updateUserPw(newPW);
-        userRepository.save(user);
+        User updateUserPw = userRepository.save(user);
 
+        if(updateUserPw == null){
+            log.error("비밀번호 업데이트 실패");
+            throw new UserException(ExceptionType.PROFILE_UPDATE_FAIL);
+        }
         log.info("비밀번호 변경 완료: {}",user.getUserUUID());
     }
 
@@ -66,29 +78,26 @@ public class UserService {
     public UserTemp registerUserTemp(SignUpRequest request) {
 
         // 중복 검증
-        verificationDuplicate(request.getEmail());
+        verifyUserTempDuplicate(request.getEmail());
+        verifyUserDuplicate(request.getEmail());
 
         return userTempRepository.save(request.toEntity());
     }
 
-    // 이메일 중복 검증
-    private void verificationDuplicate(String email) {
-
-        // 임시 회원 테이블 이메일 중복 검증
-        Optional<UserTemp> findUserTemp = userTempRepository.findByTempEmail(email);
-        findUserTemp.ifPresent(emailTokenService::deleteEmailTokenAndUserTemp);
-
-        // 회원 테이블 이메일 중복 검증
-        if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("이미 존재하는 회원입니다");
-        }
+    // 임시 회원 테이블 이메일 중복 검증
+    private void verifyUserTempDuplicate(String email) {
+        // 임시 데이터 존재 시 삭제
+        userTempRepository.findByTempEmail(email)
+                .ifPresent(emailTokenService::deleteEmailTokenAndUserTemp);
     }
 
+    // 회원 테이블 이메일 중복 검증
+    private void verifyUserDuplicate(String email){
 
-    @Transactional
-    public void sendSignUpMail(UserTemp userTemp) throws MessagingException {
-        MimeMessage message = emailService.createSingUpLink(userTemp);
-        emailService.sendEmail(message);
+        userRepository.findByEmail(email)
+                .ifPresent(user-> {
+                    throw new IllegalStateException("이미 존재하는 회원 입니다");
+                });
     }
 
     public UserTemp verifyEmailToken(UUID emailTokenId) {
@@ -118,21 +127,27 @@ public class UserService {
     }
 
     public void verifyAccountDuplicate(String account) {
-        if (userRepository.existsByUserAccount(account)) {
-            throw new IllegalStateException("중복된 ID 입니다. 새로운 ID를 입력해주세요");
-        }
+            userRepository.findByUserAccount(account)
+                    .ifPresent(user-> {
+                        throw new IllegalStateException("이미 존재하는 계정 입니다");
+                    });
     }
 
-    public String logIn(LogInRequest request)  {
-
+    // 로그인
+    public TokenDto logIn(LogInRequest request) {
+        log.info("로그인 요청: {}", request.getAccount());
         User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 ID입니다"));
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 ID입니다"));
 
         if (!user.getUserPw().equals(request.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+            throw new RuntimeException("비밀번호가 일치하지 않습니다");
         }
 
-        return user.getUserAccount();
+        log.info("JWT 생성");
+        String accessToken = jwtProvider.createAccessToken(user.getUserUUID().toString());
+
+        log.info("로그인 성공, 엑세스 토큰: {}", accessToken);
+        return new TokenDto(accessToken);
     }
 
 
@@ -147,7 +162,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 입니다"));
     }
 
-    public User verifyAccountAndEmail(UserInfoDto request) {
+    public User validateAccountAndEmail(UserInfoDto request) {
         return  userRepository.findByUserAccountAndEmail(request.getUserAccount(), request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("올바르지 않은 이메일 혹은 아이디 입니다"));
     }
@@ -167,24 +182,24 @@ public class UserService {
 
     public User findByUuid(UUID uuid) {
 
-        User user = userRepository.findByUserUUID(uuid);
-
-        if (user == null) {
-            throw new IllegalArgumentException("해당 UUID를 가진 사용자를 찾을 수 없습니다: " + uuid);
-        }
-
-        return  user;
+        return userRepository.findByUserUUID(uuid).orElseThrow(() -> new RuntimeException("해당 UUID를 가진 사용자를 찾을 수 없습니다: " + uuid));
     }
 
     @Transactional
-    public void sendAuthCodeMail(User user) throws MessagingException {
-        MimeMessage message = emailService.AuthCodeMail(user);
+    public void sendSignUpMail(UserTemp userTemp,EmailToken emailToken) throws MessagingException {
+        MimeMessage message = emailService.createSingUpLink(userTemp,emailToken);
+        emailService.sendEmail(message);
+    }
+
+    @Transactional
+    public void sendAuthCodeMail(User user, AuthToken authToken) throws MessagingException {
+        MimeMessage message = emailService.createAuthCodeMail(user,authToken);
         emailService.sendEmail(message);
     }
 
     @Transactional
     public void sendAccountInfoMail (User findUser) throws MessagingException {
-        MimeMessage message = emailService.AccountInfoMail(findUser);
+        MimeMessage message = emailService.createAccountInfoMail(findUser);
         emailService.sendEmail(message);
     }
 }

@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.clubLeader.domain;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +26,7 @@ public class Leader {
     private String leaderAccount;
 
     @Column(name = "leader_uuid",nullable = false, updatable = false)
-    private String leaderUUID;
+    private UUID leaderUUID;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id")
@@ -33,8 +34,13 @@ public class Leader {
 
     @Column(name = "leader_pw", nullable = false)
     private String leaderPw;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role;
+
     @PrePersist
     public void prePersist() {
-        this.leaderUUID = UUID.randomUUID().toString();
+        this.leaderUUID = UUID.randomUUID();
     }
 }

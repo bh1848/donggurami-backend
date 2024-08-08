@@ -7,6 +7,11 @@ import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.AplictException;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubMemberException;
+import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
+import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -35,11 +40,8 @@ public class MypageService {
 
     //UUID를 통해 유저 아이디 조회
     public User getUserByUUID(UUID uuid) {
-        User user = userRepository.findByUserUUID(uuid);
-        if (user == null) {
-            throw new IllegalArgumentException("UUID에 해당하는 유저를 찾을 수 없습니다. " + uuid);
-        }
-        return user;
+        return userRepository.findByUserUUID(uuid)
+                .orElseThrow(() -> new IllegalArgumentException("UUID에 해당하는 유저를 찾을 수 없습니다. " + uuid));
     }
 
     //클럽멤버를 통해 클럽아이디 조회
@@ -54,7 +56,7 @@ public class MypageService {
     private List<ClubMembers>getClubMembersByProfileId(Long profileId){
         List<ClubMembers> clubMembers = clubMembersRepository.findByProfileProfileId(profileId);
         if(clubMembers.isEmpty()){
-            throw new IllegalArgumentException("프로필에 해당하는 클럽멤버를 찾을 수 없습니다."+profileId);
+            throw new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS);
         }
         return clubMembers;
     }
@@ -88,14 +90,14 @@ public class MypageService {
     //유저아이디를 통해 프로필아이디 조회
     private Profile getProfileByUserId(Long userId) {
         return profileRepository.findByUserUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 프로필을 찾을 수 없습니다.: " + userId));
+                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
     }
 
     //프로필아이디를 통해 어플릭트 아이디 조회
     private List<Aplict> getAplictsByProfileId(Long profileId) {
         List<Aplict> aplicts = aplictRepository.findByProfileProfileId(profileId);
         if (aplicts.isEmpty()) {
-            throw new IllegalArgumentException("해당 프로필의 어플리케이션을 찾을 수 없습니다.: " + profileId);
+            throw new AplictException(ExceptionType.APLICT_NOT_EXISTS);
         }
         return aplicts;
     }
@@ -103,7 +105,7 @@ public class MypageService {
     // 어플리케이션 ID를 통해 클럽 조회
     private Club getClubByAplictId(Long aplictId) {
         Aplict aplict = aplictRepository.findById(aplictId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 어플리케이션을 찾을 수 없습니다.: " + aplictId));
+                .orElseThrow(() -> new AplictException(ExceptionType.APLICT_NOT_EXISTS));
         return clubRepository.findByClubId(aplict.getClub().getClubId());
     }
 

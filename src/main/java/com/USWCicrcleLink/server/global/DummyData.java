@@ -8,13 +8,13 @@ import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.club.domain.Department;
-import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -63,6 +63,7 @@ public class DummyData {
                 .email("user1")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user1);
@@ -165,6 +166,7 @@ public class DummyData {
                 .leaderAccount("flag")
                 .leaderPw("1234")
                 .club(club)
+                .role(Role.LEADER)
                 .build();
 
         leaderRepository.save(leader);
@@ -243,6 +245,7 @@ public class DummyData {
                 .email("user2")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);
@@ -299,6 +302,7 @@ public class DummyData {
                 .email("user3")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);
@@ -363,9 +367,11 @@ public class DummyData {
     //어드민 데이터
     public void initAdmin(){
         Admin admin = Admin.builder()
+                .adminUUID(UUID.randomUUID())
                 .adminAccount("admin")
                 .adminPw("1234")
                 .adminName("관리자")
+                .role(Role.ADMIN)
                 .build();
 
         adminRepository.save(admin);

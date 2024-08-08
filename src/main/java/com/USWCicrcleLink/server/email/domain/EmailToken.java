@@ -68,4 +68,11 @@ public class EmailToken {
         useToken();
     }
 
+    //필드 갱신
+    public void updateExpiredToken() {
+        this.certificationTime = LocalDateTime.now().plusMinutes(EMAIL_TOKEN_CERTIFICATION_TIME_VALUE);
+        this.isEmailTokenExpired=false;
+    }
+
+
 }

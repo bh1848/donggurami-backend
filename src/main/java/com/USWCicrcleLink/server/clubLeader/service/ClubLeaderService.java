@@ -45,6 +45,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -474,7 +475,7 @@ public class ClubLeaderService {
     // 회장 검증 및 소속 동아리
     private Club validateLeader(String leaderUUID) {
         // 토큰 적용, 예외 처리 시 변경
-        Leader leader = leaderRepository.findByLeaderUUID(leaderUUID)
+        Leader leader = leaderRepository.findByLeaderUUID(UUID.fromString(leaderUUID))
                 .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 회장이 아닙니다."));
         log.debug("동아리 회장 조회 결과: {}", leader);
 

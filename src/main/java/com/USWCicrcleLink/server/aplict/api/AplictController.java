@@ -15,7 +15,7 @@ import java.util.UUID;
 public class AplictController {
     private final AplictService aplictService;
 
-    //지원서 작성하기(구글 폼 반환)
+    //지원서 작성하기(구글 폼 반환)(모바일)
     @GetMapping("/{clubId}")
     public ResponseEntity<ApiResponse<String>> getGoogleFormUrl(@PathVariable("clubId") Long clubId) {
         String googleFormUrl = aplictService.getGoogleFormUrlByClubId(clubId);
@@ -23,13 +23,12 @@ public class AplictController {
         return ResponseEntity.ok(response);
     }
 
-    //동아리 지원서 제출
+    //동아리 지원서 제출(모바일)
     @PostMapping("/{clubId}")
     public ResponseEntity<ApiResponse<Void>> submitAplict(
-            @RequestHeader("User-uuid") UUID userUUID,
             @PathVariable("clubId") Long clubId,
             @RequestBody AplictRequest request) {
-        aplictService.submitAplict(userUUID, clubId, request);
+        aplictService.submitAplict(clubId, request);
         ApiResponse<Void> response = new ApiResponse<>("지원서 제출 성공");
         return ResponseEntity.ok(response);
     }
