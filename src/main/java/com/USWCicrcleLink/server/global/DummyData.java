@@ -8,11 +8,13 @@ import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.club.domain.Department;
-import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.clubLeader.domain.Leader;
+import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -40,6 +42,7 @@ public class DummyData {
     private final ClubMembersRepository clubMembersRepository;
     private final AplictRepository aplictRepository;
     private final ClubIntroRepository clubIntroRepository;
+    private final LeaderRepository leaderRepository;
 
     @PostConstruct
     public void init(){
@@ -53,19 +56,53 @@ public class DummyData {
     //user1 , flag 데이터
     public void initUser1() {
 
-        User user = User.builder()
+        User user1 = User.builder()
                 .userUUID(UUID.randomUUID())
                 .userAccount("user1")
                 .userPw("1234")
                 .email("user1")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
                 .build();
 
-        userRepository.save(user);
+        userRepository.save(user1);
 
-        Profile profile = Profile.builder()
-                .user(user)
+        User user2 = User.builder()
+                .userUUID(UUID.randomUUID())
+                .userAccount("user222")
+                .userPw("1234")
+                .email("user222")
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .build();
+
+        userRepository.save(user2);
+
+        User user3 = User.builder()
+                .userUUID(UUID.randomUUID())
+                .userAccount("user333")
+                .userPw("1234")
+                .email("user333")
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .build();
+
+        userRepository.save(user3);
+
+        User user4 = User.builder()
+                .userUUID(UUID.randomUUID())
+                .userAccount("user444")
+                .userPw("1234")
+                .email("user444")
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .build();
+
+        userRepository.save(user4);
+
+        Profile profile1 = Profile.builder()
+                .user(user1)
                 .userName("김땡떙")
                 .studentNumber("1234")
                 .userHp("01012345678")
@@ -74,20 +111,65 @@ public class DummyData {
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
 
-        profileRepository.save(profile);
+        profileRepository.save(profile1);
+
+        Profile profile2 = Profile.builder()
+                .user(user2)
+                .userName("김빵빵")
+                .studentNumber("1234")
+                .userHp("01012345678")
+                .major("정뽀호")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .build();
+
+        profileRepository.save(profile2);
+
+        Profile profile3 = Profile.builder()
+                .user(user3)
+                .userName("user3")
+                .studentNumber("1234")
+                .userHp("01012345678")
+                .major("정보보호")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .build();
+
+        profileRepository.save(profile3);
+
+        Profile profile4 = Profile.builder()
+                .user(user4)
+                .userName("user4")
+                .studentNumber("1234")
+                .userHp("01012345678")
+                .major("정뽀호")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .build();
+
+        profileRepository.save(profile4);
 
         Club club = Club.builder()
                 .clubName("FLAG")
                 .leaderName("개발짱")
                 .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/flag.jpg")
+                .leaderHp("01012341234")
                 .department(Department.ACADEMIC)
                 .katalkID("flag_kakao")
                 .clubInsta("flag_insta")
 //                .chatRoomUrl("http://flag")
-                .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
 
         clubRepository.save(club);
+
+        Leader leader = Leader.builder()
+                .leaderAccount("flag")
+                .leaderPw("1234")
+                .club(club)
+                .role(Role.LEADER)
+                .build();
+
+        leaderRepository.save(leader);
 
         ClubIntro clubIntro = ClubIntro.builder()
                 .club(club)
@@ -97,59 +179,60 @@ public class DummyData {
 
         clubIntroRepository.save(clubIntro);
 
-        ClubMembers clubMembers = ClubMembers.builder()
+        ClubMembers clubMembers1 = ClubMembers.builder()
                 .club(club)
-                .profile(profile)
+                .profile(profile1)
                 .build();
-
-        clubMembersRepository.save(clubMembers);
-
-        Aplict aplict = Aplict.builder()
-                .profile(profile)
-                .club(club)
-                .aplictGoogleFormUrl("flag_google_url1")
-                .submittedAt(LocalDateTime.now())
-                .aplictStatus(AplictStatus.PASS)
-                .build();
-
-        aplictRepository.save(aplict);
-
-        Club club2 = Club.builder()
-                .clubName("와우시날")
-                .leaderName("영화짱")
-                .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/allabout.jpg")
-                .department(Department.ACADEMIC)
-                .katalkID("wow_kakao")
-                .clubInsta("wow_insta")
-                .recruitmentStatus(RecruitmentStatus.OPEN)
-                .build();
-
-        clubRepository.save(club2);
-
-        ClubIntro clubIntro2 = ClubIntro.builder()
-                .club(club2)
-                .clubIntro("와우시날입니다.")
-                .googleFormUrl("wow_google_url")
-                .build();
-
-        clubIntroRepository.save(clubIntro2);
+        clubMembersRepository.save(clubMembers1);
 
         ClubMembers clubMembers2 = ClubMembers.builder()
-                .club(club2)
-                .profile(profile)
+                .club(club)
+                .profile(profile2)
                 .build();
 
         clubMembersRepository.save(clubMembers2);
 
-        Aplict aplict2 = Aplict.builder()
-                .profile(profile)
-                .club(club2)
-                .aplictGoogleFormUrl("wow_google_url1")
+        // 일반 지원자
+        Aplict aplict1 = Aplict.builder()
+                .profile(profile1)
+                .club(club)
+                .aplictGoogleFormUrl("flag_google_url1")
                 .submittedAt(LocalDateTime.now())
-                .aplictStatus(AplictStatus.WAIT)
+                .build();
+
+        aplictRepository.save(aplict1);
+
+        Aplict aplict2 = Aplict.builder()
+                .profile(profile2)
+                .club(club)
+                .aplictGoogleFormUrl("flag_google_url1")
+                .submittedAt(LocalDateTime.now())
                 .build();
 
         aplictRepository.save(aplict2);
+
+        // 불합격자
+        Aplict aplict3 = Aplict.builder()
+                .profile(profile3)
+                .club(club)
+                .aplictGoogleFormUrl("flag_google_url1")
+                .submittedAt(LocalDateTime.now())
+                .checked(true)
+                .aplictStatus(AplictStatus.FAIL)
+                .build();
+
+        aplictRepository.save(aplict3);
+
+        Aplict aplict4 = Aplict.builder()
+                .profile(profile4)
+                .club(club)
+                .aplictGoogleFormUrl("flag_google_url1")
+                .submittedAt(LocalDateTime.now())
+                .checked(true)
+                .aplictStatus(AplictStatus.FAIL)
+                .build();
+
+        aplictRepository.save(aplict4);
     }
     
     //user2, 올어바웃 데이터
@@ -162,6 +245,7 @@ public class DummyData {
                 .email("user2")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);
@@ -186,7 +270,6 @@ public class DummyData {
                 .katalkID("allabout_kakao")
                 .clubInsta("allabout_insta")
 //                .chatRoomUrl("http://allabout")
-                .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
 
         clubRepository.save(club);
@@ -219,6 +302,7 @@ public class DummyData {
                 .email("user3")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);
@@ -243,7 +327,6 @@ public class DummyData {
                 .katalkID("gullisae_kakao")
                 .clubInsta("gullisae_insta")
 //                .chatRoomUrl("http://smash")
-                .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
 
         clubRepository.save(club);
@@ -284,9 +367,11 @@ public class DummyData {
     //어드민 데이터
     public void initAdmin(){
         Admin admin = Admin.builder()
+                .adminUUID(UUID.randomUUID())
                 .adminAccount("admin")
                 .adminPw("1234")
                 .adminName("관리자")
+                .role(Role.ADMIN)
                 .build();
 
         adminRepository.save(admin);

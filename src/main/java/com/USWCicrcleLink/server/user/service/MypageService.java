@@ -40,12 +40,8 @@ public class MypageService {
 
     //UUID를 통해 유저 아이디 조회
     public User getUserByUUID(UUID uuid) {
-        User user = userRepository.findByUserUUID(uuid);
-        if (user == null) {
-            log.error("존재하지 않는 사용자: {}",uuid);
-            throw new UserException(ExceptionType.USER_NOT_EXISTS);
-        }
-        return user;
+        return userRepository.findByUserUUID(uuid)
+                .orElseThrow(() -> new IllegalArgumentException("UUID에 해당하는 유저를 찾을 수 없습니다. " + uuid));
     }
 
     //클럽멤버를 통해 클럽아이디 조회

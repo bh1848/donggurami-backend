@@ -2,8 +2,8 @@ package com.USWCicrcleLink.server.admin.admin.api;
 
 import com.USWCicrcleLink.server.admin.admin.dto.*;
 import com.USWCicrcleLink.server.admin.admin.service.AdminService;
-import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,15 +16,15 @@ import java.util.List;
 public class AdminController {
     private final AdminService adminService;
 
-    //관리자 로그인
+    // 관리자 로그인(웹)
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<String>> loginAdmin(@RequestBody AdminLoginRequest request) {
-        adminService.adminLogin(request);
-        ApiResponse<String> response = new ApiResponse<>("로그인 성공");
+    public ResponseEntity<ApiResponse<TokenDto>> loginAdmin(@RequestBody AdminLoginRequest loginRequest) {
+        TokenDto tokenDto = adminService.adminLogin(loginRequest);
+        ApiResponse<TokenDto> response = new ApiResponse<>("로그인 성공", tokenDto);
         return ResponseEntity.ok(response);
     }
 
-    //동아리 전체 리스트 조회
+    // 동아리 전체 리스트 조회(웹)
     @GetMapping("/clubs")
     public ResponseEntity<ApiResponse<List<ClubListResponse>>> getAllClubs() {
         List<ClubListResponse> clubs = adminService.getAllClubs();
@@ -32,7 +32,7 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-    //동아리 상세 페이지 조회
+    // 동아리 상세 페이지 조회(웹)
     @GetMapping("/clubs/{clubId}")
     public ResponseEntity<ApiResponse<ClubDetailResponse>> getClubById(@PathVariable("clubId") Long clubId) {
         ClubDetailResponse clubDetailResponse = adminService.getClubById(clubId);
@@ -40,19 +40,19 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-    //동아리 생성
+    // 동아리 생성(웹)
     @PostMapping("/clubs")
-    public ResponseEntity<ApiResponse<Club>> createClub(@RequestHeader("admin_Id") Long adminId, @RequestBody ClubCreationRequest request) {
-        adminService.createClub(adminId, request);
-        ApiResponse<Club> response = new ApiResponse<>("동아리 생성 성공");
+    public ResponseEntity<ApiResponse<ClubCreationResponse>> createClub(@RequestBody ClubCreationRequest clubRequest) {
+        ClubCreationResponse clubCreationResponse = adminService.createClub(clubRequest);
+        ApiResponse<ClubCreationResponse> response = new ApiResponse<>("동아리 생성 성공", clubCreationResponse);
         return ResponseEntity.ok(response);
     }
 
-    //동아리 삭제
+    // 동아리 삭제(웹)
     @DeleteMapping("/clubs/{clubId}")
-    public ResponseEntity<ApiResponse<Long>> deleteClub(@RequestHeader("admin_Id") Long adminId, @PathVariable("clubId") Long clubId, @RequestBody AdminPwRequest request) {
-        adminService.deleteClub(adminId, clubId, request.getAdminPw());
-        ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공", clubId);
+    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubId") Long clubId, @RequestBody AdminPwRequest pwRequest) {
+        adminService.deleteClub(clubId, pwRequest.getAdminPw());
+        ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공: clubId", clubId);
         return ResponseEntity.ok(response);
     }
 }

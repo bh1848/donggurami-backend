@@ -46,11 +46,9 @@ public class ProfileService {
     }
 
     private Profile getProfileByUserUUID(UUID userUUID) {
-        User user = userRepository.findByUserUUID(userUUID);
-        if (user == null) {
-            log.error("존재하지 않는 사용자: {}",userUUID);
-            throw new UserException(ExceptionType.USER_NOT_EXISTS);
-        }
+
+        User user = userRepository.findByUserUUID(userUUID)
+                .orElseThrow(() -> new IllegalArgumentException("해당 uuid의 유저가 존재하지 않습니다.: " + userUUID));
 
         return profileRepository.findByUserUserId(user.getUserId())
                 .orElseThrow(()-> {log.error("존재하지 않는 프로필");

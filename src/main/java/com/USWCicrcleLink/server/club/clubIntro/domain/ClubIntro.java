@@ -47,7 +47,7 @@ public class ClubIntro {
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "club_intro_recruitment_status", nullable = false)
     private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
 
     public void updateClubIntro(Club club, String clubIntro, String googleFormUrl,
@@ -62,5 +62,10 @@ public class ClubIntro {
         this.additionalPhotoPath2 = additionalPhotoPath2;
         this.additionalPhotoPath3 = additionalPhotoPath3;
         this.additionalPhotoPath4 = additionalPhotoPath4;
+    }
+
+    public void toggleRecruitmentStatus() {
+        // 현재 모집 상태와 반대로
+        this.recruitmentStatus = this.recruitmentStatus.toggle();
     }
 }

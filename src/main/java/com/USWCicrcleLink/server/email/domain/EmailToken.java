@@ -1,5 +1,7 @@
 package com.USWCicrcleLink.server.email.domain;
 
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.EmailException;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -49,7 +51,7 @@ public class EmailToken {
                 .build();
     }
 
-    public void useToken(){
+    public void usedToken(){
         isEmailTokenExpired=true;
     }
 
@@ -59,13 +61,19 @@ public class EmailToken {
     }
 
     // 토큰이 만료되었는지 검증 및 처리
-    public void verifyExpireTime() {
-        if (!isValidTime()) {
-            useToken();
-            throw new IllegalStateException("이메일 토큰이 만료 되었습니다. 재인증을 요청해주세요");
+    public void verifyExpiredTime() {
+        if (!isValidTime()) { // 만료시간이 지난 토큰인 경우
+            usedToken();
+            throw new EmailException(ExceptionType.EMAIL_TOKEN_IS_EXPIRED);
         }
         // 사용된 토큰 처리
-        useToken();
+        usedToken();
+    }
+
+    //필드 갱신
+    public void updateExpiredToken() {
+        this.certificationTime = LocalDateTime.now().plusMinutes(EMAIL_TOKEN_CERTIFICATION_TIME_VALUE);
+        this.isEmailTokenExpired=false;
     }
 
 }

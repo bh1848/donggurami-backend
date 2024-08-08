@@ -26,11 +26,9 @@ public class EmailService {
 
     private final EmailConfig emailConfig;
     private final JavaMailSender javaMailSender;
-    private final AuthTokenService authTokenService;
-    private final EmailTokenService emailTokenService;
 
     //이메일 인증 경로
-    private static final String VERIFY_EMAIL_PATH = "/users/verify/";
+    private static final String VERIFY_EMAIL_PATH = "/users/email/verify-token";
 
 
     @Async
@@ -39,10 +37,7 @@ public class EmailService {
     }
 
     // 회원가입 링크 생성
-    public MimeMessage createSingUpLink(UserTemp userTemp) throws MessagingException {
-
-        // 이메일 토큰 생성
-        EmailToken emailToken = emailTokenService.createEmailToken(userTemp);
+    public MimeMessage createSingUpLink(UserTemp userTemp,EmailToken emailToken) throws MessagingException {
 
         // 회원 가입 인증 메일 생성
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
@@ -52,7 +47,7 @@ public class EmailService {
         helper.setFrom("wg1004s@naver.com");
 
         String emailContent
-                = "<a href='" + emailConfig.getBaseUrl() + VERIFY_EMAIL_PATH + emailToken.getEmailTokenId() + "'> click here  </a>";
+                = "<a href='" + emailConfig.getBaseUrl() + VERIFY_EMAIL_PATH + "?emailTokenId=" + emailToken.getEmailTokenId() + "'> 이메일 확인 </a>";
         helper.setText(emailContent, true);
 
         return mimeMessage;
@@ -60,7 +55,7 @@ public class EmailService {
 
 
    // 아이디 찾기 메일 생성
-    public  MimeMessage AccountInfoMail (User findUser) throws MessagingException {
+    public  MimeMessage createAccountInfoMail (User findUser) throws MessagingException {
 
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
@@ -73,10 +68,7 @@ public class EmailService {
     }
 
     // 인증 코드 메일 생성
-    public  MimeMessage AuthCodeMail(User user) throws MessagingException {
-
-        // 인증 토큰 생성
-        AuthToken authToken = authTokenService.createAuthToken(user);
+    public  MimeMessage createAuthCodeMail(User user,AuthToken authToken) throws MessagingException {
 
         // 메세지 생성
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();

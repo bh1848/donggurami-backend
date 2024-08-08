@@ -1,5 +1,7 @@
 package com.USWCicrcleLink.server.admin.admin.dto;
 
+import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,5 +20,16 @@ public class ClubDetailResponse {
     private String mainPhotoPath;
     private String introPhotoPath;
     private String chatRoomUrl;
-    private String introContent;
+    private String clubIntro;
+
+    public ClubDetailResponse(Club club, ClubIntro clubIntro) {
+        this.clubId = club.getClubId();
+        this.clubName = club.getClubName();
+        this.leaderName = club.getLeaderName();
+        this.phone = club.getKatalkID();
+        this.instagram = club.getClubInsta();
+        this.mainPhotoPath = club.getMainPhotoPath();
+        this.introPhotoPath = clubIntro != null ? clubIntro.getClubIntroPhotoPath() : null;
+        this.clubIntro = clubIntro != null ? clubIntro.getClubIntro() : null;
+    }
 }

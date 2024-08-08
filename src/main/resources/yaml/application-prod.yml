@@ -8,6 +8,11 @@ logging:
       USWRandomChat:
         backend: warn
 
+#email url
+email:
+  config:
+    baseUrl: "http://43.200.140.186:8080"
+
 spring:
   config:
     activate:

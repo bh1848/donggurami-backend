@@ -38,10 +38,10 @@ public class Aplict {
     @Column(name = "aplict_status", nullable = false)
     private AplictStatus aplictStatus = AplictStatus.WAIT;
 
-    @Column(name = "checked")
+    @Column(name = "aplict_checked")
     private boolean checked;
 
-    @Column(name = "delete_date")
+    @Column(name = "aplict_delete_date")
     private LocalDateTime deleteDate;
 
     public void updateAplictStatus(AplictStatus newStatus, boolean checked, LocalDateTime deleteDate) {
