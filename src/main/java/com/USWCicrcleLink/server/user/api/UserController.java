@@ -56,9 +56,9 @@ public class UserController {
 
     // 이메일 인증 확인 후 자동 회원가입
     @GetMapping("/email/verify")
-    public ResponseEntity<ApiResponse<Boolean>> verifySignUpMail (@RequestBody VerifyEmailRequest request) {
+    public ResponseEntity<ApiResponse<Boolean>> verifySignUpMail (@RequestParam UUID emailTokenId) {
 
-        UserTemp userTemp = userService.verifyEmailToken(request);
+        UserTemp userTemp = userService.verifyEmailToken(emailTokenId);
         userService.signUp(userTemp);
         ApiResponse<Boolean> response= new ApiResponse<>("이메일 인증 완료, 회원가입 완료 버튼을 눌러주세요",true);
 
