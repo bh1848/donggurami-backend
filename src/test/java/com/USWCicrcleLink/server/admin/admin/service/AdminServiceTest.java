@@ -1,7 +1,7 @@
 //package com.USWCicrcleLink.server.admin.admin.service;
 //
 //import com.USWCicrcleLink.server.admin.admin.domain.Admin;
-//import com.USWCicrcleLink.server.admin.admin.dto.AdminLoginRequest;
+//import com.USWCicrcleLink.server.global.login.dto.AdminLoginRequest;
 //import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationRequest;
 //import com.USWCicrcleLink.server.admin.admin.dto.ClubDetailResponse;
 //import com.USWCicrcleLink.server.admin.admin.dto.ClubListResponse;

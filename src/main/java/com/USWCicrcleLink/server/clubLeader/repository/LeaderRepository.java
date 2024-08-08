@@ -9,4 +9,6 @@ import java.util.UUID;
 
 public interface LeaderRepository extends JpaRepository<Leader,Long> {
     Optional<Leader> findByLeaderUUID(UUID leaderUUID);
+
+    Optional<Leader> findByLeaderAccount(String account);
 }
