@@ -46,14 +46,15 @@ public class SecurityConfig {
                             "/users/auth/send-code",
                             "/users/auth/verify-token",
                             "/users/reset-password",
-                            "/users/email/resend-confirmation"
+                            "/users/email/resend-confirmation",
+                            "/mypages/notices"
                     ).permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/notices", "/admin/notices/paged").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","mypages/notices").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/info").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.GET, "/club-leader/members", "/club-leader/members/export").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.PATCH, "/club-leader/info", "/club-leader/intro", "/club-leader/toggle-recruitment").hasRole("LEADER");
