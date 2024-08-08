@@ -64,7 +64,12 @@ public enum ExceptionType {
     /**
      * Domain : VerificationCode
      */
-    INVALID_AUTH_CODE("VC-101", "인증번호가 일치하지 않습니다", BAD_REQUEST);
+    INVALID_AUTH_CODE("VC-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
+
+    /**
+     * 공통
+     */
+    SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR);
 
 
 
