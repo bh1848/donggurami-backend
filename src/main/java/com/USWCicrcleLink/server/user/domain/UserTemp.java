@@ -31,7 +31,7 @@ public class UserTemp {
 
     private String tempMajor;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String tempEmail;
 
     private boolean isEmailVerified;

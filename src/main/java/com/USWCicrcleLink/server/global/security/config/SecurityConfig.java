@@ -35,7 +35,19 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/users/log-in", "/admin/login").permitAll(); // 로그인 경로 추가
+                    auth.requestMatchers("/users/login", "/admin/login").permitAll(); // 로그인 경로 추가
+                    auth.requestMatchers( // userController 경로 추가
+                            "/users/temporary",
+                            "/users/email/verify-token",
+                            "/users/finish-signup",
+                            "/users/verify-duplicate/{account}",
+                            "/users/validate-passwords-match",
+                            "/users/find-account/{email}",
+                            "/users/auth/send-code",
+                            "/users/auth/verify-token",
+                            "/users/reset-password",
+                            "/users/email/resend-confirmation"
+                    ).permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/notices", "/admin/notices/paged").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/admin/notices").hasRole("ADMIN");

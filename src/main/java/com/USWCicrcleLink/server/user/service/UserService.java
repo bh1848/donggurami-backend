@@ -1,6 +1,5 @@
 package com.USWCicrcleLink.server.user.service;
 
-import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
@@ -13,21 +12,17 @@ import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
-import com.USWCicrcleLink.server.user.dto.LogInRequest;
-import com.USWCicrcleLink.server.user.dto.PasswordRequest;
-import com.USWCicrcleLink.server.user.dto.SignUpRequest;
-import com.USWCicrcleLink.server.user.dto.UserInfoDto;
+import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UserDetailsService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -52,15 +47,15 @@ public class UserService {
     public void updateNewPW(UUID uuid, String userPw, String newPW, String confirmNewPW){
 
         if (newPW.trim().isEmpty() || confirmNewPW.trim().isEmpty()) {
-            throw new UserException(ExceptionType.PASSWORD_NOT_INPUT);
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_INPUT);
         }
 
         if (!newPW.equals(confirmNewPW)) {
-            throw new UserException(ExceptionType.NEW_PASSWORD_NOT_MATCH);
+            throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
         }
 
         if (!confirmPW(uuid, userPw)) {
-            throw new UserException(ExceptionType.PASSWORD_NOT_MATCH);
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
 
         User user = mypageService.getUserByUUID(uuid);
@@ -77,26 +72,17 @@ public class UserService {
     // 임시 회원 생성 및 저장
     public UserTemp registerUserTemp(SignUpRequest request) {
 
-        // 중복 검증
-        verifyUserTempDuplicate(request.getEmail());
+        // 회원 테이블 이메일 중복 검증
         verifyUserDuplicate(request.getEmail());
 
         return userTempRepository.save(request.toEntity());
     }
 
-    // 임시 회원 테이블 이메일 중복 검증
-    private void verifyUserTempDuplicate(String email) {
-        // 임시 데이터 존재 시 삭제
-        userTempRepository.findByTempEmail(email)
-                .ifPresent(emailTokenService::deleteEmailTokenAndUserTemp);
-    }
-
-    // 회원 테이블 이메일 중복 검증
     private void verifyUserDuplicate(String email){
 
         userRepository.findByEmail(email)
                 .ifPresent(user-> {
-                    throw new IllegalStateException("이미 존재하는 회원 입니다");
+                    throw new UserException(ExceptionType.USER_OVERLAP);
                 });
     }
 
@@ -112,7 +98,7 @@ public class UserService {
 
     // 회원가입
     @Transactional
-    public User signUp(UserTemp userTemp) {
+    public void signUp(UserTemp userTemp) {
 
         User user = User.createUser(userTemp);
         Profile profile = Profile.createProfile(userTemp, user);
@@ -122,14 +108,12 @@ public class UserService {
         profileRepository.save(profile);
         // 임시 회원 정보 삭제
         emailTokenService.deleteEmailTokenAndUserTemp(userTemp);
-
-        return user;
     }
 
     public void verifyAccountDuplicate(String account) {
             userRepository.findByUserAccount(account)
                     .ifPresent(user-> {
-                        throw new IllegalStateException("이미 존재하는 계정 입니다");
+                        throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
                     });
     }
 
@@ -153,18 +137,18 @@ public class UserService {
 
     public void validatePasswordsMatch(PasswordRequest request) {
         if(!request.getPassword().equals(request.getConfirmPassword())){
-            throw new IllegalStateException("비밀번호가 일치 하지 않습니다");
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
     }
 
     public User findUser(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 입니다"));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
     }
 
     public User validateAccountAndEmail(UserInfoDto request) {
-        return  userRepository.findByUserAccountAndEmail(request.getUserAccount(), request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("올바르지 않은 이메일 혹은 아이디 입니다"));
+        return userRepository.findByUserAccountAndEmail(request.getUserAccount(), request.getEmail())
+                .orElseThrow(() -> new UserException(ExceptionType.USER_INVALID_ACCOUNT_AND_EMAIL));
     }
 
     // 비밀번호 재설정
@@ -181,10 +165,10 @@ public class UserService {
     }
 
     public User findByUuid(UUID uuid) {
-
-        return userRepository.findByUserUUID(uuid).orElseThrow(() -> new RuntimeException("해당 UUID를 가진 사용자를 찾을 수 없습니다: " + uuid));
+        return userRepository.findByUserUUID(uuid).orElseThrow(() -> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
     }
 
+    // 회원 가입 메일 생성 및 전송
     @Transactional
     public void sendSignUpMail(UserTemp userTemp,EmailToken emailToken) throws MessagingException {
         MimeMessage message = emailService.createSingUpLink(userTemp,emailToken);
@@ -201,5 +185,15 @@ public class UserService {
     public void sendAccountInfoMail (User findUser) throws MessagingException {
         MimeMessage message = emailService.createAccountInfoMail(findUser);
         emailService.sendEmail(message);
+    }
+
+    // 회원 가입 확인
+    @Transactional(readOnly = true)
+    public Boolean signUpFinish(VerifyEmailRequest request) {
+        // 계정이 존재하는지 확인
+        userRepository.findByUserAccount(request.getAccount())
+                .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
+
+        return true;
     }
 }
