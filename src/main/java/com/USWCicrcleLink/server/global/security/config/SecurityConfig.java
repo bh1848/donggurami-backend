@@ -49,6 +49,20 @@ public class SecurityConfig {
                             "/users/email/resend-confirmation",
                             "/mypages/notices"
                     ).permitAll();
+
+                    auth.requestMatchers(HttpMethod.GET,
+                            "/email/verify-token",
+                            "/verify-duplicate/{account}",
+                            "/find-account/{email}").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.POST,
+                            "/temporary",
+                            "/finish-signup",
+                            "/validate-passwords-match",
+                            "/login",
+                            "/auth/send-code",
+                            "/auth/verify-token",
+                            "/email/resend-confirmation").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.PATCH, "/reset-password").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/notices", "/admin/notices/paged").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/admin/notices").hasRole("ADMIN");
