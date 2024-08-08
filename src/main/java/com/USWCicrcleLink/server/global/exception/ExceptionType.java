@@ -43,6 +43,7 @@ public enum ExceptionType {
     USER_ACCOUNT_NOT_EXISTS("USR-208", "존재하지 않는 계정입니다.", BAD_REQUEST),
     USER_INVALID_ACCOUNT_AND_EMAIL("USR-209", "올바르지 않은 이메일 혹은 아이디 입니다.", BAD_REQUEST),
     USER_UUID_NOT_FOUND("USR-210","회원의 uuid를 찾을 수 없습니다.",BAD_REQUEST),
+    USER_AUTHENTICATION_FAILED("USF-211","아이디 혹은 비밀번호가 일치하지 않습니다",BAD_REQUEST),
 
 
     /**
