@@ -55,7 +55,7 @@ public class UserController {
     }
 
     // 이메일 인증 확인 후 자동 회원가입
-    @GetMapping("/email/verify")
+    @GetMapping("/email/verify-token")
     public ResponseEntity<ApiResponse<Boolean>> verifySignUpMail (@RequestParam UUID emailTokenId) {
 
         UserTemp userTemp = userService.verifyEmailToken(emailTokenId);
