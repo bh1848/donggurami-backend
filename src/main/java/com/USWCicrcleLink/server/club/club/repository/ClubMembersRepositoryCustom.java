@@ -10,5 +10,5 @@ public interface ClubMembersRepositoryCustom {
     List<ClubMembers> findAllWithProfile(Long clubId);
     Page<ClubMembers> findAllWithProfileByClubId(Long clubId, Pageable pageable);
 
-    void deleteByClubClubId(Long clubId);
+    List<Long> findClubIdsByUserId(Long userId);
 }

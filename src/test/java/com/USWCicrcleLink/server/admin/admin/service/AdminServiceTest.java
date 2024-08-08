@@ -13,6 +13,7 @@
 //import com.USWCicrcleLink.server.club.club.domain.Department;
 //import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 //import com.USWCicrcleLink.server.club.club.dto.ClubMembersLeaderCount;
+//import com.USWCicrcleLink.server.admin.admin.dto.ClubMembersLeaderCount;
 //import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 //import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 //import com.USWCicrcleLink.server.club.club.repository.ClubRepository;

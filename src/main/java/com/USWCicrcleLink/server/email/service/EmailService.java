@@ -28,7 +28,7 @@ public class EmailService {
     private final JavaMailSender javaMailSender;
 
     //이메일 인증 경로
-    private static final String VERIFY_EMAIL_PATH = "/users/verify-email";
+    private static final String VERIFY_EMAIL_PATH = "/users/email/verify-token";
 
 
     @Async
@@ -47,7 +47,7 @@ public class EmailService {
         helper.setFrom("wg1004s@naver.com");
 
         String emailContent
-                = "<a href='" + emailConfig.getBaseUrl() + VERIFY_EMAIL_PATH + "?uuid=" + emailToken.getEmailTokenId() + "'> 이메일 확인 </a>";
+                = "<a href='" + emailConfig.getBaseUrl() + VERIFY_EMAIL_PATH + "?emailTokenId=" + emailToken.getEmailTokenId() + "'> 이메일 확인 </a>";
         helper.setText(emailContent, true);
 
         return mimeMessage;

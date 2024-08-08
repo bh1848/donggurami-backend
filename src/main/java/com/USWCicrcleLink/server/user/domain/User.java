@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.user.domain;
 
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -36,6 +38,10 @@ public class User {
     private LocalDateTime userCreatedAt;
 
     private LocalDateTime userUpdatedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
 
     @PrePersist
     public void prePersist() {
