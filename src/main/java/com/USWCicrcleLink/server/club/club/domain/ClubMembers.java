@@ -20,10 +20,10 @@ public class ClubMembers {
     private Long clubMemberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id", nullable = false)
+    @JoinColumn(name = "profile_id", nullable = false)
     private Profile profile;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "clubId", nullable = false)
+    @JoinColumn(name = "club_Id", nullable = false)
     private Club club;
 }

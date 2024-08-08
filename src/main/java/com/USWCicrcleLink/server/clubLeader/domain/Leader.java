@@ -25,11 +25,11 @@ public class Leader {
     @Column(name = "leader_account", nullable = false, unique = true)
     private String leaderAccount;
 
-    @Column(columnDefinition = "BINARY(16)",nullable = false, updatable = false)
+    @Column(name = "leader_uuid",nullable = false, updatable = false)
     private UUID leaderUUID;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "clubId")
+    @JoinColumn(name = "club_id")
     private Club club;
 
     @Column(name = "leader_pw", nullable = false)
