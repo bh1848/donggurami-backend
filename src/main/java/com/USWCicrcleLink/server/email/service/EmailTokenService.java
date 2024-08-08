@@ -32,7 +32,7 @@ public class EmailTokenService {
         EmailToken emailToken = emailTokenRepository.findByEmailTokenId(emailTokenId)
                 .orElseThrow(() -> new EmailException(ExceptionType.EMAIL_TOKEN_NOT_FOUND));
         try {
-            emailToken.verifyExpireTime();
+            emailToken.verifyExpiredTime();
         } finally {
             emailTokenRepository.save(emailToken);
         }
@@ -53,9 +53,10 @@ public class EmailTokenService {
     // 이메일 인증 토큰 업데이트
    public EmailToken updateCertificationTime (UUID emailTokenId) {
 
+        // emailTokenId에 해당하는 이메일 토큰 찾기
        EmailToken findToken = getEmailToken(emailTokenId);
 
-       // 이메일 토큰 필드 갱신
+       // 이메일 토큰의 만료시간 갱신
        findToken.updateExpiredToken();
        emailTokenRepository.save(findToken);
 

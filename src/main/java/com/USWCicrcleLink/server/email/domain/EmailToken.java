@@ -51,7 +51,7 @@ public class EmailToken {
                 .build();
     }
 
-    public void useToken(){
+    public void usedToken(){
         isEmailTokenExpired=true;
     }
 
@@ -61,13 +61,13 @@ public class EmailToken {
     }
 
     // 토큰이 만료되었는지 검증 및 처리
-    public void verifyExpireTime() {
-        if (!isValidTime()) {
-            useToken();
+    public void verifyExpiredTime() {
+        if (!isValidTime()) { // 만료시간이 지난 토큰인 경우
+            usedToken();
             throw new EmailException(ExceptionType.EMAIL_TOKEN_IS_EXPIRED);
         }
         // 사용된 토큰 처리
-        useToken();
+        usedToken();
     }
 
     //필드 갱신
@@ -75,6 +75,5 @@ public class EmailToken {
         this.certificationTime = LocalDateTime.now().plusMinutes(EMAIL_TOKEN_CERTIFICATION_TIME_VALUE);
         this.isEmailTokenExpired=false;
     }
-
 
 }
