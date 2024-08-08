@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -30,7 +29,7 @@ public class AuthTokenService {
     public void verifyAuthToken(UUID uuid, UserInfoDto request) {
 
         AuthToken authToken = authTokenRepository.findByUserUserUUID(uuid)
-                .orElseThrow(()-> new UserException(ExceptionType.UUID_NOT_FOUND));
+                .orElseThrow(()-> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
 
         if (!authToken.isAuthCodeValid(request.getAuthCode())) {
             throw new UserException(ExceptionType.INVALID_AUTH_CODE);
@@ -42,7 +41,7 @@ public class AuthTokenService {
     public void deleteAuthToken(UUID uuid){
 
         AuthToken authToken = authTokenRepository.findByUserUserUUID(uuid)
-                .orElseThrow(()-> new UserException(ExceptionType.UUID_NOT_FOUND));
+                .orElseThrow(()-> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
 
         authTokenRepository.delete(authToken);
     }
