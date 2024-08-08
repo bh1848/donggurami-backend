@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.global.login.service;
 
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
+import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.global.login.domain.IntegratedUser;
 import com.USWCicrcleLink.server.global.login.domain.LoginType;
 import com.USWCicrcleLink.server.global.login.dto.IntegratedLoginRequest;
@@ -30,15 +31,20 @@ public class IntegratedLoginService {    // 동아리 회장, 동연회-개발�
 
         IntegratedUser user;
         Role role;
+        Long clubId = null;
 
         if (loginRequest.getLoginType() == LoginType.ADMIN) {
-            user = adminRepository.findByAdminAccount(loginRequest.getIntegratedAccount())
+            Admin admin = adminRepository.findByAdminAccount(loginRequest.getIntegratedAccount())
                     .orElseThrow(() -> new RuntimeException("아이디나 비밀번호를 확인해주세요."));
+            user = admin;
             role = Role.ADMIN;
+            clubId = 0L;
         } else if (loginRequest.getLoginType() == LoginType.LEADER) {
-            user = leaderRepository.findByLeaderAccount(loginRequest.getIntegratedAccount())
+            Leader leader = leaderRepository.findByLeaderAccount(loginRequest.getIntegratedAccount())
                     .orElseThrow(() -> new RuntimeException("아이디나 비밀번호를 확인해주세요."));
+            user = leader;
             role = Role.LEADER;
+            clubId = leader.getClub().getClubId();
         } else {
             throw new RuntimeException("잘못된 사용자 유형입니다.");
         }
@@ -48,6 +54,6 @@ public class IntegratedLoginService {    // 동아리 회장, 동연회-개발�
         }
 
         String accessToken = jwtProvider.createAccessToken(user.getIntegratedUUID().toString());
-        return new IntegratedLoginResponse(accessToken, role);
+        return new IntegratedLoginResponse(accessToken, role, clubId);
     }
 }

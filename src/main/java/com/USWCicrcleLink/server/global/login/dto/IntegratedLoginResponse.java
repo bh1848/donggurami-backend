@@ -13,4 +13,6 @@ public class IntegratedLoginResponse {
     private String accessToken;
 
     private Role role;
+
+    private Long clubId;
 }
