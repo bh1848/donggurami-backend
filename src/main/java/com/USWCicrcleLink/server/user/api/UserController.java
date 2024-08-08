@@ -65,10 +65,11 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 회원 가입 완료 처리 //??
+    // 회원 가입 완료 처리
     @PostMapping("/finish-signup")
-    public ResponseEntity<Boolean> signUpFinish(@RequestBody VerifyEmailRequest request) {
-        return new ResponseEntity<>(userService.signUpFinish(request),HttpStatus.OK);
+    public ResponseEntity<ApiResponse<String>> signUpFinish(@RequestBody VerifyEmailRequest request) {
+        ApiResponse<String> apiResponse = new ApiResponse<>(userService.signUpFinish(request.getAccount()), "회원가입 완료");
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     // 회원가입 시의 계정 중복 체크

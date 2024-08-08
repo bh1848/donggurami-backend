@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -120,15 +121,15 @@ public class UserService {
     // 로그인
     public TokenDto logIn(LogInRequest request) {
         log.info("로그인 요청: {}", request.getAccount());
-        User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 ID입니다"));
 
-        if (!user.getUserPw().equals(request.getPassword())) {
-            throw new RuntimeException("비밀번호가 일치하지 않습니다");
+        Optional<User> user = userRepository.findByUserAccount(request.getAccount());
+
+        if (user.isEmpty() || !user.get().getUserPw().equals(request.getPassword())) {
+            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
         log.info("JWT 생성");
-        String accessToken = jwtProvider.createAccessToken(user.getUserUUID().toString());
+        String accessToken = jwtProvider.createAccessToken(user.get().getUserUUID().toString());
 
         log.info("로그인 성공, 엑세스 토큰: {}", accessToken);
         return new TokenDto(accessToken);
@@ -189,11 +190,11 @@ public class UserService {
 
     // 회원 가입 확인
     @Transactional(readOnly = true)
-    public Boolean signUpFinish(VerifyEmailRequest request) {
+    public String signUpFinish(String account) {
         // 계정이 존재하는지 확인
-        userRepository.findByUserAccount(request.getAccount())
+        userRepository.findByUserAccount(account)
                 .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
 
-        return true;
+        return "true";
     }
 }
