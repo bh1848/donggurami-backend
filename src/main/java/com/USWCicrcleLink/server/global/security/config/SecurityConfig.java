@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/users/login", "/admin/login").permitAll(); // 로그인 경로 추가
-                    auth.requestMatchers( // userController 경로 추가
+                    auth.requestMatchers(
                             "/users/temporary",
                             "/users/email/verify-token",
                             "/users/finish-signup",
@@ -50,19 +50,6 @@ public class SecurityConfig {
                             "/mypages/notices"
                     ).permitAll();
 
-                    auth.requestMatchers(HttpMethod.GET,
-                            "/email/verify-token",
-                            "/verify-duplicate/{account}",
-                            "/find-account/{email}").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.POST,
-                            "/temporary",
-                            "/finish-signup",
-                            "/validate-passwords-match",
-                            "/login",
-                            "/auth/send-code",
-                            "/auth/verify-token",
-                            "/email/resend-confirmation").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.PATCH, "/reset-password").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/notices", "/admin/notices/paged").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/admin/notices").hasRole("ADMIN");
