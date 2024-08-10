@@ -49,16 +49,16 @@ public class UserController {
         userService.sendSignUpMail(userTemp,emailToken);
 
         ApiResponse<VerifyEmailResponse> verifyEmailResponse = new ApiResponse<>("인증 메일 전송 완료",
-                new VerifyEmailResponse(emailToken.getEmailTokenId(), userTemp.getTempAccount()));
+                new VerifyEmailResponse(emailToken.getUuid(), userTemp.getTempAccount()));
 
         return new ResponseEntity<>(verifyEmailResponse, HttpStatus.OK);
     }
 
     // 이메일 인증 확인 후 자동 회원가입
     @GetMapping("/email/verify-token")
-    public ResponseEntity<ApiResponse<Boolean>> verifySignUpMail (@RequestParam UUID emailTokenId) {
+    public ResponseEntity<ApiResponse<Boolean>> verifySignUpMail (@RequestParam UUID emailToken_uuid) {
 
-        UserTemp userTemp = userService.verifyEmailToken(emailTokenId);
+        UserTemp userTemp = userService.verifyEmailToken(emailToken_uuid);
         userService.signUp(userTemp);
         ApiResponse<Boolean> response= new ApiResponse<>("이메일 인증 완료, 회원가입 완료 버튼을 눌러주세요",true);
 
@@ -145,12 +145,12 @@ public class UserController {
 
     // 이메일 재인증
     @PostMapping("/email/resend-confirmation")
-    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader UUID emailTokenId) throws MessagingException {
+    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader UUID emailToken_uuid) throws MessagingException {
 
-        EmailToken emailToken = emailTokenService.updateCertificationTime(emailTokenId);
+        EmailToken emailToken = emailTokenService.updateCertificationTime(emailToken_uuid);
         userService.sendSignUpMail(emailToken.getUserTemp(),emailToken);
 
-        ApiResponse<UUID> response = new ApiResponse<>("이메일 재인증을 해주세요", emailTokenId);
+        ApiResponse<UUID> response = new ApiResponse<>("이메일 재인증을 해주세요", emailToken_uuid);
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 

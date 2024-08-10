@@ -87,12 +87,12 @@ public class UserService {
                 });
     }
 
-    public UserTemp verifyEmailToken(UUID emailTokenId) {
+    public UserTemp verifyEmailToken(UUID emailToken_uuid) {
 
         // 토큰 검증
-        emailTokenService.verifyEmailToken(emailTokenId);
+        emailTokenService.verifyEmailToken(emailToken_uuid);
         // 검증된 임시 회원 가져오기
-        EmailToken token = emailTokenService.getEmailToken(emailTokenId);
+        EmailToken token = emailTokenService.getEmailToken(emailToken_uuid);
 
         return token.getUserTemp();
     }

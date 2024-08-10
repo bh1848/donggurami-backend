@@ -27,9 +27,9 @@ public class EmailTokenService {
     }
 
     // 유효한 토큰 검증
-    public void verifyEmailToken (UUID emailTokenId) {
+    public void verifyEmailToken (UUID emailToken_uuid) {
 
-        EmailToken emailToken = emailTokenRepository.findByEmailTokenId(emailTokenId)
+        EmailToken emailToken = emailTokenRepository.findByUuid(emailToken_uuid)
                 .orElseThrow(() -> new EmailException(ExceptionType.EMAIL_TOKEN_NOT_FOUND));
         try {
             emailToken.verifyExpiredTime();
@@ -46,15 +46,15 @@ public class EmailTokenService {
     }
 
     public EmailToken getEmailToken(UUID emailTokenId){
-        return emailTokenRepository.findByEmailTokenId(emailTokenId)
+        return emailTokenRepository.findByUuid(emailTokenId)
                 .orElseThrow(() -> new EmailException(ExceptionType.EMAIL_TOKEN_NOT_FOUND));
     }
 
     // 이메일 인증 토큰 업데이트
-   public EmailToken updateCertificationTime (UUID emailTokenId) {
+   public EmailToken updateCertificationTime (UUID emailToken_uuid) {
 
         // emailTokenId에 해당하는 이메일 토큰 찾기
-       EmailToken findToken = getEmailToken(emailTokenId);
+       EmailToken findToken = getEmailToken(emailToken_uuid);
 
        // 이메일 토큰의 만료시간 갱신
        findToken.updateExpiredToken();
