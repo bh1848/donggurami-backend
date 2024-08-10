@@ -21,14 +21,22 @@ import java.util.UUID;
 @Table(name = "EMAILTOKEN_TABLE")
 public class EmailToken {
 
-    // 이메일 토큰 만료 시간 1분
-    private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 1L;
+    // 이메일 토큰 만료 시간 5분
+    private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 5L;
 
-    @Id
+   /* @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(length = 36)
-    private UUID emailTokenId;
+    private UUID emailTokenId;*/
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "emailToken_id", nullable = false)
+    private Long Id;
+
+    @Column(name = "emailToken_uuid", unique = true, nullable = false)
+    private UUID uuid;
 
     // 이메일 토큰과 관련된 임시 회원  id
     @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
@@ -41,6 +49,10 @@ public class EmailToken {
     // 이메일 토큰 만료 여부
     private boolean isEmailTokenExpired;
 
+    @PrePersist
+    public void prePersist() {
+        this.uuid = UUID.randomUUID();
+    }
 
     // 이메일 인증 토큰 생성
     public static EmailToken createEmailToken(UserTemp userTemp) {
