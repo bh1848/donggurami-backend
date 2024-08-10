@@ -138,7 +138,7 @@ public class UserService {
 
     public void validatePasswordsMatch(PasswordRequest request) {
         if(!request.getPassword().equals(request.getConfirmPassword())){
-            throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
+            throw new UserException(ExceptionType.USER_PASSWORD_MISMATCH);
         }
     }
 
