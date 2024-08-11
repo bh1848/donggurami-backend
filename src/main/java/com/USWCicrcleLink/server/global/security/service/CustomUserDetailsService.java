@@ -5,6 +5,10 @@ import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.JwtException;
+import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
+import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
@@ -45,7 +49,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         try {
             userUuid = UUID.fromString(uuid);
         } catch (IllegalArgumentException e) {
-            throw new UsernameNotFoundException("유효하지 않은 UUID 형식입니다: " + uuid, e);
+            throw new JwtException(ExceptionType.INVALID_UUID_FORMAT);
         }
 
         if (role == null || role == Role.ADMIN) {
@@ -59,7 +63,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             User user = userRepository.findByUserUUID(userUuid).orElse(null);
             if (user != null) {
                 Profile profile = profileRepository.findByUser_UserUUID(userUuid)
-                        .orElseThrow(() -> new UsernameNotFoundException("프로필을 찾을 수 없습니다: " + userUuid));
+                        .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
                 List<Long> clubIds = getUserClubIds(profile);
                 return new CustomUserDetails(user, clubIds);
             }
@@ -73,7 +77,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             }
         }
 
-        throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + uuid);
+        throw new UserException(ExceptionType.USER_NOT_EXISTS);
     }
 
     // 프로필을 통해 사용자 clubId 조회
