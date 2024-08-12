@@ -20,7 +20,7 @@ public class AuthToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "AUTHTOKEN_ID")
-    private Long id;
+    private Long authTokenId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_uuid", referencedColumnName = "uuid", unique = true)
