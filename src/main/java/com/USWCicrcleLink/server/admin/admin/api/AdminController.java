@@ -4,6 +4,7 @@ import com.USWCicrcleLink.server.admin.admin.dto.*;
 import com.USWCicrcleLink.server.admin.admin.service.AdminService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +20,10 @@ public class AdminController {
 
     // 관리자 로그인(웹)
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<TokenDto>> loginAdmin(@RequestBody AdminLoginRequest loginRequest) {
-        TokenDto tokenDto = adminService.adminLogin(loginRequest);
-        ApiResponse<TokenDto> response = new ApiResponse<>("로그인 성공", tokenDto);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<TokenDto>> loginAdmin(@RequestBody @Valid AdminLoginRequest loginRequest, HttpServletResponse response) {
+        TokenDto tokenDto = adminService.adminLogin(loginRequest, response);
+        ApiResponse<TokenDto> apiResponse = new ApiResponse<>("로그인 성공", tokenDto);
+        return ResponseEntity.ok(apiResponse);
     }
 
     // 동아리 전체 리스트 조회(웹)

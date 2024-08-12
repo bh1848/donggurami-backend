@@ -49,13 +49,16 @@ public enum ExceptionType {
     /**
      * Domain : Jwt
      */
-    UNABLE_GENERATE_ROLE_TOKEN("TOK-201", "해당 역할 토큰 생성 불가능", BAD_REQUEST),
+    UNABLE_GENERATE_ROLE_TOKEN("TOK-201", "해당 역할 토큰 생성 불가능합니다.", BAD_REQUEST),
+    INVALID_REFRESH_TOKEN("TOK-202", "유효하지 않은 리프레시 토큰입니다.", BAD_REQUEST),
+    INVALID_ACCESS_TOKEN("TOK-203", "유효하지 않은 엑세스 토큰입니다.", BAD_REQUEST),
+    UNAUTHENTICATED_USER("TOK-204", "인증되지 않은 사용자입니다.", BAD_REQUEST),
 
     /**
      * Domain : Club
      */
     CLUB_NOT_EXISTS("CLUB-201", "동아리가 존재하지 않습니다.", BAD_REQUEST),
-    ClUB_CHECKING_ERROR("CLUB-202", "동아리 조회 중 오류 발생", BAD_REQUEST),
+    ClUB_CHECKING_ERROR("CLUB-202", "동아리 조회 중 오류가 발생했습니다.", BAD_REQUEST),
 
     /**
      * Domain : ClubIntro
@@ -73,7 +76,7 @@ public enum ExceptionType {
      * Domain : Notice
      */
     NOTICE_NOT_EXISTS("NOT-201", "공지사항이 존재하지 않습니다.", BAD_REQUEST),
-    UP_TO_5_PHOTOS_CAN_BE_UPLOADED("NOT-202", "최대 5개의 사진 업로드 가능", BAD_REQUEST),
+    UP_TO_5_PHOTOS_CAN_BE_UPLOADED("NOT-202", "최대 5개의 사진이 업로드 가능합니다.", BAD_REQUEST),
 
     /**
      * Domain : Profile

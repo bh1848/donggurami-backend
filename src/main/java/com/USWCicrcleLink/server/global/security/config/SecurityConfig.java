@@ -35,8 +35,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/users/login", "/admin/login").permitAll(); // 로그인 경로 추가
-                    auth.requestMatchers(
+                    auth.requestMatchers("/users/login",
+                            "/admin/login",
                             "/users/temporary",
                             "/users/email/verify-token",
                             "/users/finish-signup",
@@ -47,20 +47,27 @@ public class SecurityConfig {
                             "/users/auth/verify-token",
                             "/users/reset-password",
                             "/users/email/resend-confirmation",
-                            "/mypages/notices"
+                            "/mypages/notices",
+                            "/auth/refresh-token"
                     ).permitAll();
 
+                    // ADMIN
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/notices", "/admin/notices/paged").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
+
+                    // USER
                     auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","mypages/notices").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/", "mypages/notices").hasRole("USER");
+
+                    // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/info").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.GET, "/club-leader/members", "/club-leader/members/export").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.PATCH, "/club-leader/info", "/club-leader/intro", "/club-leader/toggle-recruitment").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/club-leader/members").hasRole("LEADER");
 
+                    // 기타 모든 요청
                     auth.anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
