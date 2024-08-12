@@ -36,7 +36,7 @@ public enum ExceptionType {
     USER_PASSWORD_NOT_MATCH("USR-204","현재 비밀번호와 일치하지 않습니다",BAD_REQUEST),
     USER_PASSWORD_UPDATE_FAIL("USR-205","비밀번호 업데이트에 실패했습니다",BAD_REQUEST),
     USER_OVERLAP("USR-206", "이미 존재하는 회원 입니다.", INTERNAL_SERVER_ERROR),
-    USER_ACCOUNT_OVERLAP("USR-207", "계정이 중복됩니다.", INTERNAL_SERVER_ERROR),
+    USER_ACCOUNT_OVERLAP("USR-207", "계정이 중복됩니다.",BAD_REQUEST),
     USER_ACCOUNT_NOT_EXISTS("USR-208", "존재하지 않는 계정입니다.", BAD_REQUEST),
     USER_INVALID_ACCOUNT_AND_EMAIL("USR-209", "올바르지 않은 이메일 혹은 아이디 입니다.", BAD_REQUEST),
     USER_UUID_NOT_FOUND("USR-210","회원의 uuid를 찾을 수 없습니다.",BAD_REQUEST),
