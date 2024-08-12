@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.club.clubIntro.service;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.dto.ClubByRecruitmentStatusAndDepartmentResponse;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.club.domain.Department;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
@@ -29,7 +30,7 @@ public class ClubIntroService {
     private final ClubIntroRepository clubIntroRepository;
     private final ClubRepository clubRepository;
 
-    //분과별 동아리 조회(모바일)
+    // 분과별 동아리 조회(모바일)
     @Transactional(readOnly = true)
     public List<ClubByDepartmentResponse> getClubsByDepartment(Department department) {
         log.debug("분과별 동아리 조회: {}", department);
@@ -42,16 +43,16 @@ public class ClubIntroService {
                 .collect(Collectors.toList());
     }
 
-    //모집 상태에 따른 분과별 동아리 조회(모바일)
+    // 모집 상태에 따른 분과별 동아리 조회
     @Transactional(readOnly = true)
-    public List<ClubByDepartmentResponse> getClubsByRecruitmentStatusAndDepartment(RecruitmentStatus recruitmentStatus, Department department) {
+    public List<ClubByRecruitmentStatusAndDepartmentResponse> getClubsByRecruitmentStatusAndDepartment(RecruitmentStatus recruitmentStatus, Department department) {
         log.debug("모집 상태 및 분과별 동아리 조회: recruitmentStatus={}, department={}", recruitmentStatus, department);
-        List<Club> clubs = clubRepository.findByRecruitmentStatusAndDepartment(recruitmentStatus, department);
+        List<ClubIntro> clubs = clubIntroRepository.findByRecruitmentStatusAndClub_Department(recruitmentStatus, department);
         if (clubs.isEmpty()) {
             throw new ClubException(ExceptionType.CLUB_NOT_EXISTS);
         }
         return clubs.stream()
-                .map(ClubByDepartmentResponse::new)
+                .map(ClubByRecruitmentStatusAndDepartmentResponse::new)
                 .collect(Collectors.toList());
     }
 
@@ -62,7 +63,6 @@ public class ClubIntroService {
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId).orElseThrow(() ->
                 new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
-        Club club = clubIntro.getClub();
-        return new ClubIntroResponse(clubIntro, club.getRecruitmentStatus());
+        return new ClubIntroResponse(clubIntro);
     }
 }

@@ -37,11 +37,6 @@ public class Club {
     @Enumerated(EnumType.STRING)
     private Department department;
 
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(name = "club_recruitment_status", nullable = false)
-    private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
-
 //    @Column(name = "chat_room_url")
 //    private String chatRoomUrl;
 
@@ -55,10 +50,5 @@ public class Club {
         this.katalkID = katalkID;
         this.clubInsta = clubInsta;
 //        this.chatRoomUrl = chatRoomURL;
-    }
-
-    public void toggleRecruitmentStatus() {
-        // 현재 모집 상태와 반대로
-        this.recruitmentStatus = this.recruitmentStatus.toggle();
     }
 }

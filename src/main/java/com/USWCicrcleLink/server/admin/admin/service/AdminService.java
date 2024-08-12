@@ -108,7 +108,6 @@ public class AdminService {
                     .clubName(clubRequest.getClubName())
                     .department(clubRequest.getDepartment())
                     .leaderName(clubRequest.getLeaderAccount())
-                    .recruitmentStatus(RecruitmentStatus.CLOSE)
                     .build();
             clubRepository.save(club);
             log.debug("동아리 생성 성공: {}", club.getClubName());
@@ -120,6 +119,7 @@ public class AdminService {
                     .additionalPhotoPath1("")
                     .additionalPhotoPath2("")
                     .googleFormUrl("")
+                    .recruitmentStatus(RecruitmentStatus.CLOSE)
                     .build();
             clubIntroRepository.save(clubIntro);
             log.debug("동아리 소개 생성 성공: {}", clubIntro.getClubIntro());
