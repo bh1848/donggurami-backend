@@ -49,7 +49,7 @@ public class EmailService {
            helper.setFrom("wg1004s@naver.com");
 
            String emailContent
-                   = "<a href='" + emailConfig.getBaseUrl() + VERIFY_EMAIL_PATH + "?emailToken_uuid=" + emailToken.getEmailTokenUUID() + "'> 이메일 확인 </a>";
+                   = "<a href='" + emailConfig.getBaseUrl() + VERIFY_EMAIL_PATH + "?emailToken_uuid=" + emailToken.getEmailTokenUUID() + "'> click here  </a>";
            helper.setText(emailContent, true);
 
            return mimeMessage;
