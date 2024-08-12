@@ -57,7 +57,7 @@ public class AdminService {
 
     // 동아리 생성(웹)
     public ClubCreationResponse createClub(ClubCreationRequest clubRequest) {
-        log.info("동아리 생성 요청 시작");
+        log.debug("동아리 생성 요청 시작");
         try {
             // SecurityContextHolder에서 인증 정보 가져오기
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -65,13 +65,13 @@ public class AdminService {
             Admin admin = adminDetails.admin();
 
             if (admin.getAdminPw().equals(clubRequest.getAdminPw())) {
-                log.info("관리자 비밀번호 확인 성공");
+                log.debug("관리자 비밀번호 확인 성공");
 
                 if (!clubRequest.getLeaderPw().equals(clubRequest.getLeaderPwConfirm())) {
                     throw new RuntimeException("동아리 회장 비밀번호가 일치하지 않습니다.");
                 }
 
-                log.info("동아리 회장 비밀번호 확인 성공");
+                log.debug("동아리 회장 비밀번호 확인 성공");
 
                 Leader leader = Leader.builder()
                         .leaderAccount(clubRequest.getLeaderAccount())
@@ -79,7 +79,7 @@ public class AdminService {
                         .role(Role.LEADER)
                         .build();
                 leaderRepository.save(leader);
-                log.info("동아리 회장 생성 성공: {}", leader.getLeaderAccount());
+                log.debug("동아리 회장 생성 성공: {}", leader.getLeaderAccount());
 
                 Club club = Club.builder()
                         .clubName(clubRequest.getClubName())
@@ -88,7 +88,7 @@ public class AdminService {
                         .recruitmentStatus(RecruitmentStatus.CLOSE)
                         .build();
                 clubRepository.save(club);
-                log.info("동아리 생성 성공: {}", club.getClubName());
+                log.debug("동아리 생성 성공: {}", club.getClubName());
 
                 ClubIntro clubIntro = ClubIntro.builder()
                         .club(club)
@@ -99,7 +99,7 @@ public class AdminService {
                         .googleFormUrl("")
                         .build();
                 clubIntroRepository.save(clubIntro);
-                log.info("동아리 소개 생성 성공: {}", clubIntro.getClubIntro());
+                log.debug("동아리 소개 생성 성공: {}", clubIntro.getClubIntro());
 
                 return new ClubCreationResponse(club);
             } else {
@@ -114,20 +114,20 @@ public class AdminService {
 
     // 동아리 삭제(웹)
     public void deleteClub(Long clubId, String adminPw) {
-        log.info("동아리 삭제 요청 시작: clubId = {}", clubId);
+        log.debug("동아리 삭제 요청 시작: clubId = {}", clubId);
         try {
             // SecurityContextHolder에서 인증 정보 가져오기
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
             Admin admin = adminDetails.admin();
-            log.info("인증된 관리자: {}", admin.getAdminAccount());
+            log.debug("인증된 관리자: {}", admin.getAdminAccount());
 
             if (admin.getAdminPw().equals(adminPw)) {
-                log.info("관리자 비밀번호 확인 성공");
+                log.debug("관리자 비밀번호 확인 성공");
 
                 // 종속 엔티티 삭제
                 clubRepository.deleteClubAndDependencies(clubId);
-                log.info("동아리 삭제 성공: clubId = {}", clubId);
+                log.debug("동아리 삭제 성공: clubId = {}", clubId);
             } else {
                 log.warn("관리자 비밀번호 확인 실패");
                 throw new RuntimeException("관리자 비밀번호를 확인해주세요");

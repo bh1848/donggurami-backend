@@ -24,7 +24,7 @@ public class EmailTokenService {
     public EmailToken createEmailToken(UserTemp userTemp) {
 
         EmailToken emailToken = EmailToken.createEmailToken(userTemp);
-        log.info("이메일 토큰 생성 완료 email= {}", userTemp.getTempEmail());
+        log.debug("이메일 토큰 생성 완료 email= {}", userTemp.getTempEmail());
 
         return emailTokenRepository.save(emailToken);
     }
@@ -32,11 +32,11 @@ public class EmailTokenService {
     // 유효한 토큰 검증
     public void verifyEmailToken (UUID emailToken_uuid) {
 
-        log.info("emailToken_uuid에 해당하는 회원이 있는지 검증");
+        log.debug("emailToken_uuid에 해당하는 회원이 있는지 검증");
         EmailToken emailToken = emailTokenRepository.findByEmailTokenUUID(emailToken_uuid)
                 .orElseThrow(() -> new EmailException(ExceptionType.EMAIL_TOKEN_NOT_FOUND));
 
-        log.info("이메일 토큰 만료시간 검증");
+        log.debug("이메일 토큰 만료시간 검증");
         try {
             emailToken.verifyExpiredTime();
         } finally {
@@ -59,7 +59,7 @@ public class EmailTokenService {
     // 이메일 인증 토큰 업데이트
    public EmailToken updateCertificationTime (UUID emailToken_uuid) {
 
-        log.info("이메일 재인증 요청 시작");
+        log.debug("이메일 재인증 요청 시작");
         // emailTokenId에 해당하는 이메일 토큰 찾기
        EmailToken findToken = getEmailToken(emailToken_uuid);
 
@@ -67,7 +67,7 @@ public class EmailTokenService {
        findToken.updateExpiredToken();
        emailTokenRepository.save(findToken);
 
-       log.info("이메일 토큰의 만료시간 갱신 완료");
+       log.debug("이메일 토큰의 만료시간 갱신 완료");
 
         return findToken;
     }

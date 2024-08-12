@@ -49,7 +49,7 @@ public class FileUploadService {
         String originalFilename = file.getOriginalFilename();
         String extension = getFileExtension(originalFilename);
 
-        log.info("업로드된 파일의 확장자: {}", extension);
+        log.debug("업로드된 파일의 확장자: {}", extension);
 
         //지원하는 확장자인지 검증
         validateFileExtension(extension);
@@ -95,7 +95,7 @@ public class FileUploadService {
 
     //파일 확장자 검증
     private void validateFileExtension(String extension) throws IOException {
-        log.info("검증 중인 파일 확장자: {}", extension);
+        log.debug("검증 중인 파일 확장자: {}", extension);
         if (!allowedExtensions.contains(extension.toLowerCase())) {
             throw new IOException("지원하지 않는 파일 확장자입니다.: " + extension);
         }

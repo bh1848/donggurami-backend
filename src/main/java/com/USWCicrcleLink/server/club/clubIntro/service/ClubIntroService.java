@@ -29,7 +29,7 @@ public class ClubIntroService {
     //분과별 동아리 조회(모바일)
     @Transactional(readOnly = true)
     public List<ClubByDepartmentResponse> getClubsByDepartment(Department department) {
-        log.info("분과별 동아리 조회: {}", department);
+        log.debug("분과별 동아리 조회: {}", department);
         List<Club> clubs = clubRepository.findByDepartment(department);
         if (clubs.isEmpty()) {
             throw new NoSuchElementException("해당 분과에 속하는 동아리가 없습니다.");
@@ -42,7 +42,7 @@ public class ClubIntroService {
     //모집 상태에 따른 분과별 동아리 조회(모바일)
     @Transactional(readOnly = true)
     public List<ClubByDepartmentResponse> getClubsByRecruitmentStatusAndDepartment(RecruitmentStatus recruitmentStatus, Department department) {
-        log.info("모집 상태 및 분과별 동아리 조회: recruitmentStatus={}, department={}", recruitmentStatus, department);
+        log.debug("모집 상태 및 분과별 동아리 조회: recruitmentStatus={}, department={}", recruitmentStatus, department);
         List<Club> clubs = clubRepository.findByRecruitmentStatusAndDepartment(recruitmentStatus, department);
         if (clubs.isEmpty()) {
             throw new NoSuchElementException("해당 조건에 맞는 동아리가 없습니다.");
@@ -55,7 +55,7 @@ public class ClubIntroService {
     //동아리 소개글 조회(모바일)
     @Transactional(readOnly = true)
     public ClubIntroResponse getClubIntroByClubId(Long clubId) {
-        log.info("동아리 소개 조회 id: {}", clubId);
+        log.debug("동아리 소개 조회 id: {}", clubId);
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId).orElseThrow(() ->
                 new NoSuchElementException("해당 동아리에 대한 소개를 찾을 수 없습니다.")
         );

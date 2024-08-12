@@ -27,7 +27,7 @@ public class IntegratedLoginService {    // 동아리 회장, 동연회-개발�
     private final LeaderRepository leaderRepository;
 
     public IntegratedLoginResponse integratedLogin(IntegratedLoginRequest loginRequest) {
-        log.info("로그인 요청: {}, 사용자 유형: {}", loginRequest.getIntegratedAccount(), loginRequest.getLoginType());
+        log.debug("로그인 요청: {}, 사용자 유형: {}", loginRequest.getIntegratedAccount(), loginRequest.getLoginType());
 
         IntegratedUser user;
         Role role;
