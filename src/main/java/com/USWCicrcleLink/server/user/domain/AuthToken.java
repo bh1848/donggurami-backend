@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.Random;
-import java.util.UUID;
 
 @Entity
 @Getter

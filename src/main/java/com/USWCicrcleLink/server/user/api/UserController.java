@@ -10,7 +10,6 @@ import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
 import com.USWCicrcleLink.server.user.service.UserService;
-import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +41,7 @@ public class UserController {
 
     // 임시 회원 등록 및 인증 메일 전송
     @PostMapping("/temporary")
-    public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Valid @RequestBody SignUpRequest request) throws MessagingException {
+    public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Valid @RequestBody SignUpRequest request)  {
 
         UserTemp userTemp = userService.registerUserTemp(request);
         EmailToken emailToken = emailTokenService.createEmailToken(userTemp);
@@ -143,7 +142,7 @@ public class UserController {
 
     // 이메일 재인증
     @PostMapping("/email/resend-confirmation")
-    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader UUID emailToken_uuid) throws MessagingException {
+    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader UUID emailToken_uuid)  {
 
         EmailToken emailToken = emailTokenService.updateCertificationTime(emailToken_uuid);
         userService.sendSignUpMail(emailToken.getUserTemp(),emailToken);
