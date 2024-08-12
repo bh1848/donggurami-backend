@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -36,7 +37,18 @@ public class ClubLeaderController {
 
     // 동아리 기본 정보 변경
     @PatchMapping("/{clubId}/info")
-    public ResponseEntity<ApiResponse> updateClubInfo(@PathVariable("clubId") Long clubId, ClubInfoRequest clubInfoRequest) throws IOException {
+    public ResponseEntity<ApiResponse> updateClubInfo(@PathVariable("clubId") Long clubId,
+                                                      @RequestPart(value = "mainPhoto", required = false) MultipartFile mainPhoto,
+                                                      @RequestParam(value = "leaderName", required = false) String leaderName,
+                                                      @RequestParam(value = "leaderHp", required = false) String leaderHp,
+                                                      @RequestParam(value = "clubInsta", required = false) String clubInsta) throws IOException {
+
+        ClubInfoRequest clubInfoRequest = new ClubInfoRequest();
+        clubInfoRequest.setMainPhoto(mainPhoto);
+        clubInfoRequest.setLeaderName(leaderName);
+        clubInfoRequest.setLeaderHp(leaderHp);
+        clubInfoRequest.setClubInsta(clubInsta);
+
         return new ResponseEntity<>(clubLeaderService.updateClubInfo(clubId, clubInfoRequest), HttpStatus.OK);
     }
 
@@ -49,8 +61,24 @@ public class ClubLeaderController {
 
     // 동아리 소개 변경
     @PatchMapping("/{clubId}/intro")
-    public ResponseEntity<ApiResponse> updateClubIntro(@PathVariable("clubId") Long clubId, ClubIntroRequest clubInfoRequest) throws IOException {
-        return new ResponseEntity<>(clubLeaderService.updateClubIntro(clubId, clubInfoRequest), HttpStatus.OK);
+    public ResponseEntity<ApiResponse> updateClubIntro(@PathVariable("clubId") Long clubId,
+                                                       @RequestPart(value = "clubIntro", required = false) String clubIntro,
+                                                       @RequestPart(value = "googleFormUrl", required = false) String googleFormUrl,
+                                                       @RequestPart(value = "introPhoto", required = false) MultipartFile introPhoto,
+                                                       @RequestPart(value = "additionalPhoto1", required = false) MultipartFile additionalPhoto1,
+                                                       @RequestPart(value = "additionalPhoto2", required = false) MultipartFile additionalPhoto2,
+                                                       @RequestPart(value = "additionalPhoto3", required = false) MultipartFile additionalPhoto3,
+                                                       @RequestPart(value = "additionalPhoto4", required = false) MultipartFile additionalPhoto4) throws IOException {
+
+        ClubIntroRequest clubIntroRequest = new ClubIntroRequest();
+        clubIntroRequest.setClubIntro(clubIntro);
+        clubIntroRequest.setGoogleFormUrl(googleFormUrl);
+        clubIntroRequest.setIntroPhoto(introPhoto);
+        clubIntroRequest.setAdditionalPhoto1(additionalPhoto1);
+        clubIntroRequest.setAdditionalPhoto2(additionalPhoto2);
+        clubIntroRequest.setAdditionalPhoto3(additionalPhoto3);
+        clubIntroRequest.setAdditionalPhoto4(additionalPhoto4);
+        return new ResponseEntity<>(clubLeaderService.updateClubIntro(clubId, clubIntroRequest), HttpStatus.OK);
     }
 
     // 동아리 모집 상태 변경
@@ -92,7 +120,7 @@ public class ClubLeaderController {
 
     // 최초 합격자 알림
     @PostMapping("/{clubId}/applicants/notifyMultiple")
-    public ResponseEntity<ApiResponse> pushApplicantResults(@PathVariable("clubId") Long clubId, List<ApplicantResultsRequest> results) throws IOException {
+    public ResponseEntity<ApiResponse> pushApplicantResults(@PathVariable("clubId") Long clubId, @RequestBody List<ApplicantResultsRequest> results) throws IOException {
         clubLeaderService.updateApplicantResults(clubId, results);
         return new ResponseEntity<>(new ApiResponse<>("지원 결과 처리 완료"), HttpStatus.OK);
     }
@@ -105,7 +133,7 @@ public class ClubLeaderController {
 
     // 지원자 추가 합격 알림
     @PostMapping("/{clubId}/failed-applicants/notifyMultiple")
-    public ResponseEntity<ApiResponse> pushFailedApplicantResults(@PathVariable("clubId") Long clubId, List<ApplicantResultsRequest> results) throws IOException {
+    public ResponseEntity<ApiResponse> pushFailedApplicantResults(@PathVariable("clubId") Long clubId, @RequestBody List<ApplicantResultsRequest> results) throws IOException {
         clubLeaderService.updateFailedApplicantResults(clubId, results);
         return new ResponseEntity<>(new ApiResponse<>("추합 결과 처리 완료"), HttpStatus.OK);
     }

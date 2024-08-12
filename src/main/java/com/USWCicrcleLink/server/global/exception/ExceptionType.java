@@ -93,7 +93,9 @@ public enum ExceptionType {
      * File I/O
      */
     FILE_ENCODING_FAILED("FILE_301", "파일 이름 인코딩에 실패했습니다.", BAD_REQUEST),
-    FILE_CREATE_FAILED("FILE_302", "파일 생성에 실패했습니다.", BAD_REQUEST);
+    FILE_CREATE_FAILED("FILE_302", "파일 생성에 실패했습니다.", BAD_REQUEST),
+    FILE_SAVE_FAILED("FILE_303", "파일 저장에 실패했습니다.", BAD_REQUEST);
+
 
     private final String code;
     private final String message;

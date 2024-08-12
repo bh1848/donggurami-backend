@@ -13,6 +13,14 @@ public class ClubIntroResponse {
 
     private String clubIntroPhoto;
 
+    private String additionalPhotoPath1;
+
+    private String additionalPhotoPath2;
+
+    private String additionalPhotoPath3;
+
+    private String additionalPhotoPath4;
+
     private String clubName;
 
     private String leaderName;

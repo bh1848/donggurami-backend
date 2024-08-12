@@ -1,5 +1,7 @@
 package com.USWCicrcleLink.server.global.util;
 
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.FileException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +25,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class FileUploadService {
+
+    @Value("${server.base.url}")
+    private String serverBaseUrl;
 
     @Value("#{'${file.allowed-extensions}'.split(',')}")
     private List<String> allowedExtensions;
@@ -49,7 +54,7 @@ public class FileUploadService {
         String originalFilename = file.getOriginalFilename();
         String extension = getFileExtension(originalFilename);
 
-        log.info("업로드된 파일의 확장자: {}", extension);
+        log.debug("업로드된 파일의 확장자: {}", extension);
 
         //지원하는 확장자인지 검증
         validateFileExtension(extension);
@@ -62,10 +67,17 @@ public class FileUploadService {
         try (InputStream inputStream = file.getInputStream()) {
             Files.copy(inputStream, Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new IOException("파일 저장 중 오류가 발생했습니다.", e);
+            throw new FileException(ExceptionType.FILE_SAVE_FAILED);
         }
 
-        return filePath;
+        // 파일 저장 후 접근 가능한 URL 생성
+        String relativePath = photoDir.replace("src/main/resources/static", "");
+        String fileUrl = serverBaseUrl + relativePath + "/" + uniqueFileName;
+
+        log.debug("파일 저장 경로: {}", filePath);
+        log.debug("파일 접근 URL: {}", fileUrl);
+
+        return fileUrl;
     }
 
     //기존 파일 삭제

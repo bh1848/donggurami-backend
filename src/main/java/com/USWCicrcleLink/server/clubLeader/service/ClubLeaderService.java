@@ -113,7 +113,7 @@ public class ClubLeaderService {
         return new ApiResponse<>("동아리 기본 정보 변경 완료", club.getClubName());
     }
 
-    // 동아리 기본 정보 조회
+    // 동아리 소개 조회
     @Transactional(readOnly = true)
     public ApiResponse<ClubIntroResponse> getClubIntro(Long clubId) {
 
@@ -124,6 +124,10 @@ public class ClubLeaderService {
         ClubIntroResponse clubIntroResponse = new ClubIntroResponse(
                 club.getMainPhotoPath(),
                 clubIntro.getClubIntroPhotoPath(),
+                clubIntro.getAdditionalPhotoPath1(),
+                clubIntro.getAdditionalPhotoPath2(),
+                clubIntro.getAdditionalPhotoPath3(),
+                clubIntro.getAdditionalPhotoPath4(),
                 club.getClubName(),
                 club.getLeaderName(),
                 club.getLeaderHp(),
