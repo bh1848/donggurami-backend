@@ -19,14 +19,12 @@ public class ClubDetailResponse {
     private String instagram;
     private String mainPhotoPath;
     private String introPhotoPath;
-    private String chatRoomUrl;
     private String clubIntro;
 
     public ClubDetailResponse(Club club, ClubIntro clubIntro) {
         this.clubId = club.getClubId();
         this.clubName = club.getClubName();
         this.leaderName = club.getLeaderName();
-        this.phone = club.getKatalkID();
         this.instagram = club.getClubInsta();
         this.mainPhotoPath = club.getMainPhotoPath();
         this.introPhotoPath = clubIntro != null ? clubIntro.getClubIntroPhotoPath() : null;

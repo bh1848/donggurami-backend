@@ -155,9 +155,7 @@ public class DummyData {
                 .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/flag.jpg")
                 .leaderHp("01012341234")
                 .department(Department.ACADEMIC)
-                .katalkID("flag_kakao")
                 .clubInsta("flag_insta")
-//                .chatRoomUrl("http://flag")
                 .build();
 
         clubRepository.save(club);
@@ -267,9 +265,7 @@ public class DummyData {
                 .leaderName("춤짱")
                 .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/allabout.jpg")
                 .department(Department.SHOW)
-                .katalkID("allabout_kakao")
                 .clubInsta("allabout_insta")
-//                .chatRoomUrl("http://allabout")
                 .build();
 
         clubRepository.save(club);
@@ -324,9 +320,7 @@ public class DummyData {
                 .leaderName("볼링짱")
                 .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/gullisae.jpg")
                 .department(Department.SPORT)
-                .katalkID("gullisae_kakao")
                 .clubInsta("gullisae_insta")
-//                .chatRoomUrl("http://smash")
                 .build();
 
         clubRepository.save(club);

@@ -42,19 +42,12 @@ public class Club {
     @Column(name = "club_recruitment_status", nullable = false)
     private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
 
-//    @Column(name = "chat_room_url")
-//    private String chatRoomUrl;
-
     public void updateClubInfo(String mainPhotoPath, String leaderName,
-                               String leaderHp, String katalkID,
-                               String clubInsta) {
-        //, String chatRoomURL) {
+                               String leaderHp, String clubInsta) {
         this.mainPhotoPath = mainPhotoPath;
         this.leaderName = leaderName;
         this.leaderHp = leaderHp;
-        this.katalkID = katalkID;
         this.clubInsta = clubInsta;
-//        this.chatRoomUrl = chatRoomURL;
     }
 
     public void toggleRecruitmentStatus() {

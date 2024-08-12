@@ -87,7 +87,6 @@ public class ClubLeaderService {
                 club.getClubName(),
                 club.getLeaderName(),
                 club.getLeaderHp(),
-                club.getKatalkID(),
                 club.getClubInsta()
         );
 
@@ -107,12 +106,32 @@ public class ClubLeaderService {
 
         // 동아리 정보 변경
         club.updateClubInfo(mainPhotoPath, clubInfoRequest.getLeaderName(), clubInfoRequest.getLeaderHp(),
-                clubInfoRequest.getKatalkID(), clubInfoRequest.getClubInsta());
-//        , clubInfoRequest.getchatRoomURL);
+                 clubInfoRequest.getClubInsta());
 
         clubRepository.save(club);
         log.debug("동아리 기본 정보 변경 완료: {}", club.getClubName());
         return new ApiResponse<>("동아리 기본 정보 변경 완료", club.getClubName());
+    }
+
+    // 동아리 기본 정보 조회
+    @Transactional(readOnly = true)
+    public ApiResponse<ClubIntroResponse> getClubIntro(Long clubId) {
+
+        Club club = validateLeader(clubId);
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
+                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+
+        ClubIntroResponse clubIntroResponse = new ClubIntroResponse(
+                club.getMainPhotoPath(),
+                clubIntro.getClubIntroPhotoPath(),
+                club.getClubName(),
+                club.getLeaderName(),
+                club.getLeaderHp(),
+                club.getClubInsta(),
+                clubIntro.getClubIntro()
+        );
+
+        return new ApiResponse<>("동아리 소개 조회 완료", clubIntroResponse);
     }
 
     // 동아리 소개 변경
@@ -124,7 +143,7 @@ public class ClubLeaderService {
         createIntroPhotoDir();// 사진 파일 디렉터리 없는 경우 생성
 
         // 기존 파일 경로가 있는지 확인
-        ClubIntro existingClubIntro = clubIntroRepository.findByClub(club)
+        ClubIntro existingClubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         // 파일 있나 ? 덮어쓰기 : 비워두기
@@ -167,7 +186,7 @@ public class ClubLeaderService {
 
         Club club = validateLeader(clubId);
 
-        ClubIntro clubIntro = clubIntroRepository.findByClub(club)
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
         log.debug("동아리 소개 조회 결과: {}", clubIntro);
 
