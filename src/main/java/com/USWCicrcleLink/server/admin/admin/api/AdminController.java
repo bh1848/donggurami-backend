@@ -3,7 +3,6 @@ package com.USWCicrcleLink.server.admin.admin.api;
 import com.USWCicrcleLink.server.admin.admin.dto.*;
 import com.USWCicrcleLink.server.admin.admin.service.AdminService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,14 +14,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
-
-    // 관리자 로그인(웹)
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<TokenDto>> loginAdmin(@RequestBody AdminLoginRequest loginRequest) {
-        TokenDto tokenDto = adminService.adminLogin(loginRequest);
-        ApiResponse<TokenDto> response = new ApiResponse<>("로그인 성공", tokenDto);
-        return ResponseEntity.ok(response);
-    }
 
     // 동아리 전체 리스트 조회(웹)
     @GetMapping("/clubs")
