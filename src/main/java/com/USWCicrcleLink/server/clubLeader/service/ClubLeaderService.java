@@ -14,6 +14,8 @@ import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.*;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
 import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
@@ -123,7 +125,7 @@ public class ClubLeaderService {
 
         // 기존 파일 경로가 있는지 확인
         ClubIntro existingClubIntro = clubIntroRepository.findByClub(club)
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 소개가 아닙니다."));
+                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         // 파일 있나 ? 덮어쓰기 : 비워두기
         String introPhotoPath = fileUploadService.saveFile(clubIntroRequest.getIntroPhoto(),
@@ -166,7 +168,7 @@ public class ClubLeaderService {
         Club club = validateLeader(clubId);
 
         ClubIntro clubIntro = clubIntroRepository.findByClub(club)
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리 소개가 아닙니다."));
+                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
         log.debug("동아리 소개 조회 결과: {}", clubIntro);
 
         // 모집 상태 현재와 반전
@@ -258,7 +260,7 @@ public class ClubLeaderService {
         try {
             encodedFileName = URLEncoder.encode(fileName, "UTF-8");
         } catch (IOException e) {
-            throw new RuntimeException("파일 이름 인코딩에 실패했습니다.", e);
+            throw new FileException(ExceptionType.FILE_ENCODING_FAILED);
         }
 
         // Content-Disposition 헤더 설정
@@ -303,7 +305,7 @@ public class ClubLeaderService {
             response.flushBuffer();
             log.debug("{} 파일 추출 완료", club.getClubName());
         } catch (IOException e) {
-            throw new RuntimeException("엑셀 파일 생성에 실패했습니다.", e);
+            throw new FileException(ExceptionType.FILE_CREATE_FAILED);
         }
     }
 
@@ -370,7 +372,7 @@ public class ClubLeaderService {
                             club.getClubId(),
                             result.getAplictId(),
                             false)
-                    .orElseThrow(() -> new IllegalArgumentException("유효한 지원자가 아닙니다."));
+                    .orElseThrow(() -> new AplictException(ExceptionType.APPLICANT_NOT_EXISTS));
 
             // 합격 불합격 상태 업데이트
             // 합/불, checked, 삭제 날짜
@@ -401,7 +403,7 @@ public class ClubLeaderService {
                 .collect(Collectors.toSet());
 
         if (!requestedApplicantIds.equals(applicantIds)) {
-            throw new IllegalArgumentException("선택한 지원자의 수와 전체 지원자 수가 일치하지 않습니다.");
+            throw new AplictException(ExceptionType.APPLICANT_COUNT_MISMATCH);
         }
     }
 
@@ -449,7 +451,7 @@ public class ClubLeaderService {
                             true,
                             AplictStatus.FAIL
                     )
-                    .orElseThrow(() -> new IllegalArgumentException("유효한 추합 대상자가 아닙니다."));
+                    .orElseThrow(() -> new AplictException(ExceptionType.ADDITIONAL_APPLICANT_NOT_EXISTS));
 
             // 합격 불합격 상태 업데이트
             // 합격
@@ -484,12 +486,12 @@ public class ClubLeaderService {
 
         // 동아리 조회
         Club club = clubRepository.findById(leader.getClub().getClubId())
-                .orElseThrow(() -> new IllegalArgumentException("유효한 동아리가 아닙니다."));
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
         log.debug("동아리 조회 결과: {}", club.getClubName());
 
         // 요청된 clubId와 인증된 회장의 clubId 비교
         if (!club.getClubId().equals(clubId)) {
-            throw new IllegalArgumentException("올바른 접근이 아닙니다.");
+            throw new ClubLeaderException(ExceptionType.CLUB_LEADER_ACCESS_DENIED);
         }
 
         return club;
