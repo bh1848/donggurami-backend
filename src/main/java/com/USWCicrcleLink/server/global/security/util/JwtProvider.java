@@ -5,10 +5,13 @@ import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsServic
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,8 +20,8 @@ import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * JWT를 생성하고 검증
@@ -29,17 +32,17 @@ import java.util.List;
 public class JwtProvider {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
-    public static final String REFRESH_HEADER = "Refresh";
     public static final String BEARER_PREFIX = "Bearer ";
     private static final long ACCESS_TOKEN_EXPIRATION_TIME = 1800000L;
     private static final long REFRESH_TOKEN_EXPIRATION_TIME = 604800000L;
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Value("${jwt.secret.key}")
     private String secretKeyString;
     private Key secretKey;
-    
+
     @PostConstruct
     protected void init() {
         this.secretKey = Keys.hmacShaKeyFor(secretKeyString.getBytes(StandardCharsets.UTF_8));
@@ -49,66 +52,72 @@ public class JwtProvider {
     public String createAccessToken(String uuid) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(uuid);
         Role role;
-        List<Long> clubIds;
+        List<Long> clubIds = null;
 
         Claims claims = Jwts.claims().setSubject(uuid);
         if (userDetails instanceof CustomUserDetails customUserDetails) {
             role = customUserDetails.user().getRole();
             clubIds = customUserDetails.getClubIds();
-            claims.put("role", role.name());
-            claims.put("clubIds", clubIds);
-            log.debug("role: USER");
-
         } else if (userDetails instanceof CustomLeaderDetails customLeaderDetails) {
             role = customLeaderDetails.leader().getRole();
             clubIds = customLeaderDetails.getClubIds();
-            claims.put("role", role.name());
-            claims.put("clubIds", clubIds);
-            log.debug("role: LEADER");
-
         } else if (userDetails instanceof CustomAdminDetails customAdminDetails) {
             role = customAdminDetails.admin().getRole();
-            claims.put("role", role.name());
-            log.debug("role: ADMIN");
-
         } else {
             throw new IllegalArgumentException("해당 역할 토큰 생성 불가");
         }
 
+        claims.put("role", role.name());
+        if (clubIds != null) {
+            claims.put("clubIds", clubIds);
+        }
+
         Date now = new Date();
-        String accessToken = buildToken(claims, now, ACCESS_TOKEN_EXPIRATION_TIME);
+        String accessToken = buildToken(claims, now);
         log.debug("엑세스 토큰 생성: {}", accessToken);
         return accessToken;
     }
 
-    // 리프레시 토큰 생성
-    public String createRefreshToken(String uuid) {
-        Claims claims = Jwts.claims().setSubject(uuid);
-        Date now = new Date();
-        String token = buildToken(claims, now, REFRESH_TOKEN_EXPIRATION_TIME);
-        log.debug("리프레시 토큰 생성: {}", token);
+    // 리프레시 토큰 생성 및 Redis에 저장
+    public String createRefreshToken(String uuid, HttpServletResponse response) {
+        String token = UUID.randomUUID().toString();
+
+        // HashMap으로 Redis에 저장할 데이터 구성
+        Map<String, String> tokenData = new HashMap<>();
+        tokenData.put("_class", "com.USWRandomChat.backend.global.security.domain.RefreshToken");
+        tokenData.put("uuid", uuid);
+        tokenData.put("expiration", String.valueOf(REFRESH_TOKEN_EXPIRATION_TIME));
+        tokenData.put("refreshToken", token);
+
+        // Redis에 Hash로 저장
+        redisTemplate.opsForHash().putAll("refreshToken:" + token, tokenData);
+        redisTemplate.expire("refreshToken:" + token, REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
+
+        // 리프레시 토큰을 쿠키로 전송
+        setRefreshTokenCookie(response, token);
+
         return token;
     }
 
     // JWT 빌드
-    private String buildToken(Claims claims, Date now, long expirationTime) {
+    private String buildToken(Claims claims, Date now) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + expirationTime))
+                .setExpiration(new Date(now.getTime() + JwtProvider.ACCESS_TOKEN_EXPIRATION_TIME))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
     // 엑세스 토큰에서 UUID 추출
-    public String getUUID(String accessToken) {
+    public String getUUIDFromAccessToken(String accessToken) {
         String uuid = getClaims(accessToken).getSubject();
         log.debug("액세스 토큰에서 추출한 UUID: {}", uuid);
         return uuid;
     }
 
     // 엑세스 토큰에서 role 추출
-    public Role getRole(String accessToken) {
+    public Role getRoleFromAccessToken(String accessToken) {
         Claims claims = getClaims(accessToken);
         Role role = Role.valueOf(claims.get("role").toString());
         log.debug("액세스 토큰에서 추출한 역할: {}", role);
@@ -117,19 +126,19 @@ public class JwtProvider {
 
     // 엑세스 토큰에서 사용자 정보 추출
     public UserDetails getUserDetails(String accessToken) {
-        String uuid = getUUID(accessToken);
-        Role role = getRole(accessToken);
+        String uuid = getUUIDFromAccessToken(accessToken);
+        Role role = getRoleFromAccessToken(accessToken);
         UserDetails userDetails = customUserDetailsService.loadUserByUuidAndRole(uuid, role);
         log.debug("액세스 토큰에서 추출한 사용자 세부 정보: {}", userDetails);
         return userDetails;
     }
 
-   // 엑세스 토큰 유효성 검증
+    // 엑세스 토큰 유효성 검증
     public boolean validateAccessToken(String accessToken) {
         try {
             Jws<Claims> claims = getClaimsJws(accessToken);
             boolean isValid = !claims.getBody().getExpiration().before(new Date());
-            log.debug("액세스 토큰 유효성 검증 결과: {}", isValid);
+            log.debug("엑세스 토큰 유효성 검증 결과: {}", isValid);
             return isValid;
         } catch (JwtException | IllegalArgumentException e) {
             log.error("JWT 검증 실패: {}", e.getMessage(), e);
@@ -137,28 +146,18 @@ public class JwtProvider {
         }
     }
 
-   // JWT에서 클레임 추출
-    private Jws<Claims> getClaimsJws(String token) {
-        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
+    // JWT에서 클레임 추출
+    private Jws<Claims> getClaimsJws(String accessToken) {
+        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken);
     }
 
-    private Claims getClaims(String token) {
-        return getClaimsJws(token).getBody();
+    private Claims getClaims(String accessToken) {
+        return getClaimsJws(accessToken).getBody();
     }
 
     // 헤더에서 엑세스 토큰 추출
     public String resolveAccessToken(HttpServletRequest request) {
-        return resolveToken(request, AUTHORIZATION_HEADER);
-    }
-
-   // 헤더에서 리프레시 토큰 추출
-    public String resolveRefreshToken(HttpServletRequest request) {
-        return resolveToken(request, REFRESH_HEADER);
-    }
-
-   // 헤더에서 JWT 추출
-    private String resolveToken(HttpServletRequest request, String header) {
-        String bearerToken = request.getHeader(header);
+        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
             String token = bearerToken.substring(BEARER_PREFIX.length());
             log.debug("요청 헤더에서 추출한 토큰: {}", token);
@@ -167,11 +166,65 @@ public class JwtProvider {
         return null;
     }
 
-   // 엑세스 토큰에서 인증 정보 가져오기
+    // 엑세스 토큰에서 인증 정보 가져오기
     public Authentication getAuthentication(String accessToken) {
         UserDetails userDetails = getUserDetails(accessToken);
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
         log.debug("액세스 토큰에서 가져온 인증 정보: {}", auth);
         return auth;
     }
+    
+    // 레디스에 저장된 리프레시 토큰 가져오기
+    public String getStoredUuidFromRefreshToken(String refreshToken) {
+        return (String) redisTemplate.opsForHash().get("refreshToken:" + refreshToken, "uuid");
+    }
+
+
+    // 리프레시 토큰 HttpOnly 쿠키로 설정
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge((int) REFRESH_TOKEN_EXPIRATION_TIME / 1000);
+
+        // 쿠키 추가
+        response.addCookie(refreshTokenCookie);
+        response.addHeader("Set-Cookie", "refreshToken=" + refreshToken
+                + "; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age="
+                + refreshTokenCookie.getMaxAge());
+    }
+
+    // 쿠키에서 리프레시 토큰 추출
+    public String resolveRefreshToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refreshToken".equals(cookie.getName()) && StringUtils.hasText(cookie.getValue())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        log.warn("리프레시 토큰이 쿠키에서 발견되지 않음.");
+        return null;
+    }
+
+
+    // 리프레시 토큰 유효성 검증
+    public boolean validateRefreshToken(String refreshToken) {
+        // Redis에서 Hash로 저장된 데이터 가져오기
+        String storedToken = (String) redisTemplate.opsForHash().get("refreshToken:" + refreshToken, "refreshToken");
+
+        boolean isValid = storedToken != null && storedToken.equals(refreshToken);
+        log.debug("리프레시 토큰 유효성 검증 결과: {}", isValid);
+        return isValid;
+    }
+
+
+    // 리프레시 토큰 삭제
+    public void deleteRefreshToken(String refreshToken) {
+        redisTemplate.delete("refreshToken:" + refreshToken);
+        log.debug("리프레시 토큰 삭제: {}", refreshToken);
+    }
+
 }

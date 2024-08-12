@@ -11,6 +11,7 @@ import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
 import com.USWCicrcleLink.server.user.service.UserService;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -93,10 +94,10 @@ public class UserController {
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<TokenDto>> logIn(@Validated @RequestBody LogInRequest request) {
-        TokenDto tokenDto = userService.logIn(request);
-        ApiResponse<TokenDto> response = new ApiResponse<>("로그인 성공", tokenDto);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<TokenDto>> logIn(@RequestBody @Valid LogInRequest request, HttpServletResponse response) {
+        TokenDto tokenDto = userService.logIn(request, response);
+        ApiResponse<TokenDto> apiResponse = new ApiResponse<>("로그인 성공", tokenDto);
+        return ResponseEntity.ok(apiResponse);
     }
 
     // 아이디 찾기

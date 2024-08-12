@@ -17,6 +17,7 @@ import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -119,21 +120,26 @@ public class UserService {
     }
 
     // 로그인
-    public TokenDto logIn(LogInRequest request) {
-        log.info("로그인 요청: {}", request.getAccount());
+    public TokenDto logIn(LogInRequest request, HttpServletResponse response) {
 
-        Optional<User> user = userRepository.findByUserAccount(request.getAccount());
+        // 사용자 조회
+        User user = userRepository.findByUserAccount(request.getAccount())
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
 
-        if (user.isEmpty() || !user.get().getUserPw().equals(request.getPassword())) {
+        // 비밀번호 검증
+        if (!user.getUserPw().equals(request.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
-        log.info("JWT 생성");
-        String accessToken = jwtProvider.createAccessToken(user.get().getUserUUID().toString());
+        // JWT 생성
+        log.debug("JWT 생성");
+        String accessToken = jwtProvider.createAccessToken(user.getUserUUID().toString());
+        String refreshToken = jwtProvider.createRefreshToken(user.getUserUUID().toString(), response);
 
-        log.info("로그인 성공, 엑세스 토큰: {}", accessToken);
-        return new TokenDto(accessToken);
+        log.debug("로그인 성공, 엑세스 토큰: {}", accessToken);
+        return new TokenDto(accessToken, refreshToken);
     }
+
 
 
     public void validatePasswordsMatch(PasswordRequest request) {

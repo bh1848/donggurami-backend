@@ -9,6 +9,8 @@ import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponseAssembler;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticePhotoRepository;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.NoticeException;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.util.FileUploadService;
 import lombok.RequiredArgsConstructor;
@@ -64,7 +66,7 @@ public class NoticeService {
     @Transactional(readOnly = true)
     public NoticeDetailResponse getNoticeById(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
+                .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
         // 공지사항에 연결된 사진 조회
         List<String> noticePhotoPaths = noticePhotoRepository.findByNotice(notice).stream()
@@ -97,21 +99,23 @@ public class NoticeService {
         return NoticeDetailResponse.from(savedNotice, getPhotoPaths(savedNoticePhotos));
     }
 
-    // 공지사항 수정(웹)
+    // 공지사항 수정
     public NoticeDetailResponse updateNotice(Long noticeId, NoticeCreationRequest request, MultipartFile[] noticePhotos) throws IOException {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
+                .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
-        if (request != null) {
-            if (request.getNoticeTitle() != null) {
-                notice.updateTitle(request.getNoticeTitle());
-            }
-            if (request.getNoticeContent() != null) {
-                notice.updateContent(request.getNoticeContent());
-            }
+        // 제목이 수정된 경우에만 업데이트
+        if (request.getNoticeTitle() != null) {
+            notice.updateTitle(request.getNoticeTitle());
         }
 
-        if (noticePhotos != null) {
+        // 내용이 수정된 경우에만 업데이트
+        if (request.getNoticeContent() != null) {
+            notice.updateContent(request.getNoticeContent());
+        }
+
+        // 사진이 수정된 경우에만 업데이트
+        if (noticePhotos != null && noticePhotos.length > 0) {
             updateNoticePhotos(notice, noticePhotos);
         }
 
@@ -124,7 +128,7 @@ public class NoticeService {
     // 공지사항 삭제(웹)
     public void deleteNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
+                .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
         List<NoticePhoto> photos = noticePhotoRepository.findByNotice(notice);
 
@@ -145,7 +149,7 @@ public class NoticeService {
         }
 
         if (photos.length > 5) {
-            throw new IllegalArgumentException("최대 5개의 사진을 업로드할 수 있습니다.");
+            throw new NoticeException(ExceptionType.UP_TO_5_PHOTOS_CAN_BE_UPLOADED);
         }
 
         // 사진 배열 업로드
@@ -172,7 +176,7 @@ public class NoticeService {
         }
 
         if (newPhotos.length > 5) {
-            throw new IllegalArgumentException("최대 5개의 사진을 업로드할 수 있습니다.");
+            throw new NoticeException(ExceptionType.UP_TO_5_PHOTOS_CAN_BE_UPLOADED);
         }
 
         List<NoticePhoto> existingPhotos = noticePhotoRepository.findByNotice(notice);
