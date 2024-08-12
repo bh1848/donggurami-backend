@@ -20,10 +20,10 @@ import java.util.UUID;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "USER_ID", nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "USER_UUID", unique = true, nullable = false)
+    @Column(name = "uuid", unique = true, nullable = false)
     private UUID userUUID;
 
     @Column(unique = true, nullable = false)

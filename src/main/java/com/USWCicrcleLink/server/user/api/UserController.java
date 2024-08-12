@@ -49,7 +49,7 @@ public class UserController {
         userService.sendSignUpMail(userTemp,emailToken);
 
         ApiResponse<VerifyEmailResponse> verifyEmailResponse = new ApiResponse<>("인증 메일 전송 완료",
-                new VerifyEmailResponse(emailToken.getUuid(), userTemp.getTempAccount()));
+                new VerifyEmailResponse(emailToken.getEmailTokenUUID(), userTemp.getTempAccount()));
 
         return new ResponseEntity<>(verifyEmailResponse, HttpStatus.OK);
     }
@@ -101,7 +101,7 @@ public class UserController {
 
     // 아이디 찾기
     @GetMapping ("/find-account/{email}")
-    ResponseEntity<ApiResponse<String>> findUserAccount(@PathVariable String email) throws MessagingException {
+    ResponseEntity<ApiResponse<String>> findUserAccount(@PathVariable String email)  {
 
         User findUser= userService.findUser(email);
         userService.sendAccountInfoMail(findUser);
@@ -112,7 +112,7 @@ public class UserController {
 
     // 인증 코드 전송
     @PostMapping("/auth/send-code")
-    ResponseEntity<ApiResponse<UUID>> sendAuthCode (@Valid @RequestBody UserInfoDto request) throws MessagingException {
+    ResponseEntity<ApiResponse<UUID>> sendAuthCode (@Valid @RequestBody UserInfoDto request)  {
 
         User user = userService.validateAccountAndEmail(request);
         AuthToken authToken = authTokenService.createAuthToken(user);
