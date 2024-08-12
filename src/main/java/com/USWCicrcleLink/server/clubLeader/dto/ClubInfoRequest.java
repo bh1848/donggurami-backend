@@ -13,9 +13,6 @@ public class ClubInfoRequest {
 
     private String leaderHp;
 
-    private String katalkID;
-
     private String clubInsta;
 
-    //    private String chatRoomURL;
 }

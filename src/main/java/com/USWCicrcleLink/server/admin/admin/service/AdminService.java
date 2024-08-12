@@ -50,7 +50,7 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ClubDetailResponse getClubById(Long clubId) {
         Club club = clubRepository.findById(clubId).orElseThrow(() -> new RuntimeException("해당 동아리를 찾을 수 없습니다."));
-        ClubIntro clubIntro = clubIntroRepository.findByClub(club).orElse(null);
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId()).orElse(null);
 
         return new ClubDetailResponse(club, clubIntro);
     }

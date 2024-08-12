@@ -82,7 +82,6 @@
 //                .phone("010-1234-5678")
 //                .instagram("test_insta")
 //                .mainPhotoPath("/path/to/photo")
-//                .chatRoomUrl("https://chat.url")
 //                .introContent("Intro content")
 //                .build();
 //

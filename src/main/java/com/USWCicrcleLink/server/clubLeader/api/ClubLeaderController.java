@@ -40,6 +40,13 @@ public class ClubLeaderController {
         return new ResponseEntity<>(clubLeaderService.updateClubInfo(clubId, clubInfoRequest), HttpStatus.OK);
     }
 
+    // 동아리 소개 조회
+    @GetMapping("/{clubId}/intro")
+    public ResponseEntity<ApiResponse> getClubIntro(@PathVariable("clubId") Long clubId) {
+        ApiResponse<ClubIntroResponse> clubIntro = clubLeaderService.getClubIntro(clubId);
+        return new ResponseEntity<>(clubIntro, HttpStatus.OK);
+    }
+
     // 동아리 소개 변경
     @PatchMapping("/{clubId}/intro")
     public ResponseEntity<ApiResponse> updateClubIntro(@PathVariable("clubId") Long clubId, ClubIntroRequest clubInfoRequest) throws IOException {

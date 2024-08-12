@@ -7,9 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClubInfoResponse {
+public class ClubIntroResponse {
 
     private String mainPhoto;
+
+    private String clubIntroPhoto;
 
     private String clubName;
 
@@ -19,4 +21,5 @@ public class ClubInfoResponse {
 
     private String clubInsta;
 
+    private String clubIntro;
 }
