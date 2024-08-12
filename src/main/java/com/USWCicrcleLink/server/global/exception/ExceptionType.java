@@ -42,6 +42,7 @@ public enum ExceptionType {
     USER_UUID_NOT_FOUND("USR-210","회원의 uuid를 찾을 수 없습니다.",BAD_REQUEST),
     USER_AUTHENTICATION_FAILED("USR-211","아이디 혹은 비밀번호가 일치하지 않습니다",BAD_REQUEST),
     USER_PASSWORD_MISMATCH("USR-212", "두 비밀번호가 일치하지 않습니다", BAD_REQUEST),
+    USER_PROFILE_NOT_FOUND("USR-213","프로필 정보를 찾을 수 없습니다",INTERNAL_SERVER_ERROR),
 
     /**
      * Domain : Profile
