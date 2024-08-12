@@ -55,6 +55,7 @@ public class User {
                 .email(userTemp.getTempEmail())
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
                 .build();
     }
 

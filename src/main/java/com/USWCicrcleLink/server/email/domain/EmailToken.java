@@ -1,5 +1,7 @@
 package com.USWCicrcleLink.server.email.domain;
 
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.EmailException;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,14 +21,22 @@ import java.util.UUID;
 @Table(name = "EMAILTOKEN_TABLE")
 public class EmailToken {
 
-    // 이메일 토큰 만료 시간 1분
-    private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 1L;
+    // 이메일 토큰 만료 시간 5분
+    private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 5L;
 
-    @Id
+   /* @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(length = 36)
-    private UUID emailTokenId;
+    private UUID emailTokenId;*/
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "emailToken_id", nullable = false)
+    private Long Id;
+
+    @Column(name = "emailToken_uuid", unique = true, nullable = false)
+    private UUID uuid;
 
     // 이메일 토큰과 관련된 임시 회원  id
     @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
@@ -39,6 +49,10 @@ public class EmailToken {
     // 이메일 토큰 만료 여부
     private boolean isEmailTokenExpired;
 
+    @PrePersist
+    public void prePersist() {
+        this.uuid = UUID.randomUUID();
+    }
 
     // 이메일 인증 토큰 생성
     public static EmailToken createEmailToken(UserTemp userTemp) {
@@ -49,7 +63,7 @@ public class EmailToken {
                 .build();
     }
 
-    public void useToken(){
+    public void usedToken(){
         isEmailTokenExpired=true;
     }
 
@@ -59,13 +73,13 @@ public class EmailToken {
     }
 
     // 토큰이 만료되었는지 검증 및 처리
-    public void verifyExpireTime() {
-        if (!isValidTime()) {
-            useToken();
-            throw new IllegalStateException("이메일 토큰이 만료 되었습니다. 재인증을 요청해주세요");
+    public void verifyExpiredTime() {
+        if (!isValidTime()) { // 만료시간이 지난 토큰인 경우
+            usedToken();
+            throw new EmailException(ExceptionType.EMAIL_TOKEN_IS_EXPIRED);
         }
         // 사용된 토큰 처리
-        useToken();
+        usedToken();
     }
 
     //필드 갱신
@@ -73,6 +87,5 @@ public class EmailToken {
         this.certificationTime = LocalDateTime.now().plusMinutes(EMAIL_TOKEN_CERTIFICATION_TIME_VALUE);
         this.isEmailTokenExpired=false;
     }
-
 
 }

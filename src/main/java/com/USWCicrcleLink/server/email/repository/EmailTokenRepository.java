@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface EmailTokenRepository extends JpaRepository<EmailToken, UUID> {
+public interface EmailTokenRepository extends JpaRepository<EmailToken, Long> {
 
     @EntityGraph(attributePaths = "userTemp")
-    Optional<EmailToken> findByEmailTokenId (UUID emailTokenId);
+    Optional<EmailToken> findByUuid (UUID uuid);
     EmailToken findByUserTemp(UserTemp userTemp);
     List<EmailToken> findAllByCertificationTimeBefore(LocalDateTime time);
 
