@@ -20,9 +20,7 @@ public class AuthService {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
         // 리프레시 토큰 유효성 검사
-        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken)) {
-            throw new JwtException(ExceptionType.INVALID_REFRESH_TOKEN);
-        }
+        jwtProvider.validateRefreshToken(refreshToken);
 
         // Redis에서 저장된 UUID 가져오기
         String uuid = jwtProvider.getStoredUuidFromRefreshToken(refreshToken);

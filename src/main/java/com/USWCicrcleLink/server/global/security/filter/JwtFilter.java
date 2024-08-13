@@ -27,11 +27,20 @@ public class JwtFilter extends OncePerRequestFilter {
 
     // `permitAll`로 설정된 경로 리스트
     private static final List<String> PERMIT_ALL_PATHS = Arrays.asList(
-            "/users/login", "/admin/login", "/users/temporary", "/users/email/verify-token",
-            "/users/finish-signup", "/users/verify-duplicate/{account}", "/users/validate-passwords-match",
-            "/users/find-account/{email}", "/users/auth/send-code", "/users/auth/verify-token",
-            "/users/reset-password", "/users/email/resend-confirmation", "/mypages/notices",
-            "/auth/refresh-token"
+            "/users/login", // 모바일 로그인
+            "/users/temporary",
+            "/users/email/verify-token",
+            "/users/finish-signup",
+            "/users/verify-duplicate/{account}",
+            "/users/validate-passwords-match",
+            "/users/find-account/{email}",
+            "/users/auth/send-code",
+            "/users/auth/verify-token",
+            "/users/reset-password",
+            "/users/email/resend-confirmation",
+            "/mypages/notices",
+            "/auth/refresh-token", // 토큰 재발급
+            "/integration/login" // 동아리 회장, 동아리 연합회-개발자 통합 로그인
     );
     private final JwtProvider jwtProvider;
 

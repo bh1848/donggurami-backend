@@ -1,16 +1,18 @@
-package com.USWCicrcleLink.server.global.login.dto;
+package com.USWCicrcleLink.server.global.Integration.dto;
 
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class IntegratedLoginResponse {
+public class IntegrationLoginResponse {
 
     private String accessToken;
+
+    private String refreshToken;
 
     private Role role;
 

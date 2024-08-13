@@ -35,8 +35,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/users/login",
-                            "/admin/login",
+                    auth.requestMatchers("/users/login", // 모바일 로그인
                             "/users/temporary",
                             "/users/email/verify-token",
                             "/users/finish-signup",
@@ -48,7 +47,8 @@ public class SecurityConfig {
                             "/users/reset-password",
                             "/users/email/resend-confirmation",
                             "/mypages/notices",
-                            "/auth/refresh-token"
+                            "/auth/refresh-token", // 토큰 재발급
+                            "/integration/login" // 동아리 회장, 동연회-개발자 통합 로그인
                     ).permitAll();
 
                     // ADMIN
@@ -72,6 +72,8 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.PATCH, "/club-leader/info", "/club-leader/intro", "/club-leader/toggle-recruitment").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/club-leader/members").hasRole("LEADER");
 
+                    // INTEGRATION
+                    auth.requestMatchers(HttpMethod.POST, "/integration/logout").authenticated(); // 통합 로그아웃 api
                     // 기타 모든 요청
                     auth.anyRequest().authenticated();
                 })
