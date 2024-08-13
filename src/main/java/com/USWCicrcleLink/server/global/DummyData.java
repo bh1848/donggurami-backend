@@ -264,6 +264,7 @@ public class DummyData {
                 .clubName("올어바웃")
                 .leaderName("춤짱")
                 .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/allabout.jpg")
+                .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("allabout_insta")
                 .build();
@@ -319,6 +320,7 @@ public class DummyData {
                 .clubName("굴리세")
                 .leaderName("볼링짱")
                 .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/gullisae.jpg")
+                .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("gullisae_insta")
                 .build();
