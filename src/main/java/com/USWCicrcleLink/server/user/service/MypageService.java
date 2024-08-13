@@ -41,12 +41,7 @@ public class MypageService {
     private final AplictRepository aplictRepository;
     private final ClubRepository clubRepository;
 
-    //UUID를 통해 유저 아이디 조회
-    public User getUserByUUID(UUID uuid) {
-        return userRepository.findByUserUUID(uuid)
-                .orElseThrow(() -> new IllegalArgumentException("UUID에 해당하는 유저를 찾을 수 없습니다. " + uuid));
-    }
-
+    //어세스토큰에서 유저정보 가져오기
     private User getUserByAuth() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
