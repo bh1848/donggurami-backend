@@ -27,7 +27,7 @@ public class IntegrationService {
     private final CustomUserDetailsService customUserDetailsService;
 
     // 동아리 회장, 동연회-개발자 통합 로그인
-    public IntegrationLoginResponse integratedLogin(IntegrationLoginRequest loginRequest, HttpServletResponse response) {
+    public IntegrationLoginResponse integrationLogin(IntegrationLoginRequest loginRequest, HttpServletResponse response) {
         log.debug("로그인 요청: {}, 사용자 유형: {}", loginRequest.getIntegratedAccount(), loginRequest.getLoginType());
 
         Role role = getRoleFromLoginType(loginRequest.getLoginType());
@@ -62,7 +62,7 @@ public class IntegrationService {
     }
 
     // 동아리 회장, 동연회-개발자, 사용자 통합 로그아웃
-    public void integratedLogout(HttpServletRequest request, HttpServletResponse response) {
+    public void integrationLogout(HttpServletRequest request, HttpServletResponse response) {
 
         // Refresh Token 추출
         String refreshToken = jwtProvider.resolveRefreshToken(request);
