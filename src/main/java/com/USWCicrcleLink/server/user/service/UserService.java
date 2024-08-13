@@ -73,9 +73,16 @@ public class UserService {
     public UserTemp registerUserTemp(SignUpRequest request) {
 
         log.debug("임시 회원 생성 메서드 실행");
+
+        // 임시 회원 정보 존재시 기존 데이터 삭제
+        userTempRepository.findByTempEmail(request.getEmail())
+                .ifPresent( userTemp -> {
+                    emailTokenService.deleteEmailTokenAndUserTemp(userTemp);
+                    log.debug("중복된 임시 회원 데이터 삭제: userTemp_email= {}", request.getEmail());
+                });
+
         // 회원 테이블 이메일 중복 검증
         verifyUserDuplicate(request.getEmail());
-
         log.debug("임시 회원 생성 완료 email= {}", request.getEmail());
         return userTempRepository.save(request.toEntity());
 
