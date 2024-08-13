@@ -14,6 +14,7 @@ import com.USWCicrcleLink.server.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -89,9 +90,7 @@ public class UserController {
             modelAndView.setViewName("email_verification_failure"); // Name of the failure page
             modelAndView.addObject("message", "이메일 인증이 실패 했습니다. 이메일을 재전송 해주세요");
         }
-
         return modelAndView;
-//        return ResponseEntity.ok(new ApiResponse<>("인증이 성공되었습니다. 어플 내에서 회원가입 완료를 눌러주세요"));
     }
 
     // 이메일 재인증
@@ -105,15 +104,12 @@ public class UserController {
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
-
     // 회원 가입 완료 처리
     @PostMapping("/finish-signup")
     public ResponseEntity<ApiResponse<String>> signUpFinish(@RequestBody VerifyEmailRequest request) {
         ApiResponse<String> apiResponse = new ApiResponse<>(userService.signUpFinish(request.getAccount()), "회원가입 완료");
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
-
 
     // 로그인
     @PostMapping("/login")
@@ -154,6 +150,19 @@ public class UserController {
         authTokenService.deleteAuthToken(uuid);
 
         ApiResponse<String> response = new ApiResponse<>("인증 코드 검증이 완료되었습니다",request.getUserAccount());
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
+    // 인증 코드 재전송
+    @PatchMapping("/auth/resend")
+    public ResponseEntity<ApiResponse<String>> resendAuthCode (@Valid @RequestBody UserInfoDto request) {
+
+        log.debug("인증 코드 재전송 메서드");
+        User user = userService.validateAccountAndEmail(request);
+        AuthToken authToken = authTokenService.updateAuthCode(user);
+        userService.sendAuthCodeMail(user,authToken);
+
+        ApiResponse<String> response = new ApiResponse<>("인증 코드 재전송이 완료되었습니다",request.getUserAccount());
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 

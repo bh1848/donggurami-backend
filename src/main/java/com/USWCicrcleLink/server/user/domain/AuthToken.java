@@ -50,4 +50,9 @@ public class AuthToken {
     public boolean isAuthCodeValid(String authCode) {
         return this.authCode.equals(authCode);
     }
+
+    // 새로운 인증 번호 생성
+    public void updateAuthCode(){
+        this.authCode=generateRandomAuthCode();
+    }
 }

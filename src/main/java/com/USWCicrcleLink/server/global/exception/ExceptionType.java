@@ -80,9 +80,11 @@ public enum ExceptionType {
     APPLICANT_COUNT_MISMATCH("APT_204", "선택한 지원자 수와 전체 지원자 수가 일치하지 않습니다.", BAD_REQUEST),
 
     /**
-     * Domain : VerificationCode
+     * Domain : AuthCodeToken
      */
-    INVALID_AUTH_CODE("VC-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
+    INVALID_AUTH_CODE("AC-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
+    AUTHCODETOKEN_NOT_EXISTS("AC-102", "인증 코드 토큰이 존재하지 않습니다", BAD_REQUEST),
+
 
     /**
      * 공통

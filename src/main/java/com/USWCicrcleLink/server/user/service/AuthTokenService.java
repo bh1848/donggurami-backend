@@ -1,6 +1,8 @@
 package com.USWCicrcleLink.server.user.service;
 
+import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.AuthCodeException;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -22,7 +24,7 @@ public class AuthTokenService {
 
     // 인증 코드 토큰 생성
     @Transactional
-    public  AuthToken createAuthToken(User user) {
+    public AuthToken createAuthToken(User user) {
         AuthToken authToken = AuthToken.createAuthToken(user);
         return authTokenRepository.save(authToken);
     }
@@ -32,7 +34,7 @@ public class AuthTokenService {
 
         log.debug("인증 코드 토큰 검증 메서드 시작");
         AuthToken authToken = authTokenRepository.findByUserUserUUID(uuid)
-                .orElseThrow(()-> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
 
         log.debug("uuid ={} 에 해당하는 회원 조회 완료", uuid);
         log.debug("인증 코드 일치 확인 시작");
@@ -44,15 +46,29 @@ public class AuthTokenService {
 
     // 검증 완료된 인증 코드 토큰 삭제
     @Transactional
-    public void deleteAuthToken(UUID uuid){
+    public void deleteAuthToken(UUID uuid) {
 
         AuthToken authToken = authTokenRepository.findByUserUserUUID(uuid)
-                .orElseThrow(()-> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
 
         authTokenRepository.delete(authToken);
         log.debug("검증 완료된 인증 코드 토큰 삭제 완료");
     }
 
+    // 새로운 인증 코드 생성
+    public AuthToken updateAuthCode(User user) {
 
+        log.debug("인증 코드 재전송 요청 시작 ");
 
+        // authtoken 조회
+        AuthToken authToken = authTokenRepository.findByUserUserUUID(user.getUserUUID())
+                .orElseThrow(() -> new AuthCodeException(ExceptionType.AUTHCODETOKEN_NOT_EXISTS));
+
+        // 인증 번호 업데이트
+        authToken.updateAuthCode();
+        authTokenRepository.save(authToken);
+        log.debug("인증 코드 재생성 완료");
+
+        return authToken;
+    }
 }

@@ -29,7 +29,7 @@ public class SchedulerConfig {
             LocalDateTime time = LocalDateTime.now().minusHours(1); // 만료시간 1시간 경과된 토큰 삭제
             List<EmailToken> tokens = emailTokenRepository.findAllByCertificationTimeBefore(time);
             emailTokenRepository.deleteAll(tokens);
-            log.info("만료된 이메일 토큰 삭제: 삭제된 이메일 토큰의 수 =  {}", tokens.size());
+            log.debug("만료된 이메일 토큰 삭제: 삭제된 이메일 토큰의 수 =  {}", tokens.size());
     }
 
 

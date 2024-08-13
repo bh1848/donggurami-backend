@@ -47,6 +47,7 @@ public class SecurityConfig {
                             "/users/auth/verify-token",
                             "/users/reset-password",
                             "/users/email/resend-confirmation",
+                            "/users/auth/resend",
                             "/mypages/notices"
                     ).permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
