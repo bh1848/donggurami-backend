@@ -48,8 +48,12 @@ public class SecurityConfig {
                             "/users/email/resend-confirmation",
                             "/mypages/notices",
                             "/auth/refresh-token", // 토큰 재발급
-                            "/integration/login" // 동아리 회장, 동연회-개발자 통합 로그인
+                            "/integration/login", // 동아리 회장, 동연회-개발자 통합 로그인
+                            "/mainPhoto/allabout.jpg",
+                            "/mainPhoto/flag.jpg",
+                            "/mainPhoto/gullisae.jpg"
                     ).permitAll();
+
 
                     // ADMIN
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
