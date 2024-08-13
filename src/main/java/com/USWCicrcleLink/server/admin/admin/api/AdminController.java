@@ -18,15 +18,6 @@ import java.util.List;
 public class AdminController {
     private final AdminService adminService;
 
-
-    // 관리자 로그인(웹)
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<TokenDto>> loginAdmin(@RequestBody @Valid AdminLoginRequest loginRequest, HttpServletResponse response) {
-        TokenDto tokenDto = adminService.adminLogin(loginRequest, response);
-        ApiResponse<TokenDto> apiResponse = new ApiResponse<>("로그인 성공", tokenDto);
-        return ResponseEntity.ok(apiResponse);
-    }
-
     // 동아리 전체 리스트 조회(웹)
     @GetMapping("/clubs")
     public ResponseEntity<ApiResponse<List<ClubListResponse>>> getAllClubs() {

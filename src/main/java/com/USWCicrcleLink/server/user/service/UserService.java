@@ -6,13 +6,18 @@ import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
+import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
+import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
-import com.USWCicrcleLink.server.user.dto.*;
+import com.USWCicrcleLink.server.user.dto.LogInRequest;
+import com.USWCicrcleLink.server.user.dto.PasswordRequest;
+import com.USWCicrcleLink.server.user.dto.SignUpRequest;
+import com.USWCicrcleLink.server.user.dto.UserInfoDto;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 import jakarta.mail.MessagingException;
@@ -20,11 +25,10 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -39,6 +43,7 @@ public class UserService {
     private final ProfileRepository profileRepository;
     private final MypageService mypageService;
     private final JwtProvider jwtProvider;
+    private final CustomUserDetailsService customUserDetailsService;
 
 
     public boolean confirmPW(UUID uuid, String userpw){
@@ -122,24 +127,28 @@ public class UserService {
     // 로그인
     public TokenDto logIn(LogInRequest request, HttpServletResponse response) {
 
-        // 사용자 조회
-        User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+        // 사용자 정보 조회 (UserDetails 사용)
+        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), request.getRole());
+
+        // UserDetails에서 User 객체 추출
+        User user;
+        if (userDetails instanceof CustomUserDetails) {
+            user = ((CustomUserDetails) userDetails).user();
+        } else {
+            throw new UserException(ExceptionType.USER_NOT_EXISTS);
+        }
 
         // 비밀번호 검증
         if (!user.getUserPw().equals(request.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
-        // JWT 생성
-        log.debug("JWT 생성");
-        String accessToken = jwtProvider.createAccessToken(user.getUserUUID().toString());
-        String refreshToken = jwtProvider.createRefreshToken(user.getUserUUID().toString(), response);
+        String accessToken = jwtProvider.createAccessToken(userDetails.getUsername());
+        String refreshToken = jwtProvider.createRefreshToken(userDetails.getUsername(), response);
 
-        log.debug("로그인 성공, 엑세스 토큰: {}", accessToken);
+        log.debug("로그인 성공, uuid: {}", userDetails.getUsername());
         return new TokenDto(accessToken, refreshToken);
     }
-
 
 
     public void validatePasswordsMatch(PasswordRequest request) {

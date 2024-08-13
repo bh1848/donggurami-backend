@@ -1,7 +1,6 @@
 package com.USWCicrcleLink.server.clubLeader.domain;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
-import com.USWCicrcleLink.server.global.login.domain.IntegratedUser;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -17,7 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Table(name = "LEADER_TABLE")
-public class Leader implements IntegratedUser {
+public class Leader{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,20 +42,5 @@ public class Leader implements IntegratedUser {
     @PrePersist
     public void prePersist() {
         this.leaderUUID = UUID.randomUUID();
-    }
-
-    @Override
-    public String getIntegratedAccount() {
-        return leaderAccount;
-    }
-
-    @Override
-    public String getIntegratedPw() {
-        return leaderPw;
-    }
-
-    @Override
-    public UUID getIntegratedUUID() {
-        return leaderUUID;
     }
 }

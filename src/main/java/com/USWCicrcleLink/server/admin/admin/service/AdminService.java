@@ -34,29 +34,9 @@ import java.util.List;
 @Slf4j
 public class AdminService {
 
-    private final JwtProvider jwtProvider;
-    private final AdminRepository adminRepository;
     private final LeaderRepository leaderRepository;
     private final ClubRepository clubRepository;
     private final ClubIntroRepository clubIntroRepository;
-
-    // 관리자 로그인(웹)
-    public TokenDto adminLogin(AdminLoginRequest loginRequest, HttpServletResponse response) {
-
-        Admin admin = adminRepository.findByAdminAccount(loginRequest.getAdminAccount())
-                .orElseThrow(() -> new RuntimeException("아이디나 비밀번호를 확인해주세요."));
-
-        if (!admin.getAdminPw().equals(loginRequest.getAdminPw())) {
-            throw new RuntimeException("아이디나 비밀번호를 확인해주세요.");
-        }
-
-        log.debug("JWT 생성");
-        String accessToken = jwtProvider.createAccessToken(admin.getAdminUUID().toString());
-        String refreshToken = jwtProvider.createRefreshToken(admin.getAdminUUID().toString(), response);
-
-        log.debug("로그인 성공, 엑세스 토큰: {}", accessToken);
-        return new TokenDto(accessToken, refreshToken);
-    }
 
     // 동아리 목록 조회(웹)
     public List<ClubListResponse> getAllClubs() {
