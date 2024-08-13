@@ -59,12 +59,12 @@ public class SecurityConfig {
 
                     // USER
                     auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","/mypages/notices","/mypages/my-clubs","/mypages/aplict-clubs").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","/mypages/notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**", "/club-leader/fcm-token").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.GET, "/club-leader/{clubId}/**").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.PATCH, "/club-leader/{clubId}/**").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/club-leader/{clubId}/members").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/", "mypages/notices").hasRole("USER");
 
                     // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/info").hasRole("LEADER");

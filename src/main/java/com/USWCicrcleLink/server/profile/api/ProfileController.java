@@ -19,15 +19,15 @@ public class ProfileController {
 
     private final ProfileService profileService;
 
-    @PatchMapping("/{uuid}")
-    public ApiResponse<ProfileResponse> updateProfile(@PathVariable UUID uuid, @RequestBody ProfileRequest profileRequest) {
-        ProfileResponse profileResponse = profileService.updateProfile(uuid, profileRequest);
+    @PatchMapping("/change")
+    public ApiResponse<ProfileResponse> updateProfile(@RequestBody ProfileRequest profileRequest) {
+        ProfileResponse profileResponse = profileService.updateProfile(profileRequest);
         return new ApiResponse<>("프로필 수정 성공", profileResponse);
     }
 
-    @GetMapping("/{uuid}")
-    public ApiResponse<ProfileResponse> getMyprofile(@PathVariable UUID uuid){
-        ProfileResponse profileResponse = profileService.getMyProfile(uuid);
+    @GetMapping("/me")
+    public ApiResponse<ProfileResponse> getMyProfile(){
+        ProfileResponse profileResponse = profileService.getMyProfile();
         return new ApiResponse<>("프로필 조회 성공", profileResponse);
     }
 }

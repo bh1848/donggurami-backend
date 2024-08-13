@@ -33,10 +33,10 @@ public class UserController {
     private final AuthTokenService authTokenService;
     private final EmailTokenService emailTokenService;
 
-    @PatchMapping("/{uuid}/userpw")
-    public ApiResponse<String> updateUserPw(@PathVariable UUID uuid, @RequestBody UpdatePwRequest request) {
+    @PatchMapping("/userpw")
+    public ApiResponse<String> updateUserPw(@RequestBody UpdatePwRequest request) {
 
-        userService.updateNewPW(uuid, request.getUserPw(),request.getNewPw(), request.getConfirmNewPw());
+        userService.updateNewPW(request);
 
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }

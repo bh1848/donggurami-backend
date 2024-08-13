@@ -14,10 +14,7 @@ import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
-import com.USWCicrcleLink.server.user.dto.LogInRequest;
-import com.USWCicrcleLink.server.user.dto.PasswordRequest;
-import com.USWCicrcleLink.server.user.dto.SignUpRequest;
-import com.USWCicrcleLink.server.user.dto.UserInfoDto;
+import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 import jakarta.mail.MessagingException;
@@ -25,10 +22,12 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.UUID;
 
 @Service
@@ -41,32 +40,37 @@ public class UserService {
     private final EmailService emailService;
     private final EmailTokenService emailTokenService;
     private final ProfileRepository profileRepository;
-    private final MypageService mypageService;
     private final JwtProvider jwtProvider;
     private final CustomUserDetailsService customUserDetailsService;
 
+    //어세스토큰에서 유저정보 가져오기
+    private User getUserByAuth() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userDetails.user();
+    }
 
-    public boolean confirmPW(UUID uuid, String userpw){
-        User user = mypageService.getUserByUUID(uuid);
+    public boolean confirmPW(String userpw){
+        User user = getUserByAuth();
         return user.getUserPw().equals(userpw);
     }
 
-    public void updateNewPW(UUID uuid, String userPw, String newPW, String confirmNewPW){
+    public void updateNewPW(UpdatePwRequest updatePwRequest){
 
-        if (newPW.trim().isEmpty() || confirmNewPW.trim().isEmpty()) {
+        if (updatePwRequest.getNewPw().trim().isEmpty() || updatePwRequest.getConfirmNewPw().trim().isEmpty()) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_INPUT);
         }
 
-        if (!newPW.equals(confirmNewPW)) {
+        if (!updatePwRequest.getNewPw().equals(updatePwRequest.getConfirmNewPw())) {
             throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
         }
 
-        if (!confirmPW(uuid, userPw)) {
+        if (!confirmPW(updatePwRequest.getUserPw())) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
 
-        User user = mypageService.getUserByUUID(uuid);
-        user.updateUserPw(newPW);
+        User user = getUserByAuth();
+        user.updateUserPw(updatePwRequest.getNewPw());
         User updateUserPw = userRepository.save(user);
 
         if(updateUserPw == null){
