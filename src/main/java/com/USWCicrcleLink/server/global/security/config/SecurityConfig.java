@@ -48,10 +48,7 @@ public class SecurityConfig {
                             "/users/email/resend-confirmation",
                             "/mypages/notices",
                             "/auth/refresh-token", // 토큰 재발급
-                            "/integration/login", // 동아리 회장, 동연회-개발자 통합 로그인
-                            "/mainPhoto/allabout.jpg",
-                            "/mainPhoto/flag.jpg",
-                            "/mainPhoto/gullisae.jpg"
+                            "/integration/login" // 동아리 회장, 동연회-개발자 통합 로그인
                     ).permitAll();
 
 
@@ -63,7 +60,7 @@ public class SecurityConfig {
 
                     // USER
                     auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","/mypages/notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","/mypages/notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/mainPhoto/**").hasRole("USER");
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**", "/club-leader/fcm-token").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.GET, "/club-leader/{clubId}/**").hasRole("LEADER");

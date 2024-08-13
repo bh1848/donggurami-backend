@@ -2,6 +2,8 @@ package com.USWCicrcleLink.server.global;
 
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
+import com.USWCicrcleLink.server.admin.notice.domain.Notice;
+import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
@@ -27,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -43,6 +46,7 @@ public class DummyData {
     private final AplictRepository aplictRepository;
     private final ClubIntroRepository clubIntroRepository;
     private final LeaderRepository leaderRepository;
+    private final NoticeRepository noticeRepository;
 
     @PostConstruct
     public void init(){
@@ -371,5 +375,14 @@ public class DummyData {
                 .build();
 
         adminRepository.save(admin);
+
+        Notice notice1 = Notice.builder()
+                .noticeTitle("첫번째 공지사항")
+                .noticeContent("공지사항입니다. 동구라미 개발중입니다.")
+                .noticeCreatedAt(LocalDateTime.now())
+                .admin(admin)
+                .build();
+
+        noticeRepository.save(notice1);
     }
 }
