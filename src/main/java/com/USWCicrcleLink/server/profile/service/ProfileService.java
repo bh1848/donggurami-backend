@@ -28,12 +28,13 @@ import java.util.UUID;
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
-    private final UserRepository userRepository;
 
     //프로필 업데이트
     public ProfileResponse updateProfile(ProfileRequest profileRequest) {
 
-        Profile profile = getProfileByUserUUID();
+        validateProfileRequest(profileRequest);
+
+        Profile profile = getProfileByAuth();
 
         profile.updateProfile(profileRequest);
 
@@ -48,7 +49,18 @@ public class ProfileService {
         return new ProfileResponse(profile);
     }
 
-    private Profile getProfileByUserUUID() {
+    private void validateProfileRequest(ProfileRequest profileRequest) {
+        if (profileRequest.getUserName() == null || profileRequest.getUserName().trim().isEmpty() ||
+                profileRequest.getStudentNumber() == null || profileRequest.getStudentNumber().trim().isEmpty() ||
+                profileRequest.getUserHp() == null || profileRequest.getUserHp().trim().isEmpty() ||
+                profileRequest.getMajor() == null || profileRequest.getMajor().trim().isEmpty()) {
+
+            throw new ProfileException(ExceptionType.PROFILE_NOT_INPUT);
+        }
+    }
+
+
+    private Profile getProfileByAuth() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -61,7 +73,7 @@ public class ProfileService {
 
     //프로필 조회
     public ProfileResponse getMyProfile(){
-        Profile profile = getProfileByUserUUID();
+        Profile profile = getProfileByAuth();
         return new ProfileResponse(profile);
     }
 }

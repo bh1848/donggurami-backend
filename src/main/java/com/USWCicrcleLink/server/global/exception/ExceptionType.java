@@ -81,6 +81,7 @@ public enum ExceptionType {
      */
     PROFILE_NOT_EXISTS("PFL-201", "프로필이 존재하지 않습니다.", BAD_REQUEST),
     PROFILE_UPDATE_FAIL("PFL-202", "프로필 업데이트에 실패했습니다.", BAD_REQUEST),
+    PROFILE_NOT_INPUT("PFL-203","프로필 입력값은 필수 입니다.",BAD_REQUEST),
 
     /**
      * Domain : ClubLeader
