@@ -106,7 +106,7 @@ public class DummyData {
                 .userName("김땡떙")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정보보호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -118,7 +118,7 @@ public class DummyData {
                 .userName("김빵빵")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정뽀호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -130,7 +130,7 @@ public class DummyData {
                 .userName("user3")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정보보호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -142,7 +142,7 @@ public class DummyData {
                 .userName("user4")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정뽀호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -253,7 +253,7 @@ public class DummyData {
                 .userName("이댕댕")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("컴퓨터SW")
+                .major("컴퓨터SW학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -309,7 +309,7 @@ public class DummyData {
                 .userName("박둥둥")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("데이터과학")
+                .major("데이터과학부")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
