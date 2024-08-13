@@ -114,7 +114,7 @@ public class MypageService {
                 .clubId(club.getClubId())
                 .clubName(club.getClubName())
                 .clubInsta(club.getClubInsta())
-                .katalkID(club.getKatalkID())
+                .leaderHp(club.getLeaderHp())
                 .leaderName(club.getLeaderName())
                 .aplictStatus(aplictStatus)
                 .mainPhotoPath(club.getMainPhotoPath()).build();
@@ -124,7 +124,7 @@ public class MypageService {
                 .clubId(club.getClubId())
                 .clubName(club.getClubName())
                 .clubInsta(club.getClubInsta())
-                .katalkID(club.getKatalkID())
+                .leaderHp(club.getLeaderHp())
                 .leaderName(club.getLeaderName())
                 .mainPhotoPath(club.getMainPhotoPath()).build();
     }

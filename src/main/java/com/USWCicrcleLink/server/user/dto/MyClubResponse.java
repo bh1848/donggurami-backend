@@ -19,7 +19,7 @@ public class MyClubResponse {
 
     private String leaderName;
 
-    private String katalkID;
+    private String leaderHp;
 
     private String clubInsta;
 
