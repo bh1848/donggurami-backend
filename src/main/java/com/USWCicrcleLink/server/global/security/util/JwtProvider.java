@@ -167,7 +167,7 @@ public class JwtProvider {
             log.debug("엑세스 토큰 유효성 검증 결과: {}", isValid);
             return isValid;
         } catch (JwtException | IllegalArgumentException e) {
-            log.error("엑세스 토큰 검증 실패: {}", e.getMessage(), e);
+            log.error("엑세스 토큰 검증 실패: {}", e.getMessage());
             return false;
         }
     }
