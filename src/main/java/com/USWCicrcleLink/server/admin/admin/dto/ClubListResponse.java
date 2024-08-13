@@ -16,12 +16,4 @@ public class ClubListResponse {
     private String clubName;
     private String leaderName;
     private long numberOfClubMembers;
-
-    public ClubListResponse(Club club, long memberCount, long leaderCount) {
-        this.clubId = club.getClubId();
-        this.department = club.getDepartment();
-        this.clubName = club.getClubName();
-        this.leaderName = club.getLeaderName();
-        this.numberOfClubMembers = memberCount + leaderCount;
-    }
 }

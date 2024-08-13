@@ -1,6 +1,5 @@
 package com.USWCicrcleLink.server.admin.admin.domain;
 
-import com.USWCicrcleLink.server.global.login.domain.IntegratedUser;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,7 +16,7 @@ import java.util.UUID;
 @Builder
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "ADMIN_TABLE")
-public class Admin implements IntegratedUser {
+public class Admin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "admin_id")
@@ -38,19 +37,4 @@ public class Admin implements IntegratedUser {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;
-
-    @Override
-    public String getIntegratedAccount() {
-        return adminAccount;
-    }
-
-    @Override
-    public String getIntegratedPw() {
-        return adminPw;
-    }
-
-    @Override
-    public UUID getIntegratedUUID() {
-        return adminUUID;
-    }
 }

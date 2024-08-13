@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.global.security.util;
 
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
 import io.jsonwebtoken.*;
@@ -53,6 +54,7 @@ public class JwtProvider {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(uuid);
         Role role;
         List<Long> clubIds = null;
+        Long clubId = null;
 
         Claims claims = Jwts.claims().setSubject(uuid);
         if (userDetails instanceof CustomUserDetails customUserDetails) {
@@ -60,7 +62,7 @@ public class JwtProvider {
             clubIds = customUserDetails.getClubIds();
         } else if (userDetails instanceof CustomLeaderDetails customLeaderDetails) {
             role = customLeaderDetails.leader().getRole();
-            clubIds = customLeaderDetails.getClubIds();
+            clubId = customLeaderDetails.getClubId();
         } else if (userDetails instanceof CustomAdminDetails customAdminDetails) {
             role = customAdminDetails.admin().getRole();
         } else {
@@ -70,6 +72,8 @@ public class JwtProvider {
         claims.put("role", role.name());
         if (clubIds != null) {
             claims.put("clubIds", clubIds);
+        } else if (clubId != null) {
+            claims.put("clubId", clubId);
         }
 
         Date now = new Date();
@@ -80,23 +84,45 @@ public class JwtProvider {
 
     // 리프레시 토큰 생성 및 Redis에 저장
     public String createRefreshToken(String uuid, HttpServletResponse response) {
-        String token = UUID.randomUUID().toString();
+        // 먼저 Redis에 저장된 기존 리프레시 토큰을 삭제 (기존 토큰이 있는 경우에만)
+        String existingRefreshToken = getStoredRefreshTokenByUuid(uuid);
+        if (existingRefreshToken != null) {
+            deleteRefreshToken(existingRefreshToken);
+            log.debug("기존 리프레시 토큰 삭제 완료: {}", existingRefreshToken);
+        }
 
-        // HashMap으로 Redis에 저장할 데이터 구성
+        // 새 리프레시 토큰 생성
+        String newToken = UUID.randomUUID().toString();
+
+        // Redis에 새 토큰 데이터 저장
         Map<String, String> tokenData = new HashMap<>();
         tokenData.put("_class", "com.USWRandomChat.backend.global.security.domain.RefreshToken");
         tokenData.put("uuid", uuid);
         tokenData.put("expiration", String.valueOf(REFRESH_TOKEN_EXPIRATION_TIME));
-        tokenData.put("refreshToken", token);
+        tokenData.put("refreshToken", newToken);
 
-        // Redis에 Hash로 저장
-        redisTemplate.opsForHash().putAll("refreshToken:" + token, tokenData);
-        redisTemplate.expire("refreshToken:" + token, REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
+        // Redis에 저장
+        redisTemplate.opsForHash().putAll("refreshToken:" + newToken, tokenData);
+        redisTemplate.expire("refreshToken:" + newToken, REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
 
         // 리프레시 토큰을 쿠키로 전송
-        setRefreshTokenCookie(response, token);
+        setRefreshTokenCookie(response, newToken);
 
-        return token;
+        return newToken;
+    }
+
+    // UUID로 Redis에서 리프레시 토큰 검색
+    private String getStoredRefreshTokenByUuid(String uuid) {
+        Set<String> keys = redisTemplate.keys("refreshToken:*");
+        if (keys != null) {
+            for (String key : keys) {
+                String storedUuid = (String) redisTemplate.opsForHash().get(key, "uuid");
+                if (uuid.equals(storedUuid)) {
+                    return (String) redisTemplate.opsForHash().get(key, "refreshToken");
+                }
+            }
+        }
+        return null;
     }
 
     // JWT 빌드
@@ -141,7 +167,7 @@ public class JwtProvider {
             log.debug("엑세스 토큰 유효성 검증 결과: {}", isValid);
             return isValid;
         } catch (JwtException | IllegalArgumentException e) {
-            log.error("JWT 검증 실패: {}", e.getMessage(), e);
+            log.error("엑세스 토큰 검증 실패: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -212,19 +238,37 @@ public class JwtProvider {
 
     // 리프레시 토큰 유효성 검증
     public boolean validateRefreshToken(String refreshToken) {
-        // Redis에서 Hash로 저장된 데이터 가져오기
-        String storedToken = (String) redisTemplate.opsForHash().get("refreshToken:" + refreshToken, "refreshToken");
+        try {
+            // Redis에서 Hash로 저장된 데이터 가져오기
+            String storedToken = (String) redisTemplate.opsForHash().get("refreshToken:" + refreshToken, "refreshToken");
 
-        boolean isValid = storedToken != null && storedToken.equals(refreshToken);
-        log.debug("리프레시 토큰 유효성 검증 결과: {}", isValid);
-        return isValid;
+            if (storedToken == null) {
+                log.warn("Redis에서 리프레시 토큰을 찾을 수 없음: {}", refreshToken);
+                throw new JwtException(ExceptionType.INVALID_REFRESH_TOKEN.getMessage());
+            }
+            boolean isValid = storedToken.equals(refreshToken);
+            log.debug("리프레시 토큰 유효성 검증 결과: {}", isValid);
+            return isValid;
+        } catch (JwtException e) {
+            throw new JwtException(ExceptionType.INVALID_REFRESH_TOKEN.getMessage());
+        }
     }
 
-
-    // 리프레시 토큰 삭제
+    // redis에서 리프레시 토큰 삭제
     public void deleteRefreshToken(String refreshToken) {
         redisTemplate.delete("refreshToken:" + refreshToken);
         log.debug("리프레시 토큰 삭제: {}", refreshToken);
     }
 
+    // 쿠키에서 리프레시 토큰 삭제
+    public void deleteRefreshTokenCookie(HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0);  // 쿠키를 삭제하는 방법
+
+        response.addCookie(refreshTokenCookie);
+        log.debug("클라이언트의 쿠키에서 리프레시 토큰 삭제 완료");
+    }
 }
