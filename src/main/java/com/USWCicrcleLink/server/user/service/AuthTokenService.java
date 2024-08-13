@@ -22,11 +22,23 @@ public class AuthTokenService {
 
     private final AuthTokenRepository authTokenRepository;
 
-    // 인증 코드 토큰 생성
+    // 인증 코드 토큰 생성 또는 업데이트
     @Transactional
-    public AuthToken createAuthToken(User user) {
-        AuthToken authToken = AuthToken.createAuthToken(user);
-        return authTokenRepository.save(authToken);
+    public AuthToken createOrUpdateAuthToken(User user) {
+        // 인증 토큰이 이미 존재하는지 확인
+        return authTokenRepository.findByUserUserUUID(user.getUserUUID())
+                .map(existingAuthToken -> {
+                    // 토큰이 존재할 경우, 인증 코드를 업데이트
+                    log.debug("회원의 인증 코드 토큰이 이미 존재 user_uuid=  {}. 인증 코드 업데이트 메서드 실행.", user.getUserUUID());
+                    existingAuthToken.updateAuthCode();
+                    return authTokenRepository.save(existingAuthToken);
+                })
+                .orElseGet(() -> {
+                    // 토큰이 존재하지 않을 경우, 새로운 인증 토큰을 생성
+                    log.debug("새로운 인증 토큰 생성 시작 user_uuid={}", user.getUserUUID());
+                    AuthToken newAuthToken = AuthToken.createAuthToken(user);
+                    return authTokenRepository.save(newAuthToken);
+                });
     }
 
     // 인증 코드 토큰 검증
@@ -53,22 +65,5 @@ public class AuthTokenService {
 
         authTokenRepository.delete(authToken);
         log.debug("검증 완료된 인증 코드 토큰 삭제 완료");
-    }
-
-    // 새로운 인증 코드 생성
-    public AuthToken updateAuthCode(User user) {
-
-        log.debug("인증 코드 재전송 요청 시작 ");
-
-        // authtoken 조회
-        AuthToken authToken = authTokenRepository.findByUserUserUUID(user.getUserUUID())
-                .orElseThrow(() -> new AuthCodeException(ExceptionType.AUTHCODETOKEN_NOT_EXISTS));
-
-        // 인증 번호 업데이트
-        authToken.updateAuthCode();
-        authTokenRepository.save(authToken);
-        log.debug("인증 코드 재생성 완료");
-
-        return authToken;
     }
 }

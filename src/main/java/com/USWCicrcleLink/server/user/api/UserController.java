@@ -121,7 +121,7 @@ public class UserController {
 
     // 아이디 찾기
     @GetMapping ("/find-account/{email}")
-    ResponseEntity<ApiResponse<String>> findUserAccount(@PathVariable String email)  {
+    ResponseEntity<ApiResponse<String>> findUserAccount(@PathVariable String email) {
 
         User findUser= userService.findUser(email);
         userService.sendAccountInfoMail(findUser);
@@ -132,10 +132,10 @@ public class UserController {
 
     // 인증 코드 전송
     @PostMapping("/auth/send-code")
-    ResponseEntity<ApiResponse<UUID>> sendAuthCode (@Valid @RequestBody UserInfoDto request)  {
+    ResponseEntity<ApiResponse<UUID>> sendAuthCode (@Valid @RequestBody UserInfoDto request) {
 
         User user = userService.validateAccountAndEmail(request);
-        AuthToken authToken = authTokenService.createAuthToken(user);
+        AuthToken authToken = authTokenService.createOrUpdateAuthToken(user);
         userService.sendAuthCodeMail(user,authToken);
 
         ApiResponse<UUID> response = new ApiResponse<>("인증코드가 전송 되었습니다",user.getUserUUID());
@@ -150,19 +150,6 @@ public class UserController {
         authTokenService.deleteAuthToken(uuid);
 
         ApiResponse<String> response = new ApiResponse<>("인증 코드 검증이 완료되었습니다",request.getUserAccount());
-        return new ResponseEntity<>(response,HttpStatus.OK);
-    }
-
-    // 인증 코드 재전송
-    @PatchMapping("/auth/resend")
-    public ResponseEntity<ApiResponse<String>> resendAuthCode (@Valid @RequestBody UserInfoDto request) {
-
-        log.debug("인증 코드 재전송 메서드");
-        User user = userService.validateAccountAndEmail(request);
-        AuthToken authToken = authTokenService.updateAuthCode(user);
-        userService.sendAuthCodeMail(user,authToken);
-
-        ApiResponse<String> response = new ApiResponse<>("인증 코드 재전송이 완료되었습니다",request.getUserAccount());
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
