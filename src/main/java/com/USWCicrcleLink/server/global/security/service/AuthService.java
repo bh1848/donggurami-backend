@@ -36,9 +36,6 @@ public class AuthService {
             // 클라이언트의 쿠키에서 리프레시 토큰 삭제
             jwtProvider.deleteRefreshTokenCookie(response);
 
-            // 추가적으로, 사용자가 인증되어 있다면 SecurityContext에서 제거
-            request.getSession().invalidate();
-
             return null; // 유효하지 않은 경우 null 반환
         }
     }

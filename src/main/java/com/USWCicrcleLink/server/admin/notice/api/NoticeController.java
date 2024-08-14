@@ -53,7 +53,7 @@ public class NoticeController {
     //공지사항 생성(웹)
     @PostMapping("/notices")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> createNotice(
-            @RequestPart("request") @Valid NoticeCreationRequest request,
+            @RequestPart(value = "request", required = false) @Valid NoticeCreationRequest request,
             //사진 배열 처리
             @RequestPart(value = "photos", required = false) MultipartFile[] noticePhotos) throws IOException {
 
