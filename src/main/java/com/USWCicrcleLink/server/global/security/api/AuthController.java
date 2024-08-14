@@ -21,7 +21,13 @@ public class AuthController {
     @PostMapping("/refresh-token")
     public ResponseEntity<ApiResponse<TokenDto>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         TokenDto tokenDto = authService.refreshToken(request, response);
-        ApiResponse<TokenDto> apiResponse = new ApiResponse<>("새로운 엑세스 토큰과 리프레시 토큰이 발급됐습니다.", tokenDto);
-        return ResponseEntity.ok(apiResponse);
+
+        if (tokenDto != null) {
+            ApiResponse<TokenDto> apiResponse = new ApiResponse<>("새로운 엑세스 토큰과 리프레시 토큰이 발급되었습니다. 로그인됐습니다.", tokenDto);
+            return ResponseEntity.ok(apiResponse);
+        } else {
+            ApiResponse<TokenDto> apiResponse = new ApiResponse<>("리프레시 토큰이 유효하지 않습니다. 로그아웃됐습니다.");
+            return ResponseEntity.status(401).body(apiResponse);
+        }
     }
 }

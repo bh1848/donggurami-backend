@@ -64,17 +64,23 @@ public class IntegrationService {
     // 동아리 회장, 동연회-개발자, 사용자 통합 로그아웃
     public void integrationLogout(HttpServletRequest request, HttpServletResponse response) {
 
-        // Refresh Token 추출
+        // 리프레시 토큰 추출
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
         if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken)) {
-            // Redis에서 Refresh Token 삭제
-            jwtProvider.deleteRefreshToken(refreshToken);
-            log.debug("로그아웃: 리프레시 토큰 삭제 완료");
+            // 유효한 리프레시 토큰인 경우, UUID 추출 및 모든 리프레시 토큰 삭제
+            String uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
+            jwtProvider.deleteRefreshTokensByUuid(uuid);
+            log.debug("로그아웃: 사용자 {}의 모든 리프레시 토큰 삭제 완료", uuid);
+        } else {
+            log.debug("리프레시 토큰이 존재하지 않거나 유효하지 않음. 로그아웃 처리 계속 진행.");
         }
 
         // 클라이언트의 쿠키에서 리프레시 토큰 삭제
         jwtProvider.deleteRefreshTokenCookie(response);
+
+        // 추가적으로, 사용자가 인증되어 있다면 SecurityContext에서 제거
+        request.getSession().invalidate();
 
         log.debug("로그아웃 성공");
     }

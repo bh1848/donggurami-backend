@@ -6,7 +6,7 @@ logging:
   level:
     com:
       USWCicrcleLink:
-        server: warn
+        server: debug
 
 #email url
 email:

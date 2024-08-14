@@ -1,5 +1,7 @@
 package com.USWCicrcleLink.server.global.security.filter;
 
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.JwtException;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -54,7 +56,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 요청에서 JWT 액세스 토큰 추출
         String accessToken = jwtProvider.resolveAccessToken(request);
-        log.debug("엑세스 토큰 추출: {}", accessToken);
 
         if (accessToken != null) {
             if (jwtProvider.validateAccessToken(accessToken)) {
@@ -70,11 +71,7 @@ public class JwtFilter extends OncePerRequestFilter {
             } else {
 
                 // 토큰이 유효하지 않은 경우
-                log.error("유효하지 않은 엑세스 토큰: {}", accessToken);
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.getWriter().write("{\"error\": \"유효하지 않은 엑세스 토큰입니다.\"}");
-                return;
+                throw new JwtException(ExceptionType.INVALID_ACCESS_TOKEN);
             }
         }
 
