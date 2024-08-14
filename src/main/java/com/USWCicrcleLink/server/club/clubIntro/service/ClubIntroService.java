@@ -63,6 +63,8 @@ public class ClubIntroService {
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId).orElseThrow(() ->
                 new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
-        return new ClubIntroResponse(clubIntro);
+        Club club = clubRepository.findById(clubId).orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+
+        return new ClubIntroResponse(clubIntro, club);
     }
 }

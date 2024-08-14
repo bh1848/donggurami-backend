@@ -117,7 +117,9 @@ public enum ExceptionType {
      * File I/O
      */
     FILE_ENCODING_FAILED("FILE_301", "파일 이름 인코딩에 실패했습니다.", BAD_REQUEST),
-    FILE_CREATE_FAILED("FILE_302", "파일 생성에 실패했습니다.", BAD_REQUEST);
+    FILE_CREATE_FAILED("FILE_302", "파일 생성에 실패했습니다.", BAD_REQUEST),
+    INVALID_PHOTO_DATA("FILE_303", "사진 또는 순서 정보가 제공되지 않았습니다.", BAD_REQUEST),
+    PHOTO_ORDER_MISMATCH("FILE_304", "사진의 개수와 순서 정보의 개수가 일치하지 않습니다.", BAD_REQUEST);
 
     private final String code;
     private final String message;

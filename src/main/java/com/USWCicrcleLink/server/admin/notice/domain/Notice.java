@@ -27,7 +27,7 @@ public class Notice {
     @Column(name = "notice_created_at")
     private LocalDateTime noticeCreatedAt;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id", nullable = false)
     private Admin admin;
 

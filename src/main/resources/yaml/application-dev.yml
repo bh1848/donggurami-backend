@@ -5,8 +5,8 @@ server:
 logging:
   level:
     com:
-      USWRandomChat:
-        backend: debug
+      USWCicrcleLink:
+        server: debug
 
 spring:
   config:

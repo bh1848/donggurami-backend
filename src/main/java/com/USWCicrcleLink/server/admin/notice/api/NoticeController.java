@@ -4,6 +4,7 @@ import com.USWCicrcleLink.server.admin.notice.domain.Notice;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeCreationRequest;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
+import com.USWCicrcleLink.server.admin.notice.dto.NoticeUpdateRequest;
 import com.USWCicrcleLink.server.admin.notice.service.NoticeService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -54,7 +55,7 @@ public class NoticeController {
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> createNotice(
             @RequestPart("request") @Valid NoticeCreationRequest request,
             //사진 배열 처리
-            @RequestPart(value = "noticePhotos", required = false) MultipartFile[] noticePhotos) throws IOException {
+            @RequestPart(value = "photos", required = false) MultipartFile[] noticePhotos) throws IOException {
 
         NoticeDetailResponse createdNotice = noticeService.createNotice(request, noticePhotos);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 생성 성공", createdNotice);
@@ -65,9 +66,9 @@ public class NoticeController {
     @PatchMapping("/notices/{noticeId}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> updateNotice(
             @PathVariable("noticeId") Long noticeId,
-            @RequestPart("request") @Valid NoticeCreationRequest request,
+            @RequestPart(value = "request", required = false) @Valid NoticeUpdateRequest request,
             //사진 배열 처리
-            @RequestPart(value = "noticePhotos", required = false) MultipartFile[] noticePhotos) throws IOException {
+            @RequestPart(value = "photos", required = false) MultipartFile[] noticePhotos) throws IOException {
 
         NoticeDetailResponse updatedNotice = noticeService.updateNotice(noticeId, request, noticePhotos);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 수정 성공", updatedNotice);

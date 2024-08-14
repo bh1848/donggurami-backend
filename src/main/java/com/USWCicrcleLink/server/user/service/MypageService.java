@@ -11,7 +11,6 @@ import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AplictException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubMemberException;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
-import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
@@ -27,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -81,20 +81,24 @@ public class MypageService {
 
     // UUID를 통해 지원한 동아리 조회
     public List<MyAplictResponse> getAplictClubByUUID() {
-        User user = getUserByAuth();
-        Profile profile = getProfileByUserId(user.getUserId());
+        User user = getUserByAuth(); // 현재 인증된 사용자 가져오기
+        Profile profile = getProfileByUserId(user.getUserId()); // 사용자의 프로필 정보 가져오기
 
-        List<Aplict> aplicts = getAplictsByProfileId(profile.getProfileId());
+        List<Aplict> aplicts = getAplictsByProfileId(profile.getProfileId()); // 프로필 ID를 통해 지원 정보 가져오기
         log.info("지원 동아리 조회 완료");
 
         return aplicts.stream()
                 .map(aplict -> {
-                    Club club = getClubByAplictId(aplict.getId());
-                    AplictStatus aplictStatus = aplict.getAplictStatus(); // 어플릭트의 상태 가져오기
-                    return myAplictResponse(club, aplictStatus);
+                    // Club을 안전하게 조회, 존재하지 않으면 예외 처리
+                    Club club = clubRepository.findById(aplict.getClub().getClubId())
+                            .orElseThrow(() -> new RuntimeException("해당 클럽을 찾을 수 없습니다."));
+
+                    AplictStatus aplictStatus = aplict.getAplictStatus(); // 지원 상태 가져오기
+                    return myAplictResponse(club, aplictStatus); // 응답 객체 생성
                 })
                 .collect(Collectors.toList());
     }
+
 
     //유저아이디를 통해 프로필아이디 조회
     private Profile getProfileByUserId(Long userId) {
@@ -112,10 +116,10 @@ public class MypageService {
     }
 
     // 어플리케이션 ID를 통해 클럽 조회
-    private Club getClubByAplictId(Long aplictId) {
+    private Optional<Club> getClubByAplictId(Long aplictId) {
         Aplict aplict = aplictRepository.findById(aplictId)
                 .orElseThrow(() -> new AplictException(ExceptionType.APLICT_NOT_EXISTS));
-        return clubRepository.findByClubId(aplict.getClub().getClubId());
+        return clubRepository.findById(aplict.getClub().getClubId());
     }
 
     private MyAplictResponse myAplictResponse(Club club, AplictStatus aplictStatus){

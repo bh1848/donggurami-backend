@@ -19,6 +19,9 @@ public class NoticePhoto {
     @Column(name = "notice_photo_path")
     private String noticePhotoPath;
 
+    @Column(name = "photo_order")
+    private int order;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notice_id", nullable = false)
     private Notice notice;
