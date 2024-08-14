@@ -6,6 +6,6 @@ import java.util.UUID;
 
 @Data
 public class VerifyEmailRequest {
-    private UUID emailTokenId;
+    private UUID emailToken_uuid;
     private String account;
 }

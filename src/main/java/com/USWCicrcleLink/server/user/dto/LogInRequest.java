@@ -12,5 +12,6 @@ public class LogInRequest {
 
     private String account;
     private String password;
+    private String fcmToken;
     private Role role;
 }

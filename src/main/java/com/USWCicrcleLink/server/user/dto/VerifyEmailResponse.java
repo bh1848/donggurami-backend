@@ -11,7 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class VerifyEmailResponse {
 
-    private UUID emailTokenId;
+    private UUID emailToken_uuid;
     private String account;
 
 }
