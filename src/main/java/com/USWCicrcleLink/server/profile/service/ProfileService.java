@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.profile.service;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
+import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
@@ -13,6 +14,8 @@ import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 
@@ -25,30 +28,43 @@ import java.util.UUID;
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
-    private final UserRepository userRepository;
 
     //프로필 업데이트
-    public ProfileResponse updateProfile(UUID userUUID, ProfileRequest profileRequest) {
+    public ProfileResponse updateProfile(ProfileRequest profileRequest) {
 
-        Profile profile = getProfileByUserUUID(userUUID);
+        validateProfileRequest(profileRequest);
+
+        Profile profile = getProfileByAuth();
 
         profile.updateProfile(profileRequest);
 
         Profile updatedProfile = profileRepository.save(profile);
 
         if (updatedProfile == null) {
-            log.error("프로필 업데이트 실패: {}", userUUID);
+            log.error("프로필 업데이트 실패");
             throw new ProfileException(ExceptionType.PROFILE_UPDATE_FAIL);
         }
 
-        log.debug("프로필 수정 완료 {}", userUUID);
+        log.info("프로필 수정 완료");
         return new ProfileResponse(profile);
     }
 
-    private Profile getProfileByUserUUID(UUID userUUID) {
+    private void validateProfileRequest(ProfileRequest profileRequest) {
+        if (profileRequest.getUserName() == null || profileRequest.getUserName().trim().isEmpty() ||
+                profileRequest.getStudentNumber() == null || profileRequest.getStudentNumber().trim().isEmpty() ||
+                profileRequest.getUserHp() == null || profileRequest.getUserHp().trim().isEmpty() ||
+                profileRequest.getMajor() == null || profileRequest.getMajor().trim().isEmpty()) {
 
-        User user = userRepository.findByUserUUID(userUUID)
-                .orElseThrow(() -> new IllegalArgumentException("해당 uuid의 유저가 존재하지 않습니다.: " + userUUID));
+            throw new ProfileException(ExceptionType.PROFILE_NOT_INPUT);
+        }
+    }
+
+
+    private Profile getProfileByAuth() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        User user = userDetails.user();
 
         return profileRepository.findByUserUserId(user.getUserId())
                 .orElseThrow(()-> {log.error("존재하지 않는 프로필");
@@ -56,8 +72,8 @@ public class ProfileService {
     }
 
     //프로필 조회
-    public ProfileResponse getMyProfile(UUID uuid){
-        Profile profile = getProfileByUserUUID(uuid);
+    public ProfileResponse getMyProfile(){
+        Profile profile = getProfileByAuth();
         return new ProfileResponse(profile);
     }
 }

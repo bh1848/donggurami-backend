@@ -11,18 +11,20 @@ import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
 import com.USWCicrcleLink.server.user.service.UserService;
+
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.A;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.UUID;
-
 
 @RestController
 @Slf4j
@@ -34,10 +36,10 @@ public class UserController {
     private final AuthTokenService authTokenService;
     private final EmailTokenService emailTokenService;
 
-    @PatchMapping("/{uuid}/userpw")
-    public ApiResponse<String> updateUserPw(@PathVariable UUID uuid, @RequestBody UpdatePwRequest request) {
+    @PatchMapping("/userpw")
+    public ApiResponse<String> updateUserPw(@RequestBody UpdatePwRequest request) {
 
-        userService.updateNewPW(uuid, request.getUserPw(),request.getNewPw(), request.getConfirmNewPw());
+        userService.updateNewPW(request);
 
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
@@ -113,10 +115,10 @@ public class UserController {
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<TokenDto>> logIn(@Validated @RequestBody LogInRequest request) {
-        TokenDto tokenDto = userService.logIn(request);
-        ApiResponse<TokenDto> response = new ApiResponse<>("로그인 성공", tokenDto);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<TokenDto>> logIn(@RequestBody @Valid LogInRequest request, HttpServletResponse response) {
+        TokenDto tokenDto = userService.logIn(request, response);
+        ApiResponse<TokenDto> apiResponse = new ApiResponse<>("로그인 성공", tokenDto);
+        return ResponseEntity.ok(apiResponse);
     }
 
     // 아이디 찾기

@@ -12,6 +12,7 @@ import com.USWCicrcleLink.server.global.exception.errortype.AplictException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubMemberException;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
+import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -20,6 +21,8 @@ import com.USWCicrcleLink.server.user.dto.MyClubResponse;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,10 +41,11 @@ public class MypageService {
     private final AplictRepository aplictRepository;
     private final ClubRepository clubRepository;
 
-    //UUID를 통해 유저 아이디 조회
-    public User getUserByUUID(UUID uuid) {
-        return userRepository.findByUserUUID(uuid)
-                .orElseThrow(() -> new IllegalArgumentException("UUID에 해당하는 유저를 찾을 수 없습니다. " + uuid));
+    //어세스토큰에서 유저정보 가져오기
+    private User getUserByAuth() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userDetails.user();
     }
 
     //클럽멤버를 통해 클럽아이디 조회
@@ -62,8 +66,8 @@ public class MypageService {
     }
 
     //UUID를 통해 소속된 동아리 조회
-    public List<MyClubResponse> getMyClubByUUID(UUID uuid){
-        User user = getUserByUUID(uuid);
+    public List<MyClubResponse> getMyClubByUUID(){
+        User user = getUserByAuth();
         Profile profile = getProfileByUserId((user.getUserId()));
         List<ClubMembers> clubMembers = getClubMembersByProfileId(profile.getProfileId());
         log.debug("소속 동아리 조회 완료");
@@ -71,8 +75,8 @@ public class MypageService {
     }
 
     // UUID를 통해 지원한 동아리 조회
-    public List<MyAplictResponse> getAplictClubByUUID(UUID uuid) {
-        User user = getUserByUUID(uuid);
+    public List<MyAplictResponse> getAplictClubByUUID() {
+        User user = getUserByAuth();
         Profile profile = getProfileByUserId(user.getUserId());
 
         List<Aplict> aplicts = getAplictsByProfileId(profile.getProfileId());
@@ -114,7 +118,7 @@ public class MypageService {
                 .clubId(club.getClubId())
                 .clubName(club.getClubName())
                 .clubInsta(club.getClubInsta())
-                .katalkID(club.getKatalkID())
+                .leaderHp(club.getLeaderHp())
                 .leaderName(club.getLeaderName())
                 .aplictStatus(aplictStatus)
                 .mainPhotoPath(club.getMainPhotoPath()).build();
@@ -124,7 +128,7 @@ public class MypageService {
                 .clubId(club.getClubId())
                 .clubName(club.getClubName())
                 .clubInsta(club.getClubInsta())
-                .katalkID(club.getKatalkID())
+                .leaderHp(club.getLeaderHp())
                 .leaderName(club.getLeaderName())
                 .mainPhotoPath(club.getMainPhotoPath()).build();
     }

@@ -3,6 +3,9 @@ package com.USWCicrcleLink.server.admin.admin.api;
 import com.USWCicrcleLink.server.admin.admin.dto.*;
 import com.USWCicrcleLink.server.admin.admin.service.AdminService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.global.security.dto.TokenDto;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +36,7 @@ public class AdminController {
 
     // 동아리 생성(웹)
     @PostMapping("/clubs")
-    public ResponseEntity<ApiResponse<ClubCreationResponse>> createClub(@RequestBody ClubCreationRequest clubRequest) {
+    public ResponseEntity<ApiResponse<ClubCreationResponse>> createClub(@RequestBody @Valid ClubCreationRequest clubRequest) {
         ClubCreationResponse clubCreationResponse = adminService.createClub(clubRequest);
         ApiResponse<ClubCreationResponse> response = new ApiResponse<>("동아리 생성 성공", clubCreationResponse);
         return ResponseEntity.ok(response);
@@ -41,7 +44,7 @@ public class AdminController {
 
     // 동아리 삭제(웹)
     @DeleteMapping("/clubs/{clubId}")
-    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubId") Long clubId, @RequestBody AdminPwRequest pwRequest) {
+    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubId") Long clubId, @RequestBody @Valid AdminPwRequest pwRequest) {
         adminService.deleteClub(clubId, pwRequest.getAdminPw());
         ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공: clubId", clubId);
         return ResponseEntity.ok(response);

@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.club.clubIntro.api;
 import com.USWCicrcleLink.server.club.club.domain.Department;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.club.dto.ClubByDepartmentResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubByRecruitmentStatusAndDepartmentResponse;
 import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
@@ -32,11 +33,11 @@ public class ClubIntroController {
 
     //모집 상태 및 분과별 동아리 조회(모바일)
     @GetMapping("/{department}/{recruitmentStatus}")
-    public ResponseEntity<ApiResponse<List<ClubByDepartmentResponse>>> getClubsByRecruitmentStatusAndDepartment(
+    public ResponseEntity<ApiResponse<List<ClubByRecruitmentStatusAndDepartmentResponse>>> getClubsByRecruitmentStatusAndDepartment(
             @PathVariable("department") Department department,
             @PathVariable("recruitmentStatus") RecruitmentStatus recruitmentStatus) {
-        List<ClubByDepartmentResponse> clubs = clubIntroService.getClubsByRecruitmentStatusAndDepartment(recruitmentStatus, department);
-        ApiResponse<List<ClubByDepartmentResponse>> response = new ApiResponse<>("모집 상태 및 분과별 동아리 조회 성공", clubs);
+        List<ClubByRecruitmentStatusAndDepartmentResponse> clubs = clubIntroService.getClubsByRecruitmentStatusAndDepartment(recruitmentStatus, department);
+        ApiResponse<List<ClubByRecruitmentStatusAndDepartmentResponse>> response = new ApiResponse<>("모집 상태 및 분과별 동아리 조회 성공", clubs);
         return ResponseEntity.ok(response);
     }
 

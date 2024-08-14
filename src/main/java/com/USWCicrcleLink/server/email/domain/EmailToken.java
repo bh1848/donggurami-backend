@@ -21,7 +21,7 @@ import java.util.UUID;
 public class EmailToken {
 
     // 이메일 토큰 만료 시간 5분
-    private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 5L;
+    private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

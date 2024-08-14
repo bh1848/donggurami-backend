@@ -6,6 +6,8 @@ import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
+import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
+import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
@@ -16,13 +18,15 @@ import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -35,31 +39,37 @@ public class UserService {
     private final EmailService emailService;
     private final EmailTokenService emailTokenService;
     private final ProfileRepository profileRepository;
-    private final MypageService mypageService;
     private final JwtProvider jwtProvider;
+    private final CustomUserDetailsService customUserDetailsService;
 
+    //어세스토큰에서 유저정보 가져오기
+    private User getUserByAuth() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userDetails.user();
+    }
 
-    public boolean confirmPW(UUID uuid, String userpw){
-        User user = mypageService.getUserByUUID(uuid);
+    public boolean confirmPW(String userpw){
+        User user = getUserByAuth();
         return user.getUserPw().equals(userpw);
     }
 
-    public void updateNewPW(UUID uuid, String userPw, String newPW, String confirmNewPW){
+    public void updateNewPW(UpdatePwRequest updatePwRequest){
 
-        if (newPW.trim().isEmpty() || confirmNewPW.trim().isEmpty()) {
+        if (updatePwRequest.getNewPw().trim().isEmpty() || updatePwRequest.getConfirmNewPw().trim().isEmpty()) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_INPUT);
         }
 
-        if (!newPW.equals(confirmNewPW)) {
+        if (!updatePwRequest.getNewPw().equals(updatePwRequest.getConfirmNewPw())) {
             throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
         }
 
-        if (!confirmPW(uuid, userPw)) {
+        if (!confirmPW(updatePwRequest.getUserPw())) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
 
-        User user = mypageService.getUserByUUID(uuid);
-        user.updateUserPw(newPW);
+        User user = getUserByAuth();
+        user.updateUserPw(updatePwRequest.getNewPw());
         User updateUserPw = userRepository.save(user);
 
         if(updateUserPw == null){
@@ -137,31 +147,39 @@ public class UserService {
     }
 
     // 로그인
-    public TokenDto logIn(LogInRequest request) {
+    public TokenDto logIn(LogInRequest request, HttpServletResponse response) {
 
-        // 로그인
-        log.debug("로그인 요청: {}", request.getAccount());
+        // 사용자 정보 조회 (UserDetails 사용)
+        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), request.getRole());
 
-        Optional<User> user = userRepository.findByUserAccount(request.getAccount());
+        // UserDetails에서 User 객체 추출
+        User user;
+        if (userDetails instanceof CustomUserDetails) {
+            user = ((CustomUserDetails) userDetails).user();
+        } else {
+            throw new UserException(ExceptionType.USER_NOT_EXISTS);
+        }
 
-        if (user.isEmpty() || !user.get().getUserPw().equals(request.getPassword())) {
+        // 아이디와 비밀번호 검증
+        if (!user.getUserAccount().equals(request.getAccount()) || !user.getUserPw().equals(request.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
-        log.debug("JWT 생성");
-        String accessToken = jwtProvider.createAccessToken(user.get().getUserUUID().toString());
+        // 로그인 성공 시 토큰 발급
+        String accessToken = jwtProvider.createAccessToken(userDetails.getUsername());
+        String refreshToken = jwtProvider.createRefreshToken(userDetails.getUsername(), response);
 
-        log.debug("로그인 성공, 엑세스 토큰 생성: {}", accessToken);
+        log.debug("로그인 성공, uuid: {}", userDetails.getUsername());
 
         // fcm 토큰 저장
-        Profile profile = profileRepository.findById(user.get().getUserId())
+        Profile profile = profileRepository.findById(user.getUserId())
                     .orElseThrow(() -> new UserException(ExceptionType.USER_PROFILE_NOT_FOUND));
 
         profile.updateFcmToken(request.getFcmToken());
         profileRepository.save(profile);
-        log.debug("fcmToken 업데이트 완료: {}", user.get().getUserAccount());
+        log.debug("fcmToken 업데이트 완료: {}", user.getUserAccount());
 
-        return new TokenDto(accessToken);
+        return new TokenDto(accessToken, refreshToken);
     }
 
 

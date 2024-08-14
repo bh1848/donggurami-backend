@@ -5,6 +5,10 @@ import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.JwtException;
+import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
+import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
@@ -45,7 +49,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         try {
             userUuid = UUID.fromString(uuid);
         } catch (IllegalArgumentException e) {
-            throw new UsernameNotFoundException("유효하지 않은 UUID 형식입니다: " + uuid, e);
+            throw new JwtException(ExceptionType.INVALID_UUID_FORMAT);
         }
 
         if (role == null || role == Role.ADMIN) {
@@ -59,7 +63,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             User user = userRepository.findByUserUUID(userUuid).orElse(null);
             if (user != null) {
                 Profile profile = profileRepository.findByUser_UserUUID(userUuid)
-                        .orElseThrow(() -> new UsernameNotFoundException("프로필을 찾을 수 없습니다: " + userUuid));
+                        .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
                 List<Long> clubIds = getUserClubIds(profile);
                 return new CustomUserDetails(user, clubIds);
             }
@@ -68,13 +72,44 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (role == null || role == Role.LEADER) {
             Leader leader = leaderRepository.findByLeaderUUID(userUuid).orElse(null);
             if (leader != null) {
-                List<Long> clubIds = List.of(leader.getClub().getClubId());
-                return new CustomLeaderDetails(leader, clubIds);
+                Long clubId = leader.getClub().getClubId();
+                return new CustomLeaderDetails(leader, clubId);
             }
         }
 
-        throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + uuid);
+        throw new UserException(ExceptionType.USER_NOT_EXISTS);
     }
+
+    // 주어진 account와 role로 사용자 세부 정보 로드
+    public UserDetails loadUserByAccountAndRole(String account, Role role) throws UsernameNotFoundException {
+        if (role == null || role == Role.ADMIN) {
+            Admin admin = adminRepository.findByAdminAccount(account).orElse(null);
+            if (admin != null) {
+                return new CustomAdminDetails(admin);
+            }
+        }
+
+        if (role == null || role == Role.USER) {
+            User user = userRepository.findByUserAccount(account).orElse(null);
+            if (user != null) {
+                Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
+                        .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
+                List<Long> clubIds = getUserClubIds(profile);
+                return new CustomUserDetails(user, clubIds);
+            }
+        }
+
+        if (role == null || role == Role.LEADER) {
+            Leader leader = leaderRepository.findByLeaderAccount(account).orElse(null);
+            if (leader != null) {
+                Long clubId = leader.getClub().getClubId();
+                return new CustomLeaderDetails(leader, clubId);
+            }
+        }
+
+        throw new UserException(ExceptionType.USER_NOT_EXISTS);
+    }
+
 
     // 프로필을 통해 사용자 clubId 조회
     private List<Long> getUserClubIds(Profile profile) {
