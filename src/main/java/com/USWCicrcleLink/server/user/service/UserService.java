@@ -25,11 +25,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
+@Transactional
 @Slf4j
 @RequiredArgsConstructor
 public class UserService {
@@ -41,6 +43,8 @@ public class UserService {
     private final ProfileRepository profileRepository;
     private final JwtProvider jwtProvider;
     private final CustomUserDetailsService customUserDetailsService;
+    private final PasswordEncoder passwordEncoder;
+
 
     //어세스토큰에서 유저정보 가져오기
     private User getUserByAuth() {
@@ -93,9 +97,12 @@ public class UserService {
 
         // 회원 테이블 이메일 중복 검증
         verifyUserDuplicate(request.getEmail());
-        log.debug("임시 회원 생성 완료 email= {}", request.getEmail());
-        return userTempRepository.save(request.toEntity());
 
+        // 비밀번호 인코딩
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        log.debug("임시 회원 생성 완료 email= {}", request.getEmail());
+
+        return userTempRepository.save(request.toEntity(encodedPassword));
     }
 
     private void verifyUserDuplicate(String email){
@@ -120,7 +127,6 @@ public class UserService {
     }
 
     // 회원가입
-    @Transactional
     public void signUp(UserTemp userTemp) {
 
         log.debug("회원 가입 요청 시작");
@@ -161,7 +167,7 @@ public class UserService {
         }
 
         // 아이디와 비밀번호 검증
-        if (!user.getUserAccount().equals(request.getAccount()) || !user.getUserPw().equals(request.getPassword())) {
+        if (!user.getUserAccount().equals(request.getAccount()) || !passwordEncoder.matches(request.getPassword(), user.getUserPw()) ) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
@@ -182,7 +188,8 @@ public class UserService {
         return new TokenDto(accessToken, refreshToken);
     }
 
-
+   // 비밀번호 일치 확인
+   @Transactional(readOnly = true)
     public void validatePasswordsMatch(PasswordRequest request) {
         log.debug("비밀번호 일치 확인 요청 시작");
         if(!request.getPassword().equals(request.getConfirmPassword())){
@@ -191,39 +198,38 @@ public class UserService {
         log.debug("비밀번호 일치 확인 완료");
     }
 
+    @Transactional(readOnly = true)
     public User findUser(String email) {
         log.debug("계정 찾기 요청  email= {}",email);
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
     }
 
+    @Transactional(readOnly = true)
     public User validateAccountAndEmail(UserInfoDto request) {
         log.debug("아이디와 이메일 유효성 검증 시작");
         return userRepository.findByUserAccountAndEmail(request.getUserAccount(), request.getEmail())
                 .orElseThrow(() -> new UserException(ExceptionType.USER_INVALID_ACCOUNT_AND_EMAIL));
-
     }
 
     // 비밀번호 재설정
-    public void resetPW(User user, PasswordRequest request) {
+    public void resetPW(UUID uuid, PasswordRequest request) {
+
+        // 회원 조희
+        User user = userRepository.findByUserUUID(uuid).orElseThrow(() -> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
 
         // 비밀번호 일치 확인
         validatePasswordsMatch(request);
         log.debug("새로운 비밀번호 일치 확인 완료");
 
         // 새로운 비밀번호로 업데이트
-        user.updateUserPw(request.getPassword());
+        user.updateUserPw(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
 
         log.debug("새로운 비밀번호 변경 완료 userUUID = {}", user.getUserUUID());
     }
 
-    public User findByUuid(UUID uuid) {
-        return userRepository.findByUserUUID(uuid).orElseThrow(() -> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
-    }
-
     // 회원 가입 메일 생성 및 전송
-    @Transactional
     public void sendSignUpMail(UserTemp userTemp,EmailToken emailToken)  {
         log.debug("회원 가입 인증 메일 요청 ");
         MimeMessage message = emailService.createSingUpLink(userTemp,emailToken);
@@ -231,7 +237,6 @@ public class UserService {
         log.debug("회원가입 인증메일 전송 완료 emailToken_uuid= {} ",emailToken.getEmailTokenUUID());
     }
 
-    @Transactional
     public void sendAuthCodeMail(User user, AuthToken authToken)  {
         log.debug("비밀번호 찾기  메일 생성 요청");
         MimeMessage message = emailService.createAuthCodeMail(user,authToken);
@@ -239,7 +244,6 @@ public class UserService {
         log.debug("비밀번호 찾기 메일 전송 완료");
     }
 
-    @Transactional
     public void sendAccountInfoMail (User findUser)  {
         log.debug("아이디 찾기 메일 생성 요청");
         MimeMessage message = emailService.createAccountInfoMail(findUser);
