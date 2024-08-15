@@ -6,9 +6,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 public class ClubInfoRequest {
 
-    //2MB
-    private MultipartFile mainPhoto;
-
     private String leaderName;
 
     private String leaderHp;

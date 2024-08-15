@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -11,15 +13,7 @@ public class ClubIntroResponse {
 
     private String mainPhoto;
 
-    private String clubIntroPhoto;
-
-    private String additionalPhotoPath1;
-
-    private String additionalPhotoPath2;
-
-    private String additionalPhotoPath3;
-
-    private String additionalPhotoPath4;
+    private List<String> introPhotoUrls;
 
     private String clubName;
 

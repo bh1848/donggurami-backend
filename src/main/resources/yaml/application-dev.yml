@@ -4,9 +4,7 @@ server:
 # log setting
 logging:
   level:
-    com:
-      USWRandomChat:
-        backend: debug
+    com.USWCicrcleLink.server: warn
 
 spring:
   config:

@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/users/login", "/integrate/login").permitAll(); // 로그인 경로 추가
+                    auth.requestMatchers("/users/login", "/integration/login").permitAll(); // 로그인 경로 추가
                     auth.requestMatchers(
                             "/users/temporary",
                             "/users/email/verify-token",
@@ -49,6 +49,8 @@ public class SecurityConfig {
                             "/users/email/resend-confirmation",
                             "/mypages/notices"
                     ).permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/mainPhoto/**", "/introPhoto/**")
+                            .hasAnyRole("USER", "ADMIN", "LEADER");
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/notices", "/admin/notices/paged").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/admin/notices").hasRole("ADMIN");

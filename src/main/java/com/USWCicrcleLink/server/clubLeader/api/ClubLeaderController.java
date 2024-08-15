@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.clubLeader.api;
 
 import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
-import com.USWCicrcleLink.server.aplict.dto.ApplicantsResponse;
+import com.USWCicrcleLink.server.club.clubIntro.dto.IntroPhotoUploadRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
@@ -9,11 +9,9 @@ import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
-import org.springframework.data.domain.Page;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +21,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/club-leader")
+@Slf4j
 public class ClubLeaderController {
 
     private final ClubLeaderService clubLeaderService;
@@ -38,18 +37,10 @@ public class ClubLeaderController {
     // 동아리 기본 정보 변경
     @PatchMapping("/{clubId}/info")
     public ResponseEntity<ApiResponse> updateClubInfo(@PathVariable("clubId") Long clubId,
-                                                      @RequestPart(value = "mainPhoto", required = false) MultipartFile mainPhoto,
-                                                      @RequestParam(value = "leaderName", required = false) String leaderName,
-                                                      @RequestParam(value = "leaderHp", required = false) String leaderHp,
-                                                      @RequestParam(value = "clubInsta", required = false) String clubInsta) throws IOException {
+                                                      @RequestPart(value = "mainPhoto", required = true) MultipartFile mainPhoto,
+                                                      @RequestPart(value = "clubInfoRequest", required = false) ClubInfoRequest clubInfoRequest) throws IOException {
 
-        ClubInfoRequest clubInfoRequest = new ClubInfoRequest();
-        clubInfoRequest.setMainPhoto(mainPhoto);
-        clubInfoRequest.setLeaderName(leaderName);
-        clubInfoRequest.setLeaderHp(leaderHp);
-        clubInfoRequest.setClubInsta(clubInsta);
-
-        return new ResponseEntity<>(clubLeaderService.updateClubInfo(clubId, clubInfoRequest), HttpStatus.OK);
+        return new ResponseEntity<>(clubLeaderService.updateClubInfo(clubId, clubInfoRequest, mainPhoto), HttpStatus.OK);
     }
 
     // 동아리 소개 조회
@@ -62,23 +53,10 @@ public class ClubLeaderController {
     // 동아리 소개 변경
     @PatchMapping("/{clubId}/intro")
     public ResponseEntity<ApiResponse> updateClubIntro(@PathVariable("clubId") Long clubId,
-                                                       @RequestPart(value = "clubIntro", required = false) String clubIntro,
-                                                       @RequestPart(value = "googleFormUrl", required = false) String googleFormUrl,
-                                                       @RequestPart(value = "introPhoto", required = false) MultipartFile introPhoto,
-                                                       @RequestPart(value = "additionalPhoto1", required = false) MultipartFile additionalPhoto1,
-                                                       @RequestPart(value = "additionalPhoto2", required = false) MultipartFile additionalPhoto2,
-                                                       @RequestPart(value = "additionalPhoto3", required = false) MultipartFile additionalPhoto3,
-                                                       @RequestPart(value = "additionalPhoto4", required = false) MultipartFile additionalPhoto4) throws IOException {
+                                                       @RequestPart(value = "clubIntroRequest", required = false) ClubIntroRequest clubIntroRequest,
+                                                       @RequestPart(value = "introPhotos", required = false) List<MultipartFile> introPhotos) throws IOException {
 
-        ClubIntroRequest clubIntroRequest = new ClubIntroRequest();
-        clubIntroRequest.setClubIntro(clubIntro);
-        clubIntroRequest.setGoogleFormUrl(googleFormUrl);
-        clubIntroRequest.setIntroPhoto(introPhoto);
-        clubIntroRequest.setAdditionalPhoto1(additionalPhoto1);
-        clubIntroRequest.setAdditionalPhoto2(additionalPhoto2);
-        clubIntroRequest.setAdditionalPhoto3(additionalPhoto3);
-        clubIntroRequest.setAdditionalPhoto4(additionalPhoto4);
-        return new ResponseEntity<>(clubLeaderService.updateClubIntro(clubId, clubIntroRequest), HttpStatus.OK);
+        return new ResponseEntity<>(clubLeaderService.updateClubIntro(clubId, clubIntroRequest, introPhotos), HttpStatus.OK);
     }
 
     // 동아리 모집 상태 변경

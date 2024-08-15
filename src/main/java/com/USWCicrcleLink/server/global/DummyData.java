@@ -11,6 +11,8 @@ import com.USWCicrcleLink.server.club.club.domain.Department;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
+import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
@@ -42,10 +44,11 @@ public class DummyData {
     private final ClubMembersRepository clubMembersRepository;
     private final AplictRepository aplictRepository;
     private final ClubIntroRepository clubIntroRepository;
+    private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final LeaderRepository leaderRepository;
 
     @PostConstruct
-    public void init(){
+    public void init() {
         initUser1();
         initUser2();
         initUser3();
@@ -151,11 +154,11 @@ public class DummyData {
 
         Club club = Club.builder()
                 .clubName("FLAG")
-                .leaderName("개발짱")
-                .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/flag.jpg")
-                .leaderHp("01012341234")
+                .leaderName("")
+                .mainPhotoPath("")
+                .leaderHp("")
                 .department(Department.ACADEMIC)
-                .clubInsta("flag_insta")
+                .clubInsta("")
                 .build();
 
         clubRepository.save(club);
@@ -171,10 +174,20 @@ public class DummyData {
 
         ClubIntro clubIntro = ClubIntro.builder()
                 .club(club)
-                .clubIntro("플래그입니다.")
-                .googleFormUrl("flag_google_url")
+                .clubIntro("")
+                .googleFormUrl("")
                 .build();
+        clubIntroRepository.save(clubIntro);
 
+        // ClubIntroPhoto 객체 초기화 (order 1~5)
+        for (int i = 1; i <= 5; i++) {
+            ClubIntroPhoto clubIntroPhoto = ClubIntroPhoto.builder()
+                    .clubIntro(clubIntro)
+                    .clubIntroPhotoPath("") // 초기값으로 빈 문자열 설정
+                    .order(i) // 순서를 1부터 5까지 설정
+                    .build();
+            clubIntroPhotoRepository.save(clubIntroPhoto);
+        }
         clubIntroRepository.save(clubIntro);
 
         ClubMembers clubMembers1 = ClubMembers.builder()
@@ -232,7 +245,7 @@ public class DummyData {
 
         aplictRepository.save(aplict4);
     }
-    
+
     //user2, 올어바웃 데이터
     public void initUser2() {
         //유저 데이터
@@ -344,7 +357,7 @@ public class DummyData {
     }
 
     //유저템프 데이터
-    public void initUserTemp(){
+    public void initUserTemp() {
         UserTemp userTemp = UserTemp.builder()
                 .tempAccount("account")
                 .tempPw("password")
@@ -359,7 +372,7 @@ public class DummyData {
     }
 
     //어드민 데이터
-    public void initAdmin(){
+    public void initAdmin() {
         Admin admin = Admin.builder()
                 .adminUUID(UUID.randomUUID())
                 .adminAccount("admin")

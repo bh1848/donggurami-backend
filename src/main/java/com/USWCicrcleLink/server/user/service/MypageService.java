@@ -8,10 +8,7 @@ import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.AplictException;
-import com.USWCicrcleLink.server.global.exception.errortype.ClubMemberException;
-import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
-import com.USWCicrcleLink.server.global.exception.errortype.UserException;
+import com.USWCicrcleLink.server.global.exception.errortype.*;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -106,7 +103,7 @@ public class MypageService {
     private Club getClubByAplictId(Long aplictId) {
         Aplict aplict = aplictRepository.findById(aplictId)
                 .orElseThrow(() -> new AplictException(ExceptionType.APLICT_NOT_EXISTS));
-        return clubRepository.findByClubId(aplict.getClub().getClubId());
+        return clubRepository.findById(aplict.getClub().getClubId()).orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
     }
 
     private MyAplictResponse myAplictResponse(Club club, AplictStatus aplictStatus){

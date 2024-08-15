@@ -10,6 +10,8 @@ import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
+import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
@@ -40,6 +42,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
@@ -66,6 +69,7 @@ public class ClubLeaderService {
     private final AplictRepository aplictRepository;
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final ClubIntroPhotoRepository clubIntroPhotoRepository;
 
     private final FileUploadService fileUploadService;
     private final FcmServiceImpl fcmService;
@@ -76,14 +80,19 @@ public class ClubLeaderService {
     @Value("${file.introPhoto-dir}")
     private String introPhotoDir;
 
+    // 업로드 가능한 파일 갯수
+    int FILE_LIMIT = 5;
+
     // 동아리 기본 정보 조회
     @Transactional(readOnly = true)
     public ApiResponse<ClubInfoResponse> getClubInfo(Long clubId) {
 
         Club club = validateLeader(clubId);
 
+        String mainPhotoUrl = fileUploadService.getPhotoUrl(club.getMainPhotoPath());
+
         ClubInfoResponse clubInfoResponse = new ClubInfoResponse(
-                club.getMainPhotoPath(),
+                mainPhotoUrl,
                 club.getClubName(),
                 club.getLeaderName(),
                 club.getLeaderHp(),
@@ -94,19 +103,21 @@ public class ClubLeaderService {
     }
 
     // 동아리 기본 정보 변경
-    public ApiResponse updateClubInfo(Long clubId, ClubInfoRequest clubInfoRequest) throws IOException {
+    public ApiResponse updateClubInfo(Long clubId, ClubInfoRequest clubInfoRequest, MultipartFile mainPhoto) throws IOException {
 
         Club club = validateLeader(clubId);
 
         // 사진 파일 업로드 과정
         createMainPhotoDir();// 사진 파일 디렉터리 없는 경우 생성
 
-        // 파일 저장 경로
-        String mainPhotoPath = fileUploadService.saveFile(clubInfoRequest.getMainPhoto(), club.getMainPhotoPath(), mainPhotoDir);
+        // 기존에 사진이 있는지 확인
+        String existingFilePath = club.getMainPhotoPath();
+        log.debug("기존 동아리 대표 사진 경로:{}", existingFilePath);
 
-        // 동아리 정보 변경
+        String mainPhotoPath = fileUploadService.saveFile(mainPhoto, existingFilePath, mainPhotoDir);
+
         club.updateClubInfo(mainPhotoPath, clubInfoRequest.getLeaderName(), clubInfoRequest.getLeaderHp(),
-                 clubInfoRequest.getClubInsta());
+                clubInfoRequest.getClubInsta());
 
         clubRepository.save(club);
         log.debug("동아리 기본 정보 변경 완료: {}", club.getClubName());
@@ -121,13 +132,21 @@ public class ClubLeaderService {
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
+        // 소개 사진 조회
+        List<ClubIntroPhoto> introPhotos = clubIntroPhotoRepository.findAllByClubIntro_ClubIntroIdOrderByOrderAsc(clubIntro.getClubIntroId());
+        // 사진 경로를 리스트로 변환
+        List<String> introPhotoPaths = introPhotos.stream()
+                .map(ClubIntroPhoto::getClubIntroPhotoPath)
+                .collect(Collectors.toList());
+
+        // 파일 경로를 URL로 변환
+        List<String> introPhotoUrls = introPhotoPaths.stream()
+                .map(fileUploadService::getPhotoUrl)
+                .collect(Collectors.toList());
+
         ClubIntroResponse clubIntroResponse = new ClubIntroResponse(
                 club.getMainPhotoPath(),
-                clubIntro.getClubIntroPhotoPath(),
-                clubIntro.getAdditionalPhotoPath1(),
-                clubIntro.getAdditionalPhotoPath2(),
-                clubIntro.getAdditionalPhotoPath3(),
-                clubIntro.getAdditionalPhotoPath4(),
+                introPhotoUrls,
                 club.getClubName(),
                 club.getLeaderName(),
                 club.getLeaderHp(),
@@ -139,40 +158,53 @@ public class ClubLeaderService {
     }
 
     // 동아리 소개 변경
-    public ApiResponse updateClubIntro(Long clubId, ClubIntroRequest clubIntroRequest) throws IOException {
+    public ApiResponse updateClubIntro(Long clubId, ClubIntroRequest clubIntroRequest, List<MultipartFile> introPhotos) throws IOException {
 
         Club club = validateLeader(clubId);
 
-        // 사진 파일 업로드 과정
-        createIntroPhotoDir();// 사진 파일 디렉터리 없는 경우 생성
-
-        // 기존 파일 경로가 있는지 확인
-        ClubIntro existingClubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
-        // 파일 있나 ? 덮어쓰기 : 비워두기
-        String introPhotoPath = fileUploadService.saveFile(clubIntroRequest.getIntroPhoto(),
-                existingClubIntro.getClubIntroPhotoPath(), introPhotoDir);
+        if (introPhotos != null && !introPhotos.isEmpty() && clubIntroRequest.getOrders() != null && !clubIntroRequest.getOrders().isEmpty()) {
 
-        String additionalPhotoPath1 = fileUploadService.saveFile(clubIntroRequest.getAdditionalPhoto1(),
-                existingClubIntro.getAdditionalPhotoPath1(), introPhotoDir);
+            if (introPhotos.size() > FILE_LIMIT) {
+                throw new FileException(ExceptionType.MAXIMUM_FILE_LIMIT_EXCEEDED);
+            }
 
-        String additionalPhotoPath2 = fileUploadService.saveFile(clubIntroRequest.getAdditionalPhoto2(),
-                existingClubIntro.getAdditionalPhotoPath2(), introPhotoDir);
+            // 사진 파일 업로드 과정
+            createIntroPhotoDir();// 사진 파일 디렉터리 없는 경우 생성
 
-        String additionalPhotoPath3 = fileUploadService.saveFile(clubIntroRequest.getAdditionalPhoto3(),
-                existingClubIntro.getAdditionalPhotoPath3(), introPhotoDir);
+            for (int i = 0; i < introPhotos.size(); i++) {
+                MultipartFile introPhoto = introPhotos.get(i);
+                int order = clubIntroRequest.getOrders().get(i);
 
-        String additionalPhotoPath4 = fileUploadService.saveFile(clubIntroRequest.getAdditionalPhoto4(),
-                existingClubIntro.getAdditionalPhotoPath4(), introPhotoDir);
+                // 새로운 파일이 존재하지 않으면 해당 순서는 건너뜁니다
+                if (introPhoto == null || introPhoto.isEmpty()) {
+                    continue; // 현재 순서 건너뛰기
+                }
 
-        // 동아리 소개 저장
-        existingClubIntro.updateClubIntro(club, clubIntroRequest.getClubIntro(), clubIntroRequest.getGoogleFormUrl(),
-                introPhotoPath, additionalPhotoPath1, additionalPhotoPath2,
-                additionalPhotoPath3, additionalPhotoPath4);
+                // 기존 경로 변수에 사진이 있는지 확인
+                ClubIntroPhoto existingPhoto = clubIntroPhotoRepository
+                        .findByClubIntro_ClubIntroIdAndOrder(clubIntro.getClubIntroId(), order)
+                        .orElseThrow(() -> new ClubPhotoException(ExceptionType.PHOTO_ORDER_MISS_MATCH));
 
-        clubIntroRepository.save(existingClubIntro);
-        log.debug("동아리 소개 저장 완료: {}", existingClubIntro);
+                // 새로운 파일 저장 (기존 파일 경로를 전달하여 덮어쓰도록 설정)
+                String newPhotoPath = fileUploadService.saveFile(introPhoto, existingPhoto.getClubIntroPhotoPath(), introPhotoDir);
+
+                // 기존 사진이 있으면 업데이트, 없으면 새로 생성
+                existingPhoto.updateClubIntroPhoto(clubIntro, newPhotoPath, order);
+                clubIntroPhotoRepository.save(existingPhoto);
+                log.debug("사진 업데이트 완료: 순서 = {}, 새로운 경로 = {}", order, newPhotoPath);
+
+            }
+        }
+
+
+        // 소개 글, google form 저장
+        clubIntro.updateClubIntro(club, clubIntroRequest.getClubIntro(), clubIntroRequest.getGoogleFormUrl());
+        clubIntroRepository.save(clubIntro);
+
+        log.debug("{} 소개 저장 완료", club.getClubName());
         return new ApiResponse<>("동아리 소개 변경 완료", club.getClubName());
     }
 
@@ -403,11 +435,11 @@ public class ClubLeaderService {
             AplictStatus aplictResult = result.getAplictStatus();// 지원 결과 PASS/ FAIL
             if (aplictResult == AplictStatus.PASS) {
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
-                fcmService.sendMessageTo(applicant, aplictResult);
+//                fcmService.sendMessageTo(applicant, aplictResult);
                 log.debug("합격 처리 완료: {}", applicant.getId());
             } else if (aplictResult == AplictStatus.FAIL) {
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
-                fcmService.sendMessageTo(applicant, aplictResult);
+//                fcmService.sendMessageTo(applicant, aplictResult);
                 log.debug("불합격 처리 완료: {}", applicant.getId());
             }
 
@@ -480,7 +512,7 @@ public class ClubLeaderService {
             // 합격
             AplictStatus aplictResult = result.getAplictStatus();
             applicant.updateFailedAplictStatus(aplictResult);
-            fcmService.sendMessageTo(applicant, aplictResult);
+//            fcmService.sendMessageTo(applicant, aplictResult);
             log.debug("합격 처리 완료: {}", applicant.getId());
 
             aplictRepository.save(applicant);
