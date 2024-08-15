@@ -40,7 +40,6 @@ public class UserController {
     public ApiResponse<String> updateUserPw(@RequestBody UpdatePwRequest request) {
 
         userService.updateNewPW(request);
-
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
 
@@ -78,7 +77,7 @@ public class UserController {
     }
 
     // 이메일 인증 확인 후 자동 회원가입
-    @GetMapping("/email/verify-token")
+     @GetMapping("/email/verify-token")
     public ModelAndView verifySignUpMail (@RequestParam UUID emailToken_uuid) {
 
         ModelAndView modelAndView = new ModelAndView();
@@ -159,12 +158,8 @@ public class UserController {
     @PatchMapping("/reset-password")
     public ApiResponse<String> resetUserPw(@RequestHeader UUID uuid, @RequestBody PasswordRequest request) {
 
-        User user = userService.findByUuid(uuid);
-        userService.resetPW(user,request);
+        userService.resetPW(uuid,request);
 
         return new ApiResponse<>("비밀번호가 변경되었습니다.");
     }
-
-
-
 }

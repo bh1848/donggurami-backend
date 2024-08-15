@@ -5,13 +5,14 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class SignUpRequest {
-
-    // 회원 가입 시 작성해야하는 값
 
     @NotBlank(message = "아이디는 필수 입력 값입니다.")
     private String account;
@@ -36,10 +37,10 @@ public class SignUpRequest {
 
     private Boolean isEmailVerified = false;
 
-    public UserTemp toEntity() {
+    public UserTemp toEntity(String encodedPassword) {
         return UserTemp.builder()
                 .tempAccount(account)
-                .tempPw(password)
+                .tempPw(encodedPassword) // 인코드된 비밀번호 저장
                 .tempName(userName)
                 .tempHp(telephone)
                 .tempStudentNumber(studentNumber)
