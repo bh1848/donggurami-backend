@@ -83,6 +83,9 @@ public class ClubLeaderService {
     // 업로드 가능한 파일 갯수
     int FILE_LIMIT = 5;
 
+    private final String S3_MAINPHOTO_DIR = "mainPhoto/";
+    private final String S3_INTROPHOTO_DIR = "introPhoto/";
+
     // 동아리 기본 정보 조회
     @Transactional(readOnly = true)
     public ApiResponse<ClubInfoResponse> getClubInfo(Long clubId) {
@@ -137,7 +140,7 @@ public class ClubLeaderService {
 
     private S3FileResponse updateClubMainPhotoAndS3File(MultipartFile mainPhoto, ClubMainPhoto existingPhoto) throws IOException {
         // 새로운 파일 업로드
-        S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(mainPhoto);
+        S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(mainPhoto, S3_MAINPHOTO_DIR);
 
         // s3key 및 photoname 업데이트
         existingPhoto.updateClubMainPhoto(mainPhoto.getOriginalFilename(), s3FileResponse.getS3FileName());
@@ -235,7 +238,7 @@ public class ClubLeaderService {
 
     private S3FileResponse updateClubIntroPhotoAndS3File(MultipartFile introPhoto, ClubIntroPhoto existingPhoto, int order) throws IOException {
         // 새로운 파일 업로드
-        S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(introPhoto);
+        S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(introPhoto, S3_INTROPHOTO_DIR);
 
         // s3key 및 photoname 업데이트
         existingPhoto.updateClubIntroPhoto(introPhoto.getOriginalFilename(), s3FileResponse.getS3FileName(),order);
