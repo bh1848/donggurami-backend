@@ -1,7 +1,6 @@
 package com.USWCicrcleLink.server.clubLeader.api;
 
 import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
-import com.USWCicrcleLink.server.club.clubIntro.dto.IntroPhotoUploadRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;

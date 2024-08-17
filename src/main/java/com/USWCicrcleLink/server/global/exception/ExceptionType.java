@@ -36,28 +36,53 @@ public enum ExceptionType {
     USER_PASSWORD_NOT_MATCH("USR-204","현재 비밀번호와 일치하지 않습니다",BAD_REQUEST),
     USER_PASSWORD_UPDATE_FAIL("USR-205","비밀번호 업데이트에 실패했습니다",BAD_REQUEST),
     USER_OVERLAP("USR-206", "이미 존재하는 회원 입니다.", INTERNAL_SERVER_ERROR),
-    USER_ACCOUNT_OVERLAP("USR-207", "계정이 중복됩니다.", INTERNAL_SERVER_ERROR),
+    USER_ACCOUNT_OVERLAP("USR-207", "계정이 중복됩니다.",BAD_REQUEST),
     USER_ACCOUNT_NOT_EXISTS("USR-208", "존재하지 않는 계정입니다.", BAD_REQUEST),
     USER_INVALID_ACCOUNT_AND_EMAIL("USR-209", "올바르지 않은 이메일 혹은 아이디 입니다.", BAD_REQUEST),
     USER_UUID_NOT_FOUND("USR-210","회원의 uuid를 찾을 수 없습니다.",BAD_REQUEST),
     USER_AUTHENTICATION_FAILED("USR-211","아이디 혹은 비밀번호가 일치하지 않습니다",BAD_REQUEST),
     USER_PASSWORD_MISMATCH("USR-212", "두 비밀번호가 일치하지 않습니다", BAD_REQUEST),
+    USER_PROFILE_NOT_FOUND("USR-213","프로필 정보를 찾을 수 없습니다",INTERNAL_SERVER_ERROR),
+
+
+    /**
+     * Domain : Jwt
+     */
+    UNABLE_GENERATE_ROLE_TOKEN("TOK-201", "해당 역할 토큰 생성 불가능합니다.", BAD_REQUEST),
+    INVALID_REFRESH_TOKEN("TOK-202", "유효하지 않은 리프레시 토큰입니다.", BAD_REQUEST),
+    INVALID_ACCESS_TOKEN("TOK-203", "유효하지 않은 엑세스 토큰입니다.", BAD_REQUEST),
+    UNAUTHENTICATED_USER("TOK-204", "인증되지 않은 사용자입니다.", BAD_REQUEST),
+
+    /**
+     * Domain : Club
+     */
+    CLUB_NOT_EXISTS("CLUB-201", "동아리가 존재하지 않습니다.", BAD_REQUEST),
+    ClUB_CHECKING_ERROR("CLUB-202", "동아리 조회 중 오류가 발생했습니다.", BAD_REQUEST),
+
+    /**
+     * Domain : ClubIntro
+     */
+    CLUB_INTRO_NOT_EXISTS("CINT-201", "해당 동아리 소개글이 존재하지 않습니다.", BAD_REQUEST),
+    GOOGLE_FORM_URL_NOT_EXISTS("CINT-202", "구글 폼 url이 존재하지 않습니다.", BAD_REQUEST),
+
+    /**
+     * Domain : Admin
+     */
+    ADMIN_NOT_EXISTS("ADM-201", "해당 계정이 존재하지 않습니다.", BAD_REQUEST),
+    ADMIN_PASSWORD_NOT_MATCH("ADM-202", "비밀번호가 일치하지 않습니다.", BAD_REQUEST),
+
+    /**
+     * Domain : Notice
+     */
+    NOTICE_NOT_EXISTS("NOT-201", "공지사항이 존재하지 않습니다.", BAD_REQUEST),
+    UP_TO_5_PHOTOS_CAN_BE_UPLOADED("NOT-202", "최대 5개의 사진이 업로드 가능합니다.", BAD_REQUEST),
 
     /**
      * Domain : Profile
      */
     PROFILE_NOT_EXISTS("PFL-201", "프로필이 존재하지 않습니다.", BAD_REQUEST),
     PROFILE_UPDATE_FAIL("PFL-202", "프로필 업데이트에 실패했습니다.", BAD_REQUEST),
-
-    /**
-     * Domain : Club
-     */
-    CLUB_NOT_EXISTS("CLUB-201","동아리가 존재하지 않습니다.",BAD_REQUEST),
-
-    /**
-     * Domain : ClubIntro
-     */
-    CLUB_INTRO_NOT_EXISTS("CINT-201","동아리 소개가 존재하지 않습니다.",BAD_REQUEST),
+    PROFILE_NOT_INPUT("PFL-203","프로필 입력값은 필수 입니다.",BAD_REQUEST),
 
     /**
      * Domain : ClubIntroPhoto, club(mainPhoto)
@@ -84,14 +109,17 @@ public enum ExceptionType {
     APPLICANT_COUNT_MISMATCH("APT_204", "선택한 지원자 수와 전체 지원자 수가 일치하지 않습니다.", BAD_REQUEST),
 
     /**
-     * Domain : VerificationCode
+     * Domain : AuthCodeToken
      */
-    INVALID_AUTH_CODE("VC-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
+    INVALID_AUTH_CODE("AC-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
+    AUTHCODETOKEN_NOT_EXISTS("AC-102", "인증 코드 토큰이 존재하지 않습니다", BAD_REQUEST),
+
 
     /**
      * 공통
      */
     SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR),
+    INVALID_UUID_FORMAT("UUID-502", "유효하지 않은 uuid 형식입니다." ,BAD_REQUEST),
 
 
     /**

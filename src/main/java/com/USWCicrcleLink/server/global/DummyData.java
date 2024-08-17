@@ -2,6 +2,8 @@ package com.USWCicrcleLink.server.global;
 
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
+import com.USWCicrcleLink.server.admin.notice.domain.Notice;
+import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
@@ -29,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -46,6 +49,7 @@ public class DummyData {
     private final ClubIntroRepository clubIntroRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final LeaderRepository leaderRepository;
+    private final NoticeRepository noticeRepository;
 
     @PostConstruct
     public void init() {
@@ -109,7 +113,7 @@ public class DummyData {
                 .userName("김땡떙")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정보보호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -121,7 +125,7 @@ public class DummyData {
                 .userName("김빵빵")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정뽀호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -133,7 +137,7 @@ public class DummyData {
                 .userName("user3")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정보보호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -145,7 +149,7 @@ public class DummyData {
                 .userName("user4")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정뽀호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -266,7 +270,7 @@ public class DummyData {
                 .userName("이댕댕")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("컴퓨터SW")
+                .major("컴퓨터SW학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -277,6 +281,7 @@ public class DummyData {
                 .clubName("올어바웃")
                 .leaderName("춤짱")
                 .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/allabout.jpg")
+                .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("allabout_insta")
                 .build();
@@ -321,7 +326,7 @@ public class DummyData {
                 .userName("박둥둥")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("데이터과학")
+                .major("데이터과학부")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -332,6 +337,7 @@ public class DummyData {
                 .clubName("굴리세")
                 .leaderName("볼링짱")
                 .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/gullisae.jpg")
+                .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("gullisae_insta")
                 .build();
@@ -382,5 +388,14 @@ public class DummyData {
                 .build();
 
         adminRepository.save(admin);
+
+        Notice notice1 = Notice.builder()
+                .noticeTitle("첫번째 공지사항")
+                .noticeContent("공지사항입니다. 동구라미 개발중입니다.")
+                .noticeCreatedAt(LocalDateTime.now())
+                .admin(admin)
+                .build();
+
+        noticeRepository.save(notice1);
     }
 }

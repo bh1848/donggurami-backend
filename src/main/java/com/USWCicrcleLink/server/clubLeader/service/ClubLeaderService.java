@@ -435,7 +435,7 @@ public class ClubLeaderService {
             AplictStatus aplictResult = result.getAplictStatus();// 지원 결과 PASS/ FAIL
             if (aplictResult == AplictStatus.PASS) {
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
-//                fcmService.sendMessageTo(applicant, aplictResult);
+                fcmService.sendMessageTo(applicant, aplictResult);
                 log.debug("합격 처리 완료: {}", applicant.getId());
             } else if (aplictResult == AplictStatus.FAIL) {
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
@@ -512,7 +512,7 @@ public class ClubLeaderService {
             // 합격
             AplictStatus aplictResult = result.getAplictStatus();
             applicant.updateFailedAplictStatus(aplictResult);
-//            fcmService.sendMessageTo(applicant, aplictResult);
+            fcmService.sendMessageTo(applicant, aplictResult);
             log.debug("합격 처리 완료: {}", applicant.getId());
 
             aplictRepository.save(applicant);

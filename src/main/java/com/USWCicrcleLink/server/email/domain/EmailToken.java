@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -22,21 +21,15 @@ import java.util.UUID;
 public class EmailToken {
 
     // 이메일 토큰 만료 시간 5분
-    private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 5L;
-
-   /* @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(length = 36)
-    private UUID emailTokenId;*/
+    private static final long EMAIL_TOKEN_CERTIFICATION_TIME_VALUE = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "emailToken_id", nullable = false)
-    private Long Id;
+    @Column(name = "EMAILTOKEN_ID", nullable = false)
+    private Long emailtokenId;
 
-    @Column(name = "emailToken_uuid", unique = true, nullable = false)
-    private UUID uuid;
+    @Column(name = "EMAILTOKEN_UUID", unique = true, nullable = false)
+    private UUID emailTokenUUID;
 
     // 이메일 토큰과 관련된 임시 회원  id
     @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
@@ -51,7 +44,7 @@ public class EmailToken {
 
     @PrePersist
     public void prePersist() {
-        this.uuid = UUID.randomUUID();
+        this.emailTokenUUID = UUID.randomUUID();
     }
 
     // 이메일 인증 토큰 생성

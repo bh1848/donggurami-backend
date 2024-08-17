@@ -1,5 +1,7 @@
 package com.USWCicrcleLink.server.global.security.filter;
 
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.JwtException;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,6 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * JWT의 유효성을 검증하는 필터 클래스
@@ -21,11 +25,35 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
+    // `permitAll`로 설정된 경로 리스트
+    private static final List<String> PERMIT_ALL_PATHS = Arrays.asList(
+            "/users/login", // 모바일 로그인
+            "/users/temporary",
+            "/users/email/verify-token",
+            "/users/finish-signup",
+            "/users/verify-duplicate/{account}",
+            "/users/validate-passwords-match",
+            "/users/find-account/{email}",
+            "/users/auth/send-code",
+            "/users/auth/verify-token",
+            "/users/reset-password",
+            "/users/email/resend-confirmation",
+            "/mypages/notices",
+            "/auth/refresh-token", // 토큰 재발급
+            "/integration/login" // 동아리 회장, 동아리 연합회-개발자 통합 로그인
+    );
     private final JwtProvider jwtProvider;
 
-    // JWT 검증하고 유효한 경우 인증 정보 설정
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+        String requestPath = request.getRequestURI();
+
+        // `permitAll` 경로에 대해서는 필터를 적용하지 않음
+        if (PERMIT_ALL_PATHS.contains(requestPath)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             // 요청에서 JWT 액세스 토큰 추출
             String accessToken = jwtProvider.resolveAccessToken(request);
@@ -42,12 +70,10 @@ public class JwtFilter extends OncePerRequestFilter {
                 // SecurityContextHolder에 인증 정보 설정
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 log.info("SecurityContextHolder에 인증 정보 설정: {}", auth.getName());
-            } else {
-                log.warn("토큰이 유효하지 않거나 비어있음");
             }
         } catch (Exception e) {
-            // 예외 발생 시 에러 로그 출력
-            log.error("인증되지 않은 사용자입니다: " + e.getMessage(), e);
+            log.error("엑세스 토큰이 유효하지 않거나 비어있음: " + e.getMessage(), e);
+            throw new JwtException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
         // 다음 필터로 요청 전달

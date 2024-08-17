@@ -109,7 +109,7 @@ public class FileUploadService {
 
     //파일 확장자 검증
     private void validateFileExtension(String extension) throws IOException {
-        log.info("검증 중인 파일 확장자: {}", extension);
+        log.debug("검증 중인 파일 확장자: {}", extension);
         if (!allowedExtensions.contains(extension.toLowerCase())) {
             throw new FileException(ExceptionType.UNSUPPORTED_FILE_EXTENSION);
         }

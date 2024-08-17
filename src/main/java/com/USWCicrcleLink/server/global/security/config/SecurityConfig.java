@@ -35,8 +35,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/users/login", "/integration/login").permitAll(); // 로그인 경로 추가
                     auth.requestMatchers(
+                            "/users/login", // 모바일 로그인
                             "/users/temporary",
                             "/users/email/verify-token",
                             "/users/finish-signup",
@@ -47,20 +47,37 @@ public class SecurityConfig {
                             "/users/auth/verify-token",
                             "/users/reset-password",
                             "/users/email/resend-confirmation",
-                            "/mypages/notices"
+                            "/mypages/notices",
+                            "/auth/refresh-token", // 토큰 재발급
+                            "/integration/login" // 동아리 회장, 동연회-개발자 통합 로그인
                     ).permitAll();
+
+                    // photo
                     auth.requestMatchers(HttpMethod.GET, "/mainPhoto/**", "/introPhoto/**")
-                            .hasAnyRole("USER", "ADMIN", "LEADER");
+//                            .hasAnyRole("USER", "ADMIN", "LEADER");
+                            .permitAll();
+                    // ADMIN
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/notices", "/admin/notices/paged").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
+
+                    // fcm 삭제
+                    auth.requestMatchers(HttpMethod.POST, "/club-leader/fcm-token", "/club-leader/application").permitAll();
+                    // USER
                     auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","mypages/notices").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**", "/club-leader/fcm-token").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","/mypages/notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/mainPhoto/**").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw").hasRole("USER");
+
+                    // LEADER
+                    auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.GET, "/club-leader/{clubId}/**").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.PATCH, "/club-leader/{clubId}/**").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/club-leader/{clubId}/members").hasRole("LEADER");
+
+                    // INTEGRATION
+                    auth.requestMatchers(HttpMethod.POST, "/integration/logout").authenticated(); // 통합 로그아웃 api
+                    // 기타 모든 요청
                     auth.anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);

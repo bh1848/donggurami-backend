@@ -9,6 +9,10 @@ import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubIntroException;
+import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
@@ -37,12 +41,11 @@ public class AplictService {
     @Transactional(readOnly = true)
     public String getGoogleFormUrlByClubId(Long clubId) {
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId).orElseThrow(() ->
-                new NoSuchElementException("해당 동아리에 대한 소개를 찾을 수 없습니다.")
-        );
+                new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         String googleFormUrl = clubIntro.getGoogleFormUrl();
         if (googleFormUrl == null || googleFormUrl.isEmpty()) {
-            throw new NoSuchElementException("구글 폼 URL을 찾을 수 없습니다.");
+            throw new ClubIntroException(ExceptionType.GOOGLE_FORM_URL_NOT_EXISTS);
         }
         return googleFormUrl;
     }
@@ -55,10 +58,10 @@ public class AplictService {
         User user = userDetails.user();
 
         Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
-                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
 
         Club club = clubRepository.findById(clubId)
-                .orElseThrow(() -> new NoSuchElementException("동아리를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
 
         Aplict aplict = Aplict.builder()
                 .profile(profile)
