@@ -6,6 +6,8 @@ import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
+import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
+import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 @RestController
@@ -25,6 +28,19 @@ public class ClubLeaderController {
 
     private final ClubLeaderService clubLeaderService;
     private final FcmServiceImpl fcmService;
+    private final S3FileUploadService fileUploadService;
+
+    @PostMapping("/s3upload")
+    public ResponseEntity<S3FileResponse> uploadS3(@RequestPart(value = "mainPhoto", required = true) MultipartFile mainPhoto) {
+        S3FileResponse s3FileResponse = fileUploadService.saveFile(mainPhoto);
+        return new ResponseEntity<>(s3FileResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/s3download")
+    public ResponseEntity<URL> getFileUrl() {
+        URL presignedUrl = fileUploadService.generatePresignedGetUrl("5aaed89f-314b-4931-af12-e5f1e6146d83.png");
+        return ResponseEntity.ok(presignedUrl);
+    }
 
     // 동아리 기본 정보 조회
     @GetMapping("/{clubId}/info")
