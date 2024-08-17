@@ -6,6 +6,7 @@ import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
+import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ public class ClubLeaderController {
 
     private final ClubLeaderService clubLeaderService;
     private final FcmServiceImpl fcmService;
+    private final S3FileUploadService fileUploadService;
 
     // 동아리 기본 정보 조회
     @GetMapping("/{clubId}/info")

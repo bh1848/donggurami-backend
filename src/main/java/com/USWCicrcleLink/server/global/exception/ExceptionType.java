@@ -128,11 +128,12 @@ public enum ExceptionType {
     FILE_ENCODING_FAILED("FILE_301", "파일 이름 인코딩에 실패했습니다.", BAD_REQUEST),
     FILE_CREATE_FAILED("FILE_302", "파일 생성에 실패했습니다.", BAD_REQUEST),
     FILE_SAVE_FAILED("FILE_303", "파일 저장에 실패했습니다.", BAD_REQUEST),
-    FILE_DELETE_FAILED("FILE_304", "파일 삭제에 실패했습니다.", BAD_REQUEST),
-    MAXIMUM_FILE_LIMIT_EXCEEDED("FILE_305", "업로드 가능한 사진 갯수를 초과했습니다.", BAD_REQUEST),
-    INVALID_FILE_NAME("FILE_306", "파일 이름이 유효하지 않습니다.", BAD_REQUEST),
-    MISSING_FILE_EXTENSION("FILE_307", "파일 확장자가 없습니다.", BAD_REQUEST),
-    UNSUPPORTED_FILE_EXTENSION("FILE_308", "지원하지 않는 파일 확장자입니다.", BAD_REQUEST);
+    FILE_UPLOAD_FAILED("FILE_304", "파일 업로드에 실패했습니다.", BAD_REQUEST),
+    FILE_DELETE_FAILED("FILE_305", "파일 삭제에 실패했습니다.", BAD_REQUEST),
+    MAXIMUM_FILE_LIMIT_EXCEEDED("FILE_306", "업로드 가능한 사진 갯수를 초과했습니다.", BAD_REQUEST),
+    INVALID_FILE_NAME("FILE_307", "파일 이름이 유효하지 않습니다.", BAD_REQUEST),
+    MISSING_FILE_EXTENSION("FILE_308", "파일 확장자가 없습니다.", BAD_REQUEST),
+    UNSUPPORTED_FILE_EXTENSION("FILE_309", "지원하지 않는 파일 확장자입니다.", BAD_REQUEST);
 
 
     private final String code;

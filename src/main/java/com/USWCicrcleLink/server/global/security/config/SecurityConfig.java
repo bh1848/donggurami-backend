@@ -62,8 +62,10 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.PATCH, "/admin/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs", "/admin/notices").hasRole("ADMIN");
 
-                    // fcm 삭제
-                    auth.requestMatchers(HttpMethod.POST, "/club-leader/fcm-token", "/club-leader/application").permitAll();
+                    // 테스트 api 삭제
+                    auth.requestMatchers(HttpMethod.POST, "/club-leader/fcm-token", "/club-leader/s3upload").permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/club-leader/s3download").permitAll();
+
                     // USER
                     auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
                     auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","/mypages/notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/mainPhoto/**").hasRole("USER");

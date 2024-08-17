@@ -5,9 +5,9 @@ spring:
 
   servlet:
     multipart:
-      enabled: true
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 5MB
+      max-request-size: 30MB
+      resolve-lazily: true
 
 file:
   allowed-extensions: jpg,jpeg,png

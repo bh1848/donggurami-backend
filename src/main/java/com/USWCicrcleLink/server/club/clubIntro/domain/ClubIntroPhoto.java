@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.checkerframework.checker.units.qual.C;
 
 @Entity
 @Getter
@@ -23,15 +24,18 @@ public class ClubIntroPhoto {
     @JoinColumn(name = "club_intro_id", nullable = false)
     private ClubIntro clubIntro;
 
-    @Column(name = "club_intro_photo_path")
-    private String clubIntroPhotoPath;
+    @Column(name = "club_intro_photo_name")
+    private String clubIntroPhotoName;
+
+    @Column(name = "club_intro_photo_s3key")
+    private String clubIntroPhotoS3Key;
 
     @Column(name = "photo_order", nullable = false)
     private int order;
 
-    public void updateClubIntroPhoto(ClubIntro clubIntro, String clubIntroPhotoPath, int order) {
-        this.clubIntro = clubIntro;
-        this.clubIntroPhotoPath = clubIntroPhotoPath;
+    public void updateClubIntroPhoto(String clubIntroPhotoName, String clubIntroPhotoS3Key, int order) {
+        this.clubIntroPhotoName = clubIntroPhotoName;
+        this.clubIntroPhotoS3Key = clubIntroPhotoS3Key;
         this.order = order;
     }
 }

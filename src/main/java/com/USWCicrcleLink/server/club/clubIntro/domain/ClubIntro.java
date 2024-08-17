@@ -50,8 +50,7 @@ public class ClubIntro {
     @Column(name = "club_intro_recruitment_status", nullable = false)
     private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
 
-    public void updateClubIntro(Club club, String clubIntro, String googleFormUrl) {
-        this.club = club;
+    public void updateClubIntro(String clubIntro, String googleFormUrl) {
         this.clubIntro = clubIntro;
         this.googleFormUrl = googleFormUrl;
     }

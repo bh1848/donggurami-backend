@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ClubInfoResponse {
 
-    private String mainPhoto;
+    private String mainPhotoUrl;
 
     private String clubName;
 

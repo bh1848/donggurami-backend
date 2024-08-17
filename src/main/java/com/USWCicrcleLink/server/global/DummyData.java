@@ -8,8 +8,10 @@ import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.club.domain.Department;
+import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
@@ -50,6 +52,7 @@ public class DummyData {
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final LeaderRepository leaderRepository;
     private final NoticeRepository noticeRepository;
+    private final ClubMainPhotoRepository clubMainPhotoRepository;
 
     @PostConstruct
     public void init() {
@@ -167,6 +170,13 @@ public class DummyData {
 
         clubRepository.save(club);
 
+        ClubMainPhoto clubMainPhoto = ClubMainPhoto.builder()
+                .club(club)
+                .clubMainPhotoName("")
+                .clubMainPhotoS3Key("")
+                .build();
+        clubMainPhotoRepository.save(clubMainPhoto);
+
         Leader leader = Leader.builder()
                 .leaderAccount("flag")
                 .leaderPw("1234")
@@ -187,7 +197,8 @@ public class DummyData {
         for (int i = 1; i <= 5; i++) {
             ClubIntroPhoto clubIntroPhoto = ClubIntroPhoto.builder()
                     .clubIntro(clubIntro)
-                    .clubIntroPhotoPath("") // 초기값으로 빈 문자열 설정
+                    .clubIntroPhotoName("") // 초기값으로 빈 문자열 설정
+                    .clubIntroPhotoS3Key("")
                     .order(i) // 순서를 1부터 5까지 설정
                     .build();
             clubIntroPhotoRepository.save(clubIntroPhoto);
