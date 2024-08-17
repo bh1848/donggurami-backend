@@ -7,6 +7,7 @@ import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +37,7 @@ public class S3FileUploadService {
     private final int URL_EXPIRED_TIME = 1000 * 60 * 60;// 1시간
 
     // 이미지 파일 업로드
-    public S3FileResponse saveFile(MultipartFile image) {
+    public S3FileResponse uploadFile(MultipartFile image) {
         // 파일 확장자 체크
         String fileExtension = validateImageFileExtension(image);
 
@@ -45,15 +46,15 @@ public class S3FileUploadService {
 
         log.debug("파일 업로드 준비: " + s3FileName);
 
-        // 사전 서명된 URL 생성
-        String presignedUrl = generatePresignedGetUrl(s3FileName).toString();
+        // 사전 서명된 URL 생성 (PUT 메서드로 업로드용 URL 생성)
+        String presignedUrl = generatePresignedPutUrl(s3FileName);
 
         log.debug("사전 서명된 URL 생성 완료: {}", presignedUrl);
 
         return new S3FileResponse(presignedUrl, s3FileName);
     }
 
-    // 파일 확장자 체크
+    // 파일 확장 확인
     private String validateImageFileExtension(MultipartFile image) {
         // 파일명 확인
         if (image == null || image.getOriginalFilename() == null) {
@@ -73,7 +74,18 @@ public class S3FileUploadService {
         return fileExtension;
     }
 
-    private URL generatePresignedPostUrl(String fileName) {
+    // 파일 업로드 URL 생성 (PUT 메서드)
+    private String generatePresignedPutUrl(String fileName) {
+        return generatePresignedUrl(fileName, HttpMethod.PUT).toString();
+    }
+
+    // 파일 조회 URL 생성 (GET 메서드)
+    public String generatePresignedGetUrl(String fileName) {
+        return generatePresignedUrl(fileName, HttpMethod.GET).toString();
+    }
+
+    // PresignedUrl 생성
+    private URL generatePresignedUrl(String fileName, HttpMethod httpMethod) {
         try {
             Date expiration = new Date();
             long expTimeMillis = expiration.getTime();
@@ -81,7 +93,7 @@ public class S3FileUploadService {
             expiration.setTime(expTimeMillis);
 
             // 사전 서명된 URL 생성
-            return amazonS3.generatePresignedUrl(bucket, fileName, expiration, HttpMethod.PUT);
+            return amazonS3.generatePresignedUrl(bucket, fileName, expiration, httpMethod);
         } catch (AmazonS3Exception e) {
             log.error("S3 사전 서명된 URL 생성 오류: " + e.getMessage());
             throw new FileException(ExceptionType.FILE_UPLOAD_FAILED);
@@ -91,21 +103,14 @@ public class S3FileUploadService {
         }
     }
 
-    public URL generatePresignedGetUrl(String fileName) {
+    // 이미지 파일 삭제
+    public void deleteFile(String fileName) {
         try {
-            Date expiration = new Date();
-            long expTimeMillis = expiration.getTime();
-            expTimeMillis += URL_EXPIRED_TIME;
-            expiration.setTime(expTimeMillis);
-
-            // 사전 서명된 URL 생성 (GET 요청용)
-            return amazonS3.generatePresignedUrl(bucket, fileName, expiration, HttpMethod.GET);
+            amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
+            log.debug("S3 파일 삭제 완료: {}", fileName);
         } catch (AmazonS3Exception e) {
-            log.error("S3 사전 서명된 URL 생성 오류: " + e.getMessage());
-            throw new FileException(ExceptionType.FILE_UPLOAD_FAILED);
-        } catch (SdkClientException e) {
-            log.error("AWS SDK 클라이언트 오류: " + e.getMessage());
-            throw new FileException(ExceptionType.FILE_UPLOAD_FAILED);
+            log.error("S3 파일 삭제 오류: " + e.getMessage());
+            throw new FileException(ExceptionType.FILE_DELETE_FAILED);
         }
     }
 

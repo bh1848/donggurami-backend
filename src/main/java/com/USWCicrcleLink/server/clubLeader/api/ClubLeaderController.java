@@ -30,18 +30,6 @@ public class ClubLeaderController {
     private final FcmServiceImpl fcmService;
     private final S3FileUploadService fileUploadService;
 
-    @PostMapping("/s3upload")
-    public ResponseEntity<S3FileResponse> uploadS3(@RequestPart(value = "mainPhoto", required = true) MultipartFile mainPhoto) {
-        S3FileResponse s3FileResponse = fileUploadService.saveFile(mainPhoto);
-        return new ResponseEntity<>(s3FileResponse, HttpStatus.OK);
-    }
-
-    @GetMapping("/s3download")
-    public ResponseEntity<URL> getFileUrl() {
-        URL presignedUrl = fileUploadService.generatePresignedGetUrl("5aaed89f-314b-4931-af12-e5f1e6146d83.png");
-        return ResponseEntity.ok(presignedUrl);
-    }
-
     // 동아리 기본 정보 조회
     @GetMapping("/{clubId}/info")
     public ResponseEntity<ApiResponse> getClubInfo(@PathVariable("clubId") Long clubId) {
@@ -59,20 +47,20 @@ public class ClubLeaderController {
     }
 
     // 동아리 소개 조회
-    @GetMapping("/{clubId}/intro")
-    public ResponseEntity<ApiResponse> getClubIntro(@PathVariable("clubId") Long clubId) {
-        ApiResponse<ClubIntroResponse> clubIntro = clubLeaderService.getClubIntro(clubId);
-        return new ResponseEntity<>(clubIntro, HttpStatus.OK);
-    }
-
-    // 동아리 소개 변경
-    @PatchMapping("/{clubId}/intro")
-    public ResponseEntity<ApiResponse> updateClubIntro(@PathVariable("clubId") Long clubId,
-                                                       @RequestPart(value = "clubIntroRequest", required = false) ClubIntroRequest clubIntroRequest,
-                                                       @RequestPart(value = "introPhotos", required = false) List<MultipartFile> introPhotos) throws IOException {
-
-        return new ResponseEntity<>(clubLeaderService.updateClubIntro(clubId, clubIntroRequest, introPhotos), HttpStatus.OK);
-    }
+//    @GetMapping("/{clubId}/intro")
+//    public ResponseEntity<ApiResponse> getClubIntro(@PathVariable("clubId") Long clubId) {
+//        ApiResponse<ClubIntroResponse> clubIntro = clubLeaderService.getClubIntro(clubId);
+//        return new ResponseEntity<>(clubIntro, HttpStatus.OK);
+//    }
+//
+//    // 동아리 소개 변경
+//    @PatchMapping("/{clubId}/intro")
+//    public ResponseEntity<ApiResponse> updateClubIntro(@PathVariable("clubId") Long clubId,
+//                                                       @RequestPart(value = "clubIntroRequest", required = false) ClubIntroRequest clubIntroRequest,
+//                                                       @RequestPart(value = "introPhotos", required = false) List<MultipartFile> introPhotos) throws IOException {
+//
+//        return new ResponseEntity<>(clubLeaderService.updateClubIntro(clubId, clubIntroRequest, introPhotos), HttpStatus.OK);
+//    }
 
     // 동아리 모집 상태 변경
     @PatchMapping("/{clubId}/toggle-recruitment")

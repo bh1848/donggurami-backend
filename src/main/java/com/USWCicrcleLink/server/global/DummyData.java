@@ -8,8 +8,10 @@ import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.club.domain.Department;
+import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
@@ -50,6 +52,7 @@ public class DummyData {
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final LeaderRepository leaderRepository;
     private final NoticeRepository noticeRepository;
+    private final ClubMainPhotoRepository clubMainPhotoRepository;
 
     @PostConstruct
     public void init() {
@@ -166,6 +169,13 @@ public class DummyData {
                 .build();
 
         clubRepository.save(club);
+
+        ClubMainPhoto clubMainPhoto = ClubMainPhoto.builder()
+                .club(club)
+                .clubMainPhotoName("")
+                .clubMainPhotoS3Key("")
+                .build();
+        clubMainPhotoRepository.save(clubMainPhoto);
 
         Leader leader = Leader.builder()
                 .leaderAccount("flag")

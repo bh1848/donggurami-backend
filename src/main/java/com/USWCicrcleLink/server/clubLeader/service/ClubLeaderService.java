@@ -6,7 +6,9 @@ import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantsResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
+import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
@@ -21,6 +23,8 @@ import com.USWCicrcleLink.server.global.exception.errortype.*;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
 import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
+import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
+import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -52,6 +56,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,8 +75,10 @@ public class ClubLeaderService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
+    private final ClubMainPhotoRepository clubMainPhotoRepository;
 
     private final FileUploadService fileUploadService;
+    private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
 
     // 대표 사진 경로
@@ -89,7 +96,12 @@ public class ClubLeaderService {
 
         Club club = validateLeader(clubId);
 
-        String mainPhotoUrl = fileUploadService.getPhotoUrl(club.getMainPhotoPath());
+        Optional<ClubMainPhoto> clubMainPhoto = Optional.ofNullable(clubMainPhotoRepository.findByClub_ClubId(club.getClubId()));
+
+        // 사진이 있으면 url 없으면 null
+        String mainPhotoUrl = clubMainPhoto.map(
+                        photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubMainPhotoS3Key()))
+                .orElse(null);
 
         ClubInfoResponse clubInfoResponse = new ClubInfoResponse(
                 mainPhotoUrl,
@@ -103,119 +115,129 @@ public class ClubLeaderService {
     }
 
     // 동아리 기본 정보 변경
-    public ApiResponse updateClubInfo(Long clubId, ClubInfoRequest clubInfoRequest, MultipartFile mainPhoto) throws IOException {
+    public ApiResponse<UpdateClubInfoResponse> updateClubInfo(Long clubId, ClubInfoRequest clubInfoRequest, MultipartFile mainPhoto) throws IOException {
 
         Club club = validateLeader(clubId);
 
-        // 사진 파일 업로드 과정
-        createMainPhotoDir();// 사진 파일 디렉터리 없는 경우 생성
+        // 기존 동아리 대표 사진 조회
+        ClubMainPhoto existingPhoto = clubMainPhotoRepository.findByClub_ClubId(clubId);
 
-        // 기존에 사진이 있는지 확인
-        String existingFilePath = club.getMainPhotoPath();
-        log.debug("기존 동아리 대표 사진 경로:{}", existingFilePath);
+        S3FileResponse s3FileResponse;
 
-        String mainPhotoPath = fileUploadService.saveFile(mainPhoto, existingFilePath, mainPhotoDir);
+        // 기존 사진이 존재할 경우
+        if (!existingPhoto.getClubMainPhotoS3Key().isEmpty() && !existingPhoto.getClubMainPhotoName().isEmpty()) {
+            // 기존 S3 파일 삭제
+            s3FileUploadService.deleteFile(existingPhoto.getClubMainPhotoS3Key());
+            log.debug("기존 사진 삭제 완료: {}", existingPhoto.getClubMainPhotoS3Key());
+        }
 
-        club.updateClubInfo(mainPhotoPath, clubInfoRequest.getLeaderName(), clubInfoRequest.getLeaderHp(),
-                clubInfoRequest.getClubInsta());
+        // 새로운 파일 업로드 및 메타 데이터 업데이트
+        s3FileResponse = updateClubMainPhotoAndS3File(mainPhoto, existingPhoto);
 
+        // 동아리 기본 정보 변경
+        club.updateClubInfo(clubInfoRequest.getLeaderName(), clubInfoRequest.getLeaderHp(), clubInfoRequest.getClubInsta());
         clubRepository.save(club);
         log.debug("동아리 기본 정보 변경 완료: {}", club.getClubName());
-        return new ApiResponse<>("동아리 기본 정보 변경 완료", club.getClubName());
+
+        return new ApiResponse<>("동아리 기본 정보 변경 완료", new UpdateClubInfoResponse(s3FileResponse.getPresignedUrl()));
     }
+
+    private S3FileResponse updateClubMainPhotoAndS3File(MultipartFile mainPhoto, ClubMainPhoto existingPhoto) throws IOException {
+        // 새로운 파일 업로드
+        S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(mainPhoto);
+
+        // s3key 및 photoname 업데이트
+        existingPhoto.updateClubMainPhoto(mainPhoto.getOriginalFilename(), s3FileResponse.getS3FileName());
+        clubMainPhotoRepository.save(existingPhoto);
+        log.debug("사진 정보 저장 및 업데이트 완료: {}", s3FileResponse.getS3FileName());
+
+        return s3FileResponse;
+    }
+
 
     // 동아리 소개 조회
     @Transactional(readOnly = true)
-    public ApiResponse<ClubIntroResponse> getClubIntro(Long clubId) {
-
-        Club club = validateLeader(clubId);
-        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
-                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
-
-        // 소개 사진 조회
-        List<ClubIntroPhoto> introPhotos = clubIntroPhotoRepository.findAllByClubIntro_ClubIntroIdOrderByOrderAsc(clubIntro.getClubIntroId());
-        // 사진 경로를 리스트로 변환
-        List<String> introPhotoPaths = introPhotos.stream()
-                .map(ClubIntroPhoto::getClubIntroPhotoPath)
-                .collect(Collectors.toList());
-
-        // 파일 경로를 URL로 변환
-        List<String> introPhotoUrls = introPhotoPaths.stream()
-                .map(fileUploadService::getPhotoUrl)
-                .collect(Collectors.toList());
-
-        ClubIntroResponse clubIntroResponse = new ClubIntroResponse(
-                club.getMainPhotoPath(),
-                introPhotoUrls,
-                club.getClubName(),
-                club.getLeaderName(),
-                club.getLeaderHp(),
-                club.getClubInsta(),
-                clubIntro.getClubIntro()
-        );
-
-        return new ApiResponse<>("동아리 소개 조회 완료", clubIntroResponse);
-    }
-
-    // 동아리 소개 변경
-    public ApiResponse updateClubIntro(Long clubId, ClubIntroRequest clubIntroRequest, List<MultipartFile> introPhotos) throws IOException {
-
-        Club club = validateLeader(clubId);
-
-        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
-                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
-
-        if (introPhotos != null && !introPhotos.isEmpty() && clubIntroRequest.getOrders() != null && !clubIntroRequest.getOrders().isEmpty()) {
-
-            if (introPhotos.size() > FILE_LIMIT) {
-                throw new FileException(ExceptionType.MAXIMUM_FILE_LIMIT_EXCEEDED);
-            }
-
-            // 사진 파일 업로드 과정
-            createIntroPhotoDir();// 사진 파일 디렉터리 없는 경우 생성
-
-            for (int i = 0; i < introPhotos.size(); i++) {
-                MultipartFile introPhoto = introPhotos.get(i);
-                int order = clubIntroRequest.getOrders().get(i);
-
-                // 새로운 파일이 존재하지 않으면 해당 순서는 건너뜁니다
-                if (introPhoto == null || introPhoto.isEmpty()) {
-                    continue; // 현재 순서 건너뛰기
-                }
-
-                // 기존 경로 변수에 사진이 있는지 확인
-                ClubIntroPhoto existingPhoto = clubIntroPhotoRepository
-                        .findByClubIntro_ClubIntroIdAndOrder(clubIntro.getClubIntroId(), order)
-                        .orElseThrow(() -> new ClubPhotoException(ExceptionType.PHOTO_ORDER_MISS_MATCH));
-
-                // 새로운 파일 저장 (기존 파일 경로를 전달하여 덮어쓰도록 설정)
-                String newPhotoPath = fileUploadService.saveFile(introPhoto, existingPhoto.getClubIntroPhotoPath(), introPhotoDir);
-
-                // 기존 사진이 있으면 업데이트, 없으면 새로 생성
-                existingPhoto.updateClubIntroPhoto(clubIntro, newPhotoPath, order);
-                clubIntroPhotoRepository.save(existingPhoto);
-                log.debug("사진 업데이트 완료: 순서 = {}, 새로운 경로 = {}", order, newPhotoPath);
-
-            }
-        }
-
-
-        // 소개 글, google form 저장
-        clubIntro.updateClubIntro(club, clubIntroRequest.getClubIntro(), clubIntroRequest.getGoogleFormUrl());
-        clubIntroRepository.save(clubIntro);
-
-        log.debug("{} 소개 저장 완료", club.getClubName());
-        return new ApiResponse<>("동아리 소개 변경 완료", club.getClubName());
-    }
-
-    // 사진 파일 저장 디렉터리 없는 경우 생성
-    private void createMainPhotoDir() throws IOException {
-        Files.createDirectories(Paths.get(mainPhotoDir));
-    }
-
-    private void createIntroPhotoDir() throws IOException {
-        Files.createDirectories(Paths.get(introPhotoDir));
-    }
+//    public ApiResponse<ClubIntroResponse> getClubIntro(Long clubId) {
+//
+//        Club club = validateLeader(clubId);
+//        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
+//                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+//
+//        // 소개 사진 조회
+//        List<ClubIntroPhoto> introPhotos = clubIntroPhotoRepository.findAllByClubIntro_ClubIntroIdOrderByOrderAsc(clubIntro.getClubIntroId());
+//        // 사진 경로를 리스트로 변환
+//        List<String> introPhotoPaths = introPhotos.stream()
+//                .map(ClubIntroPhoto::getClubIntroPhotoPath)
+//                .collect(Collectors.toList());
+//
+//        // 파일 경로를 URL로 변환
+//        List<String> introPhotoUrls = introPhotoPaths.stream()
+//                .map(fileUploadService::getPhotoUrl)
+//                .collect(Collectors.toList());
+//
+//        ClubIntroResponse clubIntroResponse = new ClubIntroResponse(
+//                club.getMainPhotoPath(),
+//                introPhotoUrls,
+//                club.getClubName(),
+//                club.getLeaderName(),
+//                club.getLeaderHp(),
+//                club.getClubInsta(),
+//                clubIntro.getClubIntro()
+//        );
+//
+//        return new ApiResponse<>("동아리 소개 조회 완료", clubIntroResponse);
+//    }
+//
+//    // 동아리 소개 변경
+//    public ApiResponse updateClubIntro(Long clubId, ClubIntroRequest clubIntroRequest, List<MultipartFile> introPhotos) throws IOException {
+//
+//        Club club = validateLeader(clubId);
+//
+//        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
+//                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+//
+//        if (introPhotos != null && !introPhotos.isEmpty() && clubIntroRequest.getOrders() != null && !clubIntroRequest.getOrders().isEmpty()) {
+//
+//            if (introPhotos.size() > FILE_LIMIT) {
+//                throw new FileException(ExceptionType.MAXIMUM_FILE_LIMIT_EXCEEDED);
+//            }
+//
+//            // 사진 파일 업로드 과정
+//            createIntroPhotoDir();// 사진 파일 디렉터리 없는 경우 생성
+//
+//            for (int i = 0; i < introPhotos.size(); i++) {
+//                MultipartFile introPhoto = introPhotos.get(i);
+//                int order = clubIntroRequest.getOrders().get(i);
+//
+//                // 새로운 파일이 존재하지 않으면 해당 순서는 건너뜁니다
+//                if (introPhoto == null || introPhoto.isEmpty()) {
+//                    continue; // 현재 순서 건너뛰기
+//                }
+//
+//                // 기존 경로 변수에 사진이 있는지 확인
+//                ClubIntroPhoto existingPhoto = clubIntroPhotoRepository
+//                        .findByClubIntro_ClubIntroIdAndOrder(clubIntro.getClubIntroId(), order)
+//                        .orElseThrow(() -> new ClubPhotoException(ExceptionType.PHOTO_ORDER_MISS_MATCH));
+//
+//                // 새로운 파일 저장 (기존 파일 경로를 전달하여 덮어쓰도록 설정)
+//                String newPhotoPath = fileUploadService.saveFile(introPhoto, existingPhoto.getClubIntroPhotoPath(), introPhotoDir);
+//
+//                // 기존 사진이 있으면 업데이트, 없으면 새로 생성
+//                existingPhoto.updateClubIntroPhoto(clubIntro, newPhotoPath, order);
+//                clubIntroPhotoRepository.save(existingPhoto);
+//                log.debug("사진 업데이트 완료: 순서 = {}, 새로운 경로 = {}", order, newPhotoPath);
+//
+//            }
+//        }
+//
+//
+//        // 소개 글, google form 저장
+//        clubIntro.updateClubIntro(club, clubIntroRequest.getClubIntro(), clubIntroRequest.getGoogleFormUrl());
+//        clubIntroRepository.save(clubIntro);
+//
+//        log.debug("{} 소개 저장 완료", club.getClubName());
+//        return new ApiResponse<>("동아리 소개 변경 완료", club.getClubName());
+//    }
 
     // 동아리 모집 상태 변경
     public ApiResponse toggleRecruitmentStatus(Long clubId) {
