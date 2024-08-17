@@ -1,12 +1,12 @@
 server:
   port: 8080
+  base:
+    url: "${SERVER_BASE_URL}"
 
 # log setting
 logging:
   level:
-    com:
-      USWRandomChat:
-        backend: warn
+    com.USWCicrcleLink.server: warn
 
 #email url
 email:

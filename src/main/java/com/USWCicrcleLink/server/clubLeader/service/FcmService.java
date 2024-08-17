@@ -10,5 +10,6 @@ import java.io.IOException;
 
 @Service
 public interface FcmService {
+    // 메시지 구성, 토큰 받고 메시지 처리
     int sendMessageTo(Aplict aplict, AplictStatus aplictResult) throws IOException;
 }

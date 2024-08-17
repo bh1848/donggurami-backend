@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ApplicantsResponse {
 
-    private Long clubMemberId;
+    private Long aplictId;
 
     private String userName;
 
@@ -20,8 +20,8 @@ public class ApplicantsResponse {
 
     private String userHp;
 
-    public ApplicantsResponse(Long clubMemberId, Profile profile) {
-        this.clubMemberId = clubMemberId;
+    public ApplicantsResponse(Long aplictId, Profile profile) {
+        this.aplictId = aplictId;
         this.userName = profile.getUserName();
         this.major = profile.getMajor();
         this.studentNumber = profile.getStudentNumber();

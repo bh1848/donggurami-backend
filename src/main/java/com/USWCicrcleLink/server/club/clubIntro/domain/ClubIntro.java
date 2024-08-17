@@ -50,18 +50,10 @@ public class ClubIntro {
     @Column(name = "club_intro_recruitment_status", nullable = false)
     private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
 
-    public void updateClubIntro(Club club, String clubIntro, String googleFormUrl,
-                                String clubIntroPhotoPath, String additionalPhotoPath1,
-                                String additionalPhotoPath2, String additionalPhotoPath3,
-                                String additionalPhotoPath4) {
+    public void updateClubIntro(Club club, String clubIntro, String googleFormUrl) {
         this.club = club;
         this.clubIntro = clubIntro;
         this.googleFormUrl = googleFormUrl;
-        this.clubIntroPhotoPath = clubIntroPhotoPath;
-        this.additionalPhotoPath1 = additionalPhotoPath1;
-        this.additionalPhotoPath2 = additionalPhotoPath2;
-        this.additionalPhotoPath3 = additionalPhotoPath3;
-        this.additionalPhotoPath4 = additionalPhotoPath4;
     }
 
     public void toggleRecruitmentStatus() {

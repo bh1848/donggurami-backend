@@ -1,5 +1,7 @@
 package com.USWCicrcleLink.server.global.util;
 
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.FileException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +26,9 @@ import java.util.UUID;
 @Slf4j
 public class FileUploadService {
 
+    @Value("${server.base.url}")
+    private String serverBaseUrl;
+
     @Value("#{'${file.allowed-extensions}'.split(',')}")
     private List<String> allowedExtensions;
 
@@ -40,15 +45,26 @@ public class FileUploadService {
             return existingFilePath;
         }
 
-        //기존 파일 삭제
-        if (existingFilePath != null) {
-            deleteFile(Path.of(existingFilePath));
+        // 기존 파일 삭제
+        if (existingFilePath != null && !existingFilePath.isEmpty()) {
+            try {
+                // 기존 파일 경로는 절대 경로로 변환하여 삭제
+                Path pathToDelete = Paths.get(existingFilePath).normalize();
+                if (Files.exists(pathToDelete)) {
+                    Files.delete(pathToDelete);
+                    log.debug("기존 파일 삭제 완료: {}", pathToDelete.toString());
+                } else {
+                    log.warn("삭제하려는 파일이 존재하지 않습니다: {}", pathToDelete.toString());
+                }
+            } catch (IOException e) {
+                log.error("기존 파일 삭제 중 오류 발생: {}", existingFilePath, e);
+                throw new FileException(ExceptionType.FILE_DELETE_FAILED);
+            }
         }
 
         //파일 확장자 추출
         String originalFilename = file.getOriginalFilename();
         String extension = getFileExtension(originalFilename);
-
         log.debug("업로드된 파일의 확장자: {}", extension);
 
         //지원하는 확장자인지 검증
@@ -62,8 +78,10 @@ public class FileUploadService {
         try (InputStream inputStream = file.getInputStream()) {
             Files.copy(inputStream, Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new IOException("파일 저장 중 오류가 발생했습니다.", e);
+            throw new FileException(ExceptionType.FILE_SAVE_FAILED);
         }
+
+        log.debug("파일 저장 경로: {}", filePath);
 
         return filePath;
     }
@@ -71,24 +89,20 @@ public class FileUploadService {
     //기존 파일 삭제
     public void deleteFile(Path existingFilePath) throws IOException {
         if (Files.exists(existingFilePath)) {
-            try {
-                Files.delete(existingFilePath);
-            } catch (IOException e) {
-                throw new IOException("기존 파일 삭제 중 오류가 발생했습니다.", e);
-            }
+            Files.delete(existingFilePath);
         }
     }
 
     //파일 확장자 추출
     private String getFileExtension(String filename) {
         if (filename == null) {
-            throw new IllegalArgumentException("파일 이름이 유효하지 않습니다.");
+            throw new FileException(ExceptionType.INVALID_FILE_NAME);
         }
         int dotIndex = filename.lastIndexOf('.');
 
         //없으면 예외 처리, 있으면 . 이후에 확장자를 추출
         if (dotIndex == -1) {
-            throw new IllegalArgumentException("파일 확장자가 없습니다.");
+            throw new FileException(ExceptionType.MISSING_FILE_EXTENSION);
         }
         return filename.substring(dotIndex + 1).toLowerCase();
     }
@@ -97,7 +111,18 @@ public class FileUploadService {
     private void validateFileExtension(String extension) throws IOException {
         log.debug("검증 중인 파일 확장자: {}", extension);
         if (!allowedExtensions.contains(extension.toLowerCase())) {
-            throw new IOException("지원하지 않는 파일 확장자입니다.: " + extension);
+            throw new FileException(ExceptionType.UNSUPPORTED_FILE_EXTENSION);
         }
+    }
+
+    public String getPhotoUrl(String filePath) {
+        // 경로가 없는 경우 null 반환
+        if (filePath == null || filePath.isEmpty()) {
+            return null;
+        }
+
+        // filePath에서 photoDir 부분을 제거하고, 상대 경로를 추출
+        String relativePath = filePath.replace("src/main/resources/static", "");
+        return serverBaseUrl + relativePath; // URL 반환
     }
 }
