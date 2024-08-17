@@ -37,12 +37,12 @@ public class S3FileUploadService {
     private final int URL_EXPIRED_TIME = 1000 * 60 * 60;// 1시간
 
     // 이미지 파일 업로드
-    public S3FileResponse uploadFile(MultipartFile image) {
+    public S3FileResponse uploadFile(MultipartFile image, String S3_PHOTO_DIR) {
         // 파일 확장자 체크
         String fileExtension = validateImageFileExtension(image);
 
         // 랜덤 파일명 생성 (파일명 중복 방지)
-        String s3FileName = UUID.randomUUID() + "." + fileExtension;
+        String s3FileName = S3_PHOTO_DIR + UUID.randomUUID() + "." + fileExtension;
 
         log.debug("파일 업로드 준비: " + s3FileName);
 
