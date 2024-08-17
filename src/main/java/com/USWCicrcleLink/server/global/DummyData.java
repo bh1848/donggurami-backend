@@ -197,7 +197,8 @@ public class DummyData {
         for (int i = 1; i <= 5; i++) {
             ClubIntroPhoto clubIntroPhoto = ClubIntroPhoto.builder()
                     .clubIntro(clubIntro)
-                    .clubIntroPhotoPath("") // 초기값으로 빈 문자열 설정
+                    .clubIntroPhotoName("") // 초기값으로 빈 문자열 설정
+                    .clubIntroPhotoS3Key("")
                     .order(i) // 순서를 1부터 5까지 설정
                     .build();
             clubIntroPhotoRepository.save(clubIntroPhoto);

@@ -76,16 +76,22 @@ public class S3FileUploadService {
 
     // 파일 업로드 URL 생성 (PUT 메서드)
     private String generatePresignedPutUrl(String fileName) {
-        return generatePresignedUrl(fileName, HttpMethod.PUT).toString();
+        URL url = generatePresignedUrl(fileName, HttpMethod.PUT);
+        return url != null ? url.toString() : "";
     }
 
     // 파일 조회 URL 생성 (GET 메서드)
     public String generatePresignedGetUrl(String fileName) {
-        return generatePresignedUrl(fileName, HttpMethod.GET).toString();
+        URL url = generatePresignedUrl(fileName, HttpMethod.GET);
+        return url != null ? url.toString() : "";
     }
 
     // PresignedUrl 생성
     private URL generatePresignedUrl(String fileName, HttpMethod httpMethod) {
+        if (fileName == null || fileName.isEmpty()) {
+            log.debug("파일 이름이 비어 있습니다. presignedUrl을 생성하지 않습니다.");
+            return null;
+        }
         try {
             Date expiration = new Date();
             long expTimeMillis = expiration.getTime();

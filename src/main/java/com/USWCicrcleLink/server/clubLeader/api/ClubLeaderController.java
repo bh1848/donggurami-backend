@@ -7,7 +7,6 @@ import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
-import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.List;
 
 @RestController
@@ -47,20 +45,20 @@ public class ClubLeaderController {
     }
 
     // 동아리 소개 조회
-//    @GetMapping("/{clubId}/intro")
-//    public ResponseEntity<ApiResponse> getClubIntro(@PathVariable("clubId") Long clubId) {
-//        ApiResponse<ClubIntroResponse> clubIntro = clubLeaderService.getClubIntro(clubId);
-//        return new ResponseEntity<>(clubIntro, HttpStatus.OK);
-//    }
-//
-//    // 동아리 소개 변경
-//    @PatchMapping("/{clubId}/intro")
-//    public ResponseEntity<ApiResponse> updateClubIntro(@PathVariable("clubId") Long clubId,
-//                                                       @RequestPart(value = "clubIntroRequest", required = false) ClubIntroRequest clubIntroRequest,
-//                                                       @RequestPart(value = "introPhotos", required = false) List<MultipartFile> introPhotos) throws IOException {
-//
-//        return new ResponseEntity<>(clubLeaderService.updateClubIntro(clubId, clubIntroRequest, introPhotos), HttpStatus.OK);
-//    }
+    @GetMapping("/{clubId}/intro")
+    public ResponseEntity<ApiResponse> getClubIntro(@PathVariable("clubId") Long clubId) {
+        ApiResponse<ClubIntroResponse> clubIntro = clubLeaderService.getClubIntro(clubId);
+        return new ResponseEntity<>(clubIntro, HttpStatus.OK);
+    }
+
+    // 동아리 소개 변경
+    @PatchMapping("/{clubId}/intro")
+    public ResponseEntity<ApiResponse> updateClubIntro(@PathVariable("clubId") Long clubId,
+                                                       @RequestPart(value = "clubIntroRequest", required = false) ClubIntroRequest clubIntroRequest,
+                                                       @RequestPart(value = "introPhotos", required = false) List<MultipartFile> introPhotos) throws IOException {
+
+        return new ResponseEntity<>(clubLeaderService.updateClubIntro(clubId, clubIntroRequest, introPhotos), HttpStatus.OK);
+    }
 
     // 동아리 모집 상태 변경
     @PatchMapping("/{clubId}/toggle-recruitment")
