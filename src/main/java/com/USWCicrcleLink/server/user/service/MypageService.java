@@ -117,6 +117,7 @@ public class MypageService {
         return clubRepository.findById(aplict.getClub().getClubId()).orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
     }
 
+    //사진 조회 url
     private String getClubMainPhotoUrl(Club club) {
         return Optional.ofNullable(clubMainPhotoRepository.findByClub_ClubId(club.getClubId()))
                 .map(clubMainPhoto -> s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key()))
@@ -127,27 +128,29 @@ public class MypageService {
 
         String mainPhotoUrl = getClubMainPhotoUrl(club);
 
-        return MyAplictResponse.builder()
-                .clubId(club.getClubId())
-                .clubName(club.getClubName())
-                .clubInsta(club.getClubInsta())
-                .leaderHp(club.getLeaderHp())
-                .leaderName(club.getLeaderName())
-                .aplictStatus(aplictStatus)
-                .mainPhotoPath(mainPhotoUrl)
-                .build();
+        MyAplictResponse myAplictResponse = new MyAplictResponse(
+                club.getClubId(),
+                mainPhotoUrl,
+                club.getClubName(),
+                club.getLeaderName(),
+                club.getLeaderHp(),
+                club.getClubInsta(),
+                aplictStatus
+        );
+        return myAplictResponse;
     }
     private MyClubResponse myClubResponse(Club club){
 
         String mainPhotoUrl = getClubMainPhotoUrl(club);
 
-        return MyClubResponse.builder()
-                .clubId(club.getClubId())
-                .clubName(club.getClubName())
-                .clubInsta(club.getClubInsta())
-                .leaderHp(club.getLeaderHp())
-                .leaderName(club.getLeaderName())
-                .mainPhotoPath(mainPhotoUrl)
-                .build();
+        MyClubResponse myClubResponse = new MyClubResponse(
+                club.getClubId(),
+                mainPhotoUrl,
+                club.getClubName(),
+                club.getLeaderName(),
+                club.getLeaderHp(),
+                club.getClubInsta()
+        );
+        return  myClubResponse;
     }
 }
