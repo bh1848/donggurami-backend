@@ -4,7 +4,9 @@ import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
+import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
@@ -13,6 +15,7 @@ import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubMemberException;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
+import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -27,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,11 +38,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 public class MypageService {
-    private final UserRepository userRepository;
     private final ClubMembersRepository clubMembersRepository;
     private final ProfileRepository profileRepository;
     private final AplictRepository aplictRepository;
     private final ClubRepository clubRepository;
+    private final S3FileUploadService s3FileUploadService;
+    private final ClubMainPhotoRepository clubMainPhotoRepository;
 
     //어세스토큰에서 유저정보 가져오기
     private User getUserByAuth() {
@@ -112,7 +117,16 @@ public class MypageService {
         return clubRepository.findById(aplict.getClub().getClubId()).orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
     }
 
+    private String getClubMainPhotoUrl(Club club) {
+        return Optional.ofNullable(clubMainPhotoRepository.findByClub_ClubId(club.getClubId()))
+                .map(clubMainPhoto -> s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key()))
+                .orElse(null);
+    }
+
     private MyAplictResponse myAplictResponse(Club club, AplictStatus aplictStatus){
+
+        String mainPhotoUrl = getClubMainPhotoUrl(club);
+
         return MyAplictResponse.builder()
                 .clubId(club.getClubId())
                 .clubName(club.getClubName())
@@ -120,15 +134,20 @@ public class MypageService {
                 .leaderHp(club.getLeaderHp())
                 .leaderName(club.getLeaderName())
                 .aplictStatus(aplictStatus)
-                .mainPhotoPath(club.getMainPhotoPath()).build();
+                .mainPhotoPath(mainPhotoUrl)
+                .build();
     }
     private MyClubResponse myClubResponse(Club club){
+
+        String mainPhotoUrl = getClubMainPhotoUrl(club);
+
         return MyClubResponse.builder()
                 .clubId(club.getClubId())
                 .clubName(club.getClubName())
                 .clubInsta(club.getClubInsta())
                 .leaderHp(club.getLeaderHp())
                 .leaderName(club.getLeaderName())
-                .mainPhotoPath(club.getMainPhotoPath()).build();
+                .mainPhotoPath(mainPhotoUrl)
+                .build();
     }
 }
