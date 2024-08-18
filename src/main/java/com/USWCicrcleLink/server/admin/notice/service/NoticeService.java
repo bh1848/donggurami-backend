@@ -6,17 +6,8 @@ import com.USWCicrcleLink.server.admin.notice.domain.NoticePhoto;
 import com.USWCicrcleLink.server.admin.notice.dto.*;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticePhotoRepository;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
-import com.USWCicrcleLink.server.club.club.domain.Club;
-import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
-import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
-import com.USWCicrcleLink.server.clubLeader.dto.ClubIntroRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.UpdateClubIntroResponse;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.ClubIntroException;
-import com.USWCicrcleLink.server.global.exception.errortype.ClubPhotoException;
-import com.USWCicrcleLink.server.global.exception.errortype.FileException;
 import com.USWCicrcleLink.server.global.exception.errortype.NoticeException;
-import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
@@ -37,7 +28,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -60,8 +50,23 @@ public class NoticeService {
         return pagedResourcesAssembler.toModel(noticePage, noticeListResponseAssembler);
     }
 
+    // 공지사항 내용 조회(웹)
+    @Transactional(readOnly = true)
+    public NoticeDetailResponse getNoticeById(Long noticeId) {
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
+
+        // 공지사항에 연결된 사진 목록 조회 후 S3 URL로 변환
+        List<String> noticePhotoUrls = noticePhotoRepository.findByNotice(notice).stream()
+                .sorted(Comparator.comparingInt(NoticePhoto::getOrder)) // 순서대로 정렬
+                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getNoticePhotoS3Key()))
+                .toList();
+
+        return NoticeDetailResponse.from(notice, noticePhotoUrls);
+    }
+
     // 공지사항 생성(웹)
-    public NoticeDetailResponse createNotice(NoticeCreationRequest request, MultipartFile[] noticePhotos) throws IOException {
+    public NoticeDetailResponse createNotice(NoticeCreationRequest request, List<MultipartFile> noticePhotos) {
         // 현재 인증된 관리자 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
@@ -76,21 +81,54 @@ public class NoticeService {
                 .build();
         Notice savedNotice = noticeRepository.save(notice);
 
+        // 각 사진의 presignedUrls
+        List<String> presignedUrls = new ArrayList<>();
+
         // 공지사항에 첨부된 사진 처리
-        List<NoticePhoto> savedNoticePhotos = new ArrayList<>();
-        if (noticePhotos != null && noticePhotos.length > 0 && request.getPhotoOrders() != null) {
-            savedNoticePhotos = saveNoticePhotos(noticePhotos, savedNotice, request.getPhotoOrders());
-            noticePhotoRepository.saveAll(savedNoticePhotos);
+        if (noticePhotos != null && !noticePhotos.isEmpty() && request.getPhotoOrders() != null) {
+            if (noticePhotos.size() > FILE_LIMIT) { // 최대 FILE_LIMIT장 업로드
+                throw new NoticeException(ExceptionType.MAXIMUM_FILE_LIMIT_EXCEEDED);
+            }
+
+            // N번째 사진 1장씩 처리
+            for (int i = 0; i < noticePhotos.size(); i++) {
+                MultipartFile noticePhoto = noticePhotos.get(i);
+                int order = request.getPhotoOrders().get(i);
+
+                if (noticePhoto == null || noticePhoto.isEmpty()) {
+                    continue;
+                }
+
+                // 새로운 NoticePhoto 객체 생성
+                NoticePhoto newPhoto = new NoticePhoto();
+                newPhoto.setNotice(savedNotice);
+                newPhoto.setOrder(order);
+
+                // 새로운 파일 업로드 및 메타 데이터 업데이트
+                S3FileResponse s3FileResponse = updateNoticePhotoAndS3File(noticePhoto, newPhoto, order);
+
+                // 업로드된 사진의 사전 서명된 URL을 리스트에 추가
+                presignedUrls.add(s3FileResponse.getPresignedUrl());
+            }
         }
 
-        // S3 URL 반환
-        List<String> photoUrls = getPhotoPaths(savedNoticePhotos);
+        return NoticeDetailResponse.from(savedNotice, presignedUrls);
+    }
 
-        return NoticeDetailResponse.from(savedNotice, photoUrls);
+    private S3FileResponse updateNoticePhotoAndS3File(MultipartFile noticePhoto, NoticePhoto existingPhoto, int order) {
+        // 새로운 파일 업로드
+        S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(noticePhoto, S3_NOTICE_PHOTO_DIR);
+
+        // s3key 및 photoname 업데이트
+        existingPhoto.updateNoticePhoto(noticePhoto.getOriginalFilename(), s3FileResponse.getS3FileName(), order);
+        noticePhotoRepository.save(existingPhoto);
+        log.debug("사진 정보 저장 및 업데이트 완료: {}", s3FileResponse.getS3FileName());
+
+        return s3FileResponse;
     }
 
     // 공지사항 수정(웹)
-    public NoticeDetailResponse updateNotice(Long noticeId, NoticeUpdateRequest request, MultipartFile[] noticePhotos) throws IOException {
+    public NoticeDetailResponse updateNotice(Long noticeId, NoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
@@ -102,70 +140,46 @@ public class NoticeService {
             notice.updateContent(request.getNoticeContent());
         }
 
-        List<NoticePhoto> existingPhotos = noticePhotoRepository.findByNotice(notice);
+        // 각 사진의 presignedUrls
+        List<String> presignedUrls = new ArrayList<>();
 
-        // 1. 기존 사진 유지 및 삭제 처리
-        List<NoticePhoto> photosToKeep = new ArrayList<>();
-        List<NoticePhoto> photosToRemove = new ArrayList<>();
+        // 공지사항에 첨부된 사진 처리
+        if (noticePhotos != null && !noticePhotos.isEmpty() && request.getPhotoOrders() != null) {
+            if (noticePhotos.size() > FILE_LIMIT) { // 최대 FILE_LIMIT장 업로드
+                throw new NoticeException(ExceptionType.MAXIMUM_FILE_LIMIT_EXCEEDED);
+            }
 
-        for (NoticePhoto photo : existingPhotos) {
-            if (request.getPhotoIds() != null && request.getPhotoIds().contains(photo.getNoticePhotoId())) {
-                photosToKeep.add(photo);
-            } else {
-                photosToRemove.add(photo);
+            // N번째 사진 1장씩 처리
+            for (int i = 0; i < noticePhotos.size(); i++) {
+                MultipartFile noticePhoto = noticePhotos.get(i);
+                int order = request.getPhotoOrders().get(i);
+
+                if (noticePhoto == null || noticePhoto.isEmpty()) {
+                    continue;
+                }
+
+                NoticePhoto existingPhoto = noticePhotoRepository.findByNoticeAndOrder(notice, order)
+                        .orElseThrow(() -> new NoticeException(ExceptionType.PHOTO_ORDER_MISS_MATCH));
+
+                S3FileResponse s3FileResponse;
+
+                // 기존 사진이 존재할 경우 삭제
+                if (!existingPhoto.getNoticePhotoS3Key().isEmpty()) {
+                    s3FileUploadService.deleteFile(existingPhoto.getNoticePhotoS3Key());
+                    log.debug("기존 사진 삭제 완료: {}", existingPhoto.getNoticePhotoS3Key());
+                }
+
+                // 새로운 파일 업로드 및 메타 데이터 업데이트
+                s3FileResponse = updateNoticePhotoAndS3File(noticePhoto, existingPhoto, order);
+
+                // 업로드된 사진의 사전 서명된 URL을 리스트에 추가
+                presignedUrls.add(s3FileResponse.getPresignedUrl());
             }
         }
-
-        // S3에서 삭제할 사진 제거
-        photosToRemove.forEach(photo -> deletePhotoFile(photo.getNoticePhotoPath()));
-        noticePhotoRepository.deleteAll(photosToRemove);
-
-        // 2. 새로운 사진 추가 및 순서 업데이트 (사진이 있을 경우에만)
-        if (noticePhotos != null && noticePhotos.length > 0 && request.getPhotoOrders() != null) {
-            int startOrderIndex = photosToKeep.size(); // 기존 사진 이후의 순서
-            for (int i = 0; i < noticePhotos.length; i++) {
-                MultipartFile photo = noticePhotos[i];
-                S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(photo, S3_NOTICE_PHOTO_DIR);
-
-                NoticePhoto newPhoto = NoticePhoto.builder()
-                        .noticePhotoPath(s3FileResponse.getS3FileName()) // S3에 저장된 파일 이름 사용
-                        .notice(notice)
-                        .order(request.getPhotoOrders().get(startOrderIndex + i)) // 새로운 사진의 순서
-                        .build();
-                photosToKeep.add(newPhoto);
-            }
-        }
-
-        // 3. 기존 사진 순서 업데이트
-        if (request.getPhotoOrders() != null && !request.getPhotoOrders().isEmpty()) {
-            for (int i = 0; i < photosToKeep.size(); i++) {
-                photosToKeep.get(i).setOrder(request.getPhotoOrders().get(i)); // 순서 업데이트
-            }
-        }
-
-        noticePhotoRepository.saveAll(photosToKeep);
 
         Notice updatedNotice = noticeRepository.save(notice);
 
-        // S3 URL 반환 (사진이 있는 경우에만)
-        List<String> photoUrls = getPhotoPaths(photosToKeep);
-
-        return NoticeDetailResponse.from(updatedNotice, photoUrls);
-    }
-
-    // 공지사항 내용 조회(웹)
-    @Transactional(readOnly = true)
-    public NoticeDetailResponse getNoticeById(Long noticeId) {
-        Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
-
-        // 공지사항에 연결된 사진 목록 조회 후 S3 URL로 변환하여 정렬
-        List<String> noticePhotoUrls = noticePhotoRepository.findByNotice(notice).stream()
-                .sorted(Comparator.comparingInt(NoticePhoto::getOrder)) // 순서대로 정렬
-                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getNoticePhotoPath()))
-                .collect(Collectors.toList());
-
-        return NoticeDetailResponse.from(notice, noticePhotoUrls);
+        return NoticeDetailResponse.from(updatedNotice, presignedUrls);
     }
 
     // 공지사항 삭제(웹)
@@ -176,54 +190,12 @@ public class NoticeService {
         List<NoticePhoto> photos = noticePhotoRepository.findByNotice(notice);
 
         // S3에서 기존 사진 파일 삭제
-        photos.forEach(photo -> deletePhotoFile(photo.getNoticePhotoPath()));
+        photos.forEach(photo -> s3FileUploadService.deleteFile(photo.getNoticePhotoS3Key()));
 
         // 공지사항에 연결된 사진 정보 삭제
-        noticePhotoRepository.deleteByNotice(notice);
+        noticePhotoRepository.deleteAll(photos);
 
         // 공지사항 삭제
         noticeRepository.delete(notice);
-    }
-
-    // 공지사항 사진 저장 및 순서 설정
-    private List<NoticePhoto> saveNoticePhotos(MultipartFile[] photos, Notice notice, List<Integer> orders) throws IOException {
-        List<NoticePhoto> savedPhotos = new ArrayList<>();
-
-        if (photos.length > FILE_LIMIT) {
-            throw new NoticeException(ExceptionType.MAXIMUM_FILE_LIMIT_EXCEEDED);
-        }
-
-        for (int i = 0; i < photos.length; i++) {
-            MultipartFile photo = photos[i];
-
-            // S3에 이미지 파일 업로드
-            S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(photo, S3_NOTICE_PHOTO_DIR);
-
-            NoticePhoto noticePhoto = NoticePhoto.builder()
-                    .noticePhotoPath(s3FileResponse.getS3FileName()) // S3에 저장된 파일 이름 사용
-                    .notice(notice)
-                    .order(orders.get(i)) // 사진 순서 반영
-                    .build();
-            savedPhotos.add(noticePhoto);
-        }
-
-        return savedPhotos;
-    }
-
-    // 공지사항의 사진 객체 리스트에서 S3 URL 목록 조회
-    private List<String> getPhotoPaths(List<NoticePhoto> photos) {
-        return photos.stream()
-                .sorted(Comparator.comparingInt(NoticePhoto::getOrder)) // 순서대로 정렬
-                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getNoticePhotoPath()))
-                .collect(Collectors.toList());
-    }
-
-    // 공지사항 사진 삭제
-    private void deletePhotoFile(String fileName) {
-        if (fileName == null) {
-            log.error("삭제하려는 사진 파일 이름이 null입니다.");
-            return;
-        }
-        s3FileUploadService.deleteFile(fileName);
     }
 }

@@ -116,5 +116,4 @@ public class ClubIntroService {
 
         return new ClubIntroResponse(clubIntro, club, mainPhotoUrl, introPhotoUrls);
     }
-
 }
