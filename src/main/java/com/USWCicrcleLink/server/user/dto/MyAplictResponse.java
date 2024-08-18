@@ -1,15 +1,11 @@
 package com.USWCicrcleLink.server.user.dto;
 
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Data
-@Builder
-@Getter
-@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class MyAplictResponse {
 
     private Long clubId;
