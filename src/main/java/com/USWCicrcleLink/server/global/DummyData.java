@@ -2,15 +2,21 @@ package com.USWCicrcleLink.server.global;
 
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
+import com.USWCicrcleLink.server.admin.notice.domain.Notice;
+import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.club.club.domain.Department;
+import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
+import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
@@ -27,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -42,10 +49,13 @@ public class DummyData {
     private final ClubMembersRepository clubMembersRepository;
     private final AplictRepository aplictRepository;
     private final ClubIntroRepository clubIntroRepository;
+    private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final LeaderRepository leaderRepository;
+    private final NoticeRepository noticeRepository;
+    private final ClubMainPhotoRepository clubMainPhotoRepository;
 
     @PostConstruct
-    public void init(){
+    public void init() {
         initUser1();
         initUser2();
         initUser3();
@@ -106,7 +116,7 @@ public class DummyData {
                 .userName("김땡떙")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정보보호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -118,7 +128,7 @@ public class DummyData {
                 .userName("김빵빵")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정뽀호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -130,7 +140,7 @@ public class DummyData {
                 .userName("user3")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정보보호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -142,7 +152,7 @@ public class DummyData {
                 .userName("user4")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("정뽀호")
+                .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -151,14 +161,20 @@ public class DummyData {
 
         Club club = Club.builder()
                 .clubName("FLAG")
-                .leaderName("개발짱")
-                .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/flag.jpg")
-                .leaderHp("01012341234")
+                .leaderName("flag")
+                .leaderHp("dddd")
                 .department(Department.ACADEMIC)
-                .clubInsta("flag_insta")
+                .clubInsta("ddddddd")
                 .build();
 
         clubRepository.save(club);
+
+        ClubMainPhoto clubMainPhoto = ClubMainPhoto.builder()
+                .club(club)
+                .clubMainPhotoName("")
+                .clubMainPhotoS3Key("")
+                .build();
+        clubMainPhotoRepository.save(clubMainPhoto);
 
         Leader leader = Leader.builder()
                 .leaderAccount("flag")
@@ -169,14 +185,25 @@ public class DummyData {
 
         leaderRepository.save(leader);
 
+        // ClubIntro 객체 생성 및 저장 (중복되는 필드 초기화 제거)
         ClubIntro clubIntro = ClubIntro.builder()
                 .club(club)
                 .clubIntro("플래그입니다.")
                 .googleFormUrl("flag_google_url")
-                .clubIntroPhotoPath("http://43.200.140.186:8080/introPhoto/소개사진.png")
                 .build();
 
         clubIntroRepository.save(clubIntro);
+
+        // ClubIntroPhoto 객체 초기화 (order 1~5)
+        for (int i = 1; i <= 5; i++) {
+            ClubIntroPhoto clubIntroPhoto = ClubIntroPhoto.builder()
+                    .clubIntro(clubIntro)
+                    .clubIntroPhotoName("") // 초기값으로 빈 문자열 설정
+                    .clubIntroPhotoS3Key("")
+                    .order(i) // 순서를 1부터 5까지 설정
+                    .build();
+            clubIntroPhotoRepository.save(clubIntroPhoto);
+        }
 
         ClubMembers clubMembers1 = ClubMembers.builder()
                 .club(club)
@@ -233,7 +260,7 @@ public class DummyData {
 
         aplictRepository.save(aplict4);
     }
-    
+
     //user2, 올어바웃 데이터
     public void initUser2() {
         //유저 데이터
@@ -254,7 +281,7 @@ public class DummyData {
                 .userName("이댕댕")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("컴퓨터SW")
+                .major("컴퓨터SW학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -264,7 +291,6 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("올어바웃")
                 .leaderName("춤짱")
-                .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/allabout.jpg")
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("allabout_insta")
@@ -310,7 +336,7 @@ public class DummyData {
                 .userName("박둥둥")
                 .studentNumber("1234")
                 .userHp("01012345678")
-                .major("데이터과학")
+                .major("데이터과학부")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
@@ -320,7 +346,6 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("굴리세")
                 .leaderName("볼링짱")
-                .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/gullisae.jpg")
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("gullisae_insta")
@@ -347,7 +372,7 @@ public class DummyData {
     }
 
     //유저템프 데이터
-    public void initUserTemp(){
+    public void initUserTemp() {
         UserTemp userTemp = UserTemp.builder()
                 .tempAccount("account")
                 .tempPw("password")
@@ -362,7 +387,7 @@ public class DummyData {
     }
 
     //어드민 데이터
-    public void initAdmin(){
+    public void initAdmin() {
         Admin admin = Admin.builder()
                 .adminUUID(UUID.randomUUID())
                 .adminAccount("admin")
@@ -372,5 +397,14 @@ public class DummyData {
                 .build();
 
         adminRepository.save(admin);
+
+        Notice notice1 = Notice.builder()
+                .noticeTitle("첫번째 공지사항")
+                .noticeContent("공지사항입니다. 동구라미 개발중입니다.")
+                .noticeCreatedAt(LocalDateTime.now())
+                .admin(admin)
+                .build();
+
+        noticeRepository.save(notice1);
     }
 }

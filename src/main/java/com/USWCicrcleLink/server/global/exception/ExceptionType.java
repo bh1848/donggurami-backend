@@ -36,12 +36,13 @@ public enum ExceptionType {
     USER_PASSWORD_NOT_MATCH("USR-204","현재 비밀번호와 일치하지 않습니다",BAD_REQUEST),
     USER_PASSWORD_UPDATE_FAIL("USR-205","비밀번호 업데이트에 실패했습니다",BAD_REQUEST),
     USER_OVERLAP("USR-206", "이미 존재하는 회원 입니다.", INTERNAL_SERVER_ERROR),
-    USER_ACCOUNT_OVERLAP("USR-207", "계정이 중복됩니다.", INTERNAL_SERVER_ERROR),
+    USER_ACCOUNT_OVERLAP("USR-207", "계정이 중복됩니다.",BAD_REQUEST),
     USER_ACCOUNT_NOT_EXISTS("USR-208", "존재하지 않는 계정입니다.", BAD_REQUEST),
     USER_INVALID_ACCOUNT_AND_EMAIL("USR-209", "올바르지 않은 이메일 혹은 아이디 입니다.", BAD_REQUEST),
     USER_UUID_NOT_FOUND("USR-210","회원의 uuid를 찾을 수 없습니다.",BAD_REQUEST),
     USER_AUTHENTICATION_FAILED("USR-211","아이디 혹은 비밀번호가 일치하지 않습니다",BAD_REQUEST),
     USER_PASSWORD_MISMATCH("USR-212", "두 비밀번호가 일치하지 않습니다", BAD_REQUEST),
+    USER_PROFILE_NOT_FOUND("USR-213","프로필 정보를 찾을 수 없습니다",INTERNAL_SERVER_ERROR),
 
 
     /**
@@ -81,6 +82,14 @@ public enum ExceptionType {
      */
     PROFILE_NOT_EXISTS("PFL-201", "프로필이 존재하지 않습니다.", BAD_REQUEST),
     PROFILE_UPDATE_FAIL("PFL-202", "프로필 업데이트에 실패했습니다.", BAD_REQUEST),
+    PROFILE_NOT_INPUT("PFL-203","프로필 입력값은 필수 입니다.",BAD_REQUEST),
+
+    /**
+     * Domain : ClubIntroPhoto, club(mainPhoto)
+     */
+    PHOTO_ORDER_MISS_MATCH("CLP-201", "범위를 벗어난 사진 순서 값입니다.", BAD_REQUEST),
+    CLUB_MAIN_PHOTO_NOT_EXISTS("CLP-202", "동아리 메인 사진이 존재하지 않습니다.", BAD_REQUEST),
+    CLUB_INTRO_PHOTO_NOT_EXISTS("CLP-203", "동아리 소개 사진이 존재하지 않습니다.", BAD_REQUEST),
 
     /**
      * Domain : ClubLeader
@@ -102,9 +111,11 @@ public enum ExceptionType {
     APPLICANT_COUNT_MISMATCH("APT_204", "선택한 지원자 수와 전체 지원자 수가 일치하지 않습니다.", BAD_REQUEST),
 
     /**
-     * Domain : VerificationCode
+     * Domain : AuthCodeToken
      */
-    INVALID_AUTH_CODE("VC-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
+    INVALID_AUTH_CODE("AC-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
+    AUTHCODETOKEN_NOT_EXISTS("AC-102", "인증 코드 토큰이 존재하지 않습니다", BAD_REQUEST),
+
 
     /**
      * 공통
@@ -119,7 +130,15 @@ public enum ExceptionType {
     FILE_ENCODING_FAILED("FILE_301", "파일 이름 인코딩에 실패했습니다.", BAD_REQUEST),
     FILE_CREATE_FAILED("FILE_302", "파일 생성에 실패했습니다.", BAD_REQUEST),
     INVALID_PHOTO_DATA("FILE_303", "사진 또는 순서 정보가 제공되지 않았습니다.", BAD_REQUEST),
-    PHOTO_ORDER_MISMATCH("FILE_304", "사진의 개수와 순서 정보의 개수가 일치하지 않습니다.", BAD_REQUEST);
+    PHOTO_ORDER_MISMATCH("FILE_304", "사진의 개수와 순서 정보의 개수가 일치하지 않습니다.", BAD_REQUEST),
+    FILE_SAVE_FAILED("FILE_303", "파일 저장에 실패했습니다.", BAD_REQUEST),
+    FILE_UPLOAD_FAILED("FILE_304", "파일 업로드에 실패했습니다.", BAD_REQUEST),
+    FILE_DELETE_FAILED("FILE_305", "파일 삭제에 실패했습니다.", BAD_REQUEST),
+    MAXIMUM_FILE_LIMIT_EXCEEDED("FILE_306", "업로드 가능한 사진 갯수를 초과했습니다.", BAD_REQUEST),
+    INVALID_FILE_NAME("FILE_307", "파일 이름이 유효하지 않습니다.", BAD_REQUEST),
+    MISSING_FILE_EXTENSION("FILE_308", "파일 확장자가 없습니다.", BAD_REQUEST),
+    UNSUPPORTED_FILE_EXTENSION("FILE_309", "지원하지 않는 파일 확장자입니다.", BAD_REQUEST);
+
 
     private final String code;
     private final String message;

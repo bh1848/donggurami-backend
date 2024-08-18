@@ -2,10 +2,15 @@ package com.USWCicrcleLink.server.clubLeader.service;
 
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
+import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.clubLeader.dto.FcmMessageDto;
+import com.USWCicrcleLink.server.clubLeader.dto.FcmSendDto;
+import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
@@ -16,19 +21,23 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FcmServiceImpl implements FcmService {
 
     private final String FCM_API_URL = "https://fcm.googleapis.com/v1/projects/usw-circle-link/messages:send";
     private final String firebaseConfigPath = "firebase/usw-circle-link-firebase-adminsdk-u25m3-791f80d22c.json";
     private final String GOOGLE_AUTH_URL = "https://www.googleapis.com/auth/cloud-platform";
 
+    private final String APLICT_TITLE_MESSAGE = "동아리 지원 결과";
     private final String APLICT_PASS_MESSAGE = "에 합격했습니다.";
     private final String APLICT_FAIL_MESSAGE = "에 불합격했습니다.";
     private final String APLICT_ERROR_MESSAGE = "관리자에게 문의 해주세요.";
 
+    private final ProfileRepository profileRepository;
     // 메시지 구성, 토큰 받고 메시지 처리
     @Override
     public int sendMessageTo(Aplict aplict, AplictStatus aplictResult) throws IOException {
@@ -76,7 +85,7 @@ public class FcmServiceImpl implements FcmService {
         ObjectMapper om = new ObjectMapper();
 
         // 메시지 제목
-        String titleMessage = aplict.getClub().getClubName();
+        String titleMessage = APLICT_TITLE_MESSAGE;
 
         // 메시지 내용
         String bodyMessage;
@@ -87,7 +96,7 @@ public class FcmServiceImpl implements FcmService {
         // 메시지 구성
         FcmMessageDto fcmMessageDto = FcmMessageDto.builder()
                 .message(FcmMessageDto.Message.builder()
-                        .token(aplict.getProfile().getFcmToken())
+                        .token(aplict.getProfile().getFcmToken().trim())
                         .notification(FcmMessageDto.Notification.builder()
                                 .title(titleMessage)
                                 .body(bodyMessage)

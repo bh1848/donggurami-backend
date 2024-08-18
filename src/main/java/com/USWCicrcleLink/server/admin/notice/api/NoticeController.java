@@ -26,14 +26,6 @@ import java.util.List;
 public class NoticeController {
     private final NoticeService noticeService;
 
-    //공지사항 전체 리스트 조회(웹)
-    @GetMapping("/notices")
-    public ResponseEntity<ApiResponse<List<NoticeListResponse>>> getAllNotices() {
-        List<NoticeListResponse> notices = noticeService.getAllNotices();
-        ApiResponse<List<NoticeListResponse>> response = new ApiResponse<>("공지사항 리스트 조회 성공", notices);
-        return ResponseEntity.ok(response);
-    }
-
     //공지사항 리스트 조회(페이징)(웹)
     @GetMapping("/notices/paged")
     public ResponseEntity<PagedModel<NoticeListResponse>> getNotices(Pageable pageable, PagedResourcesAssembler<Notice> pagedResourcesAssembler) {

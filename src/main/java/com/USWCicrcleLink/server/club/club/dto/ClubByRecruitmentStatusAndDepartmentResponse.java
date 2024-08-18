@@ -9,12 +9,12 @@ import lombok.*;
 @NoArgsConstructor
 public class ClubByRecruitmentStatusAndDepartmentResponse {
     private String clubName;
-    private String mainPhotoPath;
+    private String mainPhoto;
     private String departmentName;
 
-    public ClubByRecruitmentStatusAndDepartmentResponse(ClubIntro clubIntro) {
+    public ClubByRecruitmentStatusAndDepartmentResponse(ClubIntro clubIntro, String mainPhotoUrl) {
         this.clubName = clubIntro.getClub().getClubName();
-        this.mainPhotoPath = clubIntro.getClub().getMainPhotoPath();
+        this.mainPhoto = mainPhotoUrl;
         this.departmentName = clubIntro.getClub().getDepartment().name();
 
     }

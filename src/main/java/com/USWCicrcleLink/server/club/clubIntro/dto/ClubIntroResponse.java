@@ -1,9 +1,14 @@
 package com.USWCicrcleLink.server.club.clubIntro.dto;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
 import lombok.*;
+
+import java.util.List;
+
 
 @Getter
 @Builder
@@ -11,8 +16,8 @@ import lombok.*;
 @NoArgsConstructor
 public class ClubIntroResponse {
     private long clubId;
-    private String mainPhotoPath;
-    private String clubIntroPhotoPath;
+    private String mainPhoto;
+    private List<String> introPhotos;
     private String clubName;
     private String leaderName;
     private String leaderHp;
@@ -20,10 +25,10 @@ public class ClubIntroResponse {
     private String clubIntro;
     private RecruitmentStatus recruitmentStatus;
 
-    public ClubIntroResponse(ClubIntro clubIntro, Club club) {
+    public ClubIntroResponse(ClubIntro clubIntro, Club club, String mainPhotoUrl, List<String> introPhotoUrls) {
         this.clubId = club.getClubId();
-        this.mainPhotoPath = club.getMainPhotoPath();
-        this.clubIntroPhotoPath = clubIntro.getClubIntroPhotoPath();
+        this.mainPhoto = mainPhotoUrl;  // S3 presigned URL
+        this.introPhotos = introPhotoUrls;  // List of S3 presigned URLs
         this.clubName = club.getClubName();
         this.leaderName = club.getLeaderName();
         this.leaderHp = club.getLeaderHp();

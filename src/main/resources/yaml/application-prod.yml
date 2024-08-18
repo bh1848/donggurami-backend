@@ -1,5 +1,7 @@
 server:
   port: 8080
+  base:
+    url: "${SERVER_BASE_URL}"
 
 # log setting
 logging:

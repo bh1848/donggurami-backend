@@ -18,9 +18,6 @@ public class Club {
     @Column(name = "club_name")
     private String clubName;
 
-    @Column(name = "main_photo_path")
-    private String mainPhotoPath;
-
     @Column(name = "leader_name")
     private String leaderName;
 
@@ -34,12 +31,7 @@ public class Club {
     @Enumerated(EnumType.STRING)
     private Department department;
 
-//    @Column(name = "chat_room_url")
-//    private String chatRoomUrl;
-
-    public void updateClubInfo(String mainPhotoPath, String leaderName,
-                               String leaderHp, String clubInsta) {
-        this.mainPhotoPath = mainPhotoPath;
+    public void updateClubInfo(String leaderName, String leaderHp, String clubInsta) {
         this.leaderName = leaderName;
         this.leaderHp = leaderHp;
         this.clubInsta = clubInsta;

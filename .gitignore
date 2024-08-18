@@ -13,6 +13,7 @@ application-local.yml
 application-dev.yml
 application-prod.yml
 application-secret.yml
+application-aws.yml
 
 ### STS ###
 .apt_generated

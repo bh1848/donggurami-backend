@@ -28,18 +28,37 @@ public class ClubRepositoryCustomImpl implements ClubRepositoryCustom {
 
     @Override
     public void deleteClubAndDependencies(Long clubId) {
+        // 1. ClubIntroPhoto 삭제
+        em.createQuery("DELETE FROM ClubIntroPhoto cip WHERE cip.clubIntro.club.clubId = :clubId")
+                .setParameter("clubId", clubId)
+                .executeUpdate();
+
+        // 2. ClubMainPhoto 삭제
+        em.createQuery("DELETE FROM ClubMainPhoto cmp WHERE cmp.club.clubId = :clubId")
+                .setParameter("clubId", clubId)
+                .executeUpdate();
+
+        // 3. Aplict 삭제
         em.createQuery("DELETE FROM Aplict a WHERE a.club.clubId = :clubId")
                 .setParameter("clubId", clubId)
                 .executeUpdate();
+
+        // 4. ClubIntro 삭제
         em.createQuery("DELETE FROM ClubIntro ci WHERE ci.club.clubId = :clubId")
                 .setParameter("clubId", clubId)
                 .executeUpdate();
+
+        // 5. ClubMembers 삭제
         em.createQuery("DELETE FROM ClubMembers cm WHERE cm.club.clubId = :clubId")
                 .setParameter("clubId", clubId)
                 .executeUpdate();
+
+        // 6. Leader 삭제
         em.createQuery("DELETE FROM Leader l WHERE l.club.clubId = :clubId")
                 .setParameter("clubId", clubId)
                 .executeUpdate();
+
+        // 7. Club 삭제
         em.createQuery("DELETE FROM Club c WHERE c.clubId = :clubId")
                 .setParameter("clubId", clubId)
                 .executeUpdate();

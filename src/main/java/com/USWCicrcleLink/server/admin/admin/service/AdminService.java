@@ -1,12 +1,19 @@
 package com.USWCicrcleLink.server.admin.admin.service;
 
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
-import com.USWCicrcleLink.server.admin.admin.dto.*;
-import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
+import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationRequest;
+import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.ClubListResponse;
+import com.USWCicrcleLink.server.admin.notice.domain.NoticePhoto;
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
+import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
@@ -15,10 +22,8 @@ import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubIntroException;
 import com.USWCicrcleLink.server.global.security.domain.Role;
-import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
-import com.USWCicrcleLink.server.global.security.util.JwtProvider;
-import jakarta.servlet.http.HttpServletResponse;
+import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -26,7 +31,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -47,15 +55,6 @@ public class AdminService {
             throw new ClubException(ExceptionType.ClUB_CHECKING_ERROR);
         }
         return results;
-    }
-
-    // 동아리 상세 페이지 조회(웹)
-    @Transactional(readOnly = true)
-    public ClubDetailResponse getClubById(Long clubId) {
-        Club club = clubRepository.findById(clubId).orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
-        ClubIntro clubIntro = clubIntroRepository.findByClub(club).orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
-
-        return new ClubDetailResponse(club, clubIntro);
     }
 
     // 동아리 생성(웹)
@@ -95,9 +94,6 @@ public class AdminService {
             ClubIntro clubIntro = ClubIntro.builder()
                     .club(club)
                     .clubIntro("")
-                    .clubIntroPhotoPath("")
-                    .additionalPhotoPath1("")
-                    .additionalPhotoPath2("")
                     .googleFormUrl("")
                     .recruitmentStatus(RecruitmentStatus.CLOSE)
                     .build();
