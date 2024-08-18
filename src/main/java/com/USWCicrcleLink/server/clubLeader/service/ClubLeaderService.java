@@ -16,6 +16,7 @@ import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
 import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
@@ -71,6 +72,7 @@ public class ClubLeaderService {
     private final ProfileRepository profileRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
+    private final ClubIntroService clubIntroService;
 
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
@@ -149,27 +151,7 @@ public class ClubLeaderService {
     @Transactional(readOnly = true)
     public ClubIntroResponse getClubIntro(Long clubId) {
         Club club = validateLeader(clubId);
-        ClubIntro clubIntro = clubIntroRepository.findByClub(club)
-                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
-
-        // ClubMainPhoto와 ClubIntroPhoto 객체를 별도로 조회
-        ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club)
-                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_MAIN_PHOTO_NOT_EXISTS));
-
-        List<ClubIntroPhoto> clubIntroPhotos = clubIntroPhotoRepository.findByClubIntro(clubIntro);
-        if (clubIntroPhotos.isEmpty()) {
-            throw new ClubIntroException(ExceptionType.CLUB_INTRO_PHOTO_NOT_EXISTS);
-        }
-
-        // ClubMainPhoto와 ClubIntroPhoto의 S3 key로 presigned URL 생성
-        String mainPhotoUrl = s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key());
-
-        List<String> introPhotoUrls = clubIntroPhotos.stream()
-                .sorted(Comparator.comparingInt(ClubIntroPhoto::getOrder)) // 순서대로 정렬
-                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
-                .collect(Collectors.toList());
-
-        return new ClubIntroResponse(clubIntro, club, mainPhotoUrl, introPhotoUrls);
+        return clubIntroService.getClubIntroDetails(club);
     }
 
     // 동아리 소개 변경

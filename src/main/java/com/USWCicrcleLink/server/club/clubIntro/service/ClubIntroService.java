@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -92,6 +91,12 @@ public class ClubIntroService {
     public ClubIntroResponse getClubIntro(Long clubId) {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+
+        return getClubIntroDetails(club);
+    }
+
+    @Transactional(readOnly = true)
+    public ClubIntroResponse getClubIntroDetails(Club club) {
         ClubIntro clubIntro = clubIntroRepository.findByClub(club)
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
