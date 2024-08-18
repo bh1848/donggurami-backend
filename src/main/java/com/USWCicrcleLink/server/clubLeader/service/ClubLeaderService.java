@@ -69,14 +69,12 @@ import static java.util.stream.Collectors.toList;
 public class ClubLeaderService {
     private final ClubRepository clubRepository;
     private final ClubIntroRepository clubIntroRepository;
-    private final LeaderRepository leaderRepository;
     private final ClubMembersRepository clubMembersRepository;
     private final AplictRepository aplictRepository;
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
-
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
 
