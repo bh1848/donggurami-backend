@@ -44,7 +44,7 @@ public class ClubIntroController {
     //동아리 소개글 조회(모바일)
     @GetMapping("/intro/{clubId}")
     public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubIntroByClubId(@PathVariable("clubId") Long id) {
-        ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntroByClubId(id);
+        ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntro(id);
         ApiResponse<ClubIntroResponse> response = new ApiResponse<>("동아리 소개글 조회 성공", clubIntroResponse);
         return ResponseEntity.ok(response);
     }

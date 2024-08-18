@@ -22,6 +22,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public JwtFilter jwtAuthFilter() {
@@ -34,6 +35,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(
                             "/users/login", // 모바일 로그인
@@ -49,7 +52,9 @@ public class SecurityConfig {
                             "/users/email/resend-confirmation",
                             "/mypages/notices",
                             "/auth/refresh-token", // 토큰 재발급
-                            "/integration/login" // 동아리 회장, 동연회-개발자 통합 로그인
+                            "/integration/login", // 동아리 회장, 동연회-개발자 통합 로그인
+                            "/mainPhoto/**",
+                            "/introPhoto/**"
                     ).permitAll();
 
                     // photo
@@ -68,6 +73,19 @@ public class SecurityConfig {
 
                     // USER
                     auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/", "/mypages/notices", "/mypages/my-clubs", "/mypages/aplict-clubs").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/", "mypages/notices").hasRole("USER");
+
+                    // LEADER
+                    auth.requestMatchers(HttpMethod.POST, "/club-leader/info").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.GET, "/club-leader/members", "/club-leader/members/export").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.PATCH, "/club-leader/info", "/club-leader/intro", "/club-leader/toggle-recruitment").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/club-leader/members").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**", "/club-leader/fcm-token").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.GET, "/club-leader/{clubId}/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.PATCH, "/club-leader/{clubId}/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/club-leader/{clubId}/members").hasRole("LEADER");
+
                     auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","/mypages/notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/mainPhoto/**").hasRole("USER");
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw").hasRole("USER");
 
@@ -90,12 +108,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*"); // 실제 운영 환경에서는 구체적인 도메인으로 제한
-        configuration.addAllowedMethod("*");
+        configuration.addAllowedOriginPattern("*"); // 프론트엔드 도메인 명시
+        configuration.addAllowedMethod("*"); // 메소드 형식
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 }

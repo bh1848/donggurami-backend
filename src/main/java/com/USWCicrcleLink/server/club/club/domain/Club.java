@@ -18,9 +18,6 @@ public class Club {
     @Column(name = "club_name")
     private String clubName;
 
-    @Column(name = "main_photo_path")
-    private String mainPhotoPath;
-
     @Column(name = "leader_name")
     private String leaderName;
 

@@ -4,6 +4,9 @@ server:
 # log setting
 logging:
   level:
+    com:
+      USWCicrcleLink:
+        server: debug
     com.USWCicrcleLink.server: warn
 
 spring:

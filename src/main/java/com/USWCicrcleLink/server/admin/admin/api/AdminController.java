@@ -2,9 +2,9 @@ package com.USWCicrcleLink.server.admin.admin.api;
 
 import com.USWCicrcleLink.server.admin.admin.dto.*;
 import com.USWCicrcleLink.server.admin.admin.service.AdminService;
+import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import com.USWCicrcleLink.server.global.security.dto.TokenDto;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
+    private final ClubIntroService clubIntroService;
 
     // 동아리 전체 리스트 조회(웹)
     @GetMapping("/clubs")
@@ -28,9 +29,9 @@ public class AdminController {
 
     // 동아리 상세 페이지 조회(웹)
     @GetMapping("/clubs/{clubId}")
-    public ResponseEntity<ApiResponse<ClubDetailResponse>> getClubById(@PathVariable("clubId") Long clubId) {
-        ClubDetailResponse clubDetailResponse = adminService.getClubById(clubId);
-        ApiResponse<ClubDetailResponse> response = new ApiResponse<>("동아리 상세 조회 성공", clubDetailResponse);
+    public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubById(@PathVariable("clubId") Long clubId) {
+        ClubIntroResponse clubIntroResponse = clubIntroService.getClubIntro(clubId);
+        ApiResponse<ClubIntroResponse> response = new ApiResponse<>("동아리 상세 조회 성공", clubIntroResponse);
         return ResponseEntity.ok(response);
     }
 
