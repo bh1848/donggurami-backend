@@ -1,14 +1,14 @@
 package com.USWCicrcleLink.server.club.clubIntro.service;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
-import com.USWCicrcleLink.server.club.club.dto.ClubByRecruitmentStatusAndDepartmentResponse;
-import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.club.domain.Department;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.club.dto.ClubByDepartmentResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubByRecruitmentStatusAndDepartmentResponse;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
-import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubIntroException;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,8 +62,13 @@ public class ClubIntroService {
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId).orElseThrow(() ->
                 new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
-        Club club = clubRepository.findById(clubId).orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+        // 명시적으로 Club 객체를 초기화
+        Club club = clubIntro.getClub();
+        if (club == null) {
+            throw new ClubException(ExceptionType.CLUB_NOT_EXISTS);
+        }
 
         return new ClubIntroResponse(clubIntro, club);
     }
+
 }

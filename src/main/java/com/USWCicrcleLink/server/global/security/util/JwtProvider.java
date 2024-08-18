@@ -221,15 +221,11 @@ public class JwtProvider {
         response.addCookie(refreshTokenCookie);
 
         // SameSite 설정을 수동으로 추가
-        String cookieHeader = String.format("%s=%s; Path=%s; HttpOnly; Max-Age=%d; SameSite=Lax",
+        String cookieHeader = String.format("%s=%s; Path=%s; HttpOnly; Max-Age=%d; SameSite=None",
                 refreshTokenCookie.getName(),
                 refreshTokenCookie.getValue(),
                 refreshTokenCookie.getPath(),
                 refreshTokenCookie.getMaxAge());
-
-        if (!refreshTokenCookie.getSecure()) {
-            cookieHeader += "; Secure";
-        }
 
         response.addHeader("Set-Cookie", cookieHeader);
 
@@ -262,15 +258,11 @@ public class JwtProvider {
         response.addCookie(refreshTokenCookie);
 
         // SameSite 설정을 수동으로 추가
-        String cookieHeader = String.format("%s=%s; Path=%s; HttpOnly; Max-Age=%d; SameSite=Lax",
+        String cookieHeader = String.format("%s=%s; Path=%s; HttpOnly; Max-Age=%d; SameSite=None",
                 refreshTokenCookie.getName(),
                 refreshTokenCookie.getValue(),
                 refreshTokenCookie.getPath(),
                 refreshTokenCookie.getMaxAge());
-
-        if (!refreshTokenCookie.getSecure()) {
-            cookieHeader += "; Secure";
-        }
 
         response.addHeader("Set-Cookie", cookieHeader);
 

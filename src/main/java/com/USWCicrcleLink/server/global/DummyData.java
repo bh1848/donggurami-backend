@@ -173,6 +173,7 @@ public class DummyData {
                 .club(club)
                 .clubIntro("플래그입니다.")
                 .googleFormUrl("flag_google_url")
+                .clubIntroPhotoPath("http://43.200.140.186:8080/introPhoto/소개사진.png")
                 .build();
 
         clubIntroRepository.save(clubIntro);
