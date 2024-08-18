@@ -50,7 +50,6 @@ public class SecurityConfig {
                             "/users/auth/verify-token",
                             "/users/reset-password",
                             "/users/email/resend-confirmation",
-                            "/mypages/notices",
                             "/auth/refresh-token", // 토큰 재발급
                             "/integration/login", // 동아리 회장, 동연회-개발자 통합 로그인
                             "/mainPhoto/**",
@@ -73,8 +72,8 @@ public class SecurityConfig {
 
                     // USER
                     auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/", "/mypages/notices", "/mypages/my-clubs", "/mypages/aplict-clubs").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/", "mypages/notices").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me").hasRole("USER");
 
                     // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/info").hasRole("LEADER");
@@ -85,9 +84,6 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.GET, "/club-leader/{clubId}/**").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.PATCH, "/club-leader/{clubId}/**").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/club-leader/{clubId}/members").hasRole("LEADER");
-
-                    auth.requestMatchers(HttpMethod.GET, "/apply/", "/clubs/", "/clubs/intro/","/mypages/notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/mainPhoto/**").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw").hasRole("USER");
 
                     // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**").hasRole("LEADER");
