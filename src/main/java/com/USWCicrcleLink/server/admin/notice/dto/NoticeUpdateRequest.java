@@ -11,9 +11,13 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class NoticeCreationRequest {
+public class NoticeUpdateRequest {
     private String noticeTitle;
     private String noticeContent;
 
+    @Builder.Default
+    private List<Long> photoIds = new ArrayList<>(); // 기존 저장된 사진 id
+
+    @Builder.Default
     private List<Integer> photoOrders = new ArrayList<>(); // 사진 순서 목록
 }

@@ -4,6 +4,7 @@ import com.USWCicrcleLink.server.admin.notice.domain.Notice;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeCreationRequest;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
+import com.USWCicrcleLink.server.admin.notice.dto.NoticeUpdateRequest;
 import com.USWCicrcleLink.server.admin.notice.service.NoticeService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -25,14 +26,6 @@ import java.util.List;
 public class NoticeController {
     private final NoticeService noticeService;
 
-    //공지사항 전체 리스트 조회(웹)
-    @GetMapping("/notices")
-    public ResponseEntity<ApiResponse<List<NoticeListResponse>>> getAllNotices() {
-        List<NoticeListResponse> notices = noticeService.getAllNotices();
-        ApiResponse<List<NoticeListResponse>> response = new ApiResponse<>("공지사항 리스트 조회 성공", notices);
-        return ResponseEntity.ok(response);
-    }
-
     //공지사항 리스트 조회(페이징)(웹)
     @GetMapping("/notices/paged")
     public ResponseEntity<PagedModel<NoticeListResponse>> getNotices(Pageable pageable, PagedResourcesAssembler<Notice> pagedResourcesAssembler) {
@@ -52,9 +45,9 @@ public class NoticeController {
     //공지사항 생성(웹)
     @PostMapping("/notices")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> createNotice(
-            @RequestPart("request") @Valid NoticeCreationRequest request,
+            @RequestPart(value = "request", required = false) @Valid NoticeCreationRequest request,
             //사진 배열 처리
-            @RequestPart(value = "noticePhotos", required = false) MultipartFile[] noticePhotos) throws IOException {
+            @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos) {
 
         NoticeDetailResponse createdNotice = noticeService.createNotice(request, noticePhotos);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 생성 성공", createdNotice);
@@ -65,9 +58,9 @@ public class NoticeController {
     @PatchMapping("/notices/{noticeId}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> updateNotice(
             @PathVariable("noticeId") Long noticeId,
-            @RequestPart("request") @Valid NoticeCreationRequest request,
+            @RequestPart(value = "request", required = false) @Valid NoticeUpdateRequest request,
             //사진 배열 처리
-            @RequestPart(value = "noticePhotos", required = false) MultipartFile[] noticePhotos) throws IOException {
+            @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos) {
 
         NoticeDetailResponse updatedNotice = noticeService.updateNotice(noticeId, request, noticePhotos);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 수정 성공", updatedNotice);

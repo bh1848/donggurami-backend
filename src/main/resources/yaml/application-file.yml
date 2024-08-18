@@ -11,6 +11,3 @@ spring:
 
 file:
   allowed-extensions: jpg,jpeg,png
-  mainPhoto-dir: src/main/resources/static/mainPhoto
-  introPhoto-dir: src/main/resources/static/introPhoto
-  noticePhoto-dir: src/main/resources/static/noticePhoto

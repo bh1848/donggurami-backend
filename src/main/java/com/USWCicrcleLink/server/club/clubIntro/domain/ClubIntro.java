@@ -27,21 +27,6 @@ public class ClubIntro {
     @Column(name = "club_intro")
     private String clubIntro;
 
-    @Column(name = "club_intro_photo_path")
-    private String clubIntroPhotoPath;
-
-    @Column(name = "additional_photo_path1")
-    private String additionalPhotoPath1;
-
-    @Column(name = "additional_photo_path2")
-    private String additionalPhotoPath2;
-
-    @Column(name = "additional_photo_path3")
-    private String additionalPhotoPath3;
-
-    @Column(name = "additional_photo_path4")
-    private String additionalPhotoPath4;
-
     @Column(name = "googleForm_url")
     private String googleFormUrl;
 

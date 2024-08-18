@@ -161,11 +161,10 @@ public class DummyData {
 
         Club club = Club.builder()
                 .clubName("FLAG")
-                .leaderName("")
-                .mainPhotoPath("")
-                .leaderHp("")
+                .leaderName("flag")
+                .leaderHp("dddd")
                 .department(Department.ACADEMIC)
-                .clubInsta("")
+                .clubInsta("ddddddd")
                 .build();
 
         clubRepository.save(club);
@@ -186,11 +185,13 @@ public class DummyData {
 
         leaderRepository.save(leader);
 
+        // ClubIntro 객체 생성 및 저장 (중복되는 필드 초기화 제거)
         ClubIntro clubIntro = ClubIntro.builder()
                 .club(club)
-                .clubIntro("")
-                .googleFormUrl("")
+                .clubIntro("플래그입니다.")
+                .googleFormUrl("flag_google_url")
                 .build();
+
         clubIntroRepository.save(clubIntro);
 
         // ClubIntroPhoto 객체 초기화 (order 1~5)
@@ -203,7 +204,6 @@ public class DummyData {
                     .build();
             clubIntroPhotoRepository.save(clubIntroPhoto);
         }
-        clubIntroRepository.save(clubIntro);
 
         ClubMembers clubMembers1 = ClubMembers.builder()
                 .club(club)
@@ -291,7 +291,6 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("올어바웃")
                 .leaderName("춤짱")
-                .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/allabout.jpg")
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("allabout_insta")
@@ -347,7 +346,6 @@ public class DummyData {
         Club club = Club.builder()
                 .clubName("굴리세")
                 .leaderName("볼링짱")
-                .mainPhotoPath("http://43.200.140.186:8080/mainPhoto/gullisae.jpg")
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("gullisae_insta")

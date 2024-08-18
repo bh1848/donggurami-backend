@@ -6,7 +6,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.Pageable;
 
@@ -67,14 +66,4 @@ public class ClubMembersRepositoryImpl implements ClubMembersRepositoryCustom {
         return em.createQuery(countJpql, Long.class).setParameter("clubId", clubId).getSingleResult();
     }
 
-    @Override
-    @Transactional
-    public List<Long> findClubIdsByUserId(Long userId) {
-        return em.createQuery(
-                        "select cm.club.clubId from ClubMembers cm" +
-                                " where cm.profile.user.userId = :userId",
-                        Long.class
-                ).setParameter("userId", userId)
-                .getResultList();
-    }
 }

@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.clubLeader.api;
 
 import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
+import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
@@ -46,9 +47,10 @@ public class ClubLeaderController {
 
     // 동아리 소개 조회
     @GetMapping("/{clubId}/intro")
-    public ResponseEntity<ApiResponse> getClubIntro(@PathVariable("clubId") Long clubId) {
-        ApiResponse<ClubIntroResponse> clubIntro = clubLeaderService.getClubIntro(clubId);
-        return new ResponseEntity<>(clubIntro, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubById(@PathVariable("clubId") Long clubId) {
+        ClubIntroResponse clubIntroResponse = clubLeaderService.getClubIntro(clubId);
+        ApiResponse<ClubIntroResponse> response = new ApiResponse<>("동아리 상세 조회 성공", clubIntroResponse);
+        return ResponseEntity.ok(response);
     }
 
     // 동아리 소개 변경

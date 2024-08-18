@@ -19,7 +19,6 @@ import java.util.UUID;
 public class MypageController {
 
     private final MypageService mypageService;
-    private final NoticeService noticeService;
 
     //소속된 동아리 조회
     @GetMapping("/my-clubs")

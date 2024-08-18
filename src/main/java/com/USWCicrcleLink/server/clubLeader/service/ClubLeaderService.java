@@ -13,8 +13,10 @@ import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
+import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
+import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
@@ -30,7 +32,6 @@ import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
-import com.USWCicrcleLink.server.global.util.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -38,7 +39,6 @@ import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -53,12 +53,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -75,6 +71,8 @@ public class ClubLeaderService {
     private final ProfileRepository profileRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
+    private final ClubIntroService clubIntroService;
+
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
 
@@ -148,34 +146,11 @@ public class ClubLeaderService {
         return s3FileResponse;
     }
 
-
-    // 동아리 소개 조회
+    // 동아리 상세 페이지 조회(웹, 모바일)
     @Transactional(readOnly = true)
-    public ApiResponse<ClubIntroResponse> getClubIntro(Long clubId) {
-
+    public ClubIntroResponse getClubIntro(Long clubId) {
         Club club = validateLeader(clubId);
-        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
-                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
-
-        // 소개 사진 조회
-        List<ClubIntroPhoto> introPhotos = clubIntroPhotoRepository.findAllByClubIntro_ClubIntroIdOrderByOrderAsc(clubIntro.getClubIntroId());
-
-        List<String> introPhotoUrls = introPhotos.stream()
-                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
-                .filter(url -> url != null && !url.isEmpty())  // null 또는 빈 문자열이 아닌 URL만 포함
-                .collect(Collectors.toList());
-
-        ClubIntroResponse clubIntroResponse = new ClubIntroResponse(
-                club.getMainPhotoPath(),
-                introPhotoUrls,
-                club.getClubName(),
-                club.getLeaderName(),
-                club.getLeaderHp(),
-                club.getClubInsta(),
-                clubIntro.getClubIntro()
-        );
-
-        return new ApiResponse<>("동아리 소개 조회 완료", clubIntroResponse);
+        return clubIntroService.getClubIntroDetails(club);
     }
 
     // 동아리 소개 변경

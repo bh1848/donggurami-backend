@@ -54,13 +54,11 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        try {
-            // 요청에서 JWT 액세스 토큰 추출
-            String accessToken = jwtProvider.resolveAccessToken(request);
-            log.debug("엑세스 토큰 추출: {}", accessToken);
+        // 요청에서 JWT 액세스 토큰 추출
+        String accessToken = jwtProvider.resolveAccessToken(request);
 
-            // 토큰이 존재하고 유효한 경우
-            if (accessToken != null && jwtProvider.validateAccessToken(accessToken)) {
+        if (accessToken != null) {
+            if (jwtProvider.validateAccessToken(accessToken)) {
                 log.debug("엑세스 토큰이 유효함: {}", accessToken);
 
                 // 토큰으로부터 인증 정보 생성
@@ -70,10 +68,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 // SecurityContextHolder에 인증 정보 설정
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 log.info("SecurityContextHolder에 인증 정보 설정: {}", auth.getName());
+            } else {
+
+                // 토큰이 유효하지 않은 경우
+                throw new JwtException(ExceptionType.INVALID_ACCESS_TOKEN);
             }
-        } catch (Exception e) {
-            log.error("엑세스 토큰이 유효하지 않거나 비어있음: " + e.getMessage(), e);
-            throw new JwtException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
         // 다음 필터로 요청 전달

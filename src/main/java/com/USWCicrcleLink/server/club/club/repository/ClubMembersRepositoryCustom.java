@@ -9,6 +9,4 @@ import java.util.List;
 public interface ClubMembersRepositoryCustom {
     List<ClubMembers> findAllWithProfile(Long clubId);
     Page<ClubMembers> findAllWithProfileByClubId(Long clubId, Pageable pageable);
-
-    List<Long> findClubIdsByUserId(Long userId);
 }
