@@ -109,8 +109,12 @@ public class S3FileUploadService {
         }
     }
 
-    // 이미지 파일 삭제
     public void deleteFile(String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            log.warn("잘못된 S3 파일 삭제 시도: 파일 이름이 유효하지 않음 - 삭제 건너뜀");
+            return; // 파일 이름이 유효하지 않으면 삭제 시도 건너뜀
+        }
+
         try {
             amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
             log.debug("S3 파일 삭제 완료: {}", fileName);
@@ -119,5 +123,4 @@ public class S3FileUploadService {
             throw new FileException(ExceptionType.FILE_DELETE_FAILED);
         }
     }
-
 }

@@ -11,5 +11,4 @@ public interface ClubIntroPhotoRepository extends JpaRepository<ClubIntroPhoto, 
     Optional<ClubIntroPhoto> findByClubIntro_ClubIntroIdAndOrder(Long clubIntroId, int order);
     List<ClubIntroPhoto> findAllByClubIntro_ClubIntroIdOrderByOrderAsc(Long clubIntroId);
 
-    List<ClubIntroPhoto> findByClubIntro(ClubIntro clubIntro);
-}
+    List<ClubIntroPhoto> findByClubIntro(ClubIntro clubIntro);}

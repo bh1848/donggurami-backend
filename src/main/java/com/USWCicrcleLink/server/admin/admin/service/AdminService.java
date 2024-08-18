@@ -120,13 +120,13 @@ public class AdminService {
         if (admin.getAdminPw().equals(adminPw)) {
             log.debug("관리자 비밀번호 확인 성공");
 
-            // 종속 엔티티 삭제
+            // 동아리 및 관련 종속 엔티티와 S3 파일 삭제
             clubRepository.deleteClubAndDependencies(clubId);
+
             log.debug("동아리 삭제 성공: clubId = {}", clubId);
         } else {
             log.warn("관리자 비밀번호 확인 실패");
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
-
     }
 }
