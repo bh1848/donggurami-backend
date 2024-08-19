@@ -3,37 +3,21 @@ server:
   base:
     url: "http://localhost:8080"
 
-# log setting
 logging:
   level:
     com:
       USWCicrcleLink:
         server: debug
 
-#email url
 email:
   config:
     baseUrl: "http://localhost:8080"
 
 spring:
   config:
+    import: optional:file:.env[.properties]
     activate:
       on-profile: local
-
-  firebase:
-    config-path:${LOCAL_FIREBASE_CONFIG_PATH}
-
-cloud:
-  aws:
-    s3:
-      bucket: sw-circle-link-upload-files
-    credentials:
-      accessKey: ${AWS_ACCESS_KEY_ID}
-      secretKey: ${AWS_SECRET_ACCESS_KEY}
-    region:
-      static: ap-northeast-2
-    stack:
-      auto: false
 
   datasource:
     driver-class-name: org.h2.Driver
@@ -50,5 +34,20 @@ cloud:
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+  firebase:
+    config-path:${LOCAL_FIREBASE_CONFIG_PATH}
+
+cloud:
+  aws:
+    s3:
+      bucket: ${LOCAL_AWS_S3_BUCKET}
+    credentials:
+      accessKey: ${AWS_ACCESS_KEY_ID}
+      secretKey: ${AWS_SECRET_ACCESS_KEY}
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
