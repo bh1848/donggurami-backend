@@ -43,11 +43,8 @@ spring:
 cloud:
   aws:
     s3:
+      region: ap-northeast-2
+      credentials: instance-profile
       bucket: ${SERVER_AWS_S3_BUCKET}
-    credentials:
-      accessKey: ${AWS_ACCESS_KEY_ID}
-      secretKey: ${AWS_SECRET_ACCESS_KEY}
-    region:
-      static: ap-northeast-2
     stack:
       auto: false
