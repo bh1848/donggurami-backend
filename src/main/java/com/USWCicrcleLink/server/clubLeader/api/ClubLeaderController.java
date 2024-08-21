@@ -45,7 +45,7 @@ public class ClubLeaderController {
         return new ResponseEntity<>(clubLeaderService.updateClubInfo(clubId, clubInfoRequest, mainPhoto), HttpStatus.OK);
     }
 
-    // 동아리 소개 조회
+    // 자신의 동아리 상세 페이지 조회(웹)
     @GetMapping("/{clubId}/intro")
     public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubById(@PathVariable("clubId") Long clubId) {
         ClubIntroResponse clubIntroResponse = clubLeaderService.getClubIntro(clubId);

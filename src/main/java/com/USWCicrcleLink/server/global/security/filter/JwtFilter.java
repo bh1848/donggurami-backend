@@ -38,9 +38,12 @@ public class JwtFilter extends OncePerRequestFilter {
             "/users/auth/verify-token",
             "/users/reset-password",
             "/users/email/resend-confirmation",
-            "/mypages/notices",
             "/auth/refresh-token", // 토큰 재발급
-            "/integration/login" // 동아리 회장, 동아리 연합회-개발자 통합 로그인
+            "/integration/login", // 동아리 회장, 동연회-개발자 통합 로그인
+            "/mainPhoto/**",
+            "/introPhoto/**",
+            "/my-notices/**",
+            "/clubs/**"
     );
     private final JwtProvider jwtProvider;
 

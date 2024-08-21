@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,16 +26,17 @@ public class IntegrationService {
 
     private final JwtProvider jwtProvider;
     private final CustomUserDetailsService customUserDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
     // 동아리 회장, 동연회-개발자 통합 로그인
-    public IntegrationLoginResponse integrationLogin(IntegrationLoginRequest loginRequest, HttpServletResponse response) {
-        log.debug("로그인 요청: {}, 사용자 유형: {}", loginRequest.getIntegratedAccount(), loginRequest.getLoginType());
+    public IntegrationLoginResponse integrationLogin(IntegrationLoginRequest request, HttpServletResponse response) {
+        log.debug("로그인 요청: {}, 사용자 유형: {}", request.getIntegratedAccount(), request.getLoginType());
 
-        Role role = getRoleFromLoginType(loginRequest.getLoginType());
-        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(loginRequest.getIntegratedAccount(), role);
+        Role role = getRoleFromLoginType(request.getLoginType());
+        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getIntegratedAccount(), role);
 
         // 비밀번호 검증
-        if (!userDetails.getPassword().equals(loginRequest.getIntegratedPw())) {
+        if (!passwordEncoder.matches(request.getIntegratedPw(), userDetails.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 

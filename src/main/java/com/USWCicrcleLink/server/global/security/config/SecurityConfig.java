@@ -55,7 +55,7 @@ public class SecurityConfig {
                             "/mainPhoto/**",
                             "/introPhoto/**",
                             "/my-notices/**",
-                            "/clubs/**"
+                            "/clubs/**" // 동아리 조회(모바일)
                     ).permitAll();
 
                     // photo
@@ -64,7 +64,7 @@ public class SecurityConfig {
                             .permitAll();
                     // CLUB(웹)
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/clubs/{clubId}").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/clubs/{clubId}").hasAnyRole("ADMIN", "LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs").hasRole("ADMIN");
 
                     // NOTICE(웹)
@@ -72,9 +72,6 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.GET, "/notices/{noticeId}", "/notices/paged").hasAnyRole("ADMIN", "LEADER");
                     auth.requestMatchers(HttpMethod.DELETE,"/notices/{noticeId}").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/notices/{noticeId}").hasRole("ADMIN");
-
-                    // CLUBINTRO(모바일)
-                    auth.requestMatchers(HttpMethod.GET, "/clubs/{department}", "/clubs/{department}/{recruitmentStatus}", "/clubs/intro/{clubId}").hasRole("USER");
 
                     // APLICT(모바일)
                     auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
