@@ -1,0 +1,14 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+    activate:
+      on-profile: file
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 30MB
+      resolve-lazily: true
+
+file:
+  allowed-extensions: jpg,jpeg,png
