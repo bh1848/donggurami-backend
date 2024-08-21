@@ -15,12 +15,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "USERTEMP_TABLE")
+@Table(name = "USER_TEMP_TABLE")
 public class UserTemp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="USERTEMP_ID")
+    @Column(name="user_temp_id")
     private Long userTempId;
 
     @NotBlank(message = "아이디는 필수 입력 값입니다.",groups = ValidationGroups.NotBlankGroup.class)

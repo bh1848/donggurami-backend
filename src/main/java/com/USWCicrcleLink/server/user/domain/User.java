@@ -30,13 +30,13 @@ public class User {
     @Column(name = "uuid", unique = true, nullable = false)
     private UUID userUUID;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "user_account", unique = true, nullable = false)
     @NotBlank(message = "아이디는 필수 입력 값입니다.",groups = ValidationGroups.NotBlankGroup.class)
     @Size(min = 5, max = 20, message = "아이디는 5~20자 이내여야 합니다.",groups = ValidationGroups.SizeGroup.class )
     @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "아이디는 영문 대소문자 및 숫자만 가능합니다.",groups = ValidationGroups.PatternGroup.class)
     private String userAccount;
 
-    @Column(nullable = false)
+    @Column(name = "user_pw", nullable = false)
     @NotBlank(message = "비밀번호는 필수 입력 값입니다.",groups = ValidationGroups.NotBlankGroup.class)
     private String userPw;
 

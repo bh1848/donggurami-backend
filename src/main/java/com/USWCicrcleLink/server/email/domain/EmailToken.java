@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "EMAILTOKEN_TABLE")
+@Table(name = "EMAIL_TOKEN_TABLE")
 public class EmailToken {
 
     // 이메일 토큰 만료 시간 5분
@@ -25,15 +25,15 @@ public class EmailToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "EMAILTOKEN_ID", nullable = false)
+    @Column(name = "email_token_id", nullable = false)
     private Long emailtokenId;
 
-    @Column(name = "EMAILTOKEN_UUID", unique = true, nullable = false)
+    @Column(name = "email_token_uuid", unique = true, nullable = false)
     private UUID emailTokenUUID;
 
     // 이메일 토큰과 관련된 임시 회원  id
     @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-    @JoinColumn(name="USERTEMP_ID",unique = true)
+    @JoinColumn(name="user_temp_id",unique = true)
     private UserTemp userTemp;
 
     // 이메일 토큰 만료시간

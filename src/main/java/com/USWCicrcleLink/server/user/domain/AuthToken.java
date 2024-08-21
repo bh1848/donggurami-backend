@@ -13,12 +13,12 @@ import java.util.Random;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "AUTHTOKEN_TABLE")
+@Table(name = "AUTH_TOKEN_TABLE")
 public class AuthToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "AUTHTOKEN_ID")
+    @Column(name = "auth_token_id")
     private Long authTokenId;
 
     @OneToOne(fetch = FetchType.LAZY)
