@@ -26,7 +26,7 @@ public class DummyData {
     //관리자 동연회 데이터
     public void initAdmin() {
         // 동아리 연합회 관리자 계정
-        Admin adminUnion = Admin.builder()
+        Admin clubUnion = Admin.builder()
                 .adminUUID(UUID.randomUUID())
                 .adminAccount("clubUnion")
                 .adminPw(passwordEncoder.encode("hpsEetcTf7ymgy6"))  // 비밀번호 암호화
@@ -44,7 +44,7 @@ public class DummyData {
                 .build();
 
         // 데이터 저장
-        adminRepository.save(adminUnion);
+        adminRepository.save(clubUnion);
         adminRepository.save(developer);
     }
 }
