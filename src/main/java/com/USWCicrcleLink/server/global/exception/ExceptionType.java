@@ -68,7 +68,7 @@ public enum ExceptionType {
      * Domain: Admin
      */
     ADMIN_NOT_EXISTS("ADM-201", "해당 계정이 존재하지 않습니다.", BAD_REQUEST),
-    ADMIN_PASSWORD_NOT_MATCH("ADM-202", "비밀번호가 일치하지 않습니다.", BAD_REQUEST),
+    ADMIN_PASSWORD_NOT_MATCH("ADM-202", "관리자 비밀번호가 일치하지 않습니다.", BAD_REQUEST),
 
     /**
      * Domain: Notice
@@ -95,6 +95,7 @@ public enum ExceptionType {
      */
     CLUB_LEADER_ACCESS_DENIED("CLDR-101","동아리 접근 권한이 없습니다.", FORBIDDEN),
     CLUB_LEADER_NOT_EXISTS("CLDR-201","동아리 회장이 존재하지 않습니다.", BAD_REQUEST),
+    ClUB_LEADER_PASSWORD_NOT_MATCH("CLDR-202", "동아리 회장 비밀번호가 일치하지 않습니다", BAD_REQUEST),
 
     /**
      * Domain: ClubMember
