@@ -50,7 +50,6 @@ public class AdminService {
 
     // 동아리 생성(웹)
     public ClubCreationResponse createClub(ClubCreationRequest request) {
-        log.debug("동아리 생성 요청 시작");
 
         // SecurityContextHolder에서 인증 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -69,15 +68,6 @@ public class AdminService {
 
         log.debug("동아리 회장 비밀번호 확인 성공");
 
-        // Leader 생성 및 저장
-        Leader leader = Leader.builder()
-                .leaderAccount(request.getLeaderAccount())
-                .leaderPw(passwordEncoder.encode(request.getLeaderPw()))  // 비밀번호는 암호화해서 저장
-                .role(Role.LEADER)
-                .build();
-        leaderRepository.save(leader);
-        log.debug("동아리 회장 생성 성공: {}", leader.getLeaderAccount());
-
         // Club 생성 및 저장
         Club club = Club.builder()
                 .clubName(request.getClubName())
@@ -86,6 +76,16 @@ public class AdminService {
                 .build();
         clubRepository.save(club);
         log.debug("동아리 생성 성공: {}", club.getClubName());
+
+        // Leader 생성 및 저장
+        Leader leader = Leader.builder()
+                .leaderAccount(request.getLeaderAccount())
+                .leaderPw(passwordEncoder.encode(request.getLeaderPw()))  // 비밀번호는 암호화해서 저장
+                .role(Role.LEADER)
+                .club(club)
+                .build();
+        leaderRepository.save(leader);
+        log.debug("동아리 회장 생성 성공: {}", leader.getLeaderAccount());
 
         // ClubIntro 생성 및 저장
         ClubIntro clubIntro = ClubIntro.builder()
@@ -99,6 +99,7 @@ public class AdminService {
 
         return new ClubCreationResponse(club);
     }
+
 
     // 동아리 삭제(웹)
     public void deleteClub(Long clubId, String adminPw) {
