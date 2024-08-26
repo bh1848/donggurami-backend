@@ -13,6 +13,7 @@ import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
 import com.USWCicrcleLink.server.user.service.UserService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
@@ -163,5 +164,12 @@ public class UserController {
         userService.resetPW(uuid,request);
 
         return new ApiResponse<>("비밀번호가 변경되었습니다.");
+    }
+
+    // 회원 탈퇴
+    @DeleteMapping("/cancel-membership")
+    public ApiResponse<String> cancelMembership(HttpServletRequest request, HttpServletResponse response){
+        userService.cancelMembership(request,response);
+        return new ApiResponse<>("회원 탈퇴가 완료되었습니다.");
     }
 }
