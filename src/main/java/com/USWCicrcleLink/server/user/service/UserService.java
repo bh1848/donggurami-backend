@@ -12,6 +12,7 @@ import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.profile.service.ProfileService;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
@@ -46,6 +47,7 @@ public class UserService {
     private final JwtProvider jwtProvider;
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final ProfileService profileService;
 
 
     //어세스토큰에서 유저정보 가져오기
@@ -282,8 +284,9 @@ public class UserService {
             log.debug("리프레시 토큰이 존재하지 않거나 유효하지 않음. 회원 탈퇴 계속 진행.");
         }
 
-        // 회원 정보 삭제
-        User user= getUserByAuth();
+        // 회원 정보 및 프로필 삭제
+        User user = getUserByAuth();
+        profileService.deleteProfile();
         userRepository.delete(user);
 
         log.debug("회원 탈퇴 성공");

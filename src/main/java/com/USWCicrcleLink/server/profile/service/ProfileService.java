@@ -76,4 +76,9 @@ public class ProfileService {
         Profile profile = getProfileByAuth();
         return new ProfileResponse(profile);
     }
+
+    @Transactional
+    public void deleteProfile() {
+        profileRepository.delete(getProfileByAuth());
+    }
 }
