@@ -18,6 +18,7 @@ application-local.yml
 application-dev.yml
 application-prod.yml
 application-secret.yml
+application-test.yml
 application-aws.yml
 
 ### STS ###
