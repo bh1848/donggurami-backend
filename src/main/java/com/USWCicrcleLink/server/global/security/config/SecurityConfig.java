@@ -81,7 +81,7 @@ public class SecurityConfig {
                     // USER
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw").hasRole("USER");
                     auth.requestMatchers(HttpMethod.GET,"/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/my-notices/{noticeId}/details").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.DELETE, "/cancel-membership").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/exit").hasRole("USER");
 
                     // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**").hasRole("LEADER");
