@@ -5,6 +5,7 @@ import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
@@ -157,7 +158,7 @@ public class UserService {
     public TokenDto logIn(LogInRequest request, HttpServletResponse response) {
 
         // 사용자 정보 조회 (UserDetails 사용)
-        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), request.getRole());
+        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), Role.USER);
 
         // UserDetails에서 User 객체 추출
         User user;

@@ -26,7 +26,4 @@ public class LogInRequest {
     private String password;
 
     private String fcmToken;
-
-    @EnumFormat(enumClass = Role.class)
-    private Role role;
 }
