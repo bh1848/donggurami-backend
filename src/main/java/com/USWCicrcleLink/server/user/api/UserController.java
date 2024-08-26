@@ -167,7 +167,7 @@ public class UserController {
     }
 
     // 회원 탈퇴
-    @DeleteMapping("/cancel-membership")
+    @DeleteMapping("/exit")
     public ApiResponse<String> cancelMembership(HttpServletRequest request, HttpServletResponse response){
         userService.cancelMembership(request,response);
         return new ApiResponse<>("회원 탈퇴가 완료되었습니다.");
