@@ -5,6 +5,7 @@ import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
@@ -18,6 +19,7 @@ import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -156,7 +158,7 @@ public class UserService {
     public TokenDto logIn(LogInRequest request, HttpServletResponse response) {
 
         // 사용자 정보 조회 (UserDetails 사용)
-        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), request.getRole());
+        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), Role.USER);
 
         // UserDetails에서 User 객체 추출
         User user;
@@ -262,5 +264,28 @@ public class UserService {
 
         log.debug("최종 회원 가입 완료");
         return "true";
+    }
+
+    // 회원 탈퇴
+    public void cancelMembership(HttpServletRequest request, HttpServletResponse response) {
+
+        // 리프레시 토큰 추출
+        String refreshToken = jwtProvider.resolveRefreshToken(request);
+
+        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken)) {
+            // 유효한 리프레시 토큰인 경우, 리프레시 토큰 삭제
+            String uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
+            jwtProvider.deleteRefreshTokenCookie(response);
+            jwtProvider.deleteRefreshTokensByUuid(uuid);
+            log.debug("리프레시 토큰 삭제 : 사용자 {}의 모든 리프레시 토큰 삭제 완료", uuid);
+        } else {
+            log.debug("리프레시 토큰이 존재하지 않거나 유효하지 않음. 회원 탈퇴 계속 진행.");
+        }
+
+        // 회원 정보 삭제
+        User user= getUserByAuth();
+        userRepository.delete(user);
+
+        log.debug("회원 탈퇴 성공");
     }
 }
