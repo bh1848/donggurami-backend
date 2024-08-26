@@ -57,6 +57,7 @@ public enum ExceptionType {
      */
     CLUB_NOT_EXISTS("CLUB-201", "동아리가 존재하지 않습니다.", NOT_FOUND),
     ClUB_CHECKING_ERROR("CLUB-202", "동아리 조회 중 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
+    CLUB_NAME_ALREADY_EXISTS("CLUB-203", "이미 존재하는 동아리 이름입니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubIntro
@@ -87,8 +88,6 @@ public enum ExceptionType {
      * Domain: ClubIntroPhoto, Club(MainPhoto)
      */
     PHOTO_ORDER_MISS_MATCH("CLP-201", "범위를 벗어난 사진 순서 값입니다.", BAD_REQUEST),
-    CLUB_MAIN_PHOTO_NOT_EXISTS("CLP-202", "동아리 메인 사진이 존재하지 않습니다.", NOT_FOUND),
-    CLUB_INTRO_PHOTO_NOT_EXISTS("CLP-203", "동아리 소개 사진이 존재하지 않습니다.", NOT_FOUND),
 
     /**
      * Domain: ClubLeader
@@ -96,6 +95,8 @@ public enum ExceptionType {
     CLUB_LEADER_ACCESS_DENIED("CLDR-101","동아리 접근 권한이 없습니다.", FORBIDDEN),
     CLUB_LEADER_NOT_EXISTS("CLDR-201","동아리 회장이 존재하지 않습니다.", BAD_REQUEST),
     ClUB_LEADER_PASSWORD_NOT_MATCH("CLDR-202", "동아리 회장 비밀번호가 일치하지 않습니다", BAD_REQUEST),
+    LEADER_ACCOUNT_ALREADY_EXISTS("CLDR-203", "이미 존재하는 동아리 회장 계정입니다.", BAD_REQUEST),
+
 
     /**
      * Domain: ClubMember

@@ -15,4 +15,7 @@ public interface ClubRepository extends JpaRepository<Club, Long>, ClubRepositor
 
     @NonNull
     Page<Club> findAll(@NonNull Pageable pageable);
+
+    // 추가: 동아리 이름 중복 확인 메서드
+    boolean existsByClubName(String clubName);
 }

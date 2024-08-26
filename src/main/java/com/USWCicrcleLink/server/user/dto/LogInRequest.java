@@ -1,7 +1,5 @@
 package com.USWCicrcleLink.server.user.dto;
 
-import com.USWCicrcleLink.server.global.security.domain.Role;
-import com.USWCicrcleLink.server.global.validation.EnumFormat;
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -26,7 +24,4 @@ public class LogInRequest {
     private String password;
 
     private String fcmToken;
-
-    @EnumFormat(enumClass = Role.class)
-    private Role role;
 }

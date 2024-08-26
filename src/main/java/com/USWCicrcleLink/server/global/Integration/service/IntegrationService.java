@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,14 @@ public class IntegrationService {
         log.debug("로그인 요청: {}, 사용자 유형: {}", request.getIntegratedAccount(), request.getLoginType());
 
         Role role = getRoleFromLoginType(request.getLoginType());
-        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getIntegratedAccount(), role);
+        UserDetails userDetails;
+
+        try {
+            userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getIntegratedAccount(), role);
+        } catch (UserException e) {
+            // 아이디가 존재하지 않는 경우
+            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
+        }
 
         // 비밀번호 검증
         if (!passwordEncoder.matches(request.getIntegratedPw(), userDetails.getPassword())) {
@@ -49,7 +57,6 @@ public class IntegrationService {
         // 토큰 생성
         String accessToken = jwtProvider.createAccessToken(userDetails.getUsername());
         String refreshToken = jwtProvider.createRefreshToken(userDetails.getUsername(), response);
-
 
         log.debug("로그인 성공, uuid: {}", userDetails.getUsername());
         return new IntegrationLoginResponse(accessToken, refreshToken, role, clubId);

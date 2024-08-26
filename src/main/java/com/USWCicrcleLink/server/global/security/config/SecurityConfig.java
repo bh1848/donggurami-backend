@@ -52,6 +52,7 @@ public class SecurityConfig {
                             "/users/email/resend-confirmation",
                             "/auth/refresh-token", // 토큰 재발급
                             "/integration/login", // 동아리 회장, 동연회-개발자 통합 로그인
+                            "/integration/logout", // 통합 로그아웃
                             "/mainPhoto/**",
                             "/introPhoto/**",
                             "/my-notices/**",
@@ -80,15 +81,13 @@ public class SecurityConfig {
                     // USER
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw").hasRole("USER");
                     auth.requestMatchers(HttpMethod.GET,"/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/my-notices/{noticeId}/details").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/cancel-membership").hasRole("USER");
 
                     // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.GET, "/club-leader/{clubId}/**").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.PATCH, "/club-leader/{clubId}/**").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/club-leader/{clubId}/members").hasRole("LEADER");
-
-                    // INTEGRATION(모바일, 웹)
-                    auth.requestMatchers(HttpMethod.POST, "/integration/logout").authenticated(); // 통합 로그아웃 api
 
                     // 기타 모든 요청
                     auth.anyRequest().authenticated();
