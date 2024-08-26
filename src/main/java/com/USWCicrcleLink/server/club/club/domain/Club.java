@@ -15,7 +15,7 @@ public class Club {
     @Column(name = "club_id")
     private Long clubId;
 
-    @Column(name = "club_name")
+    @Column(name = "club_name", nullable = false, unique = true)
     private String clubName;
 
     @Column(name = "leader_name")

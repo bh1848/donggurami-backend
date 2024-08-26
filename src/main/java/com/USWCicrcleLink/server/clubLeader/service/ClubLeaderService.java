@@ -150,8 +150,8 @@ public class ClubLeaderService {
     // 자신의 동아리 상세 페이지 조회(웹)
     @Transactional(readOnly = true)
     public ClubIntroResponse getClubIntro(Long clubId) {
-        Club club = validateLeader(clubId);
-        return clubIntroService.getClubIntroDetails(club);
+        validateLeader(clubId);
+        return clubIntroService.getClubIntro(clubId);
     }
 
     // 동아리 소개 변경

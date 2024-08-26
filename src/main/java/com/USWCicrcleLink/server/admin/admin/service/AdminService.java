@@ -68,6 +68,16 @@ public class AdminService {
 
         log.debug("동아리 회장 비밀번호 확인 성공");
 
+        // Leader 계정 중복 확인
+        if (leaderRepository.existsByLeaderAccount(request.getLeaderAccount())) {
+            throw new ClubException(ExceptionType.LEADER_ACCOUNT_ALREADY_EXISTS);
+        }
+
+        // Club 이름 중복 확인
+        if (clubRepository.existsByClubName(request.getClubName())) {
+            throw new ClubException(ExceptionType.CLUB_NAME_ALREADY_EXISTS);
+        }
+
         // Club 생성 및 저장
         Club club = Club.builder()
                 .clubName(request.getClubName())
@@ -113,6 +123,10 @@ public class AdminService {
         if (!passwordEncoder.matches(adminPw, admin.getAdminPw())) {
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
+
+        // 동아리 존재 여부 확인
+        clubRepository.findById(clubId)
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
 
         // 동아리 및 관련 종속 엔티티와 S3 파일 삭제
         clubRepository.deleteClubAndDependencies(clubId);
