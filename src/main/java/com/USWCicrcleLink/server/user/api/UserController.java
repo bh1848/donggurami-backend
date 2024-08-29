@@ -9,10 +9,12 @@ import com.USWCicrcleLink.server.global.validation.ValidationSequence;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
 import com.USWCicrcleLink.server.user.service.UserService;
 
+import com.USWCicrcleLink.server.user.service.WithdrawalTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -38,6 +40,7 @@ public class UserController {
     private final UserService userService;
     private final AuthTokenService authTokenService;
     private final EmailTokenService emailTokenService;
+    private final WithdrawalTokenService withdrawalTokenService;
 
     @PatchMapping("/userpw")
     public ApiResponse<String> updateUserPw(@RequestBody UpdatePwRequest request) {
@@ -134,7 +137,7 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 인증 코드 전송
+    // 비밀번호 찾기
     @PostMapping("/auth/send-code")
     ResponseEntity<ApiResponse<UUID>> sendAuthCode (@Valid @RequestBody UserInfoDto request) {
 
@@ -166,9 +169,28 @@ public class UserController {
         return new ApiResponse<>("비밀번호가 변경되었습니다.");
     }
 
-    // 회원 탈퇴
+    // 회원 탈퇴 요청 및 메일 전송
+    @PostMapping("/exit/send-code")
+    public ApiResponse<String> sendWithdrawalCode () {
+
+        // 탈퇴 토큰 생성
+        WithdrawalToken token = withdrawalTokenService.createOrUpdateWithdrawalToken();
+        // 탈퇴 인증 메일 전송
+        userService.sendWithdrawalCodeMail(token);
+
+        return new ApiResponse<>("탈퇴를 위한 인증 메일이 전송 되었습니다");
+    }
+
+
+    // 회원 탈퇴 인증 번호 확인
     @DeleteMapping("/exit")
-    public ApiResponse<String> cancelMembership(HttpServletRequest request, HttpServletResponse response){
+    public ApiResponse<String> cancelMembership(HttpServletRequest request, HttpServletResponse response,@Valid @RequestBody AuthCodeRequest authCodeRequest){
+
+        // 토큰 검증 및 삭제
+        UUID uuid = withdrawalTokenService.verifyWithdrawalToken(authCodeRequest);
+        withdrawalTokenService.deleteWithdrawalToken(uuid);
+
+        // 회원 탈퇴 진행
         userService.cancelMembership(request,response);
         return new ApiResponse<>("회원 탈퇴가 완료되었습니다.");
     }
