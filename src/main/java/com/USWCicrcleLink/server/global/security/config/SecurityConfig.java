@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.global.security.config;
 import com.USWCicrcleLink.server.global.security.filter.JwtFilter;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,6 +24,9 @@ public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    @Value("${cors.allowed-origins}") // YML 파일에서 allowed-origins 값을 가져옴
+    private String allowedOrigin;
 
     @Bean
     public JwtFilter jwtAuthFilter() {
@@ -100,13 +104,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*"); // 프론트엔드 도메인 명시
-        configuration.addAllowedMethod("*"); // 메소드 형식
-        configuration.addAllowedHeader("*");
-        configuration.setAllowCredentials(true);
+        configuration.addAllowedOriginPattern(allowedOrigin); // 허용할 도메인 패턴
+        configuration.addAllowedMethod("GET"); // GET 메서드 허용
+        configuration.addAllowedMethod("POST"); // POST 메서드 허용
+        configuration.addAllowedMethod("PATCH"); // PATCH 메서드 허용
+        configuration.addAllowedMethod("DELETE"); // DELETE 메서드 허용
+        configuration.addAllowedHeader("*"); // 모든 헤더 허용
+        configuration.setAllowCredentials(true); // 자격 증명 허용
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 CORS 설정 적용
         return source;
     }
-
 }

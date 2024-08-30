@@ -41,6 +41,9 @@ public class JwtProvider {
 
     @Value("${jwt.secret.key}")
     private String secretKeyString;
+
+    @Value("${security.cookie.secure}")
+    private boolean secureCookie; // 프로덕션 환경에서는 true로 설정됨
     private Key secretKey;
 
     @PostConstruct
@@ -209,29 +212,6 @@ public class JwtProvider {
         return (String) redisTemplate.opsForHash().get("refreshToken:" + refreshToken, "uuid");
     }
 
-    // 리프레시 토큰 HttpOnly 쿠키로 설정
-    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);  // Secure=false 설정
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge((int) REFRESH_TOKEN_EXPIRATION_TIME / 1000);
-
-        // 쿠키를 추가하기 전 response에 헤더로 SameSite 설정
-        response.addCookie(refreshTokenCookie);
-
-        // SameSite 설정을 수동으로 추가
-        String cookieHeader = String.format("%s=%s; Path=%s; HttpOnly; Max-Age=%d; SameSite=None",
-                refreshTokenCookie.getName(),
-                refreshTokenCookie.getValue(),
-                refreshTokenCookie.getPath(),
-                refreshTokenCookie.getMaxAge());
-
-        response.addHeader("Set-Cookie", cookieHeader);
-
-        log.debug("리프레시 토큰 쿠키 설정 완료: {}", cookieHeader);
-    }
-
     // 쿠키에서 리프레시 토큰 추출
     public String resolveRefreshToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
@@ -246,23 +226,50 @@ public class JwtProvider {
         return null;
     }
 
-    // 쿠키에서 리프레시 토큰 삭제
-    public void deleteRefreshTokenCookie(HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);  // Secure=false 설정 (HTTP 환경)
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0);  // 쿠키 만료
+    // 리프레시 토큰 HttpOnly 쿠키로 설정
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        String sameSite = secureCookie ? "None" : "Lax"; // Secure=true면 SameSite=None, 아니면 Lax
 
-        // 쿠키를 추가하기 전 response에 헤더로 SameSite 설정
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(secureCookie);  // 환경 변수에 따라 secure 속성 설정
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge((int) REFRESH_TOKEN_EXPIRATION_TIME / 1000);
+
         response.addCookie(refreshTokenCookie);
 
-        // SameSite 설정을 수동으로 추가
-        String cookieHeader = String.format("%s=%s; Path=%s; HttpOnly; Max-Age=%d; SameSite=None",
+        String cookieHeader = String.format("%s=%s; Path=%s; HttpOnly; Max-Age=%d; %s; SameSite=%s",
                 refreshTokenCookie.getName(),
                 refreshTokenCookie.getValue(),
                 refreshTokenCookie.getPath(),
-                refreshTokenCookie.getMaxAge());
+                refreshTokenCookie.getMaxAge(),
+                secureCookie ? "Secure" : "", // 환경 설정 값에 따라 Secure 설정
+                sameSite);
+
+        response.addHeader("Set-Cookie", cookieHeader);
+
+        log.debug("리프레시 토큰 쿠키 설정 완료: {}", cookieHeader);
+    }
+
+    // 쿠키에서 리프레시 토큰 삭제
+    public void deleteRefreshTokenCookie(HttpServletResponse response) {
+        String sameSite = secureCookie ? "None" : "Lax"; // Secure=true면 SameSite=None, 아니면 Lax
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(secureCookie);  // 환경 변수에 따라 secure 속성 설정
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0);  // 쿠키 만료
+
+        response.addCookie(refreshTokenCookie);
+
+        String cookieHeader = String.format("%s=%s; Path=%s; HttpOnly; Max-Age=%d; %s; SameSite=%s",
+                refreshTokenCookie.getName(),
+                refreshTokenCookie.getValue(),
+                refreshTokenCookie.getPath(),
+                refreshTokenCookie.getMaxAge(),
+                secureCookie ? "Secure" : "", // 환경 설정 값에 따라 Secure 설정
+                sameSite);
 
         response.addHeader("Set-Cookie", cookieHeader);
 

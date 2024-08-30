@@ -27,7 +27,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: false
@@ -39,6 +39,15 @@ spring:
 
   firebase:
     config-path:${SERVER_FIREBASE_CONFIG_PATH}
+
+# CORS 설정 추가
+cors:
+  allowed-origins: ${PROD_SERVER_ALLOWED_ORIGINS}
+
+# 쿠키 설정 추가
+security:
+  cookie:
+    secure: true
 
 cloud:
   aws:
