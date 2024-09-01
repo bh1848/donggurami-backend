@@ -298,10 +298,9 @@ public class UserService {
             log.debug("리프레시 토큰이 존재하지 않거나 유효하지 않음. 회원 탈퇴 계속 진행.");
         }
 
-        // 회원 정보 및 프로필 삭제
-        User user = getUserByAuth();
-        profileService.deleteProfile();
-        userRepository.delete(user);
+        // 회원과 관련된 정보 모두 삭제
+        profileService.deleteAll();
+        userRepository.delete(getUserByAuth());
 
         log.debug("회원 탈퇴 성공");
     }
