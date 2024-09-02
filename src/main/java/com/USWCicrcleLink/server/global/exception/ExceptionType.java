@@ -57,7 +57,7 @@ public enum ExceptionType {
      */
     CLUB_NOT_EXISTS("CLUB-201", "동아리가 존재하지 않습니다.", NOT_FOUND),
     ClUB_CHECKING_ERROR("CLUB-202", "동아리 조회 중 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
-    CLUB_NAME_ALREADY_EXISTS("CLUB-203", "이미 존재하는 동아리 이름입니다.", BAD_REQUEST),
+    CLUB_NAME_ALREADY_EXISTS("CLUB-203", "이미 존재하는 동아리 이름입니다.", CONFLICT),
 
     /**
      * Domain: ClubIntro
@@ -68,7 +68,7 @@ public enum ExceptionType {
     /**
      * Domain: Admin
      */
-    ADMIN_NOT_EXISTS("ADM-201", "해당 계정이 존재하지 않습니다.", BAD_REQUEST),
+    ADMIN_NOT_EXISTS("ADM-201", "해당 계정이 존재하지 않습니다.", NOT_FOUND),
     ADMIN_PASSWORD_NOT_MATCH("ADM-202", "관리자 비밀번호가 일치하지 않습니다.", BAD_REQUEST),
 
     /**
@@ -95,7 +95,7 @@ public enum ExceptionType {
     CLUB_LEADER_ACCESS_DENIED("CLDR-101","동아리 접근 권한이 없습니다.", FORBIDDEN),
     CLUB_LEADER_NOT_EXISTS("CLDR-201","동아리 회장이 존재하지 않습니다.", BAD_REQUEST),
     ClUB_LEADER_PASSWORD_NOT_MATCH("CLDR-202", "동아리 회장 비밀번호가 일치하지 않습니다", BAD_REQUEST),
-    LEADER_ACCOUNT_ALREADY_EXISTS("CLDR-203", "이미 존재하는 동아리 회장 계정입니다.", BAD_REQUEST),
+    LEADER_ACCOUNT_ALREADY_EXISTS("CLDR-203", "이미 존재하는 동아리 회장 계정입니다.", UNPROCESSABLE_ENTITY),
 
 
     /**
@@ -116,6 +116,12 @@ public enum ExceptionType {
      */
     INVALID_AUTH_CODE("AC-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
     AUTHCODETOKEN_NOT_EXISTS("AC-102", "인증 코드 토큰이 존재하지 않습니다", BAD_REQUEST),
+
+    /**
+     * Domain: WithdrawalToken
+     */
+    INVALID_WITHDRAWAL_CODE("WT-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
+    WITHDRAWALTOKEN_NOT_EXISTS("WT-102", "탈퇴 토큰이 존재하지 않습니다", BAD_REQUEST),
 
     /**
      * 공통

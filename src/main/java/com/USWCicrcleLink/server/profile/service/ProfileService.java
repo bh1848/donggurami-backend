@@ -1,6 +1,9 @@
 package com.USWCicrcleLink.server.profile.service;
 
+import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
+import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubMemberException;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
@@ -11,6 +14,7 @@ import com.USWCicrcleLink.server.profile.dto.ProfileResponse;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +32,9 @@ import java.util.UUID;
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
+    private final AplictRepository aplictRepository;
+    private final ClubMembersRepository clubMembersRepository;
+
 
     //프로필 업데이트
     public ProfileResponse updateProfile(ProfileRequest profileRequest) {
@@ -78,7 +85,16 @@ public class ProfileService {
     }
 
     @Transactional
-    public void deleteProfile() {
-        profileRepository.delete(getProfileByAuth());
+    public void deleteAll() {
+
+        // 프로필 객체 조회
+        Profile profile = getProfileByAuth();
+
+        // 프로필과 연관된 테이블 데이터 전부 삭제
+        aplictRepository.deleteAllByProfile(profile);
+        clubMembersRepository.deleteAllByProfile(profile);
+
+        // 프로필 삭제
+        profileRepository.delete(profile);
     }
 }

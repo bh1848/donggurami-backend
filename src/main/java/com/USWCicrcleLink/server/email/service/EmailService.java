@@ -8,6 +8,7 @@ import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 
+import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
@@ -91,6 +92,27 @@ public class EmailService {
             helper.setTo(user.getEmail() + "@suwon.ac.kr");
             helper.setSubject("비밀번호 찾기 메일 입니다.");
             helper.setText("인증코드는  "  + authToken.getAuthCode()+ " 입니다.");
+            helper.setFrom("wg1004s@naver.com");
+
+            return mimeMessage;
+
+        } catch (MessagingException e){
+            e.printStackTrace();
+            throw new EmailException(ExceptionType.SEND_MAIL_FAILED);
+        }
+
+    }
+
+    // 회원 탈퇴 인증 메일
+    public  MimeMessage createWithdrawalCodeMail(User user, WithdrawalToken token)  {
+
+        try{
+            // 메세지 생성
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
+            helper.setTo(user.getEmail() + "@suwon.ac.kr");
+            helper.setSubject("회원 탈퇴를 위한 인증 메일 입니다");
+            helper.setText("인증 코드는  "  + token.getWithdrawalCode()+ " 입니다.");
             helper.setFrom("wg1004s@naver.com");
 
             return mimeMessage;

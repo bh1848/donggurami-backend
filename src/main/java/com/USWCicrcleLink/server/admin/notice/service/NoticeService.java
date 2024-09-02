@@ -11,6 +11,7 @@ import com.USWCicrcleLink.server.global.exception.errortype.NoticeException;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
+import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -51,7 +52,7 @@ public class NoticeService {
         return pagedResourcesAssembler.toModel(noticePage, noticeListResponseAssembler);
     }
 
-    // 공지사항 내용 조회(웹)
+    // 공지사항 세부내용 조회(웹)
     @Transactional(readOnly = true)
     public NoticeDetailResponse getNoticeById(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
@@ -73,10 +74,14 @@ public class NoticeService {
         CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
         Admin admin = adminDetails.admin();
 
+        // 입력값 검증 (XSS 공격 방지)
+        String sanitizedTitle = InputValidator.sanitizeContent(request.getNoticeTitle());
+        String sanitizedContent = InputValidator.sanitizeContent(request.getNoticeContent());
+
         // 새로운 공지사항 객체 생성 및 저장
         Notice notice = Notice.builder()
-                .noticeTitle(request.getNoticeTitle())
-                .noticeContent(request.getNoticeContent())
+                .noticeTitle(sanitizedTitle)
+                .noticeContent(sanitizedContent)
                 .noticeCreatedAt(LocalDateTime.now())
                 .admin(admin)
                 .build();
@@ -121,12 +126,18 @@ public class NoticeService {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
+        // 입력값 검증 (XSS 공격 방지)
+        String sanitizedTitle = null;
+        String sanitizedContent = null;
+
         if (request.getNoticeTitle() != null) {
-            notice.updateTitle(request.getNoticeTitle());
+            sanitizedTitle = InputValidator.sanitizeContent(request.getNoticeTitle());
+            notice.updateTitle(sanitizedTitle);
         }
 
         if (request.getNoticeContent() != null) {
-            notice.updateContent(request.getNoticeContent());
+            sanitizedContent = InputValidator.sanitizeContent(request.getNoticeContent());
+            notice.updateContent(sanitizedContent);
         }
 
         // 각 사진의 presignedUrls 리스트 초기화

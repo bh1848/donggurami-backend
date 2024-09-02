@@ -16,6 +16,7 @@ import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
+import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -78,18 +79,21 @@ public class AdminService {
             throw new ClubException(ExceptionType.CLUB_NAME_ALREADY_EXISTS);
         }
 
+        // 입력값 검증 (XSS 공격 방지)
+        String sanitizedClubName = InputValidator.sanitizeContent(request.getClubName());
+        String sanitizedLeaderAccount = InputValidator.sanitizeContent(request.getLeaderAccount());
+
         // Club 생성 및 저장
         Club club = Club.builder()
-                .clubName(request.getClubName())
-                .department(request.getDepartment())
-                .leaderName(request.getLeaderAccount())
+                .clubName(sanitizedClubName)
+                .department(request.getDepartment()) // 부서는 사용자의 입력을 받을지 여부에 따라 정제가 필요할 수 있음
                 .build();
         clubRepository.save(club);
         log.debug("동아리 생성 성공: {}", club.getClubName());
 
         // Leader 생성 및 저장
         Leader leader = Leader.builder()
-                .leaderAccount(request.getLeaderAccount())
+                .leaderAccount(sanitizedLeaderAccount)
                 .leaderPw(passwordEncoder.encode(request.getLeaderPw()))  // 비밀번호는 암호화해서 저장
                 .role(Role.LEADER)
                 .club(club)
@@ -109,6 +113,7 @@ public class AdminService {
 
         return new ClubCreationResponse(club);
     }
+
 
 
     // 동아리 삭제(웹)
