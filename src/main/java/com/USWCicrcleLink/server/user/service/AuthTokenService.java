@@ -60,7 +60,7 @@ public class AuthTokenService {
     public void deleteAuthToken(UUID uuid) {
 
         AuthToken authToken = authTokenRepository.findByUserUserUUID(uuid)
-                .orElseThrow(() -> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
+                .orElseThrow(() -> new AuthCodeException(ExceptionType.AUTHCODETOKEN_NOT_EXISTS));
 
         authTokenRepository.delete(authToken);
         log.debug("검증 완료된 인증 코드 토큰 삭제 완료");
