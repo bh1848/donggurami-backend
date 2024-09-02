@@ -137,7 +137,7 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 비밀번호 찾기
+    // 비밀번호 찾기 - 인증 코드 전송
     @PostMapping("/auth/send-code")
     ResponseEntity<ApiResponse<UUID>> sendAuthCode (@Valid @RequestBody UserInfoDto request) {
 
@@ -151,13 +151,12 @@ public class UserController {
 
     // 인증 코드 검증
     @PostMapping("/auth/verify-token")
-    public ResponseEntity<ApiResponse<UUID>> verifyAuthToken(@RequestHeader UUID uuid,@Valid @RequestBody AuthCodeRequest request) {
+    public ApiResponse<String> verifyAuthToken(@RequestHeader UUID uuid,@Valid @RequestBody AuthCodeRequest request) {
 
         authTokenService.verifyAuthToken(uuid, request);
         authTokenService.deleteAuthToken(uuid);
 
-        ApiResponse<UUID> response = new ApiResponse<>("인증 코드 검증이 완료되었습니다",uuid);
-        return new ResponseEntity<>(response,HttpStatus.OK);
+        return new ApiResponse<>("인증 코드 검증이 완료되었습니다");
     }
 
     // 비밀번호 재설정
