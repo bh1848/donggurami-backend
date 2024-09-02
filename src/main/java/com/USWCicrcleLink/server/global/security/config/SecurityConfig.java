@@ -97,8 +97,25 @@ public class SecurityConfig {
                     // 기타 모든 요청
                     auth.anyRequest().authenticated();
                 })
-                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
 
+                /*
+                    policyDirectives에서 지정한 규칙에 따라 스크립트, 스타일, 이미지 등의 리소스 로딩 출처를 제한.
+                    'self'는 동일 출처에서만 리소스를 로드하도록 제한.
+                 */
+
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; " +
+                                        "img-src 'self' " +
+                                        "script-src 'self'; " +
+                                        "style-src 'self'; " +
+                                        "font-src 'self'; " +
+                                        "connect-src 'self'; " +
+                                        "object-src 'none'; " +
+                                        "frame-ancestors 'none';")
+                        )
+        );
         return http.build();
     }
 
