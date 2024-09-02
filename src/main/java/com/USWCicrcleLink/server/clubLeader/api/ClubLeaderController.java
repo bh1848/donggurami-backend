@@ -93,6 +93,13 @@ public class ClubLeaderController {
         clubLeaderService.downloadExcel(clubId, response);
     }
 
+    // fcm 토큰 갱신
+    @PatchMapping("/fcmtoken")
+    public ResponseEntity<ApiResponse> updateFcmToken(@RequestBody FcmTokenRequest fcmTokenRequest) {
+        fcmService.refreshFcmToken(fcmTokenRequest);
+        return new ResponseEntity<>(new ApiResponse<>("fcm token 갱신 완료"), HttpStatus.OK);
+    }
+
     // 최초 지원자 조회
     @GetMapping("/{clubId}/applicants")
     public ResponseEntity<ApiResponse> getApplicants(@PathVariable("clubId") Long clubId, @RequestParam("page") int page, @RequestParam("size") int size) {

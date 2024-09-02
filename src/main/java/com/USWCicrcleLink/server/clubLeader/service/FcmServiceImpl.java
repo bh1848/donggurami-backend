@@ -2,22 +2,23 @@ package com.USWCicrcleLink.server.clubLeader.service;
 
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
-import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.clubLeader.config.FirebaseConfig;
 import com.USWCicrcleLink.server.clubLeader.dto.FcmMessageDto;
-import com.USWCicrcleLink.server.clubLeader.dto.FcmSendDto;
+import com.USWCicrcleLink.server.clubLeader.dto.FcmTokenRequest;
+import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,6 +32,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FcmServiceImpl implements FcmService {
 
+    private final ProfileRepository profileRepository;
+
     private final String FCM_API_URL = "https://fcm.googleapis.com/v1/projects/usw-circle-link/messages:send";
     private final FirebaseConfig firebaseConfig;
     private final String GOOGLE_AUTH_URL = "https://www.googleapis.com/auth/cloud-platform";
@@ -39,7 +42,6 @@ public class FcmServiceImpl implements FcmService {
     private final String APLICT_FAIL_MESSAGE = "에 불합격했습니다.";
     private final String APLICT_ERROR_MESSAGE = "관리자에게 문의 해주세요.";
 
-    private final ProfileRepository profileRepository;
     // 메시지 구성, 토큰 받고 메시지 처리
     @Override
     public int sendMessageTo(Aplict aplict, AplictStatus aplictResult) throws IOException {
@@ -107,5 +109,24 @@ public class FcmServiceImpl implements FcmService {
                         ).build()).validateOnly(false).build();
 
         return om.writeValueAsString(fcmMessageDto);
+    }
+
+    // fcm token 갱신
+    public void refreshFcmToken(FcmTokenRequest fcmTokenRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        User user = userDetails.user();
+        log.debug("인증된 사용자: {}", user.getUserAccount());
+
+        // fcm 토큰 갱신
+        Optional<Profile> userFcmTokenOptional = profileRepository.findByUserUserId(user.getUserId());
+        if (userFcmTokenOptional.isPresent()) {
+            Profile userFcmToken = userFcmTokenOptional.get();
+            userFcmToken.updateFcmToken(fcmTokenRequest.getFcmToken());
+            profileRepository.save(userFcmToken);
+            log.debug("사용자 {}의 FCM 토큰 갱신 완료", user.getUserAccount());
+        } else {
+            log.warn("사용자 {}의 프로필을 찾을 수 없음. FCM 토큰 갱신 실패", user.getUserAccount());
+        }
     }
 }

@@ -94,6 +94,7 @@ public class IntegrationService {
             Optional<Profile> userFcmToken = profileRepository.findByUser_UserUUID(UUID.fromString(uuid));
             if (userFcmToken.map(Profile::getFcmToken).isPresent()) {
                 userFcmToken.get().updateFcmToken(null);
+                profileRepository.save(userFcmToken.get());
                 log.debug("로그아웃: 모바일 사용자 {}의 fcm 토큰 삭제 완료", uuid);
             }
         } else {
