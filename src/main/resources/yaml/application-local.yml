@@ -40,6 +40,15 @@ spring:
   firebase:
     config-path:${LOCAL_FIREBASE_CONFIG_PATH}
 
+# CORS 설정 추가
+cors:
+  allowed-origins: ${LOCAL_SERVER_ALLOWED_ORIGINS}
+
+  # 쿠키 설정 추가
+security:
+  cookie:
+    secure: false
+
 cloud:
   aws:
     s3:

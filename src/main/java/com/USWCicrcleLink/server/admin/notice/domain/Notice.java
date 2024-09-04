@@ -21,7 +21,8 @@ public class Notice {
     @Column(name = "notice_title", length = 100)
     private String noticeTitle;
 
-    @Column(name = "notice_content", length = 1000)
+    @Lob
+    @Column(name = "notice_content", columnDefinition = "TEXT")
     private String noticeContent;
 
     @Column(name = "notice_created_at")

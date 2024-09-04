@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.global.security.config;
 import com.USWCicrcleLink.server.global.security.filter.JwtFilter;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,6 +25,9 @@ public class SecurityConfig {
     private final JwtProvider jwtProvider;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
+    @Value("${cors.allowed-origins}") // YML 파일에서 allowed-origins 값을 가져옴
+    private String allowedOrigin;
+
     @Bean
     public JwtFilter jwtAuthFilter() {
         return new JwtFilter(jwtProvider);
@@ -35,8 +39,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptionHandling ->
-                        exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint))
+                .exceptionHandling(exceptionHandling -> {
+                    // 인증 실패에 대한 처리
+                    exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint);
+                })
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(
                             "/users/login", // 모바일 로그인
@@ -93,20 +99,61 @@ public class SecurityConfig {
                     // 기타 모든 요청
                     auth.anyRequest().authenticated();
                 })
-                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
 
+                /*
+                    policyDirectives에서 지정한 규칙에 따라 스크립트, 스타일, 이미지 등의 리소스 로딩 출처를 제한.
+                    'self'는 동일 출처에서만 리소스를 로드하도록 제한.
+                 */
+
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; " +
+                                        "img-src 'self' " +
+                                        "script-src 'self'; " +
+                                        "style-src 'self'; " +
+                                        "font-src 'self'; " +
+                                        "connect-src 'self'; " +
+                                        "object-src 'none'; " +
+                                        "frame-ancestors 'none';")
+                        )
+        );
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*"); // 프론트엔드 도메인 명시
-        configuration.addAllowedMethod("*"); // 메소드 형식
-        configuration.addAllowedHeader("*");
+
+        // 특정 출처 허용
+        configuration.addAllowedOriginPattern(allowedOrigin);
+
+        // 허용할 HTTP 메서드 명시
+        configuration.addAllowedMethod(HttpMethod.GET);
+        configuration.addAllowedMethod(HttpMethod.POST);
+        configuration.addAllowedMethod(HttpMethod.PUT);
+        configuration.addAllowedMethod(HttpMethod.PATCH);
+        configuration.addAllowedMethod(HttpMethod.DELETE);
+        configuration.addAllowedMethod(HttpMethod.OPTIONS); // Preflight 요청에 사용되는 OPTIONS 메서드 허용
+
+        // 허용할 헤더 명시
+        configuration.addAllowedHeader("Authorization");
+        configuration.addAllowedHeader("Content-Type"); // JSON 요청 시 중요
+        configuration.addAllowedHeader("X-Requested-With"); // AJAX 요청 시 중요
+        configuration.addAllowedHeader("Accept"); // 클라이언트가 서버로 어떤 형식의 응답을 받을지 지정
+        configuration.addAllowedHeader("Origin"); // CORS에서 원본 도메인 확인 시 사용
+        configuration.addAllowedHeader("Access-Control-Allow-Headers"); // 클라이언트가 사용할 수 있는 헤더를 명시
+        configuration.addAllowedHeader("Access-Control-Allow-Origin"); // 클라이언트가 허용된 출처임을 확인
+        configuration.addAllowedHeader("emailToken_uuid");
+        configuration.addAllowedHeader("uuid");
+
+        // 자격 증명 허용
         configuration.setAllowCredentials(true);
+
+        // CORS 설정을 모든 경로에 적용
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 

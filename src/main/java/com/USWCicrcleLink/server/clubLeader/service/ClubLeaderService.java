@@ -27,6 +27,7 @@ import com.USWCicrcleLink.server.global.response.PageResponse;
 import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
+import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -112,6 +113,11 @@ public class ClubLeaderService {
 
         Club club = validateLeader(clubId);
 
+        // 입력값 검증 (XSS 공격 방지)
+        String sanitizedLeaderName = InputValidator.sanitizeContent(clubInfoRequest.getLeaderName());
+        String sanitizedClubInsta = InputValidator.sanitizeContent(clubInfoRequest.getClubInsta());
+        String sanitizedLeaderHp = InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp());
+
         // 기존 동아리 대표 사진 조회
         ClubMainPhoto existingPhoto = clubMainPhotoRepository.findByClub_ClubId(clubId);
 
@@ -128,7 +134,7 @@ public class ClubLeaderService {
         s3FileResponse = updateClubMainPhotoAndS3File(mainPhoto, existingPhoto);
 
         // 동아리 기본 정보 변경
-        club.updateClubInfo(clubInfoRequest.getLeaderName(), clubInfoRequest.getLeaderHp(), clubInfoRequest.getClubInsta());
+        club.updateClubInfo(sanitizedLeaderName, sanitizedLeaderHp, sanitizedClubInsta);
         clubRepository.save(club);
         log.debug("동아리 기본 정보 변경 완료: {}", club.getClubName());
 
@@ -161,6 +167,10 @@ public class ClubLeaderService {
 
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+
+        // 입력값 검증 (XSS 공격 방지)
+        String sanitizedClubIntro = InputValidator.sanitizeContent(clubIntroRequest.getClubIntro());
+        String sanitizedGoogleFormUrl = InputValidator.sanitizeContent(clubIntroRequest.getGoogleFormUrl());
 
         // 각 사진의 presignedUrls
         List<String> presignedUrls = new ArrayList<>();
@@ -203,7 +213,7 @@ public class ClubLeaderService {
         }
 
         // 소개 글, google form 저장
-        clubIntro.updateClubIntro(clubIntroRequest.getClubIntro(), clubIntroRequest.getGoogleFormUrl());
+        clubIntro.updateClubIntro(sanitizedClubIntro, sanitizedGoogleFormUrl);
         clubIntroRepository.save(clubIntro);
 
         log.debug("{} 동아리 소개 변경 완료", club.getClubName());

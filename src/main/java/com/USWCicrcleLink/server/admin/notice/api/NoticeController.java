@@ -52,7 +52,7 @@ public class NoticeController {
     }
 
     //공지사항 수정(웹)
-    @PatchMapping("/{noticeId}")
+    @PutMapping("/{noticeId}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> updateNotice(
             @PathVariable("noticeId") Long noticeId,
             @RequestPart(value = "request", required = false) @Valid NoticeUpdateRequest request,

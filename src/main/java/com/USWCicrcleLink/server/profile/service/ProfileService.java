@@ -52,7 +52,7 @@ public class ProfileService {
             throw new ProfileException(ExceptionType.PROFILE_UPDATE_FAIL);
         }
 
-        log.info("프로필 수정 완료 {}", profile.getProfileId());
+        log.debug("프로필 수정 완료");
         return new ProfileResponse(profile);
     }
 

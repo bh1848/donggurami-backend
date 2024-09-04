@@ -41,6 +41,9 @@ public class JwtProvider {
 
     @Value("${jwt.secret.key}")
     private String secretKeyString;
+
+    @Value("${security.cookie.secure}")
+    private boolean secureCookie; // 프로덕션 환경에서는 true로 설정됨
     private Key secretKey;
 
     @PostConstruct
@@ -48,8 +51,8 @@ public class JwtProvider {
         this.secretKey = Keys.hmacShaKeyFor(secretKeyString.getBytes(StandardCharsets.UTF_8));
     }
 
-    // 엑세스 토큰 생성
-    public String createAccessToken(String uuid) {
+    // 엑세스 토큰 생성 및 응답 헤더에 추가
+    public String createAccessToken(String uuid, HttpServletResponse response) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(uuid);
         Claims claims = Jwts.claims().setSubject(uuid);
 
@@ -77,10 +80,17 @@ public class JwtProvider {
         }
 
         Date now = new Date();
-        String accessToken = buildToken(claims, now);
+        String accessToken = buildToken(claims, now); // 엑세스 토큰 생성
         log.debug("엑세스 토큰 생성: {}", accessToken);
+
+        // 엑세스 토큰을 Authorization 헤더에 추가 (Bearer 방식)
+        String headerValue = BEARER_PREFIX + accessToken;
+        response.setHeader(AUTHORIZATION_HEADER, headerValue);
+        log.debug("엑세스 토큰을 헤더에 추가: {}", headerValue);
+
         return accessToken;
     }
+
 
     // 리프레시 토큰 생성 및 Redis에 저장
     public String createRefreshToken(String uuid, HttpServletResponse response) {
@@ -209,29 +219,6 @@ public class JwtProvider {
         return (String) redisTemplate.opsForHash().get("refreshToken:" + refreshToken, "uuid");
     }
 
-    // 리프레시 토큰 HttpOnly 쿠키로 설정
-    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);  // Secure=false 설정
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge((int) REFRESH_TOKEN_EXPIRATION_TIME / 1000);
-
-        // 쿠키를 추가하기 전 response에 헤더로 SameSite 설정
-        response.addCookie(refreshTokenCookie);
-
-        // SameSite 설정을 수동으로 추가
-        String cookieHeader = String.format("%s=%s; Path=%s; HttpOnly; Max-Age=%d; SameSite=None",
-                refreshTokenCookie.getName(),
-                refreshTokenCookie.getValue(),
-                refreshTokenCookie.getPath(),
-                refreshTokenCookie.getMaxAge());
-
-        response.addHeader("Set-Cookie", cookieHeader);
-
-        log.debug("리프레시 토큰 쿠키 설정 완료: {}", cookieHeader);
-    }
-
     // 쿠키에서 리프레시 토큰 추출
     public String resolveRefreshToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
@@ -246,24 +233,33 @@ public class JwtProvider {
         return null;
     }
 
+    // 리프레시 토큰 HttpOnly 쿠키로 설정
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        String sameSite = "Lax";  // 항상 SameSite=Lax로 설정
+
+        // Secure 속성 여부에 따라 쿠키 설정
+        String cookieHeader = String.format("refreshToken=%s; Path=/; HttpOnly; Max-Age=%d; %s; SameSite=%s",
+                refreshToken,
+                (int) REFRESH_TOKEN_EXPIRATION_TIME / 1000,
+                secureCookie ? "Secure" : "",  // secureCookie가 true면 Secure 속성 추가
+                sameSite);
+
+        // Set-Cookie 헤더에 쿠키 설정
+        response.addHeader("Set-Cookie", cookieHeader);
+
+        log.debug("리프레시 토큰 쿠키 설정 완료: {}", cookieHeader);
+    }
+
     // 쿠키에서 리프레시 토큰 삭제
     public void deleteRefreshTokenCookie(HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);  // Secure=false 설정 (HTTP 환경)
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0);  // 쿠키 만료
+        String sameSite = "Lax";  // 항상 SameSite=Lax로 설정
 
-        // 쿠키를 추가하기 전 response에 헤더로 SameSite 설정
-        response.addCookie(refreshTokenCookie);
+        // 리프레시 토큰 삭제를 위한 쿠키 설정 (Max-Age=0으로 설정)
+        String cookieHeader = String.format("refreshToken=; Path=/; HttpOnly; Max-Age=0; %s; SameSite=%s",
+                secureCookie ? "Secure" : "",  // secureCookie가 true면 Secure 속성 추가
+                sameSite);
 
-        // SameSite 설정을 수동으로 추가
-        String cookieHeader = String.format("%s=%s; Path=%s; HttpOnly; Max-Age=%d; SameSite=None",
-                refreshTokenCookie.getName(),
-                refreshTokenCookie.getValue(),
-                refreshTokenCookie.getPath(),
-                refreshTokenCookie.getMaxAge());
-
+        // Set-Cookie 헤더에 쿠키 삭제 설정
         response.addHeader("Set-Cookie", cookieHeader);
 
         log.debug("클라이언트의 쿠키에서 리프레시 토큰 삭제 완료: {}", cookieHeader);

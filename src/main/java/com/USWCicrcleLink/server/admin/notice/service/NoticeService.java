@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -123,31 +122,28 @@ public class NoticeService {
 
     // 공지사항 수정(웹)
     public NoticeDetailResponse updateNotice(Long noticeId, NoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
+        // 공지사항 존재 여부 확인
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
+        if (request.getNoticeTitle() == null || request.getNoticeContent() == null) {
+            throw new NoticeException(ExceptionType.TITEL_AND_CONENT_REQUIRED);
+        }
+
         // 입력값 검증 (XSS 공격 방지)
-        String sanitizedTitle = null;
-        String sanitizedContent = null;
+        String sanitizedTitle = InputValidator.sanitizeContent(request.getNoticeTitle());
+        String sanitizedContent = InputValidator.sanitizeContent(request.getNoticeContent());
 
-        if (request.getNoticeTitle() != null) {
-            sanitizedTitle = InputValidator.sanitizeContent(request.getNoticeTitle());
-            notice.updateTitle(sanitizedTitle);
-        }
-
-        if (request.getNoticeContent() != null) {
-            sanitizedContent = InputValidator.sanitizeContent(request.getNoticeContent());
-            notice.updateContent(sanitizedContent);
-        }
-
-        // 각 사진의 presignedUrls 리스트 초기화
-        List<String> presignedUrls = new ArrayList<>();
+        // 제목 및 내용 업데이트 (PUT 방식에서는 필수)
+        notice.updateTitle(sanitizedTitle);
+        notice.updateContent(sanitizedContent);
 
         // 기존 사진 유지 및 삭제 처리
         List<NoticePhoto> existingPhotos = noticePhotoRepository.findByNotice(notice);
         List<NoticePhoto> photosToKeep = new ArrayList<>();
         List<NoticePhoto> photosToRemove = new ArrayList<>();
 
+        // 기존 사진 중에서 유지할 사진과 삭제할 사진 구분
         for (NoticePhoto photo : existingPhotos) {
             if (request.getPhotoIds().contains(photo.getNoticePhotoId())) {
                 photosToKeep.add(photo);
@@ -161,6 +157,7 @@ public class NoticeService {
         noticePhotoRepository.deleteAll(photosToRemove);
 
         // 새로운 사진 추가 및 순서 지정
+        List<String> presignedUrls = new ArrayList<>();
         if (noticePhotos != null && !noticePhotos.isEmpty() && request.getPhotoOrders() != null) {
             for (int i = 0; i < noticePhotos.size(); i++) {
                 MultipartFile noticePhoto = noticePhotos.get(i);
@@ -185,7 +182,7 @@ public class NoticeService {
 
         Notice updatedNotice = noticeRepository.save(notice);
 
-        // 최종 반환
+        // 최종 반환할 사진 URL 리스트 생성
         List<String> photoUrls = photosToKeep.stream()
                 .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getNoticePhotoS3Key()))
                 .collect(Collectors.toList());
