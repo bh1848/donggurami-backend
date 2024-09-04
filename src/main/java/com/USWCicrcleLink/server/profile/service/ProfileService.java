@@ -48,11 +48,11 @@ public class ProfileService {
         Profile updatedProfile = profileRepository.save(profile);
 
         if (updatedProfile == null) {
-            log.error("프로필 업데이트 실패");
+            log.error("프로필 업데이트 실패 {}", profile.getProfileId());
             throw new ProfileException(ExceptionType.PROFILE_UPDATE_FAIL);
         }
 
-        log.info("프로필 수정 완료");
+        log.info("프로필 수정 완료 {}", profile.getProfileId());
         return new ProfileResponse(profile);
     }
 

@@ -83,10 +83,10 @@ public class UserService {
         User updateUserPw = userRepository.save(user);
 
         if(updateUserPw == null){
-            log.error("비밀번호 업데이트 실패");
+            log.error("비밀번호 업데이트 실패 {}", user.getUserId());
             throw new UserException(ExceptionType.PROFILE_UPDATE_FAIL);
         }
-        log.debug("비밀번호 변경 완료: {}",user.getUserUUID());
+        log.info("비밀번호 변경 완료: {}",user.getUserId());
     }
 
     // 임시 회원 생성 및 저장
