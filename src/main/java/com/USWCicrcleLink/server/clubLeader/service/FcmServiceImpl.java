@@ -20,10 +20,12 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +43,8 @@ public class FcmServiceImpl implements FcmService {
     private final String APLICT_PASS_MESSAGE = "에 합격했습니다.";
     private final String APLICT_FAIL_MESSAGE = "에 불합격했습니다.";
     private final String APLICT_ERROR_MESSAGE = "관리자에게 문의 해주세요.";
+
+    private static final int FCM_TOKEN_CERTIFICATION_TIME = 7;
 
     // 메시지 구성, 토큰 받고 메시지 처리
     @Override
@@ -112,6 +116,7 @@ public class FcmServiceImpl implements FcmService {
     }
 
     // fcm token 갱신
+    @Transactional
     public void refreshFcmToken(FcmTokenRequest fcmTokenRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -122,7 +127,7 @@ public class FcmServiceImpl implements FcmService {
         Optional<Profile> userFcmTokenOptional = profileRepository.findByUserUserId(user.getUserId());
         if (userFcmTokenOptional.isPresent()) {
             Profile userFcmToken = userFcmTokenOptional.get();
-            userFcmToken.updateFcmToken(fcmTokenRequest.getFcmToken());
+            userFcmToken.updateFcmTokenTime(fcmTokenRequest.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
             profileRepository.save(userFcmToken);
             log.debug("사용자 {}의 FCM 토큰 갱신 완료", user.getUserAccount());
         } else {

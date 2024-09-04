@@ -3,6 +3,8 @@ import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.repository.EmailTokenRepository;
+import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -10,6 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 
 @Component
@@ -19,6 +23,7 @@ public class SchedulerConfig {
 
     private final EmailTokenRepository emailTokenRepository;
     private final AplictRepository aplictRepository;
+    private final ProfileRepository profileRepository;
 
 
     // 미인증 회원 삭제
@@ -37,12 +42,32 @@ public class SchedulerConfig {
     // 최초 합 통보 후 4일이 지난 지원서 삭제
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
-    public void deleteOldData() {
+    public void deleteOldApplications() {
         // 지원서에는 최초 합 통보 후 4일이 지난 날짜 값만 기입
         // 현재 날짜와 같은 지원서 삭제
         LocalDateTime now = LocalDateTime.now();
         List<Aplict> applicantsToDelete = aplictRepository.findAllByDeleteDateBefore(now);
-        aplictRepository.deleteAll(applicantsToDelete);
+        if (!applicantsToDelete.isEmpty()) {
+            aplictRepository.deleteAll(applicantsToDelete);
+            log.debug("4일 지난 지원서 {}개 삭제 완료", applicantsToDelete.size());
+        } else {
+            log.debug("삭제할 지원서 없음");
+        }
     }
 
+    // 매일 00시(자정)에 실행
+    // 7일이 지난 fcm 토큰 삭제
+    @Scheduled(cron = "0 0 0 * * ?")
+    @Transactional
+    public void deleteExpiredFcmTokens() {
+        //만료된 fcm토큰 삭제
+        LocalDateTime now = LocalDateTime.now();
+        List<Profile> expiredFcmTokens = profileRepository.findAllByFcmTokenCertificationTimestampBefore(now);
+        if (!expiredFcmTokens.isEmpty()) {
+            profileRepository.deleteAll(expiredFcmTokens);
+            log.debug("만료된 FCM 토큰 {}개 삭제 완료", expiredFcmTokens.size());
+        } else {
+            log.debug("삭제할 FCM 토큰이 없음");
+        }
+    }
 }
