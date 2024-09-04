@@ -75,7 +75,8 @@ public enum ExceptionType {
      * Domain: Notice
      */
     NOTICE_NOT_EXISTS("NOT-201", "공지사항이 존재하지 않습니다.", NOT_FOUND),
-    UP_TO_5_PHOTOS_CAN_BE_UPLOADED("NOT-202", "최대 5개의 사진이 업로드 가능합니다.", BAD_REQUEST),
+    UP_TO_5_PHOTOS_CAN_BE_UPLOADED("NOT-202", "최대 5개의 사진이 업로드 가능합니다.", PAYLOAD_TOO_LARGE),
+    TITEL_AND_CONENT_REQUIRED("NOT-203", "제목과 내용이 필요합니다.", UNPROCESSABLE_ENTITY),
 
     /**
      * Domain: Profile
@@ -142,7 +143,8 @@ public enum ExceptionType {
     MAXIMUM_FILE_LIMIT_EXCEEDED("FILE-308", "업로드 가능한 사진 갯수를 초과했습니다.", BAD_REQUEST),
     INVALID_FILE_NAME("FILE-309", "파일 이름이 유효하지 않습니다.", BAD_REQUEST),
     MISSING_FILE_EXTENSION("FILE-310", "파일 확장자가 없습니다.", BAD_REQUEST),
-    UNSUPPORTED_FILE_EXTENSION("FILE-311", "지원하지 않는 파일 확장자입니다.", BAD_REQUEST);
+    UNSUPPORTED_FILE_EXTENSION("FILE-311", "지원하지 않는 파일 확장자입니다.", BAD_REQUEST),
+    FILE_VALIDATION_FAILED("FILE-312", "파일 유효성 검사 실패", BAD_REQUEST);
 
     private final String code;
     private final String message;

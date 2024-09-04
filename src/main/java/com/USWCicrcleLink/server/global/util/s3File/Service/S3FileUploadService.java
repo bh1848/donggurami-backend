@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.global.util.s3File.Service;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.FileException;
 import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
+import com.USWCicrcleLink.server.global.util.validator.FileSignatureValidator;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
@@ -54,7 +56,7 @@ public class S3FileUploadService {
         return new S3FileResponse(presignedUrl, s3FileName);
     }
 
-    // 파일 확장 확인
+    // 파일 확장 및 시그니처 확인
     private String validateImageFileExtension(MultipartFile image) {
         // 파일명 확인
         if (image == null || image.getOriginalFilename() == null) {
@@ -67,10 +69,23 @@ public class S3FileUploadService {
             throw new FileException(ExceptionType.MISSING_FILE_EXTENSION);
         }
 
+        // 파일 확장자 추출
         String fileExtension = filename.substring(lastDotIndex + 1).toLowerCase();
+
+        // 확장자가 허용된 파일 형식인지 확인
         if (!allowedExtensions.contains(fileExtension)) {
             throw new FileException(ExceptionType.UNSUPPORTED_FILE_EXTENSION);
         }
+
+        // 파일 시그니처를 통해 실제 파일 형식이 올바른지 확인
+        try {
+            if (!FileSignatureValidator.isValidFileType(image.getInputStream(), fileExtension)) {
+                throw new FileException(ExceptionType.UNSUPPORTED_FILE_EXTENSION);
+            }
+        } catch (IOException e) {
+            throw new FileException(ExceptionType.FILE_VALIDATION_FAILED);
+        }
+
         return fileExtension;
     }
 

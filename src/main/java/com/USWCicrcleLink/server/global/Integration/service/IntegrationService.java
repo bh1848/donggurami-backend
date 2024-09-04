@@ -55,7 +55,7 @@ public class IntegrationService {
         }
 
         // 토큰 생성
-        String accessToken = jwtProvider.createAccessToken(userDetails.getUsername());
+        String accessToken = jwtProvider.createAccessToken(userDetails.getUsername(), response);
         String refreshToken = jwtProvider.createRefreshToken(userDetails.getUsername(), response);
 
         log.debug("로그인 성공, uuid: {}", userDetails.getUsername());

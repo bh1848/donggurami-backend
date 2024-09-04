@@ -39,8 +39,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptionHandling ->
-                        exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint))
+                .exceptionHandling(exceptionHandling -> {
+                    // 인증 실패에 대한 처리
+                    exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint);
+                })
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(
                             "/users/login", // 모바일 로그인
@@ -122,15 +124,37 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern(allowedOrigin); // 허용할 도메인 패턴
-        configuration.addAllowedMethod("GET"); // GET 메서드 허용
-        configuration.addAllowedMethod("POST"); // POST 메서드 허용
-        configuration.addAllowedMethod("PATCH"); // PATCH 메서드 허용
-        configuration.addAllowedMethod("DELETE"); // DELETE 메서드 허용
-        configuration.addAllowedHeader("*"); // 모든 헤더 허용
-        configuration.setAllowCredentials(true); // 자격 증명 허용
+
+        // 특정 출처 허용
+        configuration.addAllowedOriginPattern(allowedOrigin);
+
+        // 허용할 HTTP 메서드 명시
+        configuration.addAllowedMethod(HttpMethod.GET);
+        configuration.addAllowedMethod(HttpMethod.POST);
+        configuration.addAllowedMethod(HttpMethod.PUT);
+        configuration.addAllowedMethod(HttpMethod.PATCH);
+        configuration.addAllowedMethod(HttpMethod.DELETE);
+        configuration.addAllowedMethod(HttpMethod.OPTIONS); // Preflight 요청에 사용되는 OPTIONS 메서드 허용
+
+        // 허용할 헤더 명시
+        configuration.addAllowedHeader("Authorization");
+        configuration.addAllowedHeader("Content-Type"); // JSON 요청 시 중요
+        configuration.addAllowedHeader("X-Requested-With"); // AJAX 요청 시 중요
+        configuration.addAllowedHeader("Accept"); // 클라이언트가 서버로 어떤 형식의 응답을 받을지 지정
+        configuration.addAllowedHeader("Origin"); // CORS에서 원본 도메인 확인 시 사용
+        configuration.addAllowedHeader("Access-Control-Allow-Headers"); // 클라이언트가 사용할 수 있는 헤더를 명시
+        configuration.addAllowedHeader("Access-Control-Allow-Origin"); // 클라이언트가 허용된 출처임을 확인
+        configuration.addAllowedHeader("emailToken_uuid");
+        configuration.addAllowedHeader("uuid");
+
+        // 자격 증명 허용
+        configuration.setAllowCredentials(true);
+
+        // CORS 설정을 모든 경로에 적용
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 CORS 설정 적용
+        source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
+
 }

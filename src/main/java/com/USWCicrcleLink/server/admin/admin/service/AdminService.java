@@ -111,10 +111,8 @@ public class AdminService {
         clubIntroRepository.save(clubIntro);
         log.debug("동아리 소개 생성 성공: {}", clubIntro.getClubIntro());
 
-        return new ClubCreationResponse(club);
+        return new ClubCreationResponse(club, leader);
     }
-
-
 
     // 동아리 삭제(웹)
     public void deleteClub(Long clubId, String adminPw) {

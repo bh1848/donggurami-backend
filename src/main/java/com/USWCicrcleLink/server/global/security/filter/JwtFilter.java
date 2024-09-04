@@ -71,7 +71,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 // SecurityContextHolder에 인증 정보 설정
                 SecurityContextHolder.getContext().setAuthentication(auth);
-                log.info("SecurityContextHolder에 인증 정보 설정: {}", auth.getName());
+                log.debug("SecurityContextHolder에 인증 정보 설정: {}", auth.getName());
             } else {
 
                 // 토큰이 유효하지 않은 경우
