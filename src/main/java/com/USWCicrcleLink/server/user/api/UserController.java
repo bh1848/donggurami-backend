@@ -49,7 +49,7 @@ public class UserController {
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
 
-    // 회원가입 시의 계정 중복 체크
+    // 회원가입시 계정 중복 체크
     @GetMapping("/verify-duplicate/{account}")
     public ResponseEntity<ApiResponse<String>> verifyAccountDuplicate(@PathVariable String account) {
 

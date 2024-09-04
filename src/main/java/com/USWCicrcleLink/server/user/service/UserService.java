@@ -49,7 +49,6 @@ public class UserService {
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final ProfileService profileService;
-    private final WithdrawalTokenService withdrawalService;
 
 
     //어세스토큰에서 유저정보 가져오기

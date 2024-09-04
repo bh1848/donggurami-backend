@@ -1,9 +1,11 @@
 package com.USWCicrcleLink.server.profile.domain;
 
+import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 @Table(name = "PROFILE_TABLE")
 public class Profile {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "profile_id")
@@ -25,12 +28,15 @@ public class Profile {
     private User user;
 
     @Column(name = "user_name", nullable = false)
+    @Pattern(regexp = "^[a-zA-Z가-힣]+$", message = "이름은 한글만 입력 가능합니다", groups = ValidationGroups.PatternGroup.class)
     private String userName;
 
     @Column(name = "student_number", nullable = false)
+    @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다",groups = ValidationGroups.PatternGroup.class)
     private String studentNumber;
 
     @Column(name = "user_hp", nullable = false)
+    @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다",groups = ValidationGroups.PatternGroup.class)
     private String userHp;
 
     @Column(name = "major", nullable = false)
@@ -56,6 +62,7 @@ public class Profile {
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();
     }
+
     public void updateProfile(ProfileRequest profileRequest){
         this.userName = profileRequest.getUserName();
         this.major = profileRequest.getMajor();
