@@ -66,9 +66,23 @@ public class FcmServiceImpl implements FcmService {
             HttpEntity entity = new HttpEntity<>(message, headers);
             ResponseEntity response = restTemplate.exchange(FCM_API_URL, HttpMethod.POST, entity, String.class);
 
-            log.debug(response.getStatusCode().toString());
-            log.debug("푸시 알림 전송 완료");
-            return response.getStatusCode() == HttpStatus.OK ? 1 : 0;
+            // 푸시 알림 전송 실패 예외처리
+            if (response.getStatusCode() == HttpStatus.OK) {
+                log.debug("푸시 알림 전송 완료: {}", aplict.getId());
+                return 1;
+            } else {
+                // FCM 토큰아 유효하지 않음
+                if (response.getStatusCode() == HttpStatus.UNAUTHORIZED || response.getStatusCode() == HttpStatus.BAD_REQUEST) {
+                    // FCM 토큰 삭제 처리
+                    profileRepository.findById(aplict.getProfile().getProfileId())
+                            .ifPresent(profile -> {
+                                profile.updateFcmToken(null); // 토큰 무효화
+                                profileRepository.save(profile);
+                            });
+                    log.warn("FCM 토큰이 유효하지 않음. 프로필: {} FCM 토큰 삭제", aplict.getProfile().getProfileId());
+                }
+                return 0;
+            }
         } catch (IOException e) {
             log.error("푸시 알림 전송 실패", e);
             return 0;

@@ -44,7 +44,7 @@ public class S3FileUploadService {
         // 랜덤 파일명 생성 (파일명 중복 방지)
         String s3FileName = S3_PHOTO_DIR + UUID.randomUUID() + "." + fileExtension;
 
-        log.debug("파일 업로드 준비: " + s3FileName);
+        log.debug("파일 업로드 준비: {}", s3FileName);
 
         // 사전 서명된 URL 생성 (PUT 메서드로 업로드용 URL 생성)
         String presignedUrl = generatePresignedPutUrl(s3FileName);
