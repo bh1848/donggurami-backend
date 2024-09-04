@@ -72,7 +72,7 @@ public class MypageService {
         User user = getUserByAuth();
         Profile profile = getProfileByUserId((user.getUserId()));
         List<ClubMembers> clubMembers = getClubMembersByProfileId(profile.getProfileId());
-        log.debug("소속 동아리 조회 완료");
+        log.info("소속 동아리 조회 완료 {}", user.getUserId());
         return getMyClubs(clubMembers);
     }
 
@@ -82,7 +82,7 @@ public class MypageService {
         Profile profile = getProfileByUserId(user.getUserId());
 
         List<Aplict> aplicts = getAplictsByProfileId(profile.getProfileId());
-        log.debug("지원 동아리 조회 완료");
+        log.info("지원 동아리 조회 완료 {}", user.getUserId());
 
         return aplicts.stream()
                 .map(aplict -> {
