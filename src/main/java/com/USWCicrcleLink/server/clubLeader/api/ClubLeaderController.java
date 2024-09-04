@@ -37,7 +37,7 @@ public class ClubLeaderController {
     }
 
     // 동아리 기본 정보 변경
-    @PatchMapping("/{clubId}/info")
+    @PutMapping("/{clubId}/info")
     public ResponseEntity<ApiResponse> updateClubInfo(@PathVariable("clubId") Long clubId,
                                                       @RequestPart(value = "mainPhoto", required = true) MultipartFile mainPhoto,
                                                       @RequestPart(value = "clubInfoRequest", required = false) ClubInfoRequest clubInfoRequest) throws IOException {
@@ -54,7 +54,7 @@ public class ClubLeaderController {
     }
 
     // 동아리 소개 변경
-    @PatchMapping("/{clubId}/intro")
+    @PutMapping("/{clubId}/intro")
     public ResponseEntity<ApiResponse> updateClubIntro(@PathVariable("clubId") Long clubId,
                                                        @RequestPart(value = "clubIntroRequest", required = false) ClubIntroRequest clubIntroRequest,
                                                        @RequestPart(value = "introPhotos", required = false) List<MultipartFile> introPhotos) throws IOException {
