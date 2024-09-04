@@ -64,10 +64,13 @@ public class SchedulerConfig {
         LocalDateTime now = LocalDateTime.now();
         List<Profile> expiredFcmTokens = profileRepository.findAllByFcmTokenCertificationTimestampBefore(now);
         if (!expiredFcmTokens.isEmpty()) {
-            profileRepository.deleteAll(expiredFcmTokens);
-            log.debug("만료된 FCM 토큰 {}개 삭제 완료", expiredFcmTokens.size());
+            for (Profile profile : expiredFcmTokens) {
+                profile.updateFcmToken(null);  // FCM 토큰을 null로 설정하여 만료 처리
+                profileRepository.save(profile);
+            }
+            log.debug("만료된 FCM 토큰 {}개 만료 처리 완료", expiredFcmTokens.size());
         } else {
-            log.debug("삭제할 FCM 토큰이 없음");
+            log.debug("만료된 FCM 토큰이 없음");
         }
     }
 }
