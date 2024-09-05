@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -75,9 +76,9 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs").hasRole("ADMIN");
 
                     // NOTICE(웹)
-                    auth.requestMatchers(HttpMethod.POST,"/notices").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.POST, "/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/notices/{noticeId}", "/notices/paged").hasAnyRole("ADMIN", "LEADER");
-                    auth.requestMatchers(HttpMethod.DELETE,"/notices/{noticeId}").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/notices/{noticeId}").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/notices/{noticeId}").hasRole("ADMIN");
 
                     // APLICT(모바일)
@@ -120,12 +121,10 @@ public class SecurityConfig {
 
         // 허용할 헤더 명시
         configuration.addAllowedHeader("Authorization");
-        configuration.addAllowedHeader("Content-Type"); // JSON 요청 시 중요
-        configuration.addAllowedHeader("X-Requested-With"); // AJAX 요청 시 중요
-        configuration.addAllowedHeader("Accept"); // 클라이언트가 서버로 어떤 형식의 응답을 받을지 지정
-        configuration.addAllowedHeader("Origin"); // CORS에서 원본 도메인 확인 시 사용
-        configuration.addAllowedHeader("Access-Control-Allow-Headers"); // 클라이언트가 사용할 수 있는 헤더를 명시
-        configuration.addAllowedHeader("Access-Control-Allow-Origin"); // 클라이언트가 허용된 출처임을 확인
+        configuration.addAllowedHeader("Content-Type");
+        configuration.addAllowedHeader("X-Requested-With");
+        configuration.addAllowedHeader("Accept");
+        configuration.addAllowedHeader("Origin");
         configuration.addAllowedHeader("emailToken_uuid");
         configuration.addAllowedHeader("uuid");
 
