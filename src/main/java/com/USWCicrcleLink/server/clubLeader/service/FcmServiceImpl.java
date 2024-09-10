@@ -44,7 +44,7 @@ public class FcmServiceImpl implements FcmService {
     private final String APLICT_FAIL_MESSAGE = "에 불합격했습니다.";
     private final String APLICT_ERROR_MESSAGE = "관리자에게 문의 해주세요.";
 
-    private static final int FCM_TOKEN_CERTIFICATION_TIME = 7;
+    private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
     // 메시지 구성, 토큰 받고 메시지 처리
     @Override

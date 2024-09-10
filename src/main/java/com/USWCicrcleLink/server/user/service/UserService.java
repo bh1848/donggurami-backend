@@ -51,7 +51,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final ProfileService profileService;
 
-    private static final int FCM_TOKEN_CERTIFICATION_TIME = 7;
+    private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
     //어세스토큰에서 유저정보 가져오기
     private User getUserByAuth() {
