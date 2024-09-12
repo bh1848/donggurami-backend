@@ -11,7 +11,7 @@ public class FileSignatureValidator {
     private static final Map<String, String> FILE_SIGNATURES = new HashMap<>();
 
     static {
-        FILE_SIGNATURES.put("jpg", "FFD8FF"); // jpg
+        FILE_SIGNATURES.put("jpg", "FFD8FF"); // JPG
         FILE_SIGNATURES.put("jpeg", "FFD8FF"); // JPEG
         FILE_SIGNATURES.put("png", "89504E47"); // PNG
     }
@@ -34,6 +34,7 @@ public class FileSignatureValidator {
         String fileSignature = getFileSignature(inputStream);
         String expectedSignature = FILE_SIGNATURES.get(expectedExtension.toLowerCase());
 
+        // 파일 시그니처가 시작 부분만 일치해도 허용
         return expectedSignature != null && fileSignature.startsWith(expectedSignature);
     }
 }
