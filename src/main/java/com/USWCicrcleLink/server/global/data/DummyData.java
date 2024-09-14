@@ -32,7 +32,7 @@ import java.util.UUID;
 @Component
 @Transactional
 @RequiredArgsConstructor
-@org.springframework.context.annotation.Profile("test")
+@org.springframework.context.annotation.Profile({"test","local"})
 public class DummyData {
 
     private final ProfileRepository profileRepository;
