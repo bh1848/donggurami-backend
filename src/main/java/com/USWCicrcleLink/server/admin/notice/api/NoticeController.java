@@ -31,7 +31,7 @@ public class NoticeController {
         return ResponseEntity.ok(pagedNotices);
     }
 
-    //공지사항 내용 조회(웹)
+    //공지사항 세부내용 조회(웹)
     @GetMapping("/{noticeId}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNoticeById(@PathVariable("noticeId") Long noticeId) {
         NoticeDetailResponse notice = noticeService.getNoticeById(noticeId);
@@ -52,7 +52,7 @@ public class NoticeController {
     }
 
     //공지사항 수정(웹)
-    @PatchMapping("/{noticeId}")
+    @PutMapping("/{noticeId}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> updateNotice(
             @PathVariable("noticeId") Long noticeId,
             @RequestPart(value = "request", required = false) @Valid NoticeUpdateRequest request,

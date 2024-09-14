@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.global.security.config;
 import com.USWCicrcleLink.server.global.security.filter.JwtFilter;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -24,6 +26,9 @@ public class SecurityConfig {
     private final JwtProvider jwtProvider;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
+    @Value("${cors.allowed-origins}") // YML 파일에서 allowed-origins 값을 가져옴
+    private String allowedOrigin;
+
     @Bean
     public JwtFilter jwtAuthFilter() {
         return new JwtFilter(jwtProvider);
@@ -35,8 +40,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptionHandling ->
-                        exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint))
+                .exceptionHandling(exceptionHandling -> {
+                    // 인증 실패에 대한 처리
+                    exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint);
+                })
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(
                             "/users/login", // 모바일 로그인
@@ -69,9 +76,9 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs").hasRole("ADMIN");
 
                     // NOTICE(웹)
-                    auth.requestMatchers(HttpMethod.POST,"/notices").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.POST, "/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/notices/{noticeId}", "/notices/paged").hasAnyRole("ADMIN", "LEADER");
-                    auth.requestMatchers(HttpMethod.DELETE,"/notices/{noticeId}").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/notices/{noticeId}").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/notices/{noticeId}").hasRole("ADMIN");
 
                     // APLICT(모바일)
@@ -82,6 +89,7 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw").hasRole("USER");
                     auth.requestMatchers(HttpMethod.GET,"/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/my-notices/{noticeId}/details").hasRole("USER");
                     auth.requestMatchers(HttpMethod.DELETE, "/exit").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.POST, "/exit/send-code").hasRole("USER");
 
                     // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**").hasRole("LEADER");
@@ -93,19 +101,40 @@ public class SecurityConfig {
                     auth.anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*"); // 프론트엔드 도메인 명시
-        configuration.addAllowedMethod("*"); // 메소드 형식
-        configuration.addAllowedHeader("*");
+
+        // 특정 출처 허용
+        configuration.addAllowedOriginPattern(allowedOrigin);
+
+        // 허용할 HTTP 메서드 명시
+        configuration.addAllowedMethod(HttpMethod.GET);
+        configuration.addAllowedMethod(HttpMethod.POST);
+        configuration.addAllowedMethod(HttpMethod.PUT);
+        configuration.addAllowedMethod(HttpMethod.PATCH);
+        configuration.addAllowedMethod(HttpMethod.DELETE);
+        configuration.addAllowedMethod(HttpMethod.OPTIONS); // Preflight 요청에 사용되는 OPTIONS 메서드 허용
+
+        // 허용할 헤더 명시
+        configuration.addAllowedHeader("Authorization");
+        configuration.addAllowedHeader("Content-Type");
+        configuration.addAllowedHeader("X-Requested-With");
+        configuration.addAllowedHeader("Accept");
+        configuration.addAllowedHeader("Origin");
+        configuration.addAllowedHeader("emailToken_uuid");
+        configuration.addAllowedHeader("uuid");
+
+        // 자격 증명 허용
         configuration.setAllowCredentials(true);
+
+        // CORS 설정을 모든 경로에 적용
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 

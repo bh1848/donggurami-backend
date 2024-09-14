@@ -57,7 +57,7 @@ public enum ExceptionType {
      */
     CLUB_NOT_EXISTS("CLUB-201", "동아리가 존재하지 않습니다.", NOT_FOUND),
     ClUB_CHECKING_ERROR("CLUB-202", "동아리 조회 중 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
-    CLUB_NAME_ALREADY_EXISTS("CLUB-203", "이미 존재하는 동아리 이름입니다.", BAD_REQUEST),
+    CLUB_NAME_ALREADY_EXISTS("CLUB-203", "이미 존재하는 동아리 이름입니다.", CONFLICT),
 
     /**
      * Domain: ClubIntro
@@ -68,14 +68,15 @@ public enum ExceptionType {
     /**
      * Domain: Admin
      */
-    ADMIN_NOT_EXISTS("ADM-201", "해당 계정이 존재하지 않습니다.", BAD_REQUEST),
+    ADMIN_NOT_EXISTS("ADM-201", "해당 계정이 존재하지 않습니다.", NOT_FOUND),
     ADMIN_PASSWORD_NOT_MATCH("ADM-202", "관리자 비밀번호가 일치하지 않습니다.", BAD_REQUEST),
 
     /**
      * Domain: Notice
      */
     NOTICE_NOT_EXISTS("NOT-201", "공지사항이 존재하지 않습니다.", NOT_FOUND),
-    UP_TO_5_PHOTOS_CAN_BE_UPLOADED("NOT-202", "최대 5개의 사진이 업로드 가능합니다.", BAD_REQUEST),
+    UP_TO_5_PHOTOS_CAN_BE_UPLOADED("NOT-202", "최대 5개의 사진이 업로드 가능합니다.", PAYLOAD_TOO_LARGE),
+    TITEL_AND_CONENT_REQUIRED("NOT-203", "제목과 내용을 모두 입력해주세요.", UNPROCESSABLE_ENTITY),
 
     /**
      * Domain: Profile
@@ -95,7 +96,7 @@ public enum ExceptionType {
     CLUB_LEADER_ACCESS_DENIED("CLDR-101","동아리 접근 권한이 없습니다.", FORBIDDEN),
     CLUB_LEADER_NOT_EXISTS("CLDR-201","동아리 회장이 존재하지 않습니다.", BAD_REQUEST),
     ClUB_LEADER_PASSWORD_NOT_MATCH("CLDR-202", "동아리 회장 비밀번호가 일치하지 않습니다", BAD_REQUEST),
-    LEADER_ACCOUNT_ALREADY_EXISTS("CLDR-203", "이미 존재하는 동아리 회장 계정입니다.", BAD_REQUEST),
+    LEADER_ACCOUNT_ALREADY_EXISTS("CLDR-203", "이미 존재하는 동아리 회장 계정입니다.", UNPROCESSABLE_ENTITY),
 
 
     /**
@@ -118,10 +119,17 @@ public enum ExceptionType {
     AUTHCODETOKEN_NOT_EXISTS("AC-102", "인증 코드 토큰이 존재하지 않습니다", BAD_REQUEST),
 
     /**
+     * Domain: WithdrawalToken
+     */
+    INVALID_WITHDRAWAL_CODE("WT-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
+    WITHDRAWALTOKEN_NOT_EXISTS("WT-102", "탈퇴 토큰이 존재하지 않습니다", BAD_REQUEST),
+
+    /**
      * 공통
      */
     SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR),
     INVALID_UUID_FORMAT("UUID-502", "유효하지 않은 UUID 형식입니다." , BAD_REQUEST),
+    TEXT_IS_EMPTY("TEXT-503", "글이 비어있습니다.", BAD_REQUEST),
 
     /**
      * File I/O
@@ -136,7 +144,8 @@ public enum ExceptionType {
     MAXIMUM_FILE_LIMIT_EXCEEDED("FILE-308", "업로드 가능한 사진 갯수를 초과했습니다.", BAD_REQUEST),
     INVALID_FILE_NAME("FILE-309", "파일 이름이 유효하지 않습니다.", BAD_REQUEST),
     MISSING_FILE_EXTENSION("FILE-310", "파일 확장자가 없습니다.", BAD_REQUEST),
-    UNSUPPORTED_FILE_EXTENSION("FILE-311", "지원하지 않는 파일 확장자입니다.", BAD_REQUEST);
+    UNSUPPORTED_FILE_EXTENSION("FILE-311", "지원하지 않는 파일 확장자입니다.", BAD_REQUEST),
+    FILE_VALIDATION_FAILED("FILE-312", "파일 유효성 검사 실패", BAD_REQUEST);
 
     private final String code;
     private final String message;

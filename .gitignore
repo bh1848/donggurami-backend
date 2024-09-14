@@ -5,21 +5,10 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### dummydata ###
-**/src/main/java/com/USWCicrcleLink/server/global/DummyData.java
-
 .env
 
 ### firebase-key ###
 src/main/resources/firebase/
-
-### application.yml ###
-application-local.yml
-application-dev.yml
-application-prod.yml
-application-secret.yml
-application-test.yml
-application-aws.yml
 
 ### STS ###
 .apt_generated

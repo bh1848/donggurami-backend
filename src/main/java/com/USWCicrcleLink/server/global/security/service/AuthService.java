@@ -25,7 +25,7 @@ public class AuthService {
             String uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
 
             // 새로운 액세스 토큰 및 리프레시 토큰 생성
-            String newAccessToken = jwtProvider.createAccessToken(uuid);
+            String newAccessToken = jwtProvider.createAccessToken(uuid, response);
             String newRefreshToken = jwtProvider.createRefreshToken(uuid, response);
 
             return new TokenDto(newAccessToken, newRefreshToken);

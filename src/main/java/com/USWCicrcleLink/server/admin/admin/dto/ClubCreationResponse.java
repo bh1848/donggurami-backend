@@ -2,6 +2,7 @@ package com.USWCicrcleLink.server.admin.admin.dto;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.Department;
+import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,9 +18,9 @@ public class ClubCreationResponse {
     private String clubName;
     private Department department;
 
-    public ClubCreationResponse(Club club) {
+    public ClubCreationResponse(Club club, Leader leader) {
         this.clubId = club.getClubId();
-        this.leaderAccount = club.getLeaderName();
+        this.leaderAccount = leader.getLeaderAccount();
         this.clubName = club.getClubName();
         this.department = club.getDepartment();
     }

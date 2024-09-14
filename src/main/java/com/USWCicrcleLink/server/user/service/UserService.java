@@ -12,9 +12,11 @@ import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.profile.service.ProfileService;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
@@ -46,6 +48,8 @@ public class UserService {
     private final JwtProvider jwtProvider;
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final ProfileService profileService;
+    private final WithdrawalTokenService withdrawalService;
 
 
     //어세스토큰에서 유저정보 가져오기
@@ -79,10 +83,10 @@ public class UserService {
         User updateUserPw = userRepository.save(user);
 
         if(updateUserPw == null){
-            log.error("비밀번호 업데이트 실패");
+            log.error("비밀번호 업데이트 실패 {}", user.getUserId());
             throw new UserException(ExceptionType.PROFILE_UPDATE_FAIL);
         }
-        log.debug("비밀번호 변경 완료: {}",user.getUserUUID());
+        log.info("비밀번호 변경 완료: {}",user.getUserId());
     }
 
     // 임시 회원 생성 및 저장
@@ -174,7 +178,7 @@ public class UserService {
         }
 
         // 로그인 성공 시 토큰 발급
-        String accessToken = jwtProvider.createAccessToken(userDetails.getUsername());
+        String accessToken = jwtProvider.createAccessToken(userDetails.getUsername(), response);
         String refreshToken = jwtProvider.createRefreshToken(userDetails.getUsername(), response);
 
         log.debug("로그인 성공, uuid: {}", userDetails.getUsername());
@@ -239,6 +243,7 @@ public class UserService {
         log.debug("회원가입 인증메일 전송 완료 emailToken_uuid= {} ",emailToken.getEmailTokenUUID());
     }
 
+    // 비밀번호 변경을 위한 인증 코드 메일 전송
     public void sendAuthCodeMail(User user, AuthToken authToken)  {
         log.debug("비밀번호 찾기  메일 생성 요청");
         MimeMessage message = emailService.createAuthCodeMail(user,authToken);
@@ -246,12 +251,23 @@ public class UserService {
         log.debug("비밀번호 찾기 메일 전송 완료");
     }
 
+    // 아이디 찾기 메일 전송
     public void sendAccountInfoMail (User findUser)  {
         log.debug("아이디 찾기 메일 생성 요청");
         MimeMessage message = emailService.createAccountInfoMail(findUser);
         emailService.sendEmail(message);
         log.debug("아이디 찾기 메일 전송 완료 email=  {} ",findUser.getEmail());
     }
+
+    // 회원 탈퇴 메일 전송
+    public void sendWithdrawalCodeMail (WithdrawalToken token)  {
+        log.debug("회원 탈퇴 메일 생성 요청");
+        User findUser = getUserByAuth();
+        MimeMessage message = emailService.createWithdrawalCodeMail(findUser,token);
+        emailService.sendEmail(message);
+        log.debug("회원 탈퇴 메일 전송 완료 email=  {} ",findUser.getEmail());
+    }
+
 
     // 회원 가입 확인
     @Transactional(readOnly = true)
@@ -282,9 +298,9 @@ public class UserService {
             log.debug("리프레시 토큰이 존재하지 않거나 유효하지 않음. 회원 탈퇴 계속 진행.");
         }
 
-        // 회원 정보 삭제
-        User user= getUserByAuth();
-        userRepository.delete(user);
+        // 회원과 관련된 정보 모두 삭제
+        profileService.deleteAll();
+        userRepository.delete(getUserByAuth());
 
         log.debug("회원 탈퇴 성공");
     }
