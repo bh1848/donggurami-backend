@@ -22,7 +22,9 @@ public class SeedData {
 
     @PostConstruct
     public void init() {
+        if (adminRepository.findTop1ByOrderByAdminIdAsc()==null){
         initAdmin();
+        }
     }
 
     //관리자 동연회 데이터
