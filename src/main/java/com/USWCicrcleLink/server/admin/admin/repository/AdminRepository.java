@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface AdminRepository extends JpaRepository<Admin, Long> {
     Optional<Admin> findByAdminAccount(String adminAccount);
     Optional<Admin> findByAdminUUID(UUID adminUUID);
+    Admin findTop1ByOrderByAdminIdAsc();
 }
