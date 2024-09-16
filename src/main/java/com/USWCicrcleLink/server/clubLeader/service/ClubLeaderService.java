@@ -534,18 +534,6 @@ public class ClubLeaderService {
         }
     }
 
-    public void updateFcmToken(FcmTokenTestRequest fcmTokenTestRequest) {
-        User user = userRepository.findByUserAccount(fcmTokenTestRequest.getUserAccount())
-                .orElseThrow(() -> new RuntimeException("유효한 회원이 없습니다."));
-
-        Profile profile = profileRepository.findById(user.getUserId())
-                .orElseThrow(() -> new RuntimeException("유효한 회원이 없습니다."));
-
-        profile.updateFcmToken(fcmTokenTestRequest.getFcmToken());
-        profileRepository.save(profile);
-        log.debug("fcmToken 업데이트: {}", user.getUserAccount());
-    }
-
     // 회장 검증 및 소속 동아리
     private Club validateLeader(Long clubId) {
         // SecurityContextHolder에서 인증 정보 가져오기
