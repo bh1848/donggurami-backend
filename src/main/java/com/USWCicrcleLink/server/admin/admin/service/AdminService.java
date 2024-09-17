@@ -132,6 +132,20 @@ public class AdminService {
         clubIntroRepository.save(clubIntro);
         log.debug("동아리 소개 생성 성공: {}", clubIntro.getClubIntro());
 
+        // ClubIntroPhoto 기본값 설정 (5개 생성)
+        List<ClubIntroPhoto> introPhotos = new ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            ClubIntroPhoto introPhoto = ClubIntroPhoto.builder()
+                    .clubIntro(clubIntro)
+                    .clubIntroPhotoName("")
+                    .clubIntroPhotoS3Key("")
+                    .order(i)  // 순서 설정 (1~5)
+                    .build();
+            introPhotos.add(introPhoto);
+        }
+        clubIntroPhotoRepository.saveAll(introPhotos);
+        log.debug("동아리 소개 사진 5개 생성 성공");
+
         return new ClubCreationResponse(club, leader);
     }
 
