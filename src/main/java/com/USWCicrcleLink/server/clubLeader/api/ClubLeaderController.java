@@ -47,9 +47,9 @@ public class ClubLeaderController {
 
     // 자신의 동아리 상세 페이지 조회(웹)
     @GetMapping("/{clubId}/intro")
-    public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubById(@PathVariable("clubId") Long clubId) {
-        ClubIntroResponse clubIntroResponse = clubLeaderService.getClubIntro(clubId);
-        ApiResponse<ClubIntroResponse> response = new ApiResponse<>("동아리 상세 조회 성공", clubIntroResponse);
+    public ResponseEntity<ApiResponse<ClubIntroWebResponse>> getClubById(@PathVariable("clubId") Long clubId) {
+        ClubIntroWebResponse clubIntroWebResponse = clubLeaderService.getClubIntro(clubId);
+        ApiResponse<ClubIntroWebResponse> response = new ApiResponse<>("동아리 상세 조회 성공", clubIntroWebResponse);
         return ResponseEntity.ok(response);
     }
 
@@ -91,6 +91,13 @@ public class ClubLeaderController {
     public void exportClubMembers(@PathVariable("clubId") Long clubId, HttpServletResponse response) {
         // 엑셀 파일 생성
         clubLeaderService.downloadExcel(clubId, response);
+    }
+
+    // fcm 토큰 갱신
+    @PatchMapping("/fcmtoken")
+    public ResponseEntity<ApiResponse> updateFcmToken(@RequestBody FcmTokenRequest fcmTokenRequest) {
+        fcmService.refreshFcmToken(fcmTokenRequest);
+        return new ResponseEntity<>(new ApiResponse<>("fcm token 갱신 완료"), HttpStatus.OK);
     }
 
     // 최초 지원자 조회

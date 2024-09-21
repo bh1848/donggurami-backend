@@ -15,7 +15,6 @@ email:
 
 spring:
   config:
-    import: optional:file:.env[.properties]
     activate:
       on-profile: prod
 
@@ -27,7 +26,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: false

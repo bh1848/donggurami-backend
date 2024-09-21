@@ -9,15 +9,20 @@ import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
 import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
+import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -26,8 +31,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class IntegrationService {
 
     private final JwtProvider jwtProvider;
-    private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
+
+    private final CustomUserDetailsService customUserDetailsService;
+    private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
 
     // 동아리 회장, 동연회-개발자 통합 로그인
     public IntegrationLoginResponse integrationLogin(IntegrationLoginRequest request, HttpServletResponse response) {
@@ -81,6 +89,14 @@ public class IntegrationService {
             String uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
             jwtProvider.deleteRefreshTokensByUuid(uuid);
             log.debug("로그아웃: 사용자 {}의 모든 리프레시 토큰 삭제 완료", uuid);
+
+            // 모바일 사용자의 fcm 토큰 삭제
+            Optional<Profile> userFcmToken = profileRepository.findByUser_UserUUID(UUID.fromString(uuid));
+            if (userFcmToken.map(Profile::getFcmToken).isPresent()) {
+                userFcmToken.get().updateFcmToken(null);
+                profileRepository.save(userFcmToken.get());
+                log.debug("로그아웃: 모바일 사용자 {}의 fcm 토큰 삭제 완료", uuid);
+            }
         } else {
             log.debug("리프레시 토큰이 존재하지 않거나 유효하지 않음. 로그아웃 처리 계속 진행.");
         }

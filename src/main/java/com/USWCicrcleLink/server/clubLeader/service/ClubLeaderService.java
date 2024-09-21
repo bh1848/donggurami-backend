@@ -155,9 +155,34 @@ public class ClubLeaderService {
 
     // 자신의 동아리 상세 페이지 조회(웹)
     @Transactional(readOnly = true)
-    public ClubIntroResponse getClubIntro(Long clubId) {
-        validateLeader(clubId);
-        return clubIntroService.getClubIntro(clubId);
+    public ClubIntroWebResponse getClubIntro(Long clubId) {
+        Club club = validateLeader(clubId);
+
+        // 동아리 소개 조회
+        ClubIntro clubIntro = clubIntroRepository.findByClub(club)
+                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+
+        // 동아리 메인 사진 조회
+        ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
+
+        // 동아리 소개 사진 조회
+        List<ClubIntroPhoto> clubIntroPhotos = clubIntroPhotoRepository.findByClubIntro(clubIntro);
+
+        // S3에서 메인 사진 URL 생성 (기본 URL 또는 null 처리)
+        String mainPhotoUrl = (clubMainPhoto != null)
+                ? s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key())
+                : null;
+
+        // S3에서 소개 사진 URL 생성 (소개 사진이 없을 경우 빈 리스트)
+        List<String> introPhotoUrls = clubIntroPhotos.isEmpty()
+                ? Collections.emptyList()
+                : clubIntroPhotos.stream()
+                .sorted(Comparator.comparingInt(ClubIntroPhoto::getOrder))
+                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
+                .collect(Collectors.toList());
+
+        // ClubIntroResponse 반환
+        return new ClubIntroWebResponse(clubIntro, club, mainPhotoUrl, introPhotoUrls, clubIntro.getGoogleFormUrl());
     }
 
     // 동아리 소개 변경
@@ -532,18 +557,6 @@ public class ClubLeaderService {
 
             aplictRepository.save(applicant);
         }
-    }
-
-    public void updateFcmToken(FcmTokenTestRequest fcmTokenTestRequest) {
-        User user = userRepository.findByUserAccount(fcmTokenTestRequest.getUserAccount())
-                .orElseThrow(() -> new RuntimeException("유효한 회원이 없습니다."));
-
-        Profile profile = profileRepository.findById(user.getUserId())
-                .orElseThrow(() -> new RuntimeException("유효한 회원이 없습니다."));
-
-        profile.updateFcmToken(fcmTokenTestRequest.getFcmToken());
-        profileRepository.save(profile);
-        log.debug("fcmToken 업데이트: {}", user.getUserAccount());
     }
 
     // 회장 검증 및 소속 동아리
