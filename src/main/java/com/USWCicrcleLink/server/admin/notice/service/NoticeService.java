@@ -69,9 +69,6 @@ public class NoticeService {
     public NoticeDetailResponse createNotice(NoticeCreationRequest request, List<MultipartFile> noticePhotos) {
         Admin admin = getAuthenticatedAdmin();
 
-        // 제목과 내용이 null이거나 비어있을 경우 예외 처리
-        validateNoticeTitleAndContent(request.getNoticeTitle(), request.getNoticeContent());
-
         // 입력값 검증 (XSS 공격 방지)
         String sanitizedTitle = InputValidator.sanitizeContent(request.getNoticeTitle());
         String sanitizedContent = InputValidator.sanitizeContent(request.getNoticeContent());
@@ -95,9 +92,6 @@ public class NoticeService {
     public NoticeDetailResponse updateNotice(Long noticeId, NoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
-
-        // 제목과 내용이 null이거나 비어있을 경우 예외 처리
-        validateNoticeTitleAndContent(request.getNoticeTitle(), request.getNoticeContent());
 
         String sanitizedTitle = InputValidator.sanitizeContent(request.getNoticeTitle());
         String sanitizedContent = InputValidator.sanitizeContent(request.getNoticeContent());
@@ -137,6 +131,7 @@ public class NoticeService {
         photos.forEach(photo -> s3FileUploadService.deleteFile(photo.getNoticePhotoS3Key()));
         noticePhotoRepository.deleteAll(photos);
         noticeRepository.delete(notice);
+        log.debug("공지사항 삭제 완료 - ID: {}", notice.getNoticeId());
     }
 
     // 새로운 파일 업로드 및 사진 정보 업데이트
@@ -153,13 +148,6 @@ public class NoticeService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
         return adminDetails.admin();
-    }
-
-    // 제목과 내용 검증
-    private void validateNoticeTitleAndContent(String title, String content) {
-        if (!StringUtils.hasText(title) || !StringUtils.hasText(content)) {
-            throw new NoticeException(ExceptionType.TITEL_AND_CONENT_REQUIRED);
-        }
     }
 
     // 사진 처리 로직
@@ -196,7 +184,6 @@ public class NoticeService {
                 presignedUrls.add(s3FileResponse.getPresignedUrl());
             }
         }
-
         return presignedUrls;
     }
 }
