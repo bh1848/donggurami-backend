@@ -22,7 +22,7 @@ public class Notice {
     private String noticeTitle;
 
     @Lob
-    @Column(name = "notice_content", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "notice_content", nullable = false)
     private String noticeContent;
 
     @Column(name = "notice_created_at")
