@@ -54,9 +54,8 @@ public class NoticeController {
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> updateNotice(
             @PathVariable("noticeId") Long noticeId,
             @RequestPart(value = "request", required = false) @Valid NoticeUpdateRequest request,
-            @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos,
-            @RequestPart(value = "deletedPhotos", required = false) List<Long> deletedPhotos) {
-        NoticeDetailResponse updatedNotice = noticeService.updateNotice(noticeId, request, noticePhotos, deletedPhotos);
+            @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos) {
+        NoticeDetailResponse updatedNotice = noticeService.updateNotice(noticeId, request, noticePhotos);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 수정 성공", updatedNotice);
         return ResponseEntity.ok(response);
     }

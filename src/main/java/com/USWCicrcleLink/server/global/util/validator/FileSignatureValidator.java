@@ -7,18 +7,18 @@ import java.util.Map;
 
 public class FileSignatureValidator {
 
-    // 파일 시그니처 정의
+    // 파일 시그니처 정의 (확장)
     private static final Map<String, String> FILE_SIGNATURES = new HashMap<>();
 
     static {
-        FILE_SIGNATURES.put("jpg", "FFD8FF"); // JPG
-        FILE_SIGNATURES.put("jpeg", "FFD8FF"); // JPEG
-        FILE_SIGNATURES.put("png", "89504E47"); // PNG
+        FILE_SIGNATURES.put("jpg", "FFD8FF");      // JPG
+        FILE_SIGNATURES.put("jpeg", "FFD8FF");     // JPEG
+        FILE_SIGNATURES.put("png", "89504E47");    // PNG (8바이트가 필요)
     }
 
-    public static String getFileSignature(InputStream inputStream) throws IOException {
-        byte[] fileHeader = new byte[4];
-        inputStream.read(fileHeader, 0, 4);
+    public static String getFileSignature(InputStream inputStream, int bytesToRead) throws IOException {
+        byte[] fileHeader = new byte[bytesToRead];
+        inputStream.read(fileHeader, 0, bytesToRead);
         return bytesToHex(fileHeader);
     }
 
@@ -31,11 +31,17 @@ public class FileSignatureValidator {
     }
 
     public static boolean isValidFileType(InputStream inputStream, String expectedExtension) throws IOException {
-        String fileSignature = getFileSignature(inputStream);
         String expectedSignature = FILE_SIGNATURES.get(expectedExtension.toLowerCase());
 
+        if (expectedSignature == null) {
+            return false;
+        }
+
+        // 파일 시그니처가 확장자에 따라 필요한 바이트 수에 맞게 읽어옴
+        int bytesToRead = expectedExtension.equalsIgnoreCase("png") ? 8 : 4;  // PNG는 8바이트가 필요함
+        String fileSignature = getFileSignature(inputStream, bytesToRead);
+
         // 파일 시그니처가 시작 부분만 일치해도 허용
-        return expectedSignature != null && fileSignature.startsWith(expectedSignature);
+        return fileSignature.startsWith(expectedSignature);
     }
 }
-

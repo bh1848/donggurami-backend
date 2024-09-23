@@ -20,5 +20,6 @@ public class NoticeCreationRequest {
     @Size(max = 1000, message = "내용은 최대 1000자까지 입력 가능합니다.")
     private String noticeContent;
 
+    @Builder.Default
     private List<Integer> photoOrders = new ArrayList<>(); // 사진 순서 목록
 }

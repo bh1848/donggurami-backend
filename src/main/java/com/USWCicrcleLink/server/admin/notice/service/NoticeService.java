@@ -87,11 +87,12 @@ public class NoticeService {
         // 사진 처리
         List<String> presignedUrls = handleNoticePhotos(savedNotice, noticePhotos, request.getPhotoOrders());
 
+        log.debug("공지사항 생성 완료 - ID: {}, 첨부된 사진 수: {}", savedNotice.getNoticeId(), noticePhotos == null ? 0 : noticePhotos.size());
         return NoticeDetailResponse.from(savedNotice, presignedUrls);
     }
 
     // 공지사항 수정(웹)
-    public NoticeDetailResponse updateNotice(Long noticeId, NoticeUpdateRequest request, List<MultipartFile> noticePhotos, List<Long> deletedPhotos) {
+    public NoticeDetailResponse updateNotice(Long noticeId, NoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
@@ -104,19 +105,17 @@ public class NoticeService {
         notice.updateTitle(sanitizedTitle);
         notice.updateContent(sanitizedContent);
 
-        // 실제로 삭제할 사진 처리
-        if (deletedPhotos != null && !deletedPhotos.isEmpty()) {
-            for (Long photoId : deletedPhotos) {
-                NoticePhoto photo = noticePhotoRepository.findById(photoId)
-                        .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_PHOTO_NOT_EXISTS));
-
-                s3FileUploadService.deleteFile(photo.getNoticePhotoS3Key());  // S3에서 삭제
-                noticePhotoRepository.delete(photo);  // DB에서 삭제
-            }
+        // 기존의 모든 사진 삭제
+        List<NoticePhoto> existingPhotos = noticePhotoRepository.findByNotice(notice);
+        for (NoticePhoto photo : existingPhotos) {
+            s3FileUploadService.deleteFile(photo.getNoticePhotoS3Key());  // S3에서 삭제
+            noticePhotoRepository.delete(photo);  // DB에서 삭제
+            log.debug("삭제된 사진 ID: {}, 파일명: {}", photo.getNoticePhotoId(), photo.getNoticePhotoS3Key());
         }
 
         // 새로운 사진 추가 및 순서 지정
         List<String> presignedUrls = handleNoticePhotos(notice, noticePhotos, request.getPhotoOrders());
+        log.debug("공지사항 수정 완료 - ID: {}, 추가된 사진 수: {}", notice.getNoticeId(), noticePhotos == null ? 0 : noticePhotos.size());
 
         // 기존 및 새 사진 URL 생성
         List<String> photoUrls = noticePhotoRepository.findByNotice(notice).stream()
@@ -166,11 +165,20 @@ public class NoticeService {
     // 사진 처리 로직
     private List<String> handleNoticePhotos(Notice notice, List<MultipartFile> noticePhotos, List<Integer> photoOrders) {
         List<String> presignedUrls = new ArrayList<>();
-        if (noticePhotos != null && !noticePhotos.isEmpty() && photoOrders != null) {
+
+        // 사진과 순서 정보가 존재할 경우에만 처리
+        if (noticePhotos != null && !noticePhotos.isEmpty()) {
+            // 사진 개수와 photoOrders의 개수가 일치하는지 확인
+            if (photoOrders == null || noticePhotos.size() != photoOrders.size()) {
+                throw new NoticeException(ExceptionType.PHOTO_ORDER_MISMATCH);  // 사진 개수와 순서 정보가 일치하지 않으면 예외 발생
+            }
+
+            // 업로드할 사진이 5개를 넘으면 예외 발생
             if (noticePhotos.size() > FILE_LIMIT) {
                 throw new NoticeException(ExceptionType.UP_TO_5_PHOTOS_CAN_BE_UPLOADED);
             }
 
+            // 각 사진과 순서 정보를 처리
             for (int i = 0; i < noticePhotos.size(); i++) {
                 MultipartFile noticePhoto = noticePhotos.get(i);
                 int order = photoOrders.get(i);
@@ -183,10 +191,12 @@ public class NoticeService {
                 newPhoto.setNotice(notice);
                 newPhoto.setOrder(order);
 
+                // S3 파일 처리 및 presigned URL 추가
                 S3FileResponse s3FileResponse = updateNoticePhotoAndS3File(noticePhoto, newPhoto, order);
                 presignedUrls.add(s3FileResponse.getPresignedUrl());
             }
         }
+
         return presignedUrls;
     }
 }
