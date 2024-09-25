@@ -75,6 +75,9 @@ public class ClubIntroService {
 
         return clubs.stream()
                 .map(clubIntro -> {
+
+                    Club club = clubIntro.getClub();
+
                     // ClubMainPhoto 조회
                     ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(clubIntro.getClub()).orElse(null);
 
@@ -84,7 +87,7 @@ public class ClubIntroService {
                             : null;
 
                     // DTO 생성
-                    return new ClubByRecruitmentStatusAndDepartmentResponse(clubIntro, mainPhotoUrl);
+                    return new ClubByRecruitmentStatusAndDepartmentResponse(club, clubIntro, mainPhotoUrl);
                 })
                 .collect(Collectors.toList());
     }
