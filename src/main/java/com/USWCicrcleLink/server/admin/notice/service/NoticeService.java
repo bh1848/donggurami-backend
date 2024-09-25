@@ -73,6 +73,12 @@ public class NoticeService {
         String sanitizedTitle = InputValidator.sanitizeContent(request.getNoticeTitle());
         String sanitizedContent = InputValidator.sanitizeContent(request.getNoticeContent());
 
+        // photoOrders 유효성 검사
+        List<Integer> photoOrders = request.getPhotoOrders();
+        if (photoOrders.stream().anyMatch(order -> order < 1 || order > 5)) {
+            throw new NoticeException(ExceptionType.INVALID_PHOTO_ORDER);
+        }
+
         Notice notice = Notice.builder()
                 .noticeTitle(sanitizedTitle)
                 .noticeContent(sanitizedContent)
@@ -98,6 +104,12 @@ public class NoticeService {
 
         notice.updateTitle(sanitizedTitle);
         notice.updateContent(sanitizedContent);
+
+        // photoOrders 유효성 검사
+        List<Integer> photoOrders = request.getPhotoOrders();
+        if (photoOrders.stream().anyMatch(order -> order < 1 || order > 5)) {
+            throw new NoticeException(ExceptionType.INVALID_PHOTO_ORDER);
+        }
 
         // 기존의 모든 사진 삭제
         List<NoticePhoto> existingPhotos = noticePhotoRepository.findByNotice(notice);
