@@ -73,12 +73,13 @@ public class NoticeService {
         String sanitizedTitle = InputValidator.sanitizeContent(request.getNoticeTitle());
         String sanitizedContent = InputValidator.sanitizeContent(request.getNoticeContent());
 
-        // photoOrders 유효성 검사
+        // 사진 순서값 유효성 검사(1~5)
         List<Integer> photoOrders = request.getPhotoOrders();
         if (photoOrders.stream().anyMatch(order -> order < 1 || order > 5)) {
             throw new NoticeException(ExceptionType.INVALID_PHOTO_ORDER);
         }
 
+        // 공지사항 생성
         Notice notice = Notice.builder()
                 .noticeTitle(sanitizedTitle)
                 .noticeContent(sanitizedContent)
@@ -87,10 +88,10 @@ public class NoticeService {
                 .build();
         Notice savedNotice = noticeRepository.save(notice);
 
-        // 사진 처리
+        // 사진 추가 및 순서 지정
         List<String> presignedUrls = handleNoticePhotos(savedNotice, noticePhotos, request.getPhotoOrders());
-
         log.debug("공지사항 생성 완료 - ID: {}, 첨부된 사진 수: {}", savedNotice.getNoticeId(), noticePhotos == null ? 0 : noticePhotos.size());
+
         return NoticeDetailResponse.from(savedNotice, presignedUrls);
     }
 
@@ -99,13 +100,15 @@ public class NoticeService {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
+        // 입력값 검증 (XSS 공격 방지)
         String sanitizedTitle = InputValidator.sanitizeContent(request.getNoticeTitle());
         String sanitizedContent = InputValidator.sanitizeContent(request.getNoticeContent());
 
+        // 제목 내용 업데이트
         notice.updateTitle(sanitizedTitle);
         notice.updateContent(sanitizedContent);
 
-        // photoOrders 유효성 검사
+        // 사진 순서값 유효성 검사(1~5)
         List<Integer> photoOrders = request.getPhotoOrders();
         if (photoOrders.stream().anyMatch(order -> order < 1 || order > 5)) {
             throw new NoticeException(ExceptionType.INVALID_PHOTO_ORDER);
@@ -119,18 +122,12 @@ public class NoticeService {
             log.debug("삭제된 사진 ID: {}, 파일명: {}", photo.getNoticePhotoId(), photo.getNoticePhotoS3Key());
         }
 
-        // 새로운 사진 추가 및 순서 지정
+        // 수정된 사진 추가 및 순서 지정
         List<String> presignedUrls = handleNoticePhotos(notice, noticePhotos, request.getPhotoOrders());
-        log.debug("공지사항 수정 완료 - ID: {}, 추가된 사진 수: {}", notice.getNoticeId(), noticePhotos == null ? 0 : noticePhotos.size());
+        log.debug("공지사항 수정 완료 - ID: {}, 첨부된 사진 수: {}", notice.getNoticeId(), noticePhotos == null ? 0 : noticePhotos.size());
 
-        // 기존 및 새 사진 URL 생성
-        List<String> photoUrls = noticePhotoRepository.findByNotice(notice).stream()
-                .sorted(Comparator.comparingInt(NoticePhoto::getOrder))
-                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getNoticePhotoS3Key()))
-                .collect(Collectors.toList());
-        photoUrls.addAll(presignedUrls);
-
-        return NoticeDetailResponse.from(notice, photoUrls);
+        // 새로 첨부된 사진의 presigned URL만 반환
+        return NoticeDetailResponse.from(notice, presignedUrls);
     }
 
     // 공지사항 삭제(웹)
@@ -175,7 +172,7 @@ public class NoticeService {
 
             // 업로드할 사진이 5개를 넘으면 예외 발생
             if (noticePhotos.size() > FILE_LIMIT) {
-                throw new NoticeException(ExceptionType.UP_TO_5_PHOTOS_CAN_BE_UPLOADED);
+                throw new NoticeException(ExceptionType.UP_TO_5_PHOTOS_CAN_BE_UPLOADED); // 사진 개수는 5개로 제한
             }
 
             // 각 사진과 순서 정보를 처리
