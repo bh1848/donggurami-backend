@@ -14,5 +14,5 @@ public interface ClubIntroRepository extends JpaRepository<ClubIntro, Long> {
 
     Optional<ClubIntro> findByClub(Club club);
 
-    List<ClubIntro> findByRecruitmentStatusAndClub_Department(RecruitmentStatus recruitmentStatus, Department department);
+    List<ClubIntro> findByRecruitmentStatus(RecruitmentStatus recruitmentStatus);
 }

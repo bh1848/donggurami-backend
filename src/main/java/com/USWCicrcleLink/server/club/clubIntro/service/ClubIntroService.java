@@ -2,10 +2,9 @@ package com.USWCicrcleLink.server.club.clubIntro.service;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
-import com.USWCicrcleLink.server.club.club.domain.Department;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.club.club.dto.ClubByDepartmentResponse;
-import com.USWCicrcleLink.server.club.club.dto.ClubByRecruitmentStatusAndDepartmentResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubByRecruitmentStatusResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubListResponse;
 import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
@@ -39,11 +38,11 @@ public class ClubIntroService {
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final S3FileUploadService s3FileUploadService;
 
-    // 분과별 동아리 조회(모바일)
+    // 전체 동아리 리스트 조회 (모바일)
     @Transactional(readOnly = true)
-    public List<ClubByDepartmentResponse> getClubsByDepartment(Department department) {
-        log.debug("분과별 동아리 조회: {}", department);
-        List<Club> clubs = clubRepository.findByDepartment(department);
+    public List<ClubListResponse> getAllClubs() {
+        log.debug("전체 동아리 리스트 조회");
+        List<Club> clubs = clubRepository.findAll();  // 전체 동아리 조회로 수정
         if (clubs.isEmpty()) {
             throw new ClubException(ExceptionType.CLUB_NOT_EXISTS);
         }
@@ -59,16 +58,16 @@ public class ClubIntroService {
                             : null;
 
                     // DTO 생성
-                    return new ClubByDepartmentResponse(club, mainPhotoUrl);
+                    return new ClubListResponse(club, mainPhotoUrl);  // 전체 동아리 조회용 DTO로 수정
                 })
                 .collect(Collectors.toList());
     }
 
-    // 모집 상태에 따른 분과별 동아리 조회
+    // 모집 상태별 동아리 리스트 조회
     @Transactional(readOnly = true)
-    public List<ClubByRecruitmentStatusAndDepartmentResponse> getClubsByRecruitmentStatusAndDepartment(RecruitmentStatus recruitmentStatus, Department department) {
-        log.debug("모집 상태 및 분과별 동아리 조회: recruitmentStatus={}, department={}", recruitmentStatus, department);
-        List<ClubIntro> clubs = clubIntroRepository.findByRecruitmentStatusAndClub_Department(recruitmentStatus, department);
+    public List<ClubByRecruitmentStatusResponse> getClubsByRecruitmentStatus(RecruitmentStatus recruitmentStatus) {
+        log.debug("모집 상태별 동아리 리스트 조회: recruitmentStatus={}", recruitmentStatus);
+        List<ClubIntro> clubs = clubIntroRepository.findByRecruitmentStatus(recruitmentStatus);  // 분과 조건 제거
         if (clubs.isEmpty()) {
             throw new ClubException(ExceptionType.CLUB_NOT_EXISTS);
         }
@@ -87,10 +86,11 @@ public class ClubIntroService {
                             : null;
 
                     // DTO 생성
-                    return new ClubByRecruitmentStatusAndDepartmentResponse(club, clubIntro, mainPhotoUrl);
+                    return new ClubByRecruitmentStatusResponse(club, clubIntro, mainPhotoUrl);  // 수정된 DTO로 변경
                 })
                 .collect(Collectors.toList());
     }
+
 
     // 동아리 상세 페이지 조회(웹, 모바일)
     @Transactional(readOnly = true)

@@ -8,13 +8,13 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ClubByRecruitmentStatusAndDepartmentResponse {
+public class ClubByRecruitmentStatusResponse {
     private Long clubId;
     private String clubName;
     private String mainPhoto;
     private String departmentName;
 
-    public ClubByRecruitmentStatusAndDepartmentResponse(Club club, ClubIntro clubIntro, String mainPhotoUrl) {
+    public ClubByRecruitmentStatusResponse(Club club, ClubIntro clubIntro, String mainPhotoUrl) {
         this.clubId = club.getClubId();
         this.clubName = clubIntro.getClub().getClubName();
         this.mainPhoto = mainPhotoUrl;

@@ -1,6 +1,6 @@
 package com.USWCicrcleLink.server.club.club.repository;
 
-import com.USWCicrcleLink.server.admin.admin.dto.ClubListResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -20,7 +20,7 @@ public class ClubRepositoryCustomImpl implements ClubRepositoryCustom {
 
     private final S3FileUploadService s3FileUploadService;
     @Override
-    public List<ClubListResponse> findAllWithMemberAndLeaderCount() {
+    public List<ClubAdminListResponse> findAllWithMemberAndLeaderCount() {
         String jpql = "SELECT new com.USWCicrcleLink.server.admin.admin.dto.ClubListResponse(c.clubId, c.department, c.clubName, c.leaderName, " +
                 "(COUNT(cm) + (CASE WHEN l IS NOT NULL THEN 1 ELSE 0 END))) " +
                 "FROM Club c " +
@@ -28,7 +28,7 @@ public class ClubRepositoryCustomImpl implements ClubRepositoryCustom {
                 "LEFT JOIN Leader l ON c.clubId = l.club.clubId " +
                 "GROUP BY c.clubId, l.leaderId";
 
-        TypedQuery<ClubListResponse> query = em.createQuery(jpql, ClubListResponse.class);
+        TypedQuery<ClubAdminListResponse> query = em.createQuery(jpql, ClubAdminListResponse.class);
         return query.getResultList();
     }
 
