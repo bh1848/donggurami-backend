@@ -13,13 +13,10 @@ import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
-import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
-import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
-import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.*;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
@@ -28,10 +25,6 @@ import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
 import com.USWCicrcleLink.server.global.util.validator.InputValidator;
-import com.USWCicrcleLink.server.profile.domain.Profile;
-import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
-import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,17 +61,14 @@ public class ClubLeaderService {
     private final ClubIntroRepository clubIntroRepository;
     private final ClubMembersRepository clubMembersRepository;
     private final AplictRepository aplictRepository;
-    private final UserRepository userRepository;
-    private final ProfileRepository profileRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
-    private final ClubIntroService clubIntroService;
 
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
 
-    // 업로드 가능한 파일 갯수
-    int FILE_LIMIT = 5;
+    // 최대 사진 순서(업로드, 삭제)
+    int PHOTO_LIMIT = 5;
 
     private final String S3_MAINPHOTO_DIR = "mainPhoto/";
     private final String S3_INTROPHOTO_DIR = "introPhoto/";
@@ -197,13 +187,36 @@ public class ClubLeaderService {
         String sanitizedClubIntro = InputValidator.sanitizeContent(clubIntroRequest.getClubIntro());
         String sanitizedGoogleFormUrl = InputValidator.sanitizeContent(clubIntroRequest.getGoogleFormUrl());
 
+        if (!clubIntroRequest.getDeletedOrders().isEmpty()) {// 삭제할 사진이 있다면
+            // 순서 개수, 범위 검증
+            validateOrderValues(clubIntroRequest.getDeletedOrders());
+
+            for (int i = 0; i < clubIntroRequest.getDeletedOrders().size(); i++) {// 하나씩 삭제
+                int deletingOrder = clubIntroRequest.getDeletedOrders().get(i);
+
+                ClubIntroPhoto deletingPhoto = clubIntroPhotoRepository
+                        .findByClubIntro_ClubIntroIdAndOrder(clubIntro.getClubIntroId(), deletingOrder)
+                        .orElseThrow(() -> new ClubPhotoException(ExceptionType.PHOTO_ORDER_MISS_MATCH));
+
+                s3FileUploadService.deleteFile(deletingPhoto.getClubIntroPhotoS3Key());
+
+                deletingPhoto.updateClubIntroPhoto("", "", deletingOrder);
+                clubIntroPhotoRepository.save(deletingPhoto);
+
+                log.debug("소개 사진 삭제 완료: {}", deletingPhoto.getOrder());
+            }
+        }
+
         // 각 사진의 presignedUrls
         List<String> presignedUrls = new ArrayList<>();
 
         // 동아리 소개 사진을 넣을 경우
         if (introPhotos != null && !introPhotos.isEmpty() && clubIntroRequest.getOrders() != null && !clubIntroRequest.getOrders().isEmpty()) {
 
-            if (introPhotos.size() > FILE_LIMIT) {// 최대 5장 업로드
+            // 순서 개수, 범위 검증
+            validateOrderValues(clubIntroRequest.getOrders());
+
+            if (introPhotos.size() > PHOTO_LIMIT) {// 최대 5장 업로드
                 throw new FileException(ExceptionType.MAXIMUM_FILE_LIMIT_EXCEEDED);
             }
 
@@ -212,7 +225,7 @@ public class ClubLeaderService {
                 MultipartFile introPhoto = introPhotos.get(i);
                 int order = clubIntroRequest.getOrders().get(i);
 
-                // 동아리 소개 사진이 존재하지 않으면 해당 순서는 건너뜁니다
+                // 동아리 소개 사진이 존재하지 않으면 순서 스킵
                 if (introPhoto == null || introPhoto.isEmpty()) {
                     continue;
                 }
@@ -224,7 +237,7 @@ public class ClubLeaderService {
                 S3FileResponse s3FileResponse;
 
                 // N번째 동아리 소개 사진 존재할 경우
-                if (!existingPhoto.getClubIntroPhotoS3Key().isEmpty() && !existingPhoto.getClubIntroPhotoS3Key().isEmpty()) {
+                if (!existingPhoto.getClubIntroPhotoName().isEmpty() && !existingPhoto.getClubIntroPhotoS3Key().isEmpty()) {
                     // 기존 S3 파일 삭제
                     s3FileUploadService.deleteFile(existingPhoto.getClubIntroPhotoS3Key());
                     log.debug("기존 소개 사진 삭제 완료: {}", existingPhoto.getClubIntroPhotoS3Key());
@@ -245,12 +258,27 @@ public class ClubLeaderService {
         return new ApiResponse<>("동아리 소개 변경 완료", new UpdateClubIntroResponse(presignedUrls));
     }
 
+    private void validateOrderValues(List<Integer> orders) {
+        // 순서 개수 체크
+        if (orders.size() < 1 || orders.size() > PHOTO_LIMIT) {// 0 이하 6이상
+            throw new ClubPhotoException(ExceptionType.PHOTO_ORDER_MISS_MATCH);
+        }
+
+        // 순서 값
+        for (int order : orders) {
+            if (order < 1 || order > PHOTO_LIMIT) { // 1 ~ 5 사이여야 함
+                new ClubPhotoException(ExceptionType.PHOTO_ORDER_MISS_MATCH);
+            }
+        }
+
+    }
+
     private S3FileResponse updateClubIntroPhotoAndS3File(MultipartFile introPhoto, ClubIntroPhoto existingPhoto, int order) throws IOException {
         // 새로운 파일 업로드
         S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(introPhoto, S3_INTROPHOTO_DIR);
 
         // s3key 및 photoname 업데이트
-        existingPhoto.updateClubIntroPhoto(introPhoto.getOriginalFilename(), s3FileResponse.getS3FileName(),order);
+        existingPhoto.updateClubIntroPhoto(introPhoto.getOriginalFilename(), s3FileResponse.getS3FileName(), order);
         clubIntroPhotoRepository.save(existingPhoto);
         log.debug("사진 정보 저장 및 업데이트 완료: {}", s3FileResponse.getS3FileName());
 
