@@ -15,7 +15,6 @@ import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
-import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
@@ -26,8 +25,6 @@ import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
 import com.USWCicrcleLink.server.global.util.validator.InputValidator;
-import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
-import com.USWCicrcleLink.server.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,11 +61,8 @@ public class ClubLeaderService {
     private final ClubIntroRepository clubIntroRepository;
     private final ClubMembersRepository clubMembersRepository;
     private final AplictRepository aplictRepository;
-    private final UserRepository userRepository;
-    private final ProfileRepository profileRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
-    private final ClubIntroService clubIntroService;
 
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
