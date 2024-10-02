@@ -61,13 +61,12 @@ public class MypageService {
     //프로필을 통해 클럽 멤버 조회
     private List<ClubMembers>getClubMembersByProfileId(Long profileId){
         List<ClubMembers> clubMembers = clubMembersRepository.findByProfileProfileId(profileId);
-        if(clubMembers.isEmpty()){
-            throw new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS);
-        }
+        if (clubMembers.isEmpty()) {
+            return List.of();}
         return clubMembers;
     }
 
-    //UUID를 통해 소속된 동아리 조회
+    //소속된 동아리 조회
     public List<MyClubResponse> getMyClubByUUID(){
         User user = getUserByAuth();
         Profile profile = getProfileByUserId((user.getUserId()));
@@ -76,7 +75,7 @@ public class MypageService {
         return getMyClubs(clubMembers);
     }
 
-    // UUID를 통해 지원한 동아리 조회
+    //지원한 동아리 조회
     public List<MyAplictResponse> getAplictClubByUUID() {
         User user = getUserByAuth();
         Profile profile = getProfileByUserId(user.getUserId());
@@ -103,8 +102,7 @@ public class MypageService {
     private List<Aplict> getAplictsByProfileId(Long profileId) {
         List<Aplict> aplicts = aplictRepository.findByProfileProfileId(profileId);
         if (aplicts.isEmpty()) {
-            throw new AplictException(ExceptionType.APLICT_NOT_EXISTS);
-        }
+            return List.of();}
         return aplicts;
     }
 
