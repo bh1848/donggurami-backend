@@ -2,6 +2,7 @@ package com.USWCicrcleLink.server.user.api;
 
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
+import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.errortype.EmailException;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
@@ -44,12 +45,11 @@ public class UserController {
 
     @PatchMapping("/userpw")
     public ApiResponse<String> updateUserPw(@RequestBody UpdatePwRequest request) {
-
         userService.updateNewPW(request);
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
 
-    // 회원가입 시의 계정 중복 체크
+    // 회원가입시 계정 중복 체크
     @GetMapping("/verify-duplicate/{account}")
     public ResponseEntity<ApiResponse<String>> verifyAccountDuplicate(@PathVariable String account) {
 
@@ -70,6 +70,7 @@ public class UserController {
 
     // 임시 회원 등록 및 인증 메일 전송
     @PostMapping("/temporary")
+    @RateLimite(action = "EMAIL_VERIFICATION")
     public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated(ValidationSequence.class) @RequestBody SignUpRequest request)  {
 
         UserTemp userTemp = userService.registerUserTemp(request);
@@ -83,7 +84,7 @@ public class UserController {
     }
 
     // 이메일 인증 확인 후 자동 회원가입
-     @GetMapping("/email/verify-token")
+    @GetMapping("/email/verify-token")
     public ModelAndView verifySignUpMail (@RequestParam UUID emailToken_uuid) {
 
         ModelAndView modelAndView = new ModelAndView();
@@ -102,7 +103,7 @@ public class UserController {
 
     // 이메일 재인증
     @PostMapping("/email/resend-confirmation")
-    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader UUID emailToken_uuid)  {
+    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader UUID emailToken_uuid) {
 
         EmailToken emailToken = emailTokenService.updateCertificationTime(emailToken_uuid);
         userService.sendSignUpMail(emailToken.getUserTemp(),emailToken);
@@ -120,9 +121,12 @@ public class UserController {
 
     // 로그인
     @PostMapping("/login")
+    @RateLimite(action = "APP_LOGIN")
     public ResponseEntity<ApiResponse<TokenDto>> logIn(@RequestBody @Validated(ValidationSequence.class) LogInRequest request, HttpServletResponse response) {
+
         TokenDto tokenDto = userService.logIn(request, response);
         ApiResponse<TokenDto> apiResponse = new ApiResponse<>("로그인 성공", tokenDto);
+
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -151,6 +155,7 @@ public class UserController {
 
     // 인증 코드 검증
     @PostMapping("/auth/verify-token")
+    @RateLimite(action = "VALIDATE_CODE")
     public ApiResponse<String> verifyAuthToken(@RequestHeader UUID uuid,@Valid @RequestBody AuthCodeRequest request) {
 
         authTokenService.verifyAuthToken(uuid, request);
@@ -183,6 +188,7 @@ public class UserController {
 
     // 회원 탈퇴 인증 번호 확인
     @DeleteMapping("/exit")
+    @RateLimite(action = "VALIDATE_CODE")
     public ApiResponse<String> cancelMembership(HttpServletRequest request, HttpServletResponse response,@Valid @RequestBody AuthCodeRequest authCodeRequest){
 
         // 토큰 검증 및 삭제
