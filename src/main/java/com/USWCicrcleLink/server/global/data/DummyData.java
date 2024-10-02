@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.global;
+package com.USWCicrcleLink.server.global.data;
 
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.admin.repository.AdminRepository;
@@ -32,6 +32,7 @@ import java.util.UUID;
 @Component
 @Transactional
 @RequiredArgsConstructor
+@org.springframework.context.annotation.Profile({"test","local"})
 public class DummyData {
 
     private final ProfileRepository profileRepository;
@@ -48,10 +49,11 @@ public class DummyData {
 
     @PostConstruct
     public void init() {
-        initUser1();
-        initUser2();
-        initUser3();
-        initAdmin();
+            initAdmin();
+            initUser1();
+            initUser2();
+            initUser3();
+            initclub();
     }
 
     //관리자 동연회 데이터
@@ -193,7 +195,7 @@ public class DummyData {
                 .clubName("봉사동아리")
                 .leaderName("봉사")
                 .leaderHp("00000000000")
-                .department(Department.VOLUNTEER)
+                .department(Department.ACADEMIC)
                 .clubInsta("volunteer_insta")
                 .build();
         clubRepository.save(volunteerClub);
@@ -237,6 +239,23 @@ public class DummyData {
                 .build();
         clubIntroRepository.save(clubIntro1);
 
+        ClubMainPhoto badmintonMainPhoto = ClubMainPhoto.builder()
+                .club(badmintonClub)
+                .clubMainPhotoName("")
+                .clubMainPhotoS3Key("")
+                .build();
+        clubMainPhotoRepository.save(badmintonMainPhoto);
+
+        for (int i = 1; i <= 5; i++) {
+            ClubIntroPhoto badmintonIntroPhoto = ClubIntroPhoto.builder()
+                    .clubIntro(clubIntro1)
+                    .clubIntroPhotoName("")
+                    .clubIntroPhotoS3Key("")
+                    .order(i)
+                    .build();
+            clubIntroPhotoRepository.save(badmintonIntroPhoto);
+        }
+
         Leader leader2 = Leader.builder()
                 .leaderAccount("volunteerClub")
                 .leaderPw(passwordEncoder.encode("12345"))
@@ -252,6 +271,23 @@ public class DummyData {
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
         clubIntroRepository.save(clubIntro2);
+
+        ClubMainPhoto volunteerMainPhoto = ClubMainPhoto.builder()
+                .club(volunteerClub)
+                .clubMainPhotoName("")
+                .clubMainPhotoS3Key("")
+                .build();
+        clubMainPhotoRepository.save(volunteerMainPhoto);
+
+        for (int i = 1; i <= 5; i++) {
+            ClubIntroPhoto volunteerIntroPhoto = ClubIntroPhoto.builder()
+                    .clubIntro(clubIntro2)
+                    .clubIntroPhotoName("")
+                    .clubIntroPhotoS3Key("")
+                    .order(i)
+                    .build();
+            clubIntroPhotoRepository.save(volunteerIntroPhoto);
+        }
 
         for (int i = 1; i <= 5; i++) {
             ClubIntroPhoto clubIntroPhoto = ClubIntroPhoto.builder()
@@ -487,4 +523,197 @@ public class DummyData {
 
         aplictRepository.save(aplict);
     }
+    void initclub(){
+        //테니스 동아리
+        Club tennisclub = Club.builder()
+                .clubName("테니스")
+                .leaderName("테니스짱")
+                .leaderHp("00012341234")
+                .department(Department.SPORT)
+                .clubInsta("tennis_insta")
+                .build();
+
+        clubRepository.save(tennisclub);
+
+        ClubIntro tennisIntro = ClubIntro.builder()
+                .club(tennisclub)
+                .clubIntro("테니스 동아리입니다.")
+                .googleFormUrl("tennisClub_google_url")
+                .recruitmentStatus(RecruitmentStatus.CLOSE)
+                .build();
+        clubIntroRepository.save(tennisIntro);
+
+        Leader tennisLeader = Leader.builder()
+                .leaderAccount("tennisClub")
+                .leaderPw(passwordEncoder.encode("12345"))
+                .club(tennisclub)
+                .role(Role.LEADER)
+                .build();
+        leaderRepository.save(tennisLeader);
+
+        //농구동아리
+        Club basketballClub = Club.builder()
+                .clubName("농구")
+                .leaderName("농구짱")
+                .leaderHp("00012341234")
+                .department(Department.SPORT)
+                .clubInsta("basketball_insta")
+                .build();
+
+        clubRepository.save(basketballClub);
+
+        ClubIntro basketballIntro = ClubIntro.builder()
+                .club(basketballClub)
+                .clubIntro("테니스 동아리입니다.")
+                .googleFormUrl("basketball_google_url")
+                .recruitmentStatus(RecruitmentStatus.CLOSE)
+                .build();
+        clubIntroRepository.save(basketballIntro);
+
+        Leader basketballLeader = Leader.builder()
+                .leaderAccount("basketballClub")
+                .leaderPw(passwordEncoder.encode("12345"))
+                .club(basketballClub)
+                .role(Role.LEADER)
+                .build();
+        leaderRepository.save(basketballLeader);
+
+        //토론동아리
+        Club argClub = Club.builder()
+                .clubName("토론동아리")
+                .leaderName("토론짱")
+                .leaderHp("00012341234")
+                .department(Department.ACADEMIC)
+                .clubInsta("basketball_insta")
+                .build();
+
+        clubRepository.save(argClub);
+
+        ClubIntro argIntro = ClubIntro.builder()
+                .club(argClub)
+                .clubIntro("토론 동아리입니다.")
+                .googleFormUrl("arg_google_url")
+                .recruitmentStatus(RecruitmentStatus.CLOSE)
+                .build();
+        clubIntroRepository.save(argIntro);
+
+        Leader argLeader = Leader.builder()
+                .leaderAccount("argClub")
+                .leaderPw(passwordEncoder.encode("12345"))
+                .club(argClub)
+                .role(Role.LEADER)
+                .build();
+        leaderRepository.save(argLeader);
+
+        //햄스터동아리
+        Club hamsterClub = Club.builder()
+                .clubName("햄스터동아리")
+                .leaderName("햄스터짱")
+                .leaderHp("00012341234")
+                .department(Department.ACADEMIC)
+                .clubInsta("hamster_insta")
+                .build();
+
+        clubRepository.save(hamsterClub);
+
+        ClubIntro hamsterIntro = ClubIntro.builder()
+                .club(hamsterClub)
+                .clubIntro("햄스터 동아리입니다.")
+                .googleFormUrl("hamster_google_url")
+                .recruitmentStatus(RecruitmentStatus.OPEN)
+                .build();
+        clubIntroRepository.save(hamsterIntro);
+
+        Leader hamsterLeader = Leader.builder()
+                .leaderAccount("hamsterClub")
+                .leaderPw(passwordEncoder.encode("12345"))
+                .club(hamsterClub)
+                .role(Role.LEADER)
+                .build();
+        leaderRepository.save(hamsterLeader);
+
+        //해달동아리
+        Club sunmoonClub = Club.builder()
+                .clubName("해달 동아리")
+                .leaderName("해달짱")
+                .leaderHp("00012341234")
+                .department(Department.SHOW)
+                .clubInsta("sunmoon_insta")
+                .build();
+
+        clubRepository.save(sunmoonClub);
+
+        ClubIntro hsunmoonIntro = ClubIntro.builder()
+                .club(sunmoonClub)
+                .clubIntro("해달 동아리입니다.")
+                .googleFormUrl("sunmoon_google_url")
+                .recruitmentStatus(RecruitmentStatus.OPEN)
+                .build();
+        clubIntroRepository.save(hsunmoonIntro);
+
+        Leader sunmoonLeader = Leader.builder()
+                .leaderAccount("sunmoonClub")
+                .leaderPw(passwordEncoder.encode("12345"))
+                .club(sunmoonClub)
+                .role(Role.LEADER)
+                .build();
+        leaderRepository.save(sunmoonLeader);
+
+        //돼지동아리
+        Club pigClub = Club.builder()
+                .clubName("돼지 동아리")
+                .leaderName("돼지짱")
+                .leaderHp("00012341234")
+                .department(Department.SHOW)
+                .clubInsta("pig_insta")
+                .build();
+
+            clubRepository.save(pigClub);
+
+        ClubIntro pigIntro = ClubIntro.builder()
+                .club(pigClub)
+                .clubIntro("돼지 동아리입니다.")
+                .googleFormUrl("pig_google_url")
+                .recruitmentStatus(RecruitmentStatus.OPEN)
+                .build();
+            clubIntroRepository.save(pigIntro);
+
+        Leader pigLeader = Leader.builder()
+                .leaderAccount("pigClub")
+                .leaderPw(passwordEncoder.encode("12345"))
+                .club(pigClub)
+                .role(Role.LEADER)
+                .build();
+            leaderRepository.save(pigLeader);
+
+
+        //고양이동아리
+        Club catClub = Club.builder()
+                .clubName("고양이 동아리")
+                .leaderName("고양이짱")
+                .leaderHp("00012341234")
+                .department(Department.SHOW)
+                .clubInsta("pig_insta")
+                .build();
+
+        clubRepository.save(catClub);
+
+        ClubIntro catIntro = ClubIntro.builder()
+                .club(catClub)
+                .clubIntro("고양이 동아리입니다.")
+                .googleFormUrl("cat_google_url")
+                .recruitmentStatus(RecruitmentStatus.CLOSE)
+                .build();
+        clubIntroRepository.save(catIntro);
+
+        Leader catLeader = Leader.builder()
+                .leaderAccount("catClub")
+                .leaderPw(passwordEncoder.encode("12345"))
+                .club(catClub)
+                .role(Role.LEADER)
+                .build();
+        leaderRepository.save(catLeader);
+    }
+
+
 }

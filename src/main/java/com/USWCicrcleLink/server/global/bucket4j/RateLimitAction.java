@@ -30,7 +30,6 @@ public enum RateLimitAction {
         public Bandwidth getLimit() {
             return Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(1)));
         }
-
     },
 
     // 아이디 찾기
@@ -39,7 +38,6 @@ public enum RateLimitAction {
         public Bandwidth getLimit() {
             return Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(1)));
         }
-
     },
 
     // 비밀번호 찾기
@@ -67,6 +65,7 @@ public enum RateLimitAction {
             return Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(1)));
         }
     };
+
     public abstract Bandwidth getLimit();
 
     }

@@ -33,6 +33,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -51,6 +53,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final ProfileService profileService;
 
+    private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
     // 어세스토큰에서 유저정보 가져오기
     public User getUserByAuth() {
@@ -83,10 +86,10 @@ public class UserService {
         User updateUserPw = userRepository.save(user);
 
         if(updateUserPw == null){
-            log.error("비밀번호 업데이트 실패");
+            log.error("비밀번호 업데이트 실패 {}", user.getUserId());
             throw new UserException(ExceptionType.PROFILE_UPDATE_FAIL);
         }
-        log.debug("비밀번호 변경 완료: {}",user.getUserUUID());
+        log.info("비밀번호 변경 완료: {}",user.getUserId());
     }
 
     // 임시 회원 생성 및 저장
@@ -178,7 +181,7 @@ public class UserService {
         }
 
         // 로그인 성공 시 토큰 발급
-        String accessToken = jwtProvider.createAccessToken(userDetails.getUsername());
+        String accessToken = jwtProvider.createAccessToken(userDetails.getUsername(), response);
         String refreshToken = jwtProvider.createRefreshToken(userDetails.getUsername(), response);
 
         log.debug("로그인 성공, uuid: {}", userDetails.getUsername());
@@ -187,7 +190,7 @@ public class UserService {
         Profile profile = profileRepository.findById(user.getUserId())
                     .orElseThrow(() -> new UserException(ExceptionType.USER_PROFILE_NOT_FOUND));
 
-        profile.updateFcmToken(request.getFcmToken());
+        profile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
         profileRepository.save(profile);
         log.debug("fcmToken 업데이트 완료: {}", user.getUserAccount());
 

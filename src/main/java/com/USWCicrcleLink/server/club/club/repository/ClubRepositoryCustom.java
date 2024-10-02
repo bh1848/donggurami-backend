@@ -1,11 +1,11 @@
 package com.USWCicrcleLink.server.club.club.repository;
 
-import com.USWCicrcleLink.server.admin.admin.dto.ClubListResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse;
 
 import java.util.List;
 
 public interface ClubRepositoryCustom {
-    List<ClubListResponse> findAllWithMemberAndLeaderCount();
+    List<ClubAdminListResponse> findAllWithMemberAndLeaderCount();
 
     void deleteClubAndDependencies(Long clubId);
 }

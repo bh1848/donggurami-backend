@@ -9,14 +9,14 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ClubByDepartmentResponse {
+public class ClubListResponse {
     private Long clubId;
     private String clubName;
     private String mainPhoto;
     private String departmentName;
 
     // Club 엔티티를 인수로 받는 생성자
-    public ClubByDepartmentResponse(Club club, String mainPhotoUrl) {
+    public ClubListResponse(Club club, String mainPhotoUrl) {
         this.clubName = club.getClubName();
         this.mainPhoto = mainPhotoUrl;
         this.departmentName = club.getDepartment().name();

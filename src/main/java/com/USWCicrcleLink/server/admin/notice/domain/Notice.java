@@ -18,10 +18,11 @@ public class Notice {
     @Column(name = "notice_id")
     private Long noticeId;
 
-    @Column(name = "notice_title", length = 100)
+    @Column(name = "notice_title", length = 100, nullable = false)
     private String noticeTitle;
 
-    @Column(name = "notice_content", length = 1000)
+    @Lob
+    @Column(name = "notice_content", nullable = false)
     private String noticeContent;
 
     @Column(name = "notice_created_at")

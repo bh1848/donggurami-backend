@@ -3,11 +3,15 @@ package com.USWCicrcleLink.server.admin.admin.service;
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationRequest;
 import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationResponse;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubListResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse;
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
+import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
@@ -25,7 +29,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -36,11 +42,13 @@ public class AdminService {
     private final LeaderRepository leaderRepository;
     private final ClubRepository clubRepository;
     private final ClubIntroRepository clubIntroRepository;
+    private final ClubMainPhotoRepository clubMainPhotoRepository;
+    private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final PasswordEncoder passwordEncoder;
 
     // 동아리 목록 조회(웹)
-    public List<ClubListResponse> getAllClubs() {
-        List<ClubListResponse> results;
+    public List<ClubAdminListResponse> getAllClubs() {
+        List<ClubAdminListResponse> results;
         try {
             results = clubRepository.findAllWithMemberAndLeaderCount();
         } catch (Exception e) {
@@ -86,7 +94,10 @@ public class AdminService {
         // Club 생성 및 저장
         Club club = Club.builder()
                 .clubName(sanitizedClubName)
-                .department(request.getDepartment()) // 부서는 사용자의 입력을 받을지 여부에 따라 정제가 필요할 수 있음
+                .department(request.getDepartment())
+                .leaderName("")
+                .leaderHp("")
+                .clubInsta("")
                 .build();
         clubRepository.save(club);
         log.debug("동아리 생성 성공: {}", club.getClubName());
@@ -95,11 +106,21 @@ public class AdminService {
         Leader leader = Leader.builder()
                 .leaderAccount(sanitizedLeaderAccount)
                 .leaderPw(passwordEncoder.encode(request.getLeaderPw()))  // 비밀번호는 암호화해서 저장
+                .leaderUUID(UUID.randomUUID())
                 .role(Role.LEADER)
                 .club(club)
                 .build();
         leaderRepository.save(leader);
         log.debug("동아리 회장 생성 성공: {}", leader.getLeaderAccount());
+
+        // ClubMainPhoto 생성 및 저장
+        ClubMainPhoto mainPhoto = ClubMainPhoto.builder()
+                .club(club)
+                .clubMainPhotoName("")
+                .clubMainPhotoS3Key("")
+                .build();
+        clubMainPhotoRepository.save(mainPhoto);
+        log.debug("동아리 메인 사진 생성 성공");
 
         // ClubIntro 생성 및 저장
         ClubIntro clubIntro = ClubIntro.builder()
@@ -111,10 +132,22 @@ public class AdminService {
         clubIntroRepository.save(clubIntro);
         log.debug("동아리 소개 생성 성공: {}", clubIntro.getClubIntro());
 
-        return new ClubCreationResponse(club);
+        // ClubIntroPhoto 기본값 설정 (5개 생성)
+        List<ClubIntroPhoto> introPhotos = new ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            ClubIntroPhoto introPhoto = ClubIntroPhoto.builder()
+                    .clubIntro(clubIntro)
+                    .clubIntroPhotoName("")
+                    .clubIntroPhotoS3Key("")
+                    .order(i)  // 순서 설정 (1~5)
+                    .build();
+            introPhotos.add(introPhoto);
+        }
+        clubIntroPhotoRepository.saveAll(introPhotos);
+        log.debug("동아리 소개 사진 5개 생성 성공");
+
+        return new ClubCreationResponse(club, leader);
     }
-
-
 
     // 동아리 삭제(웹)
     public void deleteClub(Long clubId, String adminPw) {
