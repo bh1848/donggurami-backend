@@ -3,7 +3,7 @@ package com.USWCicrcleLink.server.admin.admin.service;
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationRequest;
 import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationResponse;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubListResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
@@ -47,8 +47,8 @@ public class AdminService {
     private final PasswordEncoder passwordEncoder;
 
     // 동아리 목록 조회(웹)
-    public List<ClubListResponse> getAllClubs() {
-        List<ClubListResponse> results;
+    public List<ClubAdminListResponse> getAllClubs() {
+        List<ClubAdminListResponse> results;
         try {
             results = clubRepository.findAllWithMemberAndLeaderCount();
         } catch (Exception e) {

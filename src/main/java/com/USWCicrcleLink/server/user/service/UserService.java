@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.user.service;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
+import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.domain.Role;
@@ -51,12 +52,11 @@ public class UserService {
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final ProfileService profileService;
-    private final WithdrawalTokenService withdrawalService;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
-    //어세스토큰에서 유저정보 가져오기
-    private User getUserByAuth() {
+    // 어세스토큰에서 유저정보 가져오기
+    public User getUserByAuth() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         return userDetails.user();
@@ -239,6 +239,7 @@ public class UserService {
     }
 
     // 회원 가입 메일 생성 및 전송
+    @RateLimite(action = "EMAIL_VERIFICATION")
     public void sendSignUpMail(UserTemp userTemp,EmailToken emailToken)  {
         log.debug("회원 가입 인증 메일 요청 ");
         MimeMessage message = emailService.createSingUpLink(userTemp,emailToken);
@@ -247,6 +248,7 @@ public class UserService {
     }
 
     // 비밀번호 변경을 위한 인증 코드 메일 전송
+    @RateLimite(action = "PW_FOUND_EMAIL")
     public void sendAuthCodeMail(User user, AuthToken authToken)  {
         log.debug("비밀번호 찾기  메일 생성 요청");
         MimeMessage message = emailService.createAuthCodeMail(user,authToken);
@@ -255,6 +257,7 @@ public class UserService {
     }
 
     // 아이디 찾기 메일 전송
+    @RateLimite(action = "ID_FOUND_EMAIL")
     public void sendAccountInfoMail (User findUser)  {
         log.debug("아이디 찾기 메일 생성 요청");
         MimeMessage message = emailService.createAccountInfoMail(findUser);
@@ -263,6 +266,7 @@ public class UserService {
     }
 
     // 회원 탈퇴 메일 전송
+    @RateLimite(action = "WITHDRAWAL_EMAIL")
     public void sendWithdrawalCodeMail (WithdrawalToken token)  {
         log.debug("회원 탈퇴 메일 생성 요청");
         User findUser = getUserByAuth();

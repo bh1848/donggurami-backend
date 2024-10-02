@@ -48,7 +48,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 
 	//mail
-	implementation 'org.springframework.boot:spring-boot-starter-mail:3.3.1'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
 	// excel
 	// https://mvnrepository.com/artifact/org.apache.poi/poi
@@ -84,6 +84,11 @@ dependencies {
 
 	// XSS 공격 방지 Jsoup
 	implementation 'org.jsoup:jsoup:1.16.1'
+
+	//Bucket4j
+	implementation 'com.bucket4j:bucket4j-core:8.7.0'
+	implementation 'com.bucket4j:bucket4j-redis:8.7.0'
+	implementation 'io.lettuce:lettuce-core:6.2.6.RELEASE'
 }
 
 tasks.named('test') {

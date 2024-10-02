@@ -76,7 +76,8 @@ public enum ExceptionType {
      */
     NOTICE_NOT_EXISTS("NOT-201", "공지사항이 존재하지 않습니다.", NOT_FOUND),
     UP_TO_5_PHOTOS_CAN_BE_UPLOADED("NOT-202", "최대 5개의 사진이 업로드 가능합니다.", PAYLOAD_TOO_LARGE),
-    TITEL_AND_CONENT_REQUIRED("NOT-203", "제목과 내용을 모두 입력해주세요.", UNPROCESSABLE_ENTITY),
+    NOTICE_PHOTO_NOT_EXISTS("NOT-204", "사진이 존재하지 않습니다.", NOT_FOUND),
+    INVALID_PHOTO_ORDER("NOT-205", "사진 순서는 1에서 5 사이여야 합니다.", BAD_REQUEST),
 
     /**
      * Domain: Profile
@@ -129,7 +130,9 @@ public enum ExceptionType {
      */
     SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR),
     INVALID_UUID_FORMAT("UUID-502", "유효하지 않은 UUID 형식입니다." , BAD_REQUEST),
+    TOO_MANY_ATTEMPT("ATTEMPT-503", "최대 시도 횟수를 초과했습니다. 1분 후  다시 시도 하세요", BAD_REQUEST),
     TEXT_IS_EMPTY("TEXT-503", "글이 비어있습니다.", BAD_REQUEST),
+
 
     /**
      * File I/O

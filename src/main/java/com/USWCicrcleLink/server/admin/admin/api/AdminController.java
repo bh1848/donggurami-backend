@@ -21,9 +21,9 @@ public class AdminController {
 
     // 동아리 전체 리스트 조회(웹)
     @GetMapping("/clubs")
-    public ResponseEntity<ApiResponse<List<ClubListResponse>>> getAllClubs() {
-        List<ClubListResponse> clubs = adminService.getAllClubs();
-        ApiResponse<List<ClubListResponse>> response = new ApiResponse<>("동아리 전체 리스트 조회 성공", clubs);
+    public ResponseEntity<ApiResponse<List<ClubAdminListResponse>>> getAllClubs() {
+        List<ClubAdminListResponse> clubs = adminService.getAllClubs();
+        ApiResponse<List<ClubAdminListResponse>> response = new ApiResponse<>("동아리 전체 리스트 조회 성공", clubs);
         return ResponseEntity.ok(response);
     }
 

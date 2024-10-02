@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.user.dto;
 
+import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import  com.USWCicrcleLink.server.global.validation.ValidationGroups.*;
 
@@ -9,7 +10,6 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 
 
 @Data
@@ -28,12 +28,15 @@ public class SignUpRequest {
     private String password;
 
     @NotBlank(message = "이름 필수 입력 값입니다.")
+    @Pattern(regexp = "^[a-zA-Z가-힣]+$", message = "이름은 영어 또는 한글만 입력 가능합니다", groups = ValidationGroups.PatternGroup.class)
     private String userName;
 
     // 전화번호는 필수 값 x
+    @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다", groups = PatternGroup.class)
     private String telephone;
 
-    @NotBlank(message = "학번 필수 입력 값입니다.")
+    @NotBlank(message = "학번 필수 입력 값입니다.",groups = NotBlankGroup.class)
+    @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다",groups = PatternGroup.class)
     private String studentNumber;
 
     @NotBlank(message = "학과 필수 입력 값입니다.")
@@ -56,5 +59,4 @@ public class SignUpRequest {
                 .isEmailVerified(isEmailVerified)
                 .build();
     }
-
 }
