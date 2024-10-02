@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.global.Integration.service;
 
+import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.Integration.domain.LoginType;
@@ -30,6 +31,7 @@ public class IntegrationService {
     private final PasswordEncoder passwordEncoder;
 
     // 동아리 회장, 동연회-개발자 통합 로그인
+    @RateLimite(action = "WEB_LOGIN")
     public IntegrationLoginResponse integrationLogin(IntegrationLoginRequest request, HttpServletResponse response) {
         log.debug("로그인 요청: {}, 사용자 유형: {}", request.getIntegratedAccount(), request.getLoginType());
 
