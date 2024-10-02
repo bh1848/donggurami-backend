@@ -15,6 +15,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -32,6 +33,9 @@ public class EmailService {
     //이메일 인증 경로
     private static final String VERIFY_EMAIL_PATH = "/users/email/verify-token";
 
+    @Value("${spring.mail.username}")
+    private String email_user;
+
 
     @Async
     public void sendEmail(MimeMessage mimeMessage) {
@@ -47,7 +51,7 @@ public class EmailService {
            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
            helper.setTo(userTemp.getTempEmail() + "@suwon.ac.kr");
            helper.setSubject("회원가입 이메일 인증");
-           helper.setFrom("wg1004s@naver.com");
+           helper.setFrom(email_user);
 
            String emailContent
                    = "<a href='" + emailConfig.getBaseUrl() + VERIFY_EMAIL_PATH + "?emailToken_uuid=" + emailToken.getEmailTokenUUID() + "'> click here  </a>";
@@ -71,7 +75,7 @@ public class EmailService {
             helper.setTo(findUser.getEmail() + "@suwon.ac.kr");
             helper.setSubject("동구라미의 아이디를 찾기 위한 메일입니다.");
             helper.setText("회원님의 아이디는  "  + findUser.getUserAccount() + " 입니다.");
-            helper.setFrom("wg1004s@naver.com");
+            helper.setFrom(email_user);
 
             return mimeMessage;
 
@@ -92,7 +96,7 @@ public class EmailService {
             helper.setTo(user.getEmail() + "@suwon.ac.kr");
             helper.setSubject("비밀번호 찾기 메일 입니다.");
             helper.setText("인증코드는  "  + authToken.getAuthCode()+ " 입니다.");
-            helper.setFrom("wg1004s@naver.com");
+            helper.setFrom(email_user);
 
             return mimeMessage;
 
@@ -113,7 +117,7 @@ public class EmailService {
             helper.setTo(user.getEmail() + "@suwon.ac.kr");
             helper.setSubject("회원 탈퇴를 위한 인증 메일 입니다");
             helper.setText("인증 코드는  "  + token.getWithdrawalCode()+ " 입니다.");
-            helper.setFrom("wg1004s@naver.com");
+            helper.setFrom(email_user);
 
             return mimeMessage;
 
