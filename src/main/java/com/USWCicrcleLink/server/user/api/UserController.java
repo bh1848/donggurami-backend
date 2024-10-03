@@ -70,7 +70,6 @@ public class UserController {
 
     // 임시 회원 등록 및 인증 메일 전송
     @PostMapping("/temporary")
-    @RateLimite(action = "EMAIL_VERIFICATION")
     public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated(ValidationSequence.class) @RequestBody SignUpRequest request)  {
 
         UserTemp userTemp = userService.registerUserTemp(request);
@@ -188,7 +187,7 @@ public class UserController {
 
     // 회원 탈퇴 인증 번호 확인
     @DeleteMapping("/exit")
-    @RateLimite(action = "VALIDATE_CODE")
+    @RateLimite(action ="WITHDRAWAL_CODE")
     public ApiResponse<String> cancelMembership(HttpServletRequest request, HttpServletResponse response,@Valid @RequestBody AuthCodeRequest authCodeRequest){
 
         // 토큰 검증 및 삭제
