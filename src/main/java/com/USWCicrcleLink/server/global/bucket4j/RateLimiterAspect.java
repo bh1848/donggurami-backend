@@ -35,7 +35,7 @@ public class RateLimiterAspect {
         String action = rateLimit.action();
 
 
-       if(action.equals("WITHDRAWAL_EMAIL")){
+       if(action.equals("WITHDRAWAL_EMAIL") || action.equals("WITHDRAWAL_CODE")){
            User user = userService.getUserByAuth();
            clientId = String.valueOf(user.getUserUUID());
        }
