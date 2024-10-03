@@ -58,8 +58,16 @@ public enum RateLimitAction {
 
     },
 
-    // 인증 코드번호 일치 확인
+    // 비밀번호 변경 인증 코드번호 일치 확인
     VALIDATE_CODE{
+        @Override
+        public Bandwidth getLimit() {
+            return Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(1)));
+        }
+    },
+
+    // 회원 탈퇴 코드번호 일치 확인
+    WITHDRAWAL_CODE{
         @Override
         public Bandwidth getLimit() {
             return Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(1)));
