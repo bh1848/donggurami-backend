@@ -64,7 +64,7 @@ public class UserService {
 
     public boolean confirmPW(String userpw){
         User user = getUserByAuth();
-        return user.getUserPw().equals(userpw);
+        return passwordEncoder.matches(userpw, user.getUserPw());
     }
 
     public void updateNewPW(UpdatePwRequest updatePwRequest){
@@ -82,10 +82,12 @@ public class UserService {
         }
 
         User user = getUserByAuth();
-        user.updateUserPw(updatePwRequest.getNewPw());
-        User updateUserPw = userRepository.save(user);
+        String encryptedNewPw = passwordEncoder.encode(updatePwRequest.getNewPw());
+        user.updateUserPw(encryptedNewPw);
 
-        if(updateUserPw == null){
+        try {
+            userRepository.save(user);  // 비밀번호 업데이트
+        } catch (Exception e) {
             log.error("비밀번호 업데이트 실패 {}", user.getUserId());
             throw new UserException(ExceptionType.PROFILE_UPDATE_FAIL);
         }
