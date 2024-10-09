@@ -5,13 +5,16 @@ server:
 logging:
   level:
     com:
-      USWCicrcleLink:
+      USWCircleLink:
         server: debug
 
 #email url
 email:
   config:
     baseUrl: ${PROD_SERVER_URL}
+
+firebase:
+  config-path:${SERVER_FIREBASE_CONFIG_PATH}
 
 spring:
   config:
@@ -35,9 +38,6 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-
-  firebase:
-    config-path:${SERVER_FIREBASE_CONFIG_PATH}
 
 # CORS 설정 추가
 cors:

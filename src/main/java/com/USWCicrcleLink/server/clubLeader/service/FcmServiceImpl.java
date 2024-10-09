@@ -2,7 +2,6 @@ package com.USWCicrcleLink.server.clubLeader.service;
 
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
-import com.USWCicrcleLink.server.clubLeader.config.FirebaseConfig;
 import com.USWCicrcleLink.server.clubLeader.dto.FcmMessageDto;
 import com.USWCicrcleLink.server.clubLeader.dto.FcmTokenRequest;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
@@ -14,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.core.Authentication;
@@ -23,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -36,8 +36,9 @@ public class FcmServiceImpl implements FcmService {
 
     private final ProfileRepository profileRepository;
 
+    @Value("${firebase.config-path}")
+    private String fireBaseConfigPath;
     private final String FCM_API_URL = "https://fcm.googleapis.com/v1/projects/usw-circle-link/messages:send";
-    private final FirebaseConfig firebaseConfig;
     private final String GOOGLE_AUTH_URL = "https://www.googleapis.com/auth/cloud-platform";
     private final String APLICT_TITLE_MESSAGE = "동아리 지원 결과";
     private final String APLICT_PASS_MESSAGE = "에 합격했습니다.";
@@ -92,7 +93,7 @@ public class FcmServiceImpl implements FcmService {
     // Firebase Admin SDK의 비공개 키 참조해 bearer 토큰 발급
     private String getAccessToken() throws IOException {
         GoogleCredentials googleCredentials = GoogleCredentials
-                .fromStream(new ClassPathResource(firebaseConfig.getConfigPath()).getInputStream())
+                .fromStream(new FileInputStream(fireBaseConfigPath))
                 .createScoped(List.of(GOOGLE_AUTH_URL));
 
         // 토큰 만료 ? 갱신 : 토큰

@@ -9,7 +9,7 @@ import lombok.Getter;
 @Builder
 public class FcmMessageDto {
     private boolean validateOnly;// 유효성 검사
-    private FcmMessageDto.Message message;
+    private Message message;
 
     @Builder
     @AllArgsConstructor
