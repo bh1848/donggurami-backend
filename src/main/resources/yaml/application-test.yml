@@ -4,6 +4,7 @@ server:
 # log setting
 logging:
   level:
+    root: WARN
     com:
       USWCicrcleLink:
         server: debug
