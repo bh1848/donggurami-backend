@@ -17,7 +17,7 @@ public class FcmMessageDto {
     @Getter
     public static class Message {
         private Notification notification;
-        private Map<String, String> data;
+
         private String token;
     }
 
@@ -26,7 +26,7 @@ public class FcmMessageDto {
     @Getter
     public static class Notification {
         private String title;
+
         private String body;
     }
-
 }

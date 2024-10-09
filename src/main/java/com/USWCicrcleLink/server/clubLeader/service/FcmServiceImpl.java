@@ -26,9 +26,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -52,6 +50,12 @@ public class FcmServiceImpl implements FcmService {
     // 메시지 구성, 토큰 받고 메시지 처리
     @Override
     public int sendMessageTo(Aplict aplict, AplictStatus aplictResult) throws IOException {
+        String fcmToken = aplict.getProfile().getFcmToken();
+        if (fcmToken == null || fcmToken.trim().isEmpty()) {
+            log.warn("FCM 토큰이 없음. 프로필: {} 알림 전송 생략", aplict.getProfile().getProfileId());
+            return 0;
+        }
+
         try {
             // 메시지 구성
             String message = makeMessage(aplict, aplictResult);
@@ -118,10 +122,6 @@ public class FcmServiceImpl implements FcmService {
         else if (aplictResult == AplictStatus.FAIL) bodyMessage = aplict.getClub().getClubName() + APLICT_FAIL_MESSAGE;
         else bodyMessage = APLICT_ERROR_MESSAGE;
 
-        Map<String, String> data = new HashMap<>();
-        data.put("title", titleMessage);
-        data.put("body", bodyMessage);
-
         // 메시지 구성
         FcmMessageDto createFcmMessage = FcmMessageDto.builder()
                 .message(FcmMessageDto.Message.builder()
@@ -132,7 +132,6 @@ public class FcmServiceImpl implements FcmService {
                                         .body(bodyMessage)
                                         .build()
                         )
-                        .data(data)
                         .build())
                 .build();
 
