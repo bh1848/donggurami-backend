@@ -4,18 +4,20 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.Map;
+
 // FCM 실제 전송 데이터
 @Getter
 @Builder
 public class FcmMessageDto {
-    private boolean validateOnly;// 유효성 검사
-    private FcmMessageDto.Message message;
+    private Message message;
 
     @Builder
     @AllArgsConstructor
     @Getter
     public static class Message {
         private Notification notification;
+
         private String token;
     }
 
@@ -24,8 +26,7 @@ public class FcmMessageDto {
     @Getter
     public static class Notification {
         private String title;
-        private String body;
-        private String image;
-    }
 
+        private String body;
+    }
 }
