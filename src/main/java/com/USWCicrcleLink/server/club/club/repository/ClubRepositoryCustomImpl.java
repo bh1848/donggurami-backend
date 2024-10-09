@@ -21,7 +21,7 @@ public class ClubRepositoryCustomImpl implements ClubRepositoryCustom {
     private final S3FileUploadService s3FileUploadService;
     @Override
     public List<ClubAdminListResponse> findAllWithMemberAndLeaderCount() {
-        String jpql = "SELECT new com.USWCicrcleLink.server.admin.admin.dto.ClubListResponse(c.clubId, c.department, c.clubName, c.leaderName, " +
+        String jpql = "SELECT new com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse(c.clubId, c.department, c.clubName, c.leaderName, " +
                 "(COUNT(cm) + (CASE WHEN l IS NOT NULL THEN 1 ELSE 0 END))) " +
                 "FROM Club c " +
                 "LEFT JOIN ClubMembers cm ON c.clubId = cm.club.clubId " +
