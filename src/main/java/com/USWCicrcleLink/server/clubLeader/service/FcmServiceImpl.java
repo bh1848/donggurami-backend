@@ -26,7 +26,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -116,18 +118,25 @@ public class FcmServiceImpl implements FcmService {
         else if (aplictResult == AplictStatus.FAIL) bodyMessage = aplict.getClub().getClubName() + APLICT_FAIL_MESSAGE;
         else bodyMessage = APLICT_ERROR_MESSAGE;
 
+        Map<String, String> data = new HashMap<>();
+        data.put("title", titleMessage);
+        data.put("body", bodyMessage);
+
         // 메시지 구성
-        FcmMessageDto fcmMessageDto = FcmMessageDto.builder()
+        FcmMessageDto createFcmMessage = FcmMessageDto.builder()
                 .message(FcmMessageDto.Message.builder()
                         .token(aplict.getProfile().getFcmToken().trim())
-                        .notification(FcmMessageDto.Notification.builder()
-                                .title(titleMessage)
-                                .body(bodyMessage)
-                                .image(null)
-                                .build()
-                        ).build()).validateOnly(false).build();
+                        .notification(
+                                FcmMessageDto.Notification.builder()
+                                        .title(titleMessage)
+                                        .body(bodyMessage)
+                                        .build()
+                        )
+                        .data(data)
+                        .build())
+                .build();
 
-        return om.writeValueAsString(fcmMessageDto);
+        return om.writeValueAsString(createFcmMessage);
     }
 
     // fcm token 갱신
