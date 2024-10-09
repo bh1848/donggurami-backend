@@ -31,7 +31,7 @@ public class SignUpRequest {
     @Pattern(regexp = "^[a-zA-Z가-힣]+$", message = "이름은 영어 또는 한글만 입력 가능합니다", groups = ValidationGroups.PatternGroup.class)
     private String userName;
 
-    // 전화번호는 필수 값 x
+    @NotBlank(message = "전화번호는 필수 입력값 입니다")
     @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다", groups = PatternGroup.class)
     private String telephone;
 
