@@ -4,9 +4,11 @@ server:
 # log setting
 logging:
   level:
+    root: warn
     com:
       USWCicrcleLink:
-        server: debug
+        server: warn
+    p6spy: OFF
 
 #email url
 email:
