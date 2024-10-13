@@ -13,6 +13,9 @@ email:
   config:
     baseUrl: "http://localhost:8080"
 
+firebase:
+  config-path: ${LOCAL_FIREBASE_CONFIG_PATH}
+
 spring:
   config:
     import: optional:file:.env[.properties]
@@ -37,8 +40,6 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
-  firebase:
-    config-path:${LOCAL_FIREBASE_CONFIG_PATH}
 
 # CORS 설정 추가
 cors:

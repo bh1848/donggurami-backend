@@ -2,8 +2,6 @@ package com.USWCicrcleLink.server.clubLeader.service;
 
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
-import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.FcmSendDto;
 import com.USWCicrcleLink.server.clubLeader.dto.FcmTokenRequest;
 import org.springframework.stereotype.Service;
 
