@@ -299,18 +299,6 @@ public class DummyData {
             clubIntroPhotoRepository.save(clubIntroPhoto);
         }
 
-        ClubMembers clubMembers1 = ClubMembers.builder()
-                .club(flagClub)
-                .profile(profile1)
-                .build();
-        clubMembersRepository.save(clubMembers1);
-
-        ClubMembers clubMembers2 = ClubMembers.builder()
-                .club(flagClub)
-                .profile(profile2)
-                .build();
-        clubMembersRepository.save(clubMembers2);
-
         // FLAG 동아리 지원자
         Aplict aplict1 = Aplict.builder()
                 .profile(profile1)
