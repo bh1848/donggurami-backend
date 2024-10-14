@@ -10,12 +10,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ClubMembersRepository extends JpaRepository<ClubMembers,Long>, ClubMembersRepositoryCustom {
 
     //동아리원 조회 성능 비교
     List<ClubMembers> findByClub(Club club);
     List<ClubMembers> findByProfileProfileId(Long profileId);
+    ClubMembers findByProfileProfileIdAndClubClubId(Long profileId, Long clubId);
 
     void deleteAllByProfile(Profile profile);
 }
