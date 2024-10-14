@@ -497,21 +497,32 @@ public class ClubLeaderService {
                             false)
                     .orElseThrow(() -> new AplictException(ExceptionType.APPLICANT_NOT_EXISTS));
 
+            // 동아리원 중복 존재 검사
+            ClubMembers isInClubMember = clubMembersRepository
+                    .findByProfileProfileIdAndClubClubId(applicant.getProfile().getProfileId(), club.getClubId());
+            if (isInClubMember != null) {
+                throw new ClubMemberException(ExceptionType.CLUB_MEMBER_ALREADY_EXISTS);
+            }
+
             // 합격 불합격 상태 업데이트
             // 합/불, checked, 삭제 날짜
 
             AplictStatus aplictResult = result.getAplictStatus();// 지원 결과 PASS/ FAIL
             if (aplictResult == AplictStatus.PASS) {
+                ClubMembers newClubMembers = ClubMembers.builder()
+                        .club(club)
+                        .profile(applicant.getProfile())
+                        .build();
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
-                fcmService.sendMessageTo(applicant, aplictResult);
+                clubMembersRepository.save(newClubMembers);
                 log.debug("합격 처리 완료: {}", applicant.getId());
             } else if (aplictResult == AplictStatus.FAIL) {
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
-                fcmService.sendMessageTo(applicant, aplictResult);
                 log.debug("불합격 처리 완료: {}", applicant.getId());
             }
 
             aplictRepository.save(applicant);
+            fcmService.sendMessageTo(applicant, aplictResult);
         }
     }
 
@@ -576,14 +587,27 @@ public class ClubLeaderService {
                     )
                     .orElseThrow(() -> new AplictException(ExceptionType.ADDITIONAL_APPLICANT_NOT_EXISTS));
 
+            // 동아리원 중복 존재 검사
+            ClubMembers isInClubMember = clubMembersRepository
+                    .findByProfileProfileIdAndClubClubId(applicant.getProfile().getProfileId(), club.getClubId());
+            if (isInClubMember != null) {
+                throw new ClubMemberException(ExceptionType.CLUB_MEMBER_ALREADY_EXISTS);
+            }
+
             // 합격 불합격 상태 업데이트
             // 합격
+            ClubMembers newClubMembers = ClubMembers.builder()
+                    .club(club)
+                    .profile(applicant.getProfile())
+                    .build();
+            clubMembersRepository.save(newClubMembers);
+
             AplictStatus aplictResult = result.getAplictStatus();
             applicant.updateFailedAplictStatus(aplictResult);
+            aplictRepository.save(applicant);
+
             fcmService.sendMessageTo(applicant, aplictResult);
             log.debug("추가 합격 처리 완료: {}", applicant.getId());
-
-            aplictRepository.save(applicant);
         }
     }
 
