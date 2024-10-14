@@ -16,7 +16,7 @@ email:
     baseUrl: ${PROD_SERVER_URL}
 
 firebase:
-  config-path:${SERVER_FIREBASE_CONFIG_PATH}
+  config-path: ${SERVER_FIREBASE_CONFIG_PATH}
 
 spring:
   config:
