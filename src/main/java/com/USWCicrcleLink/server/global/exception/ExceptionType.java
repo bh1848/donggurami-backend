@@ -113,6 +113,8 @@ public enum ExceptionType {
     APPLICANT_NOT_EXISTS("APT-202","유효한 지원자가 존재하지 않습니다.", NOT_FOUND),
     ADDITIONAL_APPLICANT_NOT_EXISTS("APT-203","유효한 추합 대상자가 존재하지 않습니다.", NOT_FOUND),
     APPLICANT_COUNT_MISMATCH("APT-204", "선택한 지원자 수와 전체 지원자 수가 일치하지 않습니다.", BAD_REQUEST),
+    ALREADY_APPLIED("APT-205", "이미 지원한 동아리입니다.", BAD_REQUEST),
+    ALREADY_MEMBER("APT-206", "이미 해당 동아리 회원입니다.", BAD_REQUEST),
 
     /**
      * Domain: AuthCodeToken
