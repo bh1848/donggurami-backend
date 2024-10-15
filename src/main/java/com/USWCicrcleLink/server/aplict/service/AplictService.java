@@ -6,6 +6,7 @@ import com.USWCicrcleLink.server.aplict.dto.AplictRequest;
 import com.USWCicrcleLink.server.aplict.dto.AplictResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
@@ -36,6 +37,31 @@ public class AplictService {
     private final ClubRepository clubRepository;
     private final ProfileRepository profileRepository;
     private final ClubIntroRepository clubIntroRepository;
+    private final ClubMembersRepository clubMembersRepository;
+
+    // 동아리 지원 가능 여부 확인
+    public void checkIfCanApply(Long clubId) {
+        // 인증된 사용자 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        User user = userDetails.user();
+
+        // 사용자 프로필 조회
+        Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+
+        // 이미 해당 동아리에 지원했는지 확인
+        boolean alreadyApplied = aplictRepository.existsByProfileAndClub_ClubId(profile, clubId);
+        if (alreadyApplied) {
+            throw new ClubException(ExceptionType.ALREADY_APPLIED);
+        }
+
+        // 이미 동아리 멤버인지 확인
+        boolean isMember = clubMembersRepository.existsByProfileAndClub_ClubId(profile, clubId);
+        if (isMember) {
+            throw new ClubException(ExceptionType.ALREADY_MEMBER);
+        }
+    }
 
     //지원서 작성하기(구글 폼 반환)(모바일)
     @Transactional(readOnly = true)

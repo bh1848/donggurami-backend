@@ -24,7 +24,7 @@ public class ClubIntro {
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
 
-    @Column(name = "club_intro")
+    @Column(name = "club_intro", length=3000)
     private String clubIntro;
 
     @Column(name = "googleForm_url")

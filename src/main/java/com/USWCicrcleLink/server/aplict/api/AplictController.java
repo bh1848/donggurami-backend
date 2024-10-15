@@ -16,6 +16,14 @@ import java.util.UUID;
 public class AplictController {
     private final AplictService aplictService;
 
+    // 지원 가능 여부 확인 API
+    @GetMapping("/can-apply/{clubId}")
+    public ResponseEntity<ApiResponse<Boolean>> canApply(@PathVariable("clubId") Long clubId) {
+        aplictService.checkIfCanApply(clubId);
+        ApiResponse<Boolean> response = new ApiResponse<>("지원 가능");
+        return ResponseEntity.ok(response);
+    }
+
     //지원서 작성하기(구글 폼 반환)(모바일)
     @GetMapping("/{clubId}")
     public ResponseEntity<ApiResponse<String>> getGoogleFormUrl(@PathVariable("clubId") Long clubId) {

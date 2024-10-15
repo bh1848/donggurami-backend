@@ -1,9 +1,10 @@
 package com.USWCicrcleLink.server.admin.admin.service;
 
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminPwRequest;
+import com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse;
 import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationRequest;
 import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationResponse;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
@@ -18,9 +19,7 @@ import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
-import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
-import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -31,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -59,11 +57,8 @@ public class AdminService {
 
     // 동아리 생성(웹)
     public ClubCreationResponse createClub(ClubCreationRequest request) {
-
-        // SecurityContextHolder에서 인증 정보 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
-        Admin admin = adminDetails.admin();
+        // 인증된 관리자 정보 가져오기
+        Admin admin = getAuthenticatedAdmin();
 
         // 관리자 비밀번호 검증
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
@@ -87,31 +82,13 @@ public class AdminService {
             throw new ClubException(ExceptionType.CLUB_NAME_ALREADY_EXISTS);
         }
 
-        // 입력값 검증 (XSS 공격 방지)
-        String sanitizedClubName = InputValidator.sanitizeContent(request.getClubName());
-        String sanitizedLeaderAccount = InputValidator.sanitizeContent(request.getLeaderAccount());
-
         // Club 생성 및 저장
-        Club club = Club.builder()
-                .clubName(sanitizedClubName)
-                .department(request.getDepartment())
-                .leaderName("")
-                .leaderHp("")
-                .clubInsta("")
-                .build();
+        Club club = request.toClub();  // DTO에서 Club 변환
         clubRepository.save(club);
-        log.debug("동아리 생성 성공: {}", club.getClubName());
 
         // Leader 생성 및 저장
-        Leader leader = Leader.builder()
-                .leaderAccount(sanitizedLeaderAccount)
-                .leaderPw(passwordEncoder.encode(request.getLeaderPw()))  // 비밀번호는 암호화해서 저장
-                .leaderUUID(UUID.randomUUID())
-                .role(Role.LEADER)
-                .club(club)
-                .build();
+        Leader leader = request.toLeader(club, passwordEncoder);  // DTO에서 Leader 변환
         leaderRepository.save(leader);
-        log.debug("동아리 회장 생성 성공: {}", leader.getLeaderAccount());
 
         // ClubMainPhoto 생성 및 저장
         ClubMainPhoto mainPhoto = ClubMainPhoto.builder()
@@ -120,7 +97,6 @@ public class AdminService {
                 .clubMainPhotoS3Key("")
                 .build();
         clubMainPhotoRepository.save(mainPhoto);
-        log.debug("동아리 메인 사진 생성 성공");
 
         // ClubIntro 생성 및 저장
         ClubIntro clubIntro = ClubIntro.builder()
@@ -130,7 +106,6 @@ public class AdminService {
                 .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
         clubIntroRepository.save(clubIntro);
-        log.debug("동아리 소개 생성 성공: {}", clubIntro.getClubIntro());
 
         // ClubIntroPhoto 기본값 설정 (5개 생성)
         List<ClubIntroPhoto> introPhotos = new ArrayList<>();
@@ -139,26 +114,23 @@ public class AdminService {
                     .clubIntro(clubIntro)
                     .clubIntroPhotoName("")
                     .clubIntroPhotoS3Key("")
-                    .order(i)  // 순서 설정 (1~5)
+                    .order(i)
                     .build();
             introPhotos.add(introPhoto);
         }
         clubIntroPhotoRepository.saveAll(introPhotos);
-        log.debug("동아리 소개 사진 5개 생성 성공");
-
+        log.debug("동아리 생성 성공");
         return new ClubCreationResponse(club, leader);
     }
 
     // 동아리 삭제(웹)
-    public void deleteClub(Long clubId, String adminPw) {
+    public void deleteClub(Long clubId, AdminPwRequest request) {
 
-        // SecurityContextHolder에서 인증 정보 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
-        Admin admin = adminDetails.admin();
+        // 인증된 관리자 정보 가져오기
+        Admin admin = getAuthenticatedAdmin();
 
         // 관리자 비밀번호 검증
-        if (!passwordEncoder.matches(adminPw, admin.getAdminPw())) {
+        if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
 
@@ -169,5 +141,12 @@ public class AdminService {
         // 동아리 및 관련 종속 엔티티와 S3 파일 삭제
         clubRepository.deleteClubAndDependencies(clubId);
         log.debug("동아리 삭제 성공: clubId = {}", clubId);
+    }
+
+    // 인증된 관리자 정보 가져오기
+    private Admin getAuthenticatedAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
+        return adminDetails.admin();
     }
 }

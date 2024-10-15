@@ -45,8 +45,8 @@ public class AdminController {
 
     // 동아리 삭제(웹)
     @DeleteMapping("/clubs/{clubId}")
-    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubId") Long clubId, @RequestBody @Valid AdminPwRequest pwRequest) {
-        adminService.deleteClub(clubId, pwRequest.getAdminPw());
+    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubId") Long clubId, @RequestBody @Valid AdminPwRequest request) {
+        adminService.deleteClub(clubId, request);
         ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공: clubId", clubId);
         return ResponseEntity.ok(response);
     }
