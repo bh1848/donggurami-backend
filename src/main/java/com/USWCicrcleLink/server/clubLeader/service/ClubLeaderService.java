@@ -110,8 +110,8 @@ public class ClubLeaderService {
 
         // 입력값 검증 (XSS 공격 방지)
         String sanitizedLeaderName = InputValidator.sanitizeContent(clubInfoRequest.getLeaderName());
-        String sanitizedClubInsta = clubInfoRequest.getClubInsta() != null ? InputValidator.sanitizeContent(clubInfoRequest.getClubInsta()) : null;
-        String sanitizedLeaderHp = clubInfoRequest.getLeaderHp() != null ? InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp()) : null;
+        String sanitizedClubInsta = clubInfoRequest.getClubInsta() != null ? InputValidator.sanitizeContent(clubInfoRequest.getClubInsta()) : "";
+        String sanitizedLeaderHp = clubInfoRequest.getLeaderHp() != null ? InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp()) : "";
 
         // 사진이 없을 경우 null
         S3FileResponse s3FileResponse = null;
@@ -191,10 +191,12 @@ public class ClubLeaderService {
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         // 입력값 검증 (XSS 공격 방지)
-        String sanitizedClubIntro = InputValidator.sanitizeContent(clubIntroRequest.getClubIntro());
-        String sanitizedGoogleFormUrl = InputValidator.sanitizeContent(clubIntroRequest.getGoogleFormUrl());
+        String sanitizedClubIntro = clubIntroRequest.getClubIntro() != null
+                ? InputValidator.sanitizeContent(clubIntroRequest.getClubIntro()) : "";
+        String sanitizedGoogleFormUrl = clubIntroRequest.getGoogleFormUrl() != null
+                ? InputValidator.sanitizeContent(clubIntroRequest.getGoogleFormUrl()) : "";
 
-        if (!clubIntroRequest.getDeletedOrders().isEmpty()) {// 삭제할 사진이 있다면
+        if (clubIntroRequest.getDeletedOrders() != null && !clubIntroRequest.getDeletedOrders().isEmpty()) {// 삭제할 사진이 있다면
             // 순서 개수, 범위 검증
             validateOrderValues(clubIntroRequest.getDeletedOrders());
 
