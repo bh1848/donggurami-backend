@@ -98,7 +98,7 @@ public enum ExceptionType {
     CLUB_LEADER_NOT_EXISTS("CLDR-201","동아리 회장이 존재하지 않습니다.", BAD_REQUEST),
     ClUB_LEADER_PASSWORD_NOT_MATCH("CLDR-202", "동아리 회장 비밀번호가 일치하지 않습니다", BAD_REQUEST),
     LEADER_ACCOUNT_ALREADY_EXISTS("CLDR-203", "이미 존재하는 동아리 회장 계정입니다.", UNPROCESSABLE_ENTITY),
-
+    LEADER_NAME_REQUIRED("CLDR-204", "동아리 회장의 이름은 필수 입력 항목입니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubMember

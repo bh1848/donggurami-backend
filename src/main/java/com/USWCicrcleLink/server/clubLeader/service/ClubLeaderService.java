@@ -103,32 +103,39 @@ public class ClubLeaderService {
 
         Club club = validateLeader(clubId);
 
-        // 입력값 검증 (XSS 공격 방지)
-        String sanitizedLeaderName = InputValidator.sanitizeContent(clubInfoRequest.getLeaderName());
-        String sanitizedClubInsta = InputValidator.sanitizeContent(clubInfoRequest.getClubInsta());
-        String sanitizedLeaderHp = InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp());
-
-        // 기존 동아리 대표 사진 조회
-        ClubMainPhoto existingPhoto = clubMainPhotoRepository.findByClub_ClubId(clubId);
-
-        S3FileResponse s3FileResponse;
-
-        // 기존 사진이 존재할 경우
-        if (!existingPhoto.getClubMainPhotoS3Key().isEmpty() && !existingPhoto.getClubMainPhotoName().isEmpty()) {
-            // 기존 S3 파일 삭제
-            s3FileUploadService.deleteFile(existingPhoto.getClubMainPhotoS3Key());
-            log.debug("기존 대표 사진 삭제 완료: {}", existingPhoto.getClubMainPhotoS3Key());
+        // 동아리 회장의 이름 필수
+        if (clubInfoRequest.getLeaderName() == null || clubInfoRequest.getLeaderName().trim().isEmpty()) {
+            throw new ClubLeaderException(ExceptionType.LEADER_NAME_REQUIRED);
         }
 
-        // 새로운 파일 업로드 및 메타 데이터 업데이트
-        s3FileResponse = updateClubMainPhotoAndS3File(mainPhoto, existingPhoto);
+        // 입력값 검증 (XSS 공격 방지)
+        String sanitizedLeaderName = InputValidator.sanitizeContent(clubInfoRequest.getLeaderName());
+        String sanitizedClubInsta = clubInfoRequest.getClubInsta() != null ? InputValidator.sanitizeContent(clubInfoRequest.getClubInsta()) : null;
+        String sanitizedLeaderHp = clubInfoRequest.getLeaderHp() != null ? InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp()) : null;
+
+        // 사진이 없을 경우 null
+        S3FileResponse s3FileResponse = null;
+        if (mainPhoto != null && !mainPhoto.isEmpty()) {
+            // 기존 동아리 대표 사진 조회
+            ClubMainPhoto existingPhoto = clubMainPhotoRepository.findByClub_ClubId(clubId);
+
+            // 기존 사진이 존재할 경우
+            if (existingPhoto != null && existingPhoto.getClubMainPhotoS3Key() != null && !existingPhoto.getClubMainPhotoS3Key().isEmpty()) {
+                s3FileUploadService.deleteFile(existingPhoto.getClubMainPhotoS3Key());
+                log.debug("기존 대표 사진 삭제 완료: {}", existingPhoto.getClubMainPhotoS3Key());
+            }
+
+            // 새로운 파일 업로드 및 메타 데이터 업데이트
+            s3FileResponse = updateClubMainPhotoAndS3File(mainPhoto, existingPhoto);
+        }
 
         // 동아리 기본 정보 변경
         club.updateClubInfo(sanitizedLeaderName, sanitizedLeaderHp, sanitizedClubInsta);
         clubRepository.save(club);
         log.debug("동아리 기본 정보 변경 완료: {}", club.getClubName());
 
-        return new ApiResponse<>("동아리 기본 정보 변경 완료", new UpdateClubInfoResponse(s3FileResponse.getPresignedUrl()));
+        String mainPhotoUrl = s3FileResponse != null ? s3FileResponse.getPresignedUrl() : "";
+        return new ApiResponse<>("동아리 기본 정보 변경 완료", new UpdateClubInfoResponse(mainPhotoUrl));
     }
 
     private S3FileResponse updateClubMainPhotoAndS3File(MultipartFile mainPhoto, ClubMainPhoto existingPhoto) throws IOException {
