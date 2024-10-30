@@ -21,11 +21,6 @@ public class InputValidator {
         // Jsoup을 통해 XSS 방지 및 허용 태그 이외의 모든 태그 제거
         String sanitizedContent = Jsoup.clean(content, safelist);
 
-        // 정제 후 내용이 비어있지 않은지 확인
-        if (sanitizedContent.trim().isEmpty()) {
-            throw new TextException(ExceptionType.TEXT_IS_EMPTY);
-        }
-
         return sanitizedContent;
     }
 

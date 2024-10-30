@@ -134,7 +134,6 @@ public enum ExceptionType {
     SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR),
     INVALID_UUID_FORMAT("UUID-502", "유효하지 않은 UUID 형식입니다." , BAD_REQUEST),
     TOO_MANY_ATTEMPT("ATTEMPT-503", "최대 시도 횟수를 초과했습니다. 1분 후  다시 시도 하세요", BAD_REQUEST),
-    TEXT_IS_EMPTY("TEXT-503", "글이 비어있습니다.", BAD_REQUEST),
 
 
     /**
