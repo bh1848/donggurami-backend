@@ -250,7 +250,6 @@ public class UserService {
     }
 
     // 비밀번호 변경을 위한 인증 코드 메일 전송
-    @RateLimite(action = "PW_FOUND_EMAIL")
     public void sendAuthCodeMail(User user, AuthToken authToken)  {
         log.debug("비밀번호 찾기  메일 생성 요청");
         MimeMessage message = emailService.createAuthCodeMail(user,authToken);
@@ -268,7 +267,6 @@ public class UserService {
     }
 
     // 회원 탈퇴 메일 전송
-    @RateLimite(action = "WITHDRAWAL_EMAIL")
     public void sendWithdrawalCodeMail (WithdrawalToken token)  {
         log.debug("회원 탈퇴 메일 생성 요청");
         User findUser = getUserByAuth();
