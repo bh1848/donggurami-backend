@@ -43,9 +43,6 @@ public class ClubIntroService {
     public List<ClubListResponse> getAllClubs() {
         log.debug("전체 동아리 리스트 조회");
         List<Club> clubs = clubRepository.findAll();  // 전체 동아리 조회로 수정
-        if (clubs.isEmpty()) {
-            throw new ClubException(ExceptionType.CLUB_NOT_EXISTS);
-        }
 
         return clubs.stream()
                 .map(club -> {
@@ -68,9 +65,6 @@ public class ClubIntroService {
     public List<ClubByRecruitmentStatusResponse> getClubsByRecruitmentStatus(RecruitmentStatus recruitmentStatus) {
         log.debug("모집 상태별 동아리 리스트 조회: recruitmentStatus={}", recruitmentStatus);
         List<ClubIntro> clubs = clubIntroRepository.findByRecruitmentStatus(recruitmentStatus);  // 분과 조건 제거
-        if (clubs.isEmpty()) {
-            throw new ClubException(ExceptionType.CLUB_NOT_EXISTS);
-        }
 
         return clubs.stream()
                 .map(clubIntro -> {
