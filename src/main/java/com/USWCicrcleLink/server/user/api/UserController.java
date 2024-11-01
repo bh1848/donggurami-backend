@@ -142,6 +142,7 @@ public class UserController {
 
     // 비밀번호 찾기 - 인증 코드 전송
     @PostMapping("/auth/send-code")
+    @RateLimite(action = "PW_FOUND_EMAIL")
     ResponseEntity<ApiResponse<UUID>> sendAuthCode (@Valid @RequestBody UserInfoDto request) {
 
         User user = userService.validateAccountAndEmail(request);
@@ -174,6 +175,7 @@ public class UserController {
 
     // 회원 탈퇴 요청 및 메일 전송
     @PostMapping("/exit/send-code")
+    @RateLimite(action = "WITHDRAWAL_EMAIL")
     public ApiResponse<String> sendWithdrawalCode () {
 
         // 탈퇴 토큰 생성
