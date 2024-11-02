@@ -24,18 +24,20 @@ public class SignUpRequest {
 
     @NotBlank(message = "비밀번호는 필수 입력 값입니다.",groups = NotBlankGroup.class)
     @Size(min = 5, max = 20, message = "비밀번호는 5~20자 이내여야 합니다.",groups = SizeGroup.class)
-    @Pattern(regexp = "^[a-zA-Z0-9!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]+$", message = "비밀번호는 영문 대소문자, 숫자, 특수문자만 포함할 수 있습니다.",groups = PatternGroup.class)
+    @Pattern(regexp = "^[a-zA-Z0-9!@#$%^&*()]+$", message = "비밀번호는 영문 대소문자, 숫자, 특수문자만 포함할 수 있습니다.",groups = PatternGroup.class)
     private String password;
 
     @NotBlank(message = "이름 필수 입력 값입니다.")
     @Pattern(regexp = "^[a-zA-Z가-힣]+$", message = "이름은 영어 또는 한글만 입력 가능합니다", groups = ValidationGroups.PatternGroup.class)
     private String userName;
 
-    // 전화번호는 필수 값 x
+    @NotBlank(message = "전화번호는 필수 입력값 입니다")
+    @Size(max =11, message = "전화번호는 11자리까지 입력가능합니다",groups = SizeGroup.class)
     @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다", groups = PatternGroup.class)
     private String telephone;
 
     @NotBlank(message = "학번 필수 입력 값입니다.",groups = NotBlankGroup.class)
+    @Size(max =8, message = "학번은 최대 8자리 입니다",groups = SizeGroup.class)
     @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다",groups = PatternGroup.class)
     private String studentNumber;
 
@@ -50,7 +52,7 @@ public class SignUpRequest {
     public UserTemp toEntity(String encodedPassword) {
         return UserTemp.builder()
                 .tempAccount(account)
-                .tempPw(encodedPassword) // 인코딩된 비밀번호로 저장
+                .tempPw(encodedPassword)
                 .tempName(userName)
                 .tempHp(telephone)
                 .tempStudentNumber(studentNumber)

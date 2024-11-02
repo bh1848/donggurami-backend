@@ -103,32 +103,39 @@ public class ClubLeaderService {
 
         Club club = validateLeader(clubId);
 
-        // 입력값 검증 (XSS 공격 방지)
-        String sanitizedLeaderName = InputValidator.sanitizeContent(clubInfoRequest.getLeaderName());
-        String sanitizedClubInsta = InputValidator.sanitizeContent(clubInfoRequest.getClubInsta());
-        String sanitizedLeaderHp = InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp());
-
-        // 기존 동아리 대표 사진 조회
-        ClubMainPhoto existingPhoto = clubMainPhotoRepository.findByClub_ClubId(clubId);
-
-        S3FileResponse s3FileResponse;
-
-        // 기존 사진이 존재할 경우
-        if (!existingPhoto.getClubMainPhotoS3Key().isEmpty() && !existingPhoto.getClubMainPhotoName().isEmpty()) {
-            // 기존 S3 파일 삭제
-            s3FileUploadService.deleteFile(existingPhoto.getClubMainPhotoS3Key());
-            log.debug("기존 대표 사진 삭제 완료: {}", existingPhoto.getClubMainPhotoS3Key());
+        // 동아리 회장의 이름 필수
+        if (clubInfoRequest.getLeaderName() == null || clubInfoRequest.getLeaderName().trim().isEmpty()) {
+            throw new ClubLeaderException(ExceptionType.LEADER_NAME_REQUIRED);
         }
 
-        // 새로운 파일 업로드 및 메타 데이터 업데이트
-        s3FileResponse = updateClubMainPhotoAndS3File(mainPhoto, existingPhoto);
+        // 입력값 검증 (XSS 공격 방지)
+        String sanitizedLeaderName = InputValidator.sanitizeContent(clubInfoRequest.getLeaderName());
+        String sanitizedClubInsta = clubInfoRequest.getClubInsta() != null ? InputValidator.sanitizeContent(clubInfoRequest.getClubInsta()) : "";
+        String sanitizedLeaderHp = clubInfoRequest.getLeaderHp() != null ? InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp()) : "";
+
+        // 사진이 없을 경우 null
+        S3FileResponse s3FileResponse = null;
+        if (mainPhoto != null && !mainPhoto.isEmpty()) {
+            // 기존 동아리 대표 사진 조회
+            ClubMainPhoto existingPhoto = clubMainPhotoRepository.findByClub_ClubId(clubId);
+
+            // 기존 사진이 존재할 경우
+            if (existingPhoto != null && existingPhoto.getClubMainPhotoS3Key() != null && !existingPhoto.getClubMainPhotoS3Key().isEmpty()) {
+                s3FileUploadService.deleteFile(existingPhoto.getClubMainPhotoS3Key());
+                log.debug("기존 대표 사진 삭제 완료: {}", existingPhoto.getClubMainPhotoS3Key());
+            }
+
+            // 새로운 파일 업로드 및 메타 데이터 업데이트
+            s3FileResponse = updateClubMainPhotoAndS3File(mainPhoto, existingPhoto);
+        }
 
         // 동아리 기본 정보 변경
         club.updateClubInfo(sanitizedLeaderName, sanitizedLeaderHp, sanitizedClubInsta);
         clubRepository.save(club);
         log.debug("동아리 기본 정보 변경 완료: {}", club.getClubName());
 
-        return new ApiResponse<>("동아리 기본 정보 변경 완료", new UpdateClubInfoResponse(s3FileResponse.getPresignedUrl()));
+        String mainPhotoUrl = s3FileResponse != null ? s3FileResponse.getPresignedUrl() : "";
+        return new ApiResponse<>("동아리 기본 정보 변경 완료", new UpdateClubInfoResponse(mainPhotoUrl));
     }
 
     private S3FileResponse updateClubMainPhotoAndS3File(MultipartFile mainPhoto, ClubMainPhoto existingPhoto) throws IOException {
@@ -184,10 +191,12 @@ public class ClubLeaderService {
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         // 입력값 검증 (XSS 공격 방지)
-        String sanitizedClubIntro = InputValidator.sanitizeContent(clubIntroRequest.getClubIntro());
-        String sanitizedGoogleFormUrl = InputValidator.sanitizeContent(clubIntroRequest.getGoogleFormUrl());
+        String sanitizedClubIntro = clubIntroRequest.getClubIntro() != null
+                ? InputValidator.sanitizeContent(clubIntroRequest.getClubIntro()) : "";
+        String sanitizedGoogleFormUrl = clubIntroRequest.getGoogleFormUrl() != null
+                ? InputValidator.sanitizeContent(clubIntroRequest.getGoogleFormUrl()) : "";
 
-        if (!clubIntroRequest.getDeletedOrders().isEmpty()) {// 삭제할 사진이 있다면
+        if (clubIntroRequest.getDeletedOrders() != null && !clubIntroRequest.getDeletedOrders().isEmpty()) {// 삭제할 사진이 있다면
             // 순서 개수, 범위 검증
             validateOrderValues(clubIntroRequest.getDeletedOrders());
 
@@ -497,21 +506,32 @@ public class ClubLeaderService {
                             false)
                     .orElseThrow(() -> new AplictException(ExceptionType.APPLICANT_NOT_EXISTS));
 
+            // 동아리원 중복 존재 검사
+            ClubMembers isInClubMember = clubMembersRepository
+                    .findByProfileProfileIdAndClubClubId(applicant.getProfile().getProfileId(), club.getClubId());
+            if (isInClubMember != null) {
+                throw new ClubMemberException(ExceptionType.CLUB_MEMBER_ALREADY_EXISTS);
+            }
+
             // 합격 불합격 상태 업데이트
             // 합/불, checked, 삭제 날짜
 
             AplictStatus aplictResult = result.getAplictStatus();// 지원 결과 PASS/ FAIL
             if (aplictResult == AplictStatus.PASS) {
+                ClubMembers newClubMembers = ClubMembers.builder()
+                        .club(club)
+                        .profile(applicant.getProfile())
+                        .build();
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
-                fcmService.sendMessageTo(applicant, aplictResult);
+                clubMembersRepository.save(newClubMembers);
                 log.debug("합격 처리 완료: {}", applicant.getId());
             } else if (aplictResult == AplictStatus.FAIL) {
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
-                fcmService.sendMessageTo(applicant, aplictResult);
                 log.debug("불합격 처리 완료: {}", applicant.getId());
             }
 
             aplictRepository.save(applicant);
+            fcmService.sendMessageTo(applicant, aplictResult);
         }
     }
 
@@ -576,14 +596,27 @@ public class ClubLeaderService {
                     )
                     .orElseThrow(() -> new AplictException(ExceptionType.ADDITIONAL_APPLICANT_NOT_EXISTS));
 
+            // 동아리원 중복 존재 검사
+            ClubMembers isInClubMember = clubMembersRepository
+                    .findByProfileProfileIdAndClubClubId(applicant.getProfile().getProfileId(), club.getClubId());
+            if (isInClubMember != null) {
+                throw new ClubMemberException(ExceptionType.CLUB_MEMBER_ALREADY_EXISTS);
+            }
+
             // 합격 불합격 상태 업데이트
             // 합격
+            ClubMembers newClubMembers = ClubMembers.builder()
+                    .club(club)
+                    .profile(applicant.getProfile())
+                    .build();
+            clubMembersRepository.save(newClubMembers);
+
             AplictStatus aplictResult = result.getAplictStatus();
             applicant.updateFailedAplictStatus(aplictResult);
+            aplictRepository.save(applicant);
+
             fcmService.sendMessageTo(applicant, aplictResult);
             log.debug("추가 합격 처리 완료: {}", applicant.getId());
-
-            aplictRepository.save(applicant);
         }
     }
 

@@ -98,12 +98,13 @@ public enum ExceptionType {
     CLUB_LEADER_NOT_EXISTS("CLDR-201","동아리 회장이 존재하지 않습니다.", BAD_REQUEST),
     ClUB_LEADER_PASSWORD_NOT_MATCH("CLDR-202", "동아리 회장 비밀번호가 일치하지 않습니다", BAD_REQUEST),
     LEADER_ACCOUNT_ALREADY_EXISTS("CLDR-203", "이미 존재하는 동아리 회장 계정입니다.", UNPROCESSABLE_ENTITY),
-
+    LEADER_NAME_REQUIRED("CLDR-204", "동아리 회장의 이름은 필수 입력 항목입니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubMember
      */
     CLUB_MEMBER_NOT_EXISTS("CMEM-201","클럽멤버가 존재하지 않습니다.", NOT_FOUND),
+    CLUB_MEMBER_ALREADY_EXISTS("CMEM-202","클럽멤버가 이미 존재합니다. 관리자에게 문의하세요.", BAD_REQUEST),
 
     /**
      * Domain: Aplict
@@ -112,6 +113,8 @@ public enum ExceptionType {
     APPLICANT_NOT_EXISTS("APT-202","유효한 지원자가 존재하지 않습니다.", NOT_FOUND),
     ADDITIONAL_APPLICANT_NOT_EXISTS("APT-203","유효한 추합 대상자가 존재하지 않습니다.", NOT_FOUND),
     APPLICANT_COUNT_MISMATCH("APT-204", "선택한 지원자 수와 전체 지원자 수가 일치하지 않습니다.", BAD_REQUEST),
+    ALREADY_APPLIED("APT-205", "이미 지원한 동아리입니다.", BAD_REQUEST),
+    ALREADY_MEMBER("APT-206", "이미 해당 동아리 회원입니다.", BAD_REQUEST),
 
     /**
      * Domain: AuthCodeToken
@@ -131,7 +134,6 @@ public enum ExceptionType {
     SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR),
     INVALID_UUID_FORMAT("UUID-502", "유효하지 않은 UUID 형식입니다." , BAD_REQUEST),
     TOO_MANY_ATTEMPT("ATTEMPT-503", "최대 시도 횟수를 초과했습니다. 1분 후  다시 시도 하세요", BAD_REQUEST),
-    TEXT_IS_EMPTY("TEXT-503", "글이 비어있습니다.", BAD_REQUEST),
 
 
     /**

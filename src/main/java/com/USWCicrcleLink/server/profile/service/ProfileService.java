@@ -59,6 +59,7 @@ public class ProfileService {
     private void validateProfileRequest(ProfileRequest profileRequest) {
         if (profileRequest.getUserName() == null || profileRequest.getUserName().trim().isEmpty() ||
                 profileRequest.getStudentNumber() == null || profileRequest.getStudentNumber().trim().isEmpty() ||
+                profileRequest.getUserHp() == null || profileRequest.getUserHp().trim().isEmpty() ||
                 profileRequest.getMajor() == null || profileRequest.getMajor().trim().isEmpty()) {
 
             throw new ProfileException(ExceptionType.PROFILE_NOT_INPUT);

@@ -22,4 +22,7 @@ public interface AplictRepository extends JpaRepository<Aplict, Long> ,AplictRep
     List<Aplict> findAllByDeleteDateBefore(LocalDateTime dateTime);
 
     void deleteAllByProfile(Profile profile);
+
+    // AplictRepository에서 지원 여부 확인
+    boolean existsByProfileAndClub_ClubId(Profile profile, Long clubId);
 }
