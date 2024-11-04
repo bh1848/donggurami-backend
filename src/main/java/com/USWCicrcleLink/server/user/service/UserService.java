@@ -115,7 +115,7 @@ public class UserService {
 
     // 비밀번호 조건이 충족되는지 확인
     private void checkPasswordCondition(String password){
-        if (!letterPattern.matcher(password).find() && !numberPattern.matcher(password).find() && !specialCharPattern.matcher(password).find()) {
+        if (!letterPattern.matcher(password).find() || !numberPattern.matcher(password).find() || !specialCharPattern.matcher(password).find()) {
             throw new UserException(ExceptionType.USER_PASSWORD_CONDITION_FAILED);
         }
     }
