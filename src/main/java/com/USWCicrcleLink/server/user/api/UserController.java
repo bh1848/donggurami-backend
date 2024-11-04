@@ -61,9 +61,9 @@ public class UserController {
 
     // 비밀번호 일치 확인
     @PostMapping("/validate-passwords-match")
-    public ResponseEntity<ApiResponse<Void>> checkPassword(@Valid @RequestBody PasswordRequest request) {
+    public ResponseEntity<ApiResponse<Void>> validatePassword(@Valid @RequestBody PasswordRequest request) {
 
-        userService.checkPassword(request);
+        userService.validatePassword(request);
 
         return ResponseEntity.ok(new ApiResponse<>("비밀번호가 일치합니다"));
     }
