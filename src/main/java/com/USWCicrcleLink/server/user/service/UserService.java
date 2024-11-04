@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 @Transactional
@@ -69,16 +70,21 @@ public class UserService {
 
     public void updateNewPW(UpdatePwRequest updatePwRequest){
 
+
         if (updatePwRequest.getNewPw().trim().isEmpty() || updatePwRequest.getConfirmNewPw().trim().isEmpty()) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_INPUT);
         }
 
-        if (!updatePwRequest.getNewPw().equals(updatePwRequest.getConfirmNewPw())) {
-            throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
-        }
-
         if (!confirmPW(updatePwRequest.getUserPw())) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
+        }
+
+        // 새로운 비밀번호의 유효성 검사
+        validatePasswords(updatePwRequest.getNewPw());
+
+        // 변경된 비밀번호 일치하는지 확인
+        if (!updatePwRequest.getNewPw().equals(updatePwRequest.getConfirmNewPw())) {
+            throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
         }
 
         User user = getUserByAuth();
@@ -199,15 +205,53 @@ public class UserService {
         return new TokenDto(accessToken, refreshToken);
     }
 
-   // 비밀번호 일치 확인
+   // 비밀번호 유효성 검사
    @Transactional(readOnly = true)
-    public void validatePasswordsMatch(PasswordRequest request) {
-        log.debug("비밀번호 일치 확인 요청 시작");
-        if(!request.getPassword().equals(request.getConfirmPassword())){
-            throw new UserException(ExceptionType.USER_PASSWORD_MISMATCH);
-        }
-        log.debug("비밀번호 일치 확인 완료");
+    public void checkPassword(PasswordRequest request) {
+
+       log.debug("비밀번호 유효성 확인 요청 시작");
+
+       // 비밀번호 유효성 검사
+       validatePasswords(request.getPassword());
+       // 두 비밀번호 일치 확인
+       checkPasswordMatch(request);
+
+       log.debug("비밀번호 검증 완료");
     }
+
+    // 비밀번호 일치 확인
+    private void checkPasswordMatch(PasswordRequest request){
+        if(!request.getPassword().equals(request.getConfirmPassword())){
+            throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
+        }
+    }
+
+    // 비밀번호 유효성 검사
+    private void validatePasswords(String password){
+
+        // 비밀번호 유효성 검사조건
+        Pattern letterPattern = Pattern.compile("[a-zA-Z]");
+        Pattern numberPattern = Pattern.compile("[0-9]");
+        Pattern specialCharPattern = Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?~`]");
+
+        // 영문자가 포함되었는지 확인
+        if (!letterPattern.matcher(password).find()) {
+            throw new UserException(ExceptionType.USER_PASSWORD_VALIDATION_FAILED);
+        }
+
+        // 숫자가 포함되었는지 확인
+        if (!numberPattern.matcher(password).find()) {
+            throw new UserException(ExceptionType.USER_PASSWORD_VALIDATION_FAILED);
+        }
+
+        // 특수문자가 포함 되었는지 확인
+        if (!specialCharPattern.matcher(password).find()) {
+            throw new UserException(ExceptionType.USER_PASSWORD_VALIDATION_FAILED);
+        }
+
+    }
+
+
 
     @Transactional(readOnly = true)
     public User findUser(String email) {
@@ -226,11 +270,11 @@ public class UserService {
     // 비밀번호 재설정
     public void resetPW(UUID uuid, PasswordRequest request) {
 
-        // 회원 조희
+        // 회원 조회
         User user = userRepository.findByUserUUID(uuid).orElseThrow(() -> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
 
         // 비밀번호 일치 확인
-        validatePasswordsMatch(request);
+        checkPasswordMatch(request);
         log.debug("새로운 비밀번호 일치 확인 완료");
 
         // 새로운 비밀번호로 업데이트

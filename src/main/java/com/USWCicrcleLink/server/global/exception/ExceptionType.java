@@ -31,7 +31,7 @@ public enum ExceptionType {
      * Domain: User
      */
     USER_NOT_EXISTS("USR-201", "사용자가 존재하지 않습니다.", BAD_REQUEST),
-    USER_NEW_PASSWORD_NOT_MATCH("USR-202","새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.", BAD_REQUEST),
+    USER_NEW_PASSWORD_NOT_MATCH("USR-202","두 비밀번호가 일치하지 않습니다.", BAD_REQUEST),
     USER_PASSWORD_NOT_INPUT("USR-203","비밀번호 값이 빈칸입니다",BAD_REQUEST),
     USER_PASSWORD_NOT_MATCH("USR-204","현재 비밀번호와 일치하지 않습니다",BAD_REQUEST),
     USER_PASSWORD_UPDATE_FAIL("USR-205","비밀번호 업데이트에 실패했습니다",INTERNAL_SERVER_ERROR),
@@ -41,8 +41,8 @@ public enum ExceptionType {
     USER_INVALID_ACCOUNT_AND_EMAIL("USR-209", "올바르지 않은 이메일 혹은 아이디입니다.", BAD_REQUEST),
     USER_UUID_NOT_FOUND("USR-210","회원의 uuid를 찾을 수 없습니다.", BAD_REQUEST),
     USER_AUTHENTICATION_FAILED("USR-211","아이디 혹은 비밀번호가 일치하지 않습니다",UNAUTHORIZED),
-    USER_PASSWORD_MISMATCH("USR-212", "두 비밀번호가 일치하지 않습니다", BAD_REQUEST),
     USER_PROFILE_NOT_FOUND("USR-213","프로필 정보를 찾을 수 없습니다", NOT_FOUND),
+    USER_PASSWORD_VALIDATION_FAILED("USR-214","영문자,숫자,특수문자는 적어도 1개 이상씩 포함되어야합니다",BAD_REQUEST),
 
     /**
      * Domain: Jwt
