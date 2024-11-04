@@ -56,6 +56,12 @@ public class UserService {
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
+    // 비밀번호 조건
+    private static final Pattern letterPattern = Pattern.compile("[a-zA-Z]");
+    private static final Pattern numberPattern = Pattern.compile("[0-9]");
+    private static final Pattern specialCharPattern = Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?~`]");
+
+
     // 어세스토큰에서 유저정보 가져오기
     public User getUserByAuth() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -70,22 +76,15 @@ public class UserService {
 
     public void updateNewPW(UpdatePwRequest updatePwRequest){
 
-
-        if (updatePwRequest.getNewPw().trim().isEmpty() || updatePwRequest.getConfirmNewPw().trim().isEmpty()) {
-            throw new UserException(ExceptionType.USER_PASSWORD_NOT_INPUT);
-        }
-
         if (!confirmPW(updatePwRequest.getUserPw())) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
-
+        // 비밀번호 칸이 빈칸인지 확인
+        checkPasswordFieldBlank(updatePwRequest.getNewPw(), updatePwRequest.getNewPw());
         // 새로운 비밀번호의 유효성 검사
-        validatePasswords(updatePwRequest.getNewPw());
-
-        // 변경된 비밀번호 일치하는지 확인
-        if (!updatePwRequest.getNewPw().equals(updatePwRequest.getConfirmNewPw())) {
-            throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
-        }
+        checkPasswordCondition(updatePwRequest.getNewPw());
+        // 비밀번호가 일치하는지 확인
+        checkPasswordMatch(updatePwRequest.getNewPw(),updatePwRequest.getConfirmNewPw());
 
         User user = getUserByAuth();
         String encryptedNewPw = passwordEncoder.encode(updatePwRequest.getNewPw());
@@ -98,6 +97,27 @@ public class UserService {
             throw new UserException(ExceptionType.PROFILE_UPDATE_FAIL);
         }
         log.info("비밀번호 변경 완료: {}",user.getUserId());
+    }
+
+    // 비밀번호 칸이 빈칸인지 확인
+    private void checkPasswordFieldBlank(String password, String comfimPw){
+        if (password.trim().isEmpty() || comfimPw.trim().isEmpty()) {
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_INPUT);
+        }
+    }
+
+    // 비밀번호 일치 확인
+    private void checkPasswordMatch(String password, String confirmPw){
+        if(!password.equals(confirmPw)){
+            throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
+        }
+    }
+
+    // 비밀번호 조건이 충족되는지 확인
+    private void checkPasswordCondition(String password){
+        if (!letterPattern.matcher(password).find() && !numberPattern.matcher(password).find() && !specialCharPattern.matcher(password).find()) {
+            throw new UserException(ExceptionType.USER_PASSWORD_CONDITION_FAILED);
+        }
     }
 
     // 임시 회원 생성 및 저장
@@ -207,51 +227,19 @@ public class UserService {
 
    // 비밀번호 유효성 검사
    @Transactional(readOnly = true)
-    public void checkPassword(PasswordRequest request) {
+    public void validatePassword(PasswordRequest request) {
 
        log.debug("비밀번호 유효성 확인 요청 시작");
 
-       // 비밀번호 유효성 검사
-       validatePasswords(request.getPassword());
+       // 비밀번호 칸이 공백인지 확인
+       checkPasswordFieldBlank(request.getPassword(), request.getConfirmPassword());
+       // 비밀번호 조건이 충족되는지 확인
+       checkPasswordCondition(request.getPassword());
        // 두 비밀번호 일치 확인
-       checkPasswordMatch(request);
+       checkPasswordMatch(request.getPassword(),request.getConfirmPassword());
 
-       log.debug("비밀번호 검증 완료");
+       log.debug("비밀번호 유효성 검증 완료");
     }
-
-    // 비밀번호 일치 확인
-    private void checkPasswordMatch(PasswordRequest request){
-        if(!request.getPassword().equals(request.getConfirmPassword())){
-            throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
-        }
-    }
-
-    // 비밀번호 유효성 검사
-    private void validatePasswords(String password){
-
-        // 비밀번호 유효성 검사조건
-        Pattern letterPattern = Pattern.compile("[a-zA-Z]");
-        Pattern numberPattern = Pattern.compile("[0-9]");
-        Pattern specialCharPattern = Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?~`]");
-
-        // 영문자가 포함되었는지 확인
-        if (!letterPattern.matcher(password).find()) {
-            throw new UserException(ExceptionType.USER_PASSWORD_VALIDATION_FAILED);
-        }
-
-        // 숫자가 포함되었는지 확인
-        if (!numberPattern.matcher(password).find()) {
-            throw new UserException(ExceptionType.USER_PASSWORD_VALIDATION_FAILED);
-        }
-
-        // 특수문자가 포함 되었는지 확인
-        if (!specialCharPattern.matcher(password).find()) {
-            throw new UserException(ExceptionType.USER_PASSWORD_VALIDATION_FAILED);
-        }
-
-    }
-
-
 
     @Transactional(readOnly = true)
     public User findUser(String email) {
@@ -273,11 +261,11 @@ public class UserService {
         // 회원 조회
         User user = userRepository.findByUserUUID(uuid).orElseThrow(() -> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
 
-        // 비밀번호 일치 확인
-        checkPasswordMatch(request);
-        log.debug("새로운 비밀번호 일치 확인 완료");
+        // 새로운 비밀번호의 유효성 검사
+        validatePassword(request);
 
-        // 새로운 비밀번호로 업데이트
+        log.debug("비밀번호 유효성 검증 완료");
+
         user.updateUserPw(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
 
@@ -318,7 +306,6 @@ public class UserService {
         emailService.sendEmail(message);
         log.debug("회원 탈퇴 메일 전송 완료 email=  {} ",findUser.getEmail());
     }
-
 
     // 회원 가입 확인
     @Transactional(readOnly = true)
