@@ -69,11 +69,13 @@ public class UserService {
         return userDetails.user();
     }
 
-    public boolean confirmPW(String userpw){
+    //현재 비밀번호 확인
+    private boolean confirmPW(String userpw){
         User user = getUserByAuth();
         return passwordEncoder.matches(userpw, user.getUserPw());
     }
 
+    //비밀번호 변경
     public void updateNewPW(UpdatePwRequest updatePwRequest){
 
         if (!confirmPW(updatePwRequest.getUserPw())) {

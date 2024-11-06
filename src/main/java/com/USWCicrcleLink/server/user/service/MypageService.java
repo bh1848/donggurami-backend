@@ -11,7 +11,6 @@ import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AplictException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
-import com.USWCicrcleLink.server.global.exception.errortype.ClubMemberException;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
@@ -120,6 +119,7 @@ public class MypageService {
                 .orElse(null);
     }
 
+    //동아리 정보 + 지원현황 가져오기
     private MyAplictResponse myAplictResponse(Club club, AplictStatus aplictStatus){
 
         String mainPhotoUrl = getClubMainPhotoUrl(club);
@@ -135,6 +135,7 @@ public class MypageService {
         );
         return myAplictResponse;
     }
+    //동아리 정보 가져오기
     private MyClubResponse myClubResponse(Club club){
 
         String mainPhotoUrl = getClubMainPhotoUrl(club);
