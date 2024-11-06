@@ -44,7 +44,7 @@ public class UserController {
     private final WithdrawalTokenService withdrawalTokenService;
 
     @PatchMapping("/userpw")
-    public ApiResponse<String> updateUserPw(@RequestBody UpdatePwRequest request) {
+    public ApiResponse<String> updateUserPw(@Validated(ValidationSequence.class) @RequestBody UpdatePwRequest request) {
         userService.updateNewPW(request);
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
@@ -61,7 +61,7 @@ public class UserController {
 
     // 비밀번호 일치 확인
     @PostMapping("/validate-passwords-match")
-    public ResponseEntity<ApiResponse<Void>> validatePassword(@Valid @RequestBody PasswordRequest request) {
+    public ResponseEntity<ApiResponse<Void>> validatePassword(@Validated(ValidationSequence.class) @RequestBody PasswordRequest request) {
 
         userService.validatePassword(request);
 
