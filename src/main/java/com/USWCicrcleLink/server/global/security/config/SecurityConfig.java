@@ -84,6 +84,7 @@ public class SecurityConfig {
                     // APLICT(모바일)
                     auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
                     auth.requestMatchers(HttpMethod.GET, "/apply/").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/can-apply/").hasRole("USER");
 
                     // USER
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw","/club-leader/fcmtoken").hasRole("USER");

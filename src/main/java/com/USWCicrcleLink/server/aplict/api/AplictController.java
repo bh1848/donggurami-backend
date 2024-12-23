@@ -24,7 +24,7 @@ public class AplictController {
         return ResponseEntity.ok(response);
     }
 
-    //지원서 작성하기(구글 폼 반환)(모바일)
+    //구글 폼 URL 조회(모바일)
     @GetMapping("/{clubId}")
     public ResponseEntity<ApiResponse<String>> getGoogleFormUrl(@PathVariable("clubId") Long clubId) {
         String googleFormUrl = aplictService.getGoogleFormUrlByClubId(clubId);

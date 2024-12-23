@@ -34,7 +34,7 @@ public class SeedData {
                 .adminUUID(UUID.randomUUID())
                 .adminAccount("clubUnion")
                 .adminPw(passwordEncoder.encode("hpsEetcTf7ymgy6"))  // 비밀번호 암호화
-                .adminName("동아리 연합회 관리자")
+                .adminName("동아리 연합회")
                 .role(Role.ADMIN)
                 .build();
 
@@ -43,7 +43,7 @@ public class SeedData {
                 .adminUUID(UUID.randomUUID())
                 .adminAccount("developer")
                 .adminPw(passwordEncoder.encode("5MYcg7Cuvrh50fS"))  // 비밀번호 암호화
-                .adminName("개발자")
+                .adminName("운영자")
                 .role(Role.ADMIN)
                 .build();
 
