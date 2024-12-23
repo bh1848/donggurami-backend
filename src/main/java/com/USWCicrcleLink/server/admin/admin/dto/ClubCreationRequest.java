@@ -39,7 +39,7 @@ public class ClubCreationRequest {
     private String leaderPwConfirm;
 
     @NotBlank(message = "동아리명은 필수 입력 값입니다.")
-    @Size(max = 10, message = "동아리명은 10글자 이내여야 합니다.")
+    @Size(max = 20, message = "동아리명은 20글자 이내여야 합니다.")
     private String clubName;
 
     @Enumerated(EnumType.STRING)
