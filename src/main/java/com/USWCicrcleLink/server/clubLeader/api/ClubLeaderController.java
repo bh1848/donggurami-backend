@@ -9,6 +9,7 @@ import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -56,7 +57,7 @@ public class ClubLeaderController {
     // 동아리 소개 변경
     @PutMapping("/{clubId}/intro")
     public ResponseEntity<ApiResponse> updateClubIntro(@PathVariable("clubId") Long clubId,
-                                                       @RequestPart(value = "clubIntroRequest", required = false) ClubIntroRequest clubIntroRequest,
+                                                       @RequestPart(value = "clubIntroRequest", required = false) @Valid ClubIntroRequest clubIntroRequest,
                                                        @RequestPart(value = "introPhotos", required = false) List<MultipartFile> introPhotos) throws IOException {
 
         return new ResponseEntity<>(clubLeaderService.updateClubIntro(clubId, clubIntroRequest, introPhotos), HttpStatus.OK);
