@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
@@ -34,10 +35,15 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final AplictRepository aplictRepository;
     private final ClubMembersRepository clubMembersRepository;
+    private final PasswordEncoder passwordEncoder;
 
 
     //프로필 업데이트
     public ProfileResponse updateProfile(ProfileRequest profileRequest) {
+
+        if(!confirmPW(profileRequest.getUserPw())){
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
+        }
 
         validateProfileRequest(profileRequest);
 
@@ -82,6 +88,19 @@ public class ProfileService {
     public ProfileResponse getMyProfile(){
         Profile profile = getProfileByAuth();
         return new ProfileResponse(profile);
+    }
+
+    // 어세스토큰에서 유저정보 가져오기
+    public User getUserByAuth() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userDetails.user();
+    }
+
+    //현재 비밀번호 확인
+    private boolean confirmPW(String userpw){
+        User user = getUserByAuth();
+        return passwordEncoder.matches(userpw, user.getUserPw());
     }
 
     @Transactional
