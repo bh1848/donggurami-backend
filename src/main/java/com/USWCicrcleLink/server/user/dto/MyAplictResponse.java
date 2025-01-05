@@ -20,6 +20,8 @@ public class MyAplictResponse {
 
     private String clubInsta;
 
+    private String ClubRoomNumber;
+
     private AplictStatus aplictStatus;
 
 }
