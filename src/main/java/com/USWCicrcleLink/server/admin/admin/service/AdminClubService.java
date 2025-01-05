@@ -1,10 +1,7 @@
 package com.USWCicrcleLink.server.admin.admin.service;
 
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
-import com.USWCicrcleLink.server.admin.admin.dto.AdminPwRequest;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationRequest;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.*;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
@@ -19,7 +16,9 @@ import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
+import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -30,12 +29,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class AdminService {
+public class AdminClubService {
 
     private final LeaderRepository leaderRepository;
     private final ClubRepository clubRepository;
@@ -72,22 +72,28 @@ public class AdminService {
 
         log.debug("동아리 회장 비밀번호 확인 성공");
 
-        // Leader 계정 중복 확인
-        if (leaderRepository.existsByLeaderAccount(request.getLeaderAccount())) {
-            throw new ClubException(ExceptionType.LEADER_ACCOUNT_ALREADY_EXISTS);
-        }
-
-        // Club 이름 중복 확인
-        if (clubRepository.existsByClubName(request.getClubName())) {
-            throw new ClubException(ExceptionType.CLUB_NAME_ALREADY_EXISTS);
-        }
+        //동아리 회장, 동아리 이름 중복 확인
+        validateLeaderAccount(request.getLeaderAccount());
+        validateClubName(request.getClubName());
 
         // Club 생성 및 저장
-        Club club = request.toClub();  // DTO에서 Club 변환
+        Club club = Club.builder()
+                .clubName(InputValidator.sanitizeContent(request.getClubName()))
+                .department(request.getDepartment())
+                .leaderName("")
+                .leaderHp("")
+                .clubInsta("")
+                .build();
         clubRepository.save(club);
 
         // Leader 생성 및 저장
-        Leader leader = request.toLeader(club, passwordEncoder);  // DTO에서 Leader 변환
+        Leader leader = Leader.builder()
+                .leaderAccount(InputValidator.sanitizeContent(request.getLeaderAccount()))
+                .leaderPw(passwordEncoder.encode(request.getLeaderPw()))
+                .leaderUUID(UUID.randomUUID())
+                .role(Role.LEADER)
+                .club(club)
+                .build();
         leaderRepository.save(leader);
 
         // ClubMainPhoto 생성 및 저장
@@ -121,6 +127,20 @@ public class AdminService {
         clubIntroPhotoRepository.saveAll(introPhotos);
         log.debug("동아리 생성 성공");
         return new ClubCreationResponse(club, leader);
+    }
+
+    // 동아리 회장 아이디 중복 확인
+    public void validateLeaderAccount(String leaderAccount) {
+        if (leaderRepository.existsByLeaderAccount(leaderAccount)) {
+            throw new ClubException(ExceptionType.LEADER_ACCOUNT_ALREADY_EXISTS);
+        }
+    }
+
+    // 동아리 이름 중복 확인
+    public void validateClubName(String clubName) {
+        if (clubRepository.existsByClubName(clubName)) {
+            throw new ClubException(ExceptionType.CLUB_NAME_ALREADY_EXISTS);
+        }
     }
 
     // 동아리 삭제(웹)

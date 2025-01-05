@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -67,8 +68,13 @@ public class NoticeService {
     public NoticeDetailResponse createNotice(NoticeCreationRequest request, List<MultipartFile> noticePhotos) {
         Admin admin = getAuthenticatedAdmin();
 
-        // DTO에서 변환된 엔티티 사용
-        Notice notice = request.toEntity(admin);
+        // Notice 빌드 및 저장
+        Notice notice = Notice.builder()
+                .noticeTitle(InputValidator.sanitizeContent(request.getNoticeTitle()))
+                .noticeContent(InputValidator.sanitizeContent(request.getNoticeContent()))
+                .noticeCreatedAt(LocalDateTime.now())
+                .admin(admin)
+                .build();
         Notice savedNotice = noticeRepository.save(notice);
 
         // 사진 순서와 파일 개수 검증 추가

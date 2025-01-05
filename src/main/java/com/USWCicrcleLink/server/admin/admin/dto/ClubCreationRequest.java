@@ -48,26 +48,4 @@ public class ClubCreationRequest {
 
     @NotBlank(message = "운영자 비밀번호는 필수 입력 값입니다.")
     private String adminPw;
-
-    // Club 엔티티 변환 메서드
-    public Club toClub() {
-        return Club.builder()
-                .clubName(InputValidator.sanitizeContent(this.clubName))  // 입력값 검증
-                .department(this.department)
-                .leaderName("")
-                .leaderHp("")
-                .clubInsta("")
-                .build();
-    }
-
-    // Leader 엔티티 변환 메서드
-    public Leader toLeader(Club club, PasswordEncoder passwordEncoder) {
-        return Leader.builder()
-                .leaderAccount(InputValidator.sanitizeContent(this.leaderAccount))  // 입력값 검증
-                .leaderPw(passwordEncoder.encode(this.leaderPw))  // 비밀번호 암호화
-                .leaderUUID(UUID.randomUUID())  // UUID 생성
-                .role(Role.LEADER)
-                .club(club)
-                .build();
-    }
 }

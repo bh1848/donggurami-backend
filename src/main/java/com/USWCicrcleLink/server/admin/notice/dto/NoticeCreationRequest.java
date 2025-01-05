@@ -28,14 +28,4 @@ public class NoticeCreationRequest {
 
     @Size(max = 5, message = "사진은 최대 5장까지 업로드 가능합니다.")
     private List<@Min(1) @Max(5) Integer> photoOrders;  // 1~5 범위 내의 순서 제한
-
-    // DTO에서 엔티티로 변환 메서드
-    public Notice toEntity(Admin admin) {
-        return Notice.builder()
-                .noticeTitle(this.noticeTitle)
-                .noticeContent(this.noticeContent)
-                .noticeCreatedAt(LocalDateTime.now())  // 생성 시점 자동 설정
-                .admin(admin)  // Admin 엔티티 전달
-                .build();
-    }
 }
