@@ -27,11 +27,4 @@ public class FloorPhoto {
     @Enumerated(EnumType.STRING)
     @Column(name = "floor_photo_floor")
     private FloorPhotoEnum floor;
-
-    @Builder
-    public FloorPhoto(FloorPhotoEnum floor, String floorPhotoPhotoName, String floorPhotoPhotoS3key) {
-        this.floor = floor;
-        this.floorPhotoPhotoName = floorPhotoPhotoName;
-        this.floorPhotoPhotoS3key = floorPhotoPhotoS3key;
-    }
 }

@@ -16,7 +16,9 @@ import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
+import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -27,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -74,11 +77,23 @@ public class AdminClubService {
         validateClubName(request.getClubName());
 
         // Club 생성 및 저장
-        Club club = request.toClub();  // DTO에서 Club 변환
+        Club club = Club.builder()
+                .clubName(InputValidator.sanitizeContent(request.getClubName()))
+                .department(request.getDepartment())
+                .leaderName("")
+                .leaderHp("")
+                .clubInsta("")
+                .build();
         clubRepository.save(club);
 
         // Leader 생성 및 저장
-        Leader leader = request.toLeader(club, passwordEncoder);  // DTO에서 Leader 변환
+        Leader leader = Leader.builder()
+                .leaderAccount(InputValidator.sanitizeContent(request.getLeaderAccount()))
+                .leaderPw(passwordEncoder.encode(request.getLeaderPw()))
+                .leaderUUID(UUID.randomUUID())
+                .role(Role.LEADER)
+                .club(club)
+                .build();
         leaderRepository.save(leader);
 
         // ClubMainPhoto 생성 및 저장

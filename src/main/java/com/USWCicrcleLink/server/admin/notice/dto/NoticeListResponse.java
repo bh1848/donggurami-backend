@@ -14,13 +14,4 @@ public class NoticeListResponse extends RepresentationModel<NoticeListResponse> 
     private String noticeTitle;
     private String adminName;
     private LocalDateTime noticeCreatedAt;
-
-    public static NoticeListResponse from(Notice notice) {
-        return NoticeListResponse.builder()
-                .noticeId(notice.getNoticeId())
-                .noticeTitle(notice.getNoticeTitle())
-                .adminName(notice.getAdmin().getAdminName())
-                .noticeCreatedAt(notice.getNoticeCreatedAt())
-                .build();
-    }
 }
