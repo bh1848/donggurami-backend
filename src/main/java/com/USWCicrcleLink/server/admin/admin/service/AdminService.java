@@ -1,13 +1,12 @@
 package com.USWCicrcleLink.server.admin.admin.service;
 
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
-import com.USWCicrcleLink.server.admin.admin.dto.AdminPwRequest;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationRequest;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubCreationResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.*;
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
+import com.USWCicrcleLink.server.club.club.repository.ClubCategoryRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
@@ -43,6 +42,7 @@ public class AdminService {
     private final ClubMainPhotoRepository clubMainPhotoRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ClubCategoryRepository clubCategoryRepository;
 
     // 동아리 목록 조회(웹)
     public List<ClubAdminListResponse> getAllClubs() {
@@ -148,5 +148,28 @@ public class AdminService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
         return adminDetails.admin();
+    }
+
+    // 동아리 카테고리 설정(웹) - 카테고리 추가
+    public ClubCategory addCategory(ClubCategoryCreationRequest request) {
+        ClubCategory category = ClubCategory.builder()
+                .ClubCategory(request.getClubCategory())
+                .build();
+        return clubCategoryRepository.save(category);
+    }
+
+    // 동아리 카테고리 설정(웹) - 카테고리 조회
+    public List<ClubCategory> getAllCategories() {
+        return clubCategoryRepository.findAll();
+    }
+
+    // 동아리 카테고리 설정(웹) - 카테고리 삭제
+    public void deleteCategory(Long categoryId) {
+        // 카테고리 존재 여부 확인
+        ClubCategory category = clubCategoryRepository.findById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다. ID: " + categoryId));
+
+        // 카테고리 삭제
+        clubCategoryRepository.delete(category);
     }
 }

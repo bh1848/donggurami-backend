@@ -70,27 +70,37 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.GET, "/mainPhoto/**", "/introPhoto/**", "/noticePhoto/**")
 //                            .hasAnyRole("USER", "ADMIN", "LEADER");
                             .permitAll();
-                    // CLUB(웹)
+                    // ADMIN - FloorPhoto
+                    auth.requestMatchers(HttpMethod.POST, "/admin/floor/photo/").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/floor/photo/").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/admin/floor/photo/").hasRole("ADMIN");
+
+                    // ADMIN - Categories
+                    auth.requestMatchers(HttpMethod.POST, "/admin/categories").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/categories").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/admin/categories").hasRole("ADMIN");
+
+                    // ADMIN - Club
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/clubs/{clubId}").hasAnyRole("ADMIN", "LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs").hasRole("ADMIN");
 
-                    // NOTICE(웹)
+                    // ADMIN - Notice
                     auth.requestMatchers(HttpMethod.POST, "/notices").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/notices/{noticeId}", "/notices/paged").hasAnyRole("ADMIN", "LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/notices/{noticeId}").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/notices/{noticeId}").hasRole("ADMIN");
-
-                    // APLICT(모바일)
-                    auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/can-apply/").hasRole("USER");
 
                     // USER
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw","/club-leader/fcmtoken").hasRole("USER");
                     auth.requestMatchers(HttpMethod.GET,"/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/my-notices/{noticeId}/details").hasRole("USER");
                     auth.requestMatchers(HttpMethod.DELETE, "/exit").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/exit/send-code").hasRole("USER");
+
+                    // USER - Apply
+                    auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/can-apply/").hasRole("USER");
 
                     // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**").hasRole("LEADER");

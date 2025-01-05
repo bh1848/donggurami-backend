@@ -2,6 +2,7 @@ package com.USWCicrcleLink.server.admin.admin.api;
 
 import com.USWCicrcleLink.server.admin.admin.dto.*;
 import com.USWCicrcleLink.server.admin.admin.service.AdminService;
+import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
@@ -35,6 +36,7 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+
     // 동아리 생성(웹)
     @PostMapping("/clubs")
     public ResponseEntity<ApiResponse<ClubCreationResponse>> createClub(@RequestBody @Valid ClubCreationRequest clubRequest) {
@@ -50,4 +52,29 @@ public class AdminController {
         ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공: clubId", clubId);
         return ResponseEntity.ok(response);
     }
+
+    // 동아리 카테고리 설정(웹) - 카테고리 추가
+    @PostMapping("/categories")
+    public ResponseEntity<ApiResponse<ClubCategory>> addCategory(@RequestBody @Valid ClubCategoryCreationRequest request) {
+        ClubCategory category = adminService.addCategory(request);
+        ApiResponse<ClubCategory> response = new ApiResponse<>("카테고리 추가 성공", category);
+        return ResponseEntity.ok(response);
+    }
+
+    // 동아리 카테고리 설정(웹) - 카테고리 조회
+    @GetMapping("/categories")
+    public ResponseEntity<ApiResponse<List<ClubCategory>>> getAllCategories() {
+        List<ClubCategory> categories = adminService.getAllCategories();
+        ApiResponse<List<ClubCategory>> response = new ApiResponse<>("카테고리 리스트 조회 성공", categories);
+        return ResponseEntity.ok(response);
+    }
+
+    // 동아리 카테고리 설정(웹) - 카테고리 삭제
+    @DeleteMapping("/categories/{categoryId}")
+    public ResponseEntity<ApiResponse<String>> deleteCategory(@PathVariable("categoryId") Long categoryId) {
+        adminService.deleteCategory(categoryId);
+        ApiResponse<String> response = new ApiResponse<>("카테고리 삭제 성공", "Category ID: " + categoryId);
+        return ResponseEntity.ok(response);
+    }
+
 }

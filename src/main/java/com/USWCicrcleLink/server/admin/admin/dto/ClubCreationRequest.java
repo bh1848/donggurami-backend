@@ -49,7 +49,7 @@ public class ClubCreationRequest {
     @NotBlank(message = "운영자 비밀번호는 필수 입력 값입니다.")
     private String adminPw;
 
-    // Club 엔티티 변환 메서드
+    // Club 엔티티 변환 메서드 
     public Club toClub() {
         return Club.builder()
                 .clubName(InputValidator.sanitizeContent(this.clubName))  // 입력값 검증
