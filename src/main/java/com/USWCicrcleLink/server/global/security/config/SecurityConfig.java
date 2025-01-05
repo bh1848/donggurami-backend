@@ -71,19 +71,21 @@ public class SecurityConfig {
 //                            .hasAnyRole("USER", "ADMIN", "LEADER");
                             .permitAll();
                     // ADMIN - FloorPhoto
-                    auth.requestMatchers(HttpMethod.POST, "/admin/floor/photo/").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/admin/floor/photo/").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.DELETE, "/admin/floor/photo/").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.POST, "/admin/floor/photo/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/floor/photo/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/admin/floor/photo/**").hasRole("ADMIN");
 
-                    // ADMIN - Categories
-                    auth.requestMatchers(HttpMethod.POST, "/admin/categories").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/admin/categories").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.DELETE, "/admin/categories").hasRole("ADMIN");
+                    // ADMIN - Category
+                    auth.requestMatchers(HttpMethod.POST, "/admin/category/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/category/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/admin/category/**").hasRole("ADMIN");
 
                     // ADMIN - Club
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/clubs/{clubId}").hasAnyRole("ADMIN", "LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET,"/admin/clubs/leader/check").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET,"/admin/clubs/name/check").hasRole("ADMIN");
 
                     // ADMIN - Notice
                     auth.requestMatchers(HttpMethod.POST, "/notices").hasRole("ADMIN");
@@ -96,11 +98,8 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.GET,"/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/my-notices/{noticeId}/details").hasRole("USER");
                     auth.requestMatchers(HttpMethod.DELETE, "/exit").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/exit/send-code").hasRole("USER");
-
-                    // USER - Apply
-                    auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/can-apply/").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.POST, "/apply/**").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/**").hasRole("USER");
 
                     // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**").hasRole("LEADER");

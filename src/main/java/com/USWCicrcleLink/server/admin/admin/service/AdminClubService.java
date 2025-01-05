@@ -3,10 +3,8 @@ package com.USWCicrcleLink.server.admin.admin.service;
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.admin.dto.*;
 import com.USWCicrcleLink.server.club.club.domain.Club;
-import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.club.club.repository.ClubCategoryRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
@@ -17,7 +15,6 @@ import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
-import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
 import lombok.RequiredArgsConstructor;
@@ -72,15 +69,9 @@ public class AdminClubService {
 
         log.debug("동아리 회장 비밀번호 확인 성공");
 
-        // Leader 계정 중복 확인
-        if (leaderRepository.existsByLeaderAccount(request.getLeaderAccount())) {
-            throw new ClubException(ExceptionType.LEADER_ACCOUNT_ALREADY_EXISTS);
-        }
-
-        // Club 이름 중복 확인
-        if (clubRepository.existsByClubName(request.getClubName())) {
-            throw new ClubException(ExceptionType.CLUB_NAME_ALREADY_EXISTS);
-        }
+        //동아리 회장, 동아리 이름 중복 확인
+        validateLeaderAccount(request.getLeaderAccount());
+        validateClubName(request.getClubName());
 
         // Club 생성 및 저장
         Club club = request.toClub();  // DTO에서 Club 변환
@@ -121,6 +112,20 @@ public class AdminClubService {
         clubIntroPhotoRepository.saveAll(introPhotos);
         log.debug("동아리 생성 성공");
         return new ClubCreationResponse(club, leader);
+    }
+
+    // 동아리 회장 아이디 중복 확인
+    public void validateLeaderAccount(String leaderAccount) {
+        if (leaderRepository.existsByLeaderAccount(leaderAccount)) {
+            throw new ClubException(ExceptionType.LEADER_ACCOUNT_ALREADY_EXISTS);
+        }
+    }
+
+    // 동아리 이름 중복 확인
+    public void validateClubName(String clubName) {
+        if (clubRepository.existsByClubName(clubName)) {
+            throw new ClubException(ExceptionType.CLUB_NAME_ALREADY_EXISTS);
+        }
     }
 
     // 동아리 삭제(웹)
