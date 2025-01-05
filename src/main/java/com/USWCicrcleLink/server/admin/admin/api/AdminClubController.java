@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.admin.admin.api;
 
 import com.USWCicrcleLink.server.admin.admin.dto.*;
-import com.USWCicrcleLink.server.admin.admin.service.AdminService;
+import com.USWCicrcleLink.server.admin.admin.service.AdminClubService;
 import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
@@ -16,14 +16,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor
-public class AdminController {
-    private final AdminService adminService;
+public class AdminClubController {
+
+    private final AdminClubService adminClubService;
     private final ClubIntroService clubIntroService;
 
     // 동아리 전체 리스트 조회(웹)
     @GetMapping("/clubs")
     public ResponseEntity<ApiResponse<List<ClubAdminListResponse>>> getAllClubs() {
-        List<ClubAdminListResponse> clubs = adminService.getAllClubs();
+        List<ClubAdminListResponse> clubs = adminClubService.getAllClubs();
         ApiResponse<List<ClubAdminListResponse>> response = new ApiResponse<>("동아리 전체 리스트 조회 성공", clubs);
         return ResponseEntity.ok(response);
     }
@@ -40,7 +41,7 @@ public class AdminController {
     // 동아리 생성(웹)
     @PostMapping("/clubs")
     public ResponseEntity<ApiResponse<ClubCreationResponse>> createClub(@RequestBody @Valid ClubCreationRequest clubRequest) {
-        ClubCreationResponse clubCreationResponse = adminService.createClub(clubRequest);
+        ClubCreationResponse clubCreationResponse = adminClubService.createClub(clubRequest);
         ApiResponse<ClubCreationResponse> response = new ApiResponse<>("동아리 생성 성공", clubCreationResponse);
         return ResponseEntity.ok(response);
     }
@@ -48,33 +49,8 @@ public class AdminController {
     // 동아리 삭제(웹)
     @DeleteMapping("/clubs/{clubId}")
     public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubId") Long clubId, @RequestBody @Valid AdminPwRequest request) {
-        adminService.deleteClub(clubId, request);
+        adminClubService.deleteClub(clubId, request);
         ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공: clubId", clubId);
         return ResponseEntity.ok(response);
     }
-
-    // 동아리 카테고리 설정(웹) - 카테고리 추가
-    @PostMapping("/categories")
-    public ResponseEntity<ApiResponse<ClubCategory>> addCategory(@RequestBody @Valid ClubCategoryCreationRequest request) {
-        ClubCategory category = adminService.addCategory(request);
-        ApiResponse<ClubCategory> response = new ApiResponse<>("카테고리 추가 성공", category);
-        return ResponseEntity.ok(response);
-    }
-
-    // 동아리 카테고리 설정(웹) - 카테고리 조회
-    @GetMapping("/categories")
-    public ResponseEntity<ApiResponse<List<ClubCategory>>> getAllCategories() {
-        List<ClubCategory> categories = adminService.getAllCategories();
-        ApiResponse<List<ClubCategory>> response = new ApiResponse<>("카테고리 리스트 조회 성공", categories);
-        return ResponseEntity.ok(response);
-    }
-
-    // 동아리 카테고리 설정(웹) - 카테고리 삭제
-    @DeleteMapping("/categories/{categoryId}")
-    public ResponseEntity<ApiResponse<String>> deleteCategory(@PathVariable("categoryId") Long categoryId) {
-        adminService.deleteCategory(categoryId);
-        ApiResponse<String> response = new ApiResponse<>("카테고리 삭제 성공", "Category ID: " + categoryId);
-        return ResponseEntity.ok(response);
-    }
-
 }

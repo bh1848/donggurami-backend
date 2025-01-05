@@ -17,6 +17,7 @@ import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
+import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ import java.util.List;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class AdminService {
+public class AdminClubService {
 
     private final LeaderRepository leaderRepository;
     private final ClubRepository clubRepository;
@@ -42,7 +43,6 @@ public class AdminService {
     private final ClubMainPhotoRepository clubMainPhotoRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ClubCategoryRepository clubCategoryRepository;
 
     // 동아리 목록 조회(웹)
     public List<ClubAdminListResponse> getAllClubs() {
@@ -148,28 +148,5 @@ public class AdminService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
         return adminDetails.admin();
-    }
-
-    // 동아리 카테고리 설정(웹) - 카테고리 추가
-    public ClubCategory addCategory(ClubCategoryCreationRequest request) {
-        ClubCategory category = ClubCategory.builder()
-                .ClubCategory(request.getClubCategory())
-                .build();
-        return clubCategoryRepository.save(category);
-    }
-
-    // 동아리 카테고리 설정(웹) - 카테고리 조회
-    public List<ClubCategory> getAllCategories() {
-        return clubCategoryRepository.findAll();
-    }
-
-    // 동아리 카테고리 설정(웹) - 카테고리 삭제
-    public void deleteCategory(Long categoryId) {
-        // 카테고리 존재 여부 확인
-        ClubCategory category = clubCategoryRepository.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다. ID: " + categoryId));
-
-        // 카테고리 삭제
-        clubCategoryRepository.delete(category);
     }
 }

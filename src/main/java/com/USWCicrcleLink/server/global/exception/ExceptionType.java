@@ -129,6 +129,11 @@ public enum ExceptionType {
     WITHDRAWALTOKEN_NOT_EXISTS("WT-102", "탈퇴 토큰이 존재하지 않습니다", BAD_REQUEST),
 
     /**
+     * Domain: WithdrawalToken
+     */
+    CATEGORY_NOT_FOUND("CG-201","해당 카테고리가 존재하지 않습니다." , NOT_FOUND),
+
+    /**
      * 공통
      */
     SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR),
