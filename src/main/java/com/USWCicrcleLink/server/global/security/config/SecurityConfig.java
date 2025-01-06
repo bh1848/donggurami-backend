@@ -63,7 +63,8 @@ public class SecurityConfig {
                             "/mainPhoto/**",
                             "/introPhoto/**",
                             "/my-notices/**",
-                            "/clubs/**" // 동아리 조회(모바일)
+                            "/clubs/**", // 동아리 조회(모바일)
+                            "/mypages/clubs/{floor}/photo" //동아리방 층별 사진 조회
                     ).permitAll();
 
                     // photo

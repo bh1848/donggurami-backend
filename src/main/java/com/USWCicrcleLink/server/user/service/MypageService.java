@@ -5,18 +5,23 @@ import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
+import com.USWCicrcleLink.server.club.club.domain.FloorPhoto;
+import com.USWCicrcleLink.server.club.club.domain.FloorPhotoEnum;
 import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.club.repository.FloorPhotoRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AplictException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
+import com.USWCicrcleLink.server.global.exception.errortype.FloorPhotoException;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.dto.ClubFloorPhotoResponse;
 import com.USWCicrcleLink.server.user.dto.MyAplictResponse;
 import com.USWCicrcleLink.server.user.dto.MyClubResponse;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +46,7 @@ public class MypageService {
     private final ClubRepository clubRepository;
     private final S3FileUploadService s3FileUploadService;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
+    private final FloorPhotoRepository floorPhotoRepository;
 
     //어세스토큰에서 유저정보 가져오기
     private User getUserByAuth() {
@@ -131,6 +137,7 @@ public class MypageService {
                 club.getLeaderName(),
                 club.getLeaderHp(),
                 club.getClubInsta(),
+                club.getClubRoomNumber(),
                 aplictStatus
         );
         return myAplictResponse;
@@ -146,8 +153,29 @@ public class MypageService {
                 club.getClubName(),
                 club.getLeaderName(),
                 club.getLeaderHp(),
-                club.getClubInsta()
+                club.getClubInsta(),
+                club.getClubRoomNumber()
         );
         return  myClubResponse;
     }
+
+    //동아리 방 사진 조회
+    public ClubFloorPhotoResponse getClubFloorPhoto(String floor) {
+
+        FloorPhotoEnum floorEnum;
+
+        try {
+            floorEnum = FloorPhotoEnum.valueOf(floor);
+        } catch (IllegalArgumentException e) {
+            throw new FloorPhotoException(ExceptionType.INVALID_ENUM_VALUE);
+        }
+
+        FloorPhoto floorPhoto = floorPhotoRepository.findByFloor(floorEnum)
+                .orElseThrow(() -> new FloorPhotoException(ExceptionType.PHOTO_NOT_FOUND));
+
+        String presignedUrl = s3FileUploadService.generatePresignedGetUrl(floorPhoto.getFloorPhotoPhotoS3key());
+
+        return new ClubFloorPhotoResponse(floorPhoto.getFloor(),presignedUrl);
+    }
+
 }

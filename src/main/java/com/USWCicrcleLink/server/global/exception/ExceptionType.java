@@ -141,7 +141,7 @@ public enum ExceptionType {
     TOO_MANY_ATTEMPT("ATTEMPT-503", "최대 시도 횟수를 초과했습니다. 1분 후  다시 시도 하세요", BAD_REQUEST),
     PHOTO_FILE_IS_EMPTY("PHOTO-504","사진 파일이 비어있습니다." ,BAD_REQUEST),
     PHOTO_NOT_FOUND("PHOTO-505", "해당 사진이 존재하지 않습니다.", NOT_FOUND),
-
+    INVALID_ENUM_VALUE("ENUM-401", "유효하지 않은 Enum 값입니다.", BAD_REQUEST),
 
     /**
      * File I/O
