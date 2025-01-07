@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -24,21 +25,30 @@ public class AdminClubCategoryService {
         ClubCategory category = ClubCategory.builder()
                 .ClubCategory(request.getClubCategory())
                 .build();
-        return clubCategoryRepository.save(category);
+
+        ClubCategory savedCategory = clubCategoryRepository.save(category);
+        log.info("동아리 카테고리 추가 성공: ID={}, Name={}", savedCategory.getClubCategoryId(), savedCategory.getClubCategory());
+        return savedCategory;
     }
 
     // 동아리 카테고리 설정(웹) - 카테고리 조회
     public List<ClubCategory> getAllCategories() {
-        return clubCategoryRepository.findAll();
+        List<ClubCategory> categories = clubCategoryRepository.findAll();
+        log.info("동아리 카테고리 조회 성공: {}개 카테고리 반환", categories.size());
+        return categories;
     }
 
     // 동아리 카테고리 설정(웹) - 카테고리 삭제
     public void deleteCategory(Long categoryId) {
         // 카테고리 존재 여부 확인
         ClubCategory category = clubCategoryRepository.findById(categoryId)
-                .orElseThrow(() -> new BaseException(ExceptionType.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.error("동아리 카테고리 삭제 실패: 카테고리 ID={}를 찾을 수 없음", categoryId);
+                    return new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
+                });
 
         // 카테고리 삭제
         clubCategoryRepository.delete(category);
+        log.info("동아리 카테고리 삭제 성공: ID={}", categoryId);
     }
 }

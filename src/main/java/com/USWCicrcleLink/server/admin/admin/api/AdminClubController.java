@@ -37,12 +37,11 @@ public class AdminClubController {
         return ResponseEntity.ok(response);
     }
 
-
     // 동아리 생성(웹) - 동아리 생성 완료하기
     @PostMapping()
-    public ResponseEntity<ApiResponse<ClubCreationResponse>> createClub(@RequestBody @Valid ClubCreationRequest clubRequest) {
-        ClubCreationResponse clubCreationResponse = adminClubService.createClub(clubRequest);
-        ApiResponse<ClubCreationResponse> response = new ApiResponse<>("동아리 생성 성공", clubCreationResponse);
+    public ResponseEntity<ApiResponse<String>> createClub(@RequestBody @Valid ClubCreationRequest clubRequest) {
+        adminClubService.createClub(clubRequest); // 동아리 생성
+        ApiResponse<String> response = new ApiResponse<>("동아리 생성 성공", null);
         return ResponseEntity.ok(response);
     }
 

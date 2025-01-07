@@ -31,7 +31,7 @@ public class Club {
     @Enumerated(EnumType.STRING)
     private Department department;
 
-    @Column(name = "club_room_number", nullable = false)
+    @Column(name = "club_room_number")
     private String ClubRoomNumber;
 
     public void updateClubInfo(String leaderName, String leaderHp, String clubInsta) {
