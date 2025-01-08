@@ -1,7 +1,6 @@
 package com.USWCicrcleLink.server.clubLeader.api;
 
 import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
-import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
@@ -64,7 +63,7 @@ public class ClubLeaderController {
     }
 
     // 동아리 모집 상태 변경
-    @PatchMapping("/{clubId}/toggle-recruitment")
+    @PatchMapping("/{clubId}/recruitment")
     public ResponseEntity<ApiResponse> toggleRecruitmentStatus(@PathVariable("clubId") Long clubId) {
         return new ResponseEntity<>(clubLeaderService.toggleRecruitmentStatus(clubId), HttpStatus.OK);
     }
@@ -108,7 +107,7 @@ public class ClubLeaderController {
     }
 
     // 최초 합격자 알림
-    @PostMapping("/{clubId}/applicants/notifyMultiple")
+    @PostMapping("/{clubId}/applicants/notifications")
     public ResponseEntity<ApiResponse> pushApplicantResults(@PathVariable("clubId") Long clubId, @RequestBody List<ApplicantResultsRequest> results) throws IOException {
         clubLeaderService.updateApplicantResults(clubId, results);
         return new ResponseEntity<>(new ApiResponse<>("지원 결과 처리 완료"), HttpStatus.OK);
@@ -121,10 +120,15 @@ public class ClubLeaderController {
     }
 
     // 지원자 추가 합격 알림
-    @PostMapping("/{clubId}/failed-applicants/notifyMultiple")
+    @PostMapping("/{clubId}/failed-applicants/notifications")
     public ResponseEntity<ApiResponse> pushFailedApplicantResults(@PathVariable("clubId") Long clubId, @RequestBody List<ApplicantResultsRequest> results) throws IOException {
         clubLeaderService.updateFailedApplicantResults(clubId, results);
         return new ResponseEntity<>(new ApiResponse<>("추합 결과 처리 완료"), HttpStatus.OK);
     }
 
+    // 기존 동아리원 엑셀 파일 업로드
+    @PostMapping("/{clubId}/members/import")
+    public ResponseEntity<ApiResponse<List<ClubMembersImportExcelResponse>>> importClubMembers(@PathVariable("clubId") Long clubId, @RequestPart(value = "clubMembersFile", required = false) MultipartFile clubMembersFile) throws IOException {
+        return new ResponseEntity<>(clubLeaderService.uploadExcel(clubId, clubMembersFile), HttpStatus.OK);
+    }
 }

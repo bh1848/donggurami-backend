@@ -14,6 +14,8 @@ public class FileSignatureValidator {
         FILE_SIGNATURES.put("jpg", "FFD8FF");      // JPG
         FILE_SIGNATURES.put("jpeg", "FFD8FF");     // JPEG
         FILE_SIGNATURES.put("png", "89504E47");    // PNG (8바이트가 필요)
+        FILE_SIGNATURES.put("xls", "D0CF11E0");       // XLS (Excel 97-2003)
+        FILE_SIGNATURES.put("xlsx", "504B0304");      // XLSX (Excel 2007 이상, ZIP 기반)
     }
 
     public static String getFileSignature(InputStream inputStream, int bytesToRead) throws IOException {
