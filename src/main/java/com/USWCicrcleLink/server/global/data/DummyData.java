@@ -6,6 +6,7 @@ import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.*;
+import com.USWCicrcleLink.server.club.club.repository.ClubHashtagRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
@@ -46,6 +47,7 @@ public class DummyData {
     private final LeaderRepository leaderRepository;
     private final PasswordEncoder passwordEncoder;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
+    private final ClubHashtagRepository clubHashtagRepository;
 
     @PostConstruct
     public void init() {
@@ -202,6 +204,42 @@ public class DummyData {
                 .ClubRoomNumber("108호")
                 .build();
         clubRepository.save(volunteerClub);
+
+        //플래그, 배드민턴, 봉사 해시태그 데이터
+        ClubHashtag flagHashtag1 = ClubHashtag.builder()
+                .club(flagClub)
+                .clubHashtag("IT")
+                .build();
+        ClubHashtag flagHashtag2 = ClubHashtag.builder()
+                .club(flagClub)
+                .clubHashtag("개발")
+                .build();
+        clubHashtagRepository.save(flagHashtag1);
+        clubHashtagRepository.save(flagHashtag2);
+
+        // 배드민턴 동아리 해시태그 추가
+        ClubHashtag badmintonHashtag1 = ClubHashtag.builder()
+                .club(badmintonClub)
+                .clubHashtag("스포츠")
+                .build();
+        ClubHashtag badmintonHashtag2 = ClubHashtag.builder()
+                .club(badmintonClub)
+                .clubHashtag("건강")
+                .build();
+        clubHashtagRepository.save(badmintonHashtag1);
+        clubHashtagRepository.save(badmintonHashtag2);
+
+        // 봉사 동아리 해시태그 추가
+        ClubHashtag volunteerHashtag1 = ClubHashtag.builder()
+                .club(volunteerClub)
+                .clubHashtag("봉사")
+                .build();
+        ClubHashtag volunteerHashtag2 = ClubHashtag.builder()
+                .club(volunteerClub)
+                .clubHashtag("공헌")
+                .build();
+        clubHashtagRepository.save(volunteerHashtag1);
+        clubHashtagRepository.save(volunteerHashtag2);
 
         ClubMainPhoto clubMainPhoto = ClubMainPhoto.builder()
                 .club(flagClub)
@@ -410,6 +448,20 @@ public class DummyData {
                 .build();
 
         clubRepository.save(allaboutClub);
+
+        // 올어바웃 해시태그
+        ClubHashtag allaboutHashtag1 = ClubHashtag.builder()
+                .club(allaboutClub)
+                .clubHashtag("댄스")
+                .build();
+
+        ClubHashtag allaboutHashtag2 = ClubHashtag.builder()
+                .club(allaboutClub)
+                .clubHashtag("공연")
+                .build();
+
+        clubHashtagRepository.save(allaboutHashtag1);
+        clubHashtagRepository.save(allaboutHashtag2);
 
         Leader allaboutLeader = Leader.builder()
                 .leaderAccount("allaboutClub")
