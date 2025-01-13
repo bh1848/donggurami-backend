@@ -67,7 +67,7 @@ public class NoticeService {
     }
 
     // 공지사항 생성
-    public NoticeDetailResponse createNotice(NoticeCreationRequest request, List<MultipartFile> noticePhotos) {
+    public List<String> createNotice(NoticeCreationRequest request, List<MultipartFile> noticePhotos) {
         Admin admin = getAuthenticatedAdmin();
 
         // Notice 빌드 및 저장
@@ -87,11 +87,14 @@ public class NoticeService {
 
         log.debug("공지사항 생성 완료 - ID: {}, 첨부된 사진 수: {}", savedNotice.getNoticeId(), noticePhotos == null ? 0 : noticePhotos.size());
 
-        return NoticeDetailResponse.from(savedNotice, presignedUrls);
+        // presigned URL 리스트 반환
+        return presignedUrls;
     }
 
+
     // 공지사항 수정
-    public NoticeDetailResponse updateNotice(Long noticeId, NoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
+    public List<String> updateNotice(Long noticeId, NoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
+        // 공지사항 조회
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
@@ -107,10 +110,13 @@ public class NoticeService {
 
         // 새로운 사진 처리
         List<String> presignedUrls = handleNoticePhotos(notice, noticePhotos, request.getPhotoOrders());
+
         log.debug("공지사항 수정 완료 - ID: {}, 첨부된 사진 수: {}", notice.getNoticeId(), noticePhotos == null ? 0 : noticePhotos.size());
 
-        return NoticeDetailResponse.from(notice, presignedUrls);
+        // presigned URL 리스트 반환
+        return presignedUrls;
     }
+
 
     // 공지사항 삭제
     public void deleteNotice(Long noticeId) {

@@ -5,12 +5,8 @@ import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantsResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
-import com.USWCicrcleLink.server.club.club.domain.Club;
-import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
-import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
-import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
-import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.club.domain.*;
+import com.USWCicrcleLink.server.club.club.repository.*;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
@@ -63,6 +59,9 @@ public class ClubLeaderService {
     private final AplictRepository aplictRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
+    private final ClubHashtagRepository clubHashtagRepository;
+    private final ClubCategoryRepository clubCategoryRepository;
+    private final ClubCategoryMappingRepository clubCategoryMappingRepository;
 
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
@@ -100,26 +99,54 @@ public class ClubLeaderService {
 
     // 동아리 기본 정보 변경
     public ApiResponse<UpdateClubInfoResponse> updateClubInfo(Long clubId, ClubInfoRequest clubInfoRequest, MultipartFile mainPhoto) throws IOException {
-
+        // 동아리 회장 유효성 검증
         Club club = validateLeader(clubId);
-
-        // 동아리 회장의 이름 필수
-        if (clubInfoRequest.getLeaderName() == null || clubInfoRequest.getLeaderName().trim().isEmpty()) {
-            throw new ClubLeaderException(ExceptionType.LEADER_NAME_REQUIRED);
-        }
 
         // 입력값 검증 (XSS 공격 방지)
         String sanitizedLeaderName = InputValidator.sanitizeContent(clubInfoRequest.getLeaderName());
-        String sanitizedClubInsta = clubInfoRequest.getClubInsta() != null ? InputValidator.sanitizeContent(clubInfoRequest.getClubInsta()) : "";
-        String sanitizedLeaderHp = clubInfoRequest.getLeaderHp() != null ? InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp()) : "";
+        String sanitizedLeaderHp = InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp());
+        String sanitizedClubInsta = InputValidator.sanitizeContent(clubInfoRequest.getClubInsta());
 
-        // 사진이 없을 경우 null
+        // 동아리 해시태그 처리
+        if (clubInfoRequest.getClubHashtag() != null) {
+            // 기존 해시태그 삭제
+            clubHashtagRepository.deleteByClub_ClubId(clubId);
+
+            // 새로운 해시태그 저장
+            for (String hashtag : clubInfoRequest.getClubHashtag()) {
+                ClubHashtag clubHashtag = ClubHashtag.builder()
+                        .club(club)
+                        .clubHashtag(InputValidator.sanitizeContent(hashtag))
+                        .build();
+                clubHashtagRepository.save(clubHashtag);
+            }
+        }
+
+        // 동아리 카테고리 처리
+        if (clubInfoRequest.getClubCategory() != null) {
+            // 기존 카테고리 매핑 삭제
+            clubCategoryMappingRepository.deleteByClub_ClubId(clubId);
+
+            // 새로운 카테고리 매핑 저장
+            for (String category : clubInfoRequest.getClubCategory()) {
+                ClubCategory clubCategory = clubCategoryRepository.findByClubCategory(category)
+                        .orElseThrow(() -> new ClubException(ExceptionType.INVALID_CATEGORY));
+
+                ClubCategoryMapping categoryMapping = ClubCategoryMapping.builder()
+                        .club(club)
+                        .clubCategory(clubCategory)
+                        .build();
+                clubCategoryMappingRepository.save(categoryMapping);
+            }
+        }
+
+        // 사진 처리
         S3FileResponse s3FileResponse = null;
         if (mainPhoto != null && !mainPhoto.isEmpty()) {
             // 기존 동아리 대표 사진 조회
             ClubMainPhoto existingPhoto = clubMainPhotoRepository.findByClub_ClubId(clubId);
 
-            // 기존 사진이 존재할 경우
+            // 기존 사진 삭제
             if (existingPhoto != null && existingPhoto.getClubMainPhotoS3Key() != null && !existingPhoto.getClubMainPhotoS3Key().isEmpty()) {
                 s3FileUploadService.deleteFile(existingPhoto.getClubMainPhotoS3Key());
                 log.debug("기존 대표 사진 삭제 완료: {}", existingPhoto.getClubMainPhotoS3Key());
@@ -129,11 +156,12 @@ public class ClubLeaderService {
             s3FileResponse = updateClubMainPhotoAndS3File(mainPhoto, existingPhoto);
         }
 
-        // 동아리 기본 정보 변경
-        club.updateClubInfo(sanitizedLeaderName, sanitizedLeaderHp, sanitizedClubInsta);
+        // 동아리 기본 정보 업데이트
+        club.updateClubInfo(sanitizedLeaderName, sanitizedLeaderHp, sanitizedClubInsta, clubInfoRequest.getClubRoomNumber());
         clubRepository.save(club);
         log.debug("동아리 기본 정보 변경 완료: {}", club.getClubName());
 
+        // 응답 생성
         String mainPhotoUrl = s3FileResponse != null ? s3FileResponse.getPresignedUrl() : "";
         return new ApiResponse<>("동아리 기본 정보 변경 완료", new UpdateClubInfoResponse(mainPhotoUrl));
     }

@@ -11,14 +11,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "ClUB_CATEGORY_TABLE")
-public class ClubCategory {
+@Table(name = "CLUB_HASHTAG_TABLE")
+public class ClubHashtag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "club_category_id")
-    private Long clubCategoryId;
+    @Column(name = "club_hashtag_id")
+    private Long clubHashtagId;
 
-    @Column(name = "club_category", nullable = false)
-    private String clubCategory;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "club_id", nullable = false)
+    private Club club;
+
+    @Column(name = "club_hashtag")
+    private String clubHashtag;
 }

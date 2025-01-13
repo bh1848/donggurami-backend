@@ -47,24 +47,24 @@ public class NoticeController {
         return ResponseEntity.ok(response);
     }
 
-    //공지사항 생성(웹)
+    // 공지사항 생성(웹)
     @PostMapping()
-    public ResponseEntity<ApiResponse<NoticeDetailResponse>> createNotice(
+    public ResponseEntity<ApiResponse<List<String>>> createNotice(
             @RequestPart(value = "request", required = false) @Valid NoticeCreationRequest request,
             @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos) {
-        NoticeDetailResponse createdNotice = noticeService.createNotice(request, noticePhotos);
-        ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 생성 성공", createdNotice);
+        List<String> presignedUrls = noticeService.createNotice(request, noticePhotos);
+        ApiResponse<List<String>> response = new ApiResponse<>("공지사항 생성 성공", presignedUrls);
         return ResponseEntity.ok(response);
     }
 
-    //공지사항 수정(웹)
+    // 공지사항 수정(웹)
     @PutMapping("/{noticeId}")
-    public ResponseEntity<ApiResponse<NoticeDetailResponse>> updateNotice(
+    public ResponseEntity<ApiResponse<List<String>>> updateNotice(
             @PathVariable("noticeId") Long noticeId,
             @RequestPart(value = "request", required = false) @Valid NoticeUpdateRequest request,
             @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos) {
-        NoticeDetailResponse updatedNotice = noticeService.updateNotice(noticeId, request, noticePhotos);
-        ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 수정 성공", updatedNotice);
+        List<String> presignedUrls = noticeService.updateNotice(noticeId, request, noticePhotos);
+        ApiResponse<List<String>> response = new ApiResponse<>("공지사항 수정 성공", presignedUrls);
         return ResponseEntity.ok(response);
     }
 

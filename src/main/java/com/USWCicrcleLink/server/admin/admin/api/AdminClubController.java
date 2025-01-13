@@ -48,7 +48,7 @@ public class AdminClubController {
     @PostMapping()
     public ResponseEntity<ApiResponse<String>> createClub(@RequestBody @Valid ClubCreationRequest clubRequest) {
         adminClubService.createClub(clubRequest); // 동아리 생성
-        ApiResponse<String> response = new ApiResponse<>("동아리 생성 성공", null);
+        ApiResponse<String> response = new ApiResponse<>("동아리 생성 성공");
         return ResponseEntity.ok(response);
     }
 
@@ -56,7 +56,7 @@ public class AdminClubController {
     @DeleteMapping("{clubId}")
     public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubId") Long clubId, @RequestBody @Valid AdminPwRequest request) {
         adminClubService.deleteClub(clubId, request);
-        ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공: clubId", clubId);
+        ApiResponse<Long> response = new ApiResponse<>("동아리 삭제 성공");
         return ResponseEntity.ok(response);
     }
 

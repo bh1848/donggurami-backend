@@ -41,7 +41,7 @@ public class ClubLeaderController {
     @PutMapping("/{clubId}/info")
     public ResponseEntity<ApiResponse> updateClubInfo(@PathVariable("clubId") Long clubId,
                                                       @RequestPart(value = "mainPhoto", required = true) MultipartFile mainPhoto,
-                                                      @RequestPart(value = "clubInfoRequest", required = false) ClubInfoRequest clubInfoRequest) throws IOException {
+                                                      @Valid @RequestPart(value = "clubInfoRequest", required = false) ClubInfoRequest clubInfoRequest) throws IOException {
 
         return new ResponseEntity<>(clubLeaderService.updateClubInfo(clubId, clubInfoRequest, mainPhoto), HttpStatus.OK);
     }

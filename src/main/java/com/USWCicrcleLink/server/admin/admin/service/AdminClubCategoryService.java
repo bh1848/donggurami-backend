@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.admin.admin.service;
 
 import com.USWCicrcleLink.server.admin.admin.dto.ClubCategoryCreationRequest;
+import com.USWCicrcleLink.server.admin.admin.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.club.club.repository.ClubCategoryRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
@@ -20,17 +21,6 @@ public class AdminClubCategoryService {
 
     private final ClubCategoryRepository clubCategoryRepository;
 
-    // 동아리 카테고리 설정(웹) - 카테고리 추가
-    public ClubCategory addCategory(ClubCategoryCreationRequest request) {
-        ClubCategory category = ClubCategory.builder()
-                .ClubCategory(request.getClubCategory())
-                .build();
-
-        ClubCategory savedCategory = clubCategoryRepository.save(category);
-        log.info("동아리 카테고리 추가 성공: ID={}, Name={}", savedCategory.getClubCategoryId(), savedCategory.getClubCategory());
-        return savedCategory;
-    }
-
     // 동아리 카테고리 설정(웹) - 카테고리 조회
     public List<ClubCategory> getAllCategories() {
         List<ClubCategory> categories = clubCategoryRepository.findAll();
@@ -38,8 +28,26 @@ public class AdminClubCategoryService {
         return categories;
     }
 
+    // 동아리 카테고리 설정(웹) - 카테고리 추가
+    public ClubCategory addCategory(ClubCategoryCreationRequest request) {
+        // 중복 확인
+        clubCategoryRepository.findByClubCategory(request.getClubCategory())
+                .ifPresent(category -> {
+                    throw new BaseException(ExceptionType.DUPLICATE_CATEGORY);
+                });
+
+        // 새 카테고리 생성 및 저장
+        ClubCategory category = ClubCategory.builder()
+                .clubCategory(request.getClubCategory())
+                .build();
+
+        ClubCategory savedCategory = clubCategoryRepository.save(category);
+        log.info("동아리 카테고리 추가 성공: ID={}, Name={}", savedCategory.getClubCategoryId(), savedCategory.getClubCategory());
+        return savedCategory;
+    }
+
     // 동아리 카테고리 설정(웹) - 카테고리 삭제
-    public void deleteCategory(Long categoryId) {
+    public ClubCategoryResponse deleteCategory(Long categoryId) {
         // 카테고리 존재 여부 확인
         ClubCategory category = clubCategoryRepository.findById(categoryId)
                 .orElseThrow(() -> {
@@ -50,5 +58,8 @@ public class AdminClubCategoryService {
         // 카테고리 삭제
         clubCategoryRepository.delete(category);
         log.info("동아리 카테고리 삭제 성공: ID={}", categoryId);
+
+        // 삭제된 카테고리 정보를 응답으로 반환
+        return new ClubCategoryResponse(category.getClubCategoryId(), category.getClubCategory());
     }
 }

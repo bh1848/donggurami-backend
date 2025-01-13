@@ -85,7 +85,7 @@ public class AdminClubService {
                 .leaderName("")
                 .leaderHp("")
                 .clubInsta("")
-                .ClubRoomNumber(request.getClubRoomNumber())
+                .clubRoomNumber(request.getClubRoomNumber())
                 .build();
         clubRepository.save(club);
 

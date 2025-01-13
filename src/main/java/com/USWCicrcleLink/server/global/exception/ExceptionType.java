@@ -60,6 +60,12 @@ public enum ExceptionType {
     CLUB_NAME_ALREADY_EXISTS("CLUB-203", "이미 존재하는 동아리 이름입니다.", CONFLICT),
 
     /**
+     * Domain: ClubCategory
+     */
+    INVALID_CATEGORY("CTG-201", "유효하지 않은 카테고리입니다.", BAD_REQUEST),
+    DUPLICATE_CATEGORY("CTG-202", "이미 존재하는 카테고리입니다.", BAD_REQUEST),
+
+    /**
      * Domain: ClubIntro
      */
     CLUB_INTRO_NOT_EXISTS("CINT-201", "해당 동아리 소개글이 존재하지 않습니다.", NOT_FOUND),
