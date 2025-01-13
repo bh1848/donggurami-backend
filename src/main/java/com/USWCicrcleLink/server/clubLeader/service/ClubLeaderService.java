@@ -504,7 +504,7 @@ public class ClubLeaderService {
                             club.getClubId(),
                             result.getAplictId(),
                             false)
-                    .orElseThrow(() -> new AplictException(ExceptionType.APPLICANT_NOT_EXISTS));
+                    .orElseThrow(() -> new BaseException(ExceptionType.APPLICANT_NOT_EXISTS));
 
             // 동아리원 중복 존재 검사
             ClubMembers isInClubMember = clubMembersRepository
@@ -546,7 +546,7 @@ public class ClubLeaderService {
                 .collect(Collectors.toSet());
 
         if (!requestedApplicantIds.equals(applicantIds)) {
-            throw new AplictException(ExceptionType.APPLICANT_COUNT_MISMATCH);
+            throw new BaseException(ExceptionType.APPLICANT_COUNT_MISMATCH);
         }
     }
 
@@ -594,7 +594,7 @@ public class ClubLeaderService {
                             true,
                             AplictStatus.FAIL
                     )
-                    .orElseThrow(() -> new AplictException(ExceptionType.ADDITIONAL_APPLICANT_NOT_EXISTS));
+                    .orElseThrow(() -> new BaseException(ExceptionType.ADDITIONAL_APPLICANT_NOT_EXISTS));
 
             // 동아리원 중복 존재 검사
             ClubMembers isInClubMember = clubMembersRepository

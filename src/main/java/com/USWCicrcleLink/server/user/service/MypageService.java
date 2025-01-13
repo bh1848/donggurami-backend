@@ -12,7 +12,6 @@ import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.club.repository.FloorPhotoRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.AplictException;
 import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
@@ -114,7 +113,7 @@ public class MypageService {
     // 어플리케이션 ID를 통해 클럽 조회
     private Club getClubByAplictId(Long aplictId) {
         Aplict aplict = aplictRepository.findById(aplictId)
-                .orElseThrow(() -> new AplictException(ExceptionType.APLICT_NOT_EXISTS));
+                .orElseThrow(() -> new BaseException(ExceptionType.APLICT_NOT_EXISTS));
         return clubRepository.findById(aplict.getClub().getClubId()).orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
     }
 
