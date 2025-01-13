@@ -500,7 +500,7 @@ public class ClubLeaderService {
                 false);
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
-                        ap.getId(),
+                        ap.getAplictId(),
                         ap.getProfile()
                 ))
                 .collect(toList());
@@ -528,7 +528,7 @@ public class ClubLeaderService {
 
         // 지원자 검증(지원한 동아리 + 지원서 + check안된 상태)
         for (ApplicantResultsRequest result : results) {
-            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndChecked(
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndAplictIdAndChecked(
                             club.getClubId(),
                             result.getAplictId(),
                             false)
@@ -552,10 +552,10 @@ public class ClubLeaderService {
                         .build();
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
                 clubMembersRepository.save(newClubMembers);
-                log.debug("합격 처리 완료: {}", applicant.getId());
+                log.debug("합격 처리 완료: {}", applicant.getAplictId());
             } else if (aplictResult == AplictStatus.FAIL) {
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
-                log.debug("불합격 처리 완료: {}", applicant.getId());
+                log.debug("불합격 처리 완료: {}", applicant.getAplictId());
             }
 
             aplictRepository.save(applicant);
@@ -566,7 +566,7 @@ public class ClubLeaderService {
     // 선택된 지원자 수와 전체 지원자 수 비교
     private void validateTotalApplicants(List<Aplict> applicants, List<ApplicantResultsRequest> results) {
         Set<Long> applicantIds = applicants.stream()
-                .map(Aplict::getId)
+                .map(Aplict::getAplictId)
                 .collect(Collectors.toSet());
 
         Set<Long> requestedApplicantIds = results.stream()
@@ -594,7 +594,7 @@ public class ClubLeaderService {
 
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
-                        ap.getId(),
+                        ap.getAplictId(),
                         ap.getProfile()
                 ))
                 .collect(toList());
@@ -616,7 +616,7 @@ public class ClubLeaderService {
 
         // 지원자 검증(지원한 동아리 + 지원서 + check된 상태 + 불합)
         for (ApplicantResultsRequest result : results) {
-            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndCheckedAndAplictStatus(
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndAplictIdAndCheckedAndAplictStatus(
                             club.getClubId(),
                             result.getAplictId(),
                             true,
@@ -644,7 +644,7 @@ public class ClubLeaderService {
             aplictRepository.save(applicant);
 
             fcmService.sendMessageTo(applicant, aplictResult);
-            log.debug("추가 합격 처리 완료: {}", applicant.getId());
+            log.debug("추가 합격 처리 완료: {}", applicant.getAplictId());
         }
     }
 

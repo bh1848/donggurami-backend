@@ -89,7 +89,7 @@ public class MypageService {
 
         return aplicts.stream()
                 .map(aplict -> {
-                    Club club = getClubByAplictId(aplict.getId());
+                    Club club = getClubByAplictId(aplict.getAplictId());
                     AplictStatus aplictStatus = aplict.getAplictStatus(); // 어플릭트의 상태 가져오기
                     return myAplictResponse(club, aplictStatus);
                 })
