@@ -21,6 +21,8 @@ import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,14 +47,12 @@ public class AdminClubService {
     private final PasswordEncoder passwordEncoder;
 
     // 동아리 목록 조회(웹)
-    public List<ClubAdminListResponse> getAllClubs() {
-        List<ClubAdminListResponse> results;
+    public Page<AdminClubListResponse> getAllClubs(Pageable pageable) {
         try {
-            results = clubRepository.findAllWithMemberAndLeaderCount();
+            return clubRepository.findAllWithMemberAndLeaderCount(pageable);
         } catch (Exception e) {
             throw new ClubException(ExceptionType.ClUB_CHECKING_ERROR);
         }
-        return results;
     }
 
     // 동아리 생성(웹) - 동아리 생성 완료하기

@@ -2,12 +2,15 @@ package com.USWCicrcleLink.server.admin.admin.api;
 
 import com.USWCicrcleLink.server.admin.admin.dto.*;
 import com.USWCicrcleLink.server.admin.admin.service.AdminClubService;
-import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
 import com.USWCicrcleLink.server.club.clubIntro.service.ClubIntroService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,11 +24,15 @@ public class AdminClubController {
     private final AdminClubService adminClubService;
     private final ClubIntroService clubIntroService;
 
-    // 동아리 전체 리스트 조회(웹)
-    @GetMapping()
-    public ResponseEntity<ApiResponse<List<ClubAdminListResponse>>> getAllClubs() {
-        List<ClubAdminListResponse> clubs = adminClubService.getAllClubs();
-        ApiResponse<List<ClubAdminListResponse>> response = new ApiResponse<>("동아리 전체 리스트 조회 성공", clubs);
+    // 동아리 리스트 조회(웹, 페이징)
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<AdminClubListResponse>>> getAllClubs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("clubId").descending());
+        Page<AdminClubListResponse> pagedClubs = adminClubService.getAllClubs(pageable);
+        ApiResponse<Page<AdminClubListResponse>> response = new ApiResponse<>("동아리 전체 리스트 조회 성공", pagedClubs);
         return ResponseEntity.ok(response);
     }
 

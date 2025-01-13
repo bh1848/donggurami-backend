@@ -13,8 +13,8 @@ import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.club.repository.FloorPhotoRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AplictException;
+import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
-import com.USWCicrcleLink.server.global.exception.errortype.FloorPhotoException;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
@@ -167,11 +167,11 @@ public class MypageService {
         try {
             floorEnum = FloorPhotoEnum.valueOf(floor);
         } catch (IllegalArgumentException e) {
-            throw new FloorPhotoException(ExceptionType.INVALID_ENUM_VALUE);
+            throw new BaseException(ExceptionType.INVALID_ENUM_VALUE);
         }
 
         FloorPhoto floorPhoto = floorPhotoRepository.findByFloor(floorEnum)
-                .orElseThrow(() -> new FloorPhotoException(ExceptionType.PHOTO_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(ExceptionType.PHOTO_NOT_FOUND));
 
         String presignedUrl = s3FileUploadService.generatePresignedGetUrl(floorPhoto.getFloorPhotoPhotoS3key());
 

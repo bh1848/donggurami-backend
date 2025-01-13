@@ -9,7 +9,10 @@ import com.USWCicrcleLink.server.admin.notice.service.NoticeService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +27,16 @@ import java.util.List;
 public class NoticeController {
     private final NoticeService noticeService;
 
-    //공지사항 리스트 조회(페이징)(웹)
-    @GetMapping("/paged")
-    public ResponseEntity<PagedModel<NoticeListResponse>> getNotices(Pageable pageable, PagedResourcesAssembler<Notice> pagedResourcesAssembler) {
-        PagedModel<NoticeListResponse> pagedNotices = noticeService.getNotices(pageable, pagedResourcesAssembler);
-        return ResponseEntity.ok(pagedNotices);
+    //공지사항 리스트 조회(웹, 페이징)
+    @GetMapping()
+    public ResponseEntity<ApiResponse<Page<NoticeListResponse>>> getNotices(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("noticeCreatedAt").descending());
+        Page<NoticeListResponse> pagedNotices = noticeService.getNotices(pageable);
+        ApiResponse<Page<NoticeListResponse>> response = new ApiResponse<>("공지사항 리스트 조회 성공", pagedNotices);
+        return ResponseEntity.ok(response);
     }
 
     //공지사항 세부내용 조회(웹)

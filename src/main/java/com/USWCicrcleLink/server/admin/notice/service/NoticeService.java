@@ -39,15 +39,17 @@ public class NoticeService {
     private static final int FILE_LIMIT = 5; // 최대 업로드 가능한 파일 수
     private static final String S3_NOTICE_PHOTO_DIR = "noticePhoto/"; // 공지사항 사진 경로
     private final NoticeRepository noticeRepository;
-    private final NoticeListResponseAssembler noticeListResponseAssembler;
     private final NoticePhotoRepository noticePhotoRepository;
     private final S3FileUploadService s3FileUploadService;
 
     // 공지사항 목록 조회 (페이징)
     @Transactional(readOnly = true)
-    public PagedModel<NoticeListResponse> getNotices(Pageable pageable, PagedResourcesAssembler<Notice> pagedResourcesAssembler) {
-        Page<Notice> noticePage = noticeRepository.findAll(pageable);
-        return pagedResourcesAssembler.toModel(noticePage, noticeListResponseAssembler);
+    public Page<NoticeListResponse> getNotices(Pageable pageable) {
+        try {
+            return noticeRepository.findAllNotices(pageable);
+        } catch (Exception e){
+            throw new NoticeException(ExceptionType.NOTICE_CHECKING_ERROR);
+        }
     }
 
     // 공지사항 세부 정보 조회

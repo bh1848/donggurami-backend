@@ -78,6 +78,7 @@ public enum ExceptionType {
     UP_TO_5_PHOTOS_CAN_BE_UPLOADED("NOT-202", "최대 5개의 사진이 업로드 가능합니다.", PAYLOAD_TOO_LARGE),
     NOTICE_PHOTO_NOT_EXISTS("NOT-204", "사진이 존재하지 않습니다.", NOT_FOUND),
     INVALID_PHOTO_ORDER("NOT-205", "사진 순서는 1에서 5 사이여야 합니다.", BAD_REQUEST),
+    NOTICE_CHECKING_ERROR("NOT-206", "공지사항 조회 중 에러가 발생했습니다.", BAD_REQUEST),
 
     /**
      * Domain: Profile
