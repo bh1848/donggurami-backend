@@ -97,4 +97,15 @@ public class ProfileService {
         // 프로필 삭제
         profileRepository.delete(profile);
     }
+
+    // 프로필 중복 확인
+    public void checkProfileDuplicated(ProfileRequest request) {
+        log.debug("프로필 중복 체크 요청 시작 profile_name = {}",request.getUserName());
+        profileRepository.findByUserNameAndUserHpAndStudentNumber(request.getUserName(),request.getUserHp(),request.getStudentNumber())
+                .ifPresent(profile -> {
+                    throw new ProfileException(ExceptionType.PROFILE_ALREADY_EXISTS);
+                });
+        log.debug("프로필 중복 확인 완료");
+    }
+
 }

@@ -85,6 +85,7 @@ public enum ExceptionType {
     PROFILE_NOT_EXISTS("PFL-201", "프로필이 존재하지 않습니다.", NOT_FOUND),
     PROFILE_UPDATE_FAIL("PFL-202", "프로필 업데이트에 실패했습니다.", INTERNAL_SERVER_ERROR),
     PROFILE_NOT_INPUT("PFL-203","프로필 입력값은 필수입니다.", BAD_REQUEST),
+    PROFILE_ALREADY_EXISTS("PFL-204","프로필이 이미 존재합니다",BAD_REQUEST),
 
     /**
      * Domain: ClubIntroPhoto, Club(MainPhoto)

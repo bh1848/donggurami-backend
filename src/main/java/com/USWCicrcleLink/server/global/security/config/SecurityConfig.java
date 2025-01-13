@@ -63,7 +63,8 @@ public class SecurityConfig {
                             "/mainPhoto/**",
                             "/introPhoto/**",
                             "/my-notices/**",
-                            "/clubs/**" // 동아리 조회(모바일)
+                            "/clubs/**", // 동아리 조회(모바일)
+                            "/profiles/check-duplicated" // 프로필 중복 조회
                     ).permitAll();
 
                     // photo

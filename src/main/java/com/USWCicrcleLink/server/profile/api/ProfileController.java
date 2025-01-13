@@ -6,6 +6,8 @@ import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
 import com.USWCicrcleLink.server.profile.dto.ProfileResponse;
 import com.USWCicrcleLink.server.profile.service.ProfileService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,4 +29,13 @@ public class ProfileController {
         ProfileResponse profileResponse = profileService.getMyProfile();
         return new ApiResponse<>("프로필 조회 성공", profileResponse);
     }
+
+    @GetMapping("/check-duplicated")
+    public ResponseEntity<ApiResponse<String>> checkProfileDuplicated(@Validated(ValidationSequence.class) @RequestBody ProfileRequest request){
+        profileService.checkProfileDuplicated(request);
+
+        ApiResponse<String> response = new ApiResponse<>("사용 가능한 프로필 입니다.",request.getUserName());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 }

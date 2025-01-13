@@ -130,8 +130,8 @@ public class DummyData {
 
         Profile profile1 = Profile.builder()
                 .user(user1)
-                .userName("김땡떙")
-                .studentNumber("1234")
+                .userName("김땡땡")
+                .studentNumber("12345678")
                 .userHp("01012345678")
                 .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
