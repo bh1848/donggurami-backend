@@ -22,7 +22,7 @@ public class AdminClubCategoryService {
     // 동아리 카테고리 설정(웹) - 카테고리 추가
     public ClubCategory addCategory(ClubCategoryCreationRequest request) {
         ClubCategory category = ClubCategory.builder()
-                .ClubCategory(request.getClubCategory())
+                .clubCategory(request.getClubCategory())
                 .build();
         return clubCategoryRepository.save(category);
     }

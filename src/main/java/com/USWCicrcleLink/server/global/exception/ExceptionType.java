@@ -132,6 +132,7 @@ public enum ExceptionType {
      * Domain: WithdrawalToken
      */
     CATEGORY_NOT_FOUND("CG-201","해당 카테고리가 존재하지 않습니다." , NOT_FOUND),
+    INVALID_CATEGORY_COUNT("CG-202","카테고리는 최대 3개까지 선택할수 있습니다.", BAD_REQUEST),
 
     /**
      * 공통
