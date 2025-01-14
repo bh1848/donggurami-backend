@@ -45,6 +45,8 @@ public class DummyData {
     private final PasswordEncoder passwordEncoder;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
     private final ClubHashtagRepository clubHashtagRepository;
+    private final ClubCategoryRepository clubCategoryRepository;
+    private final ClubCategoryMappingRepository clubCategoryMappingRepository;
 
     @PostConstruct
     public void init() {
@@ -306,7 +308,7 @@ public class DummyData {
                 .club(volunteerClub)
                 .clubIntro("봉사동아리입니다.")
                 .googleFormUrl("volunteerClub_google_url")
-                .recruitmentStatus(RecruitmentStatus.OPEN)
+                .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
         clubIntroRepository.save(clubIntro2);
 
@@ -405,6 +407,59 @@ public class DummyData {
                 .aplictStatus(AplictStatus.FAIL)
                 .build();
         aplictRepository.save(volunteerAplict);
+
+        // 클럽 카테고리 더미 데이터 추가
+        ClubCategory clubCategory1 = ClubCategory.builder()
+                .clubCategory("운동")
+                .build();
+        clubCategoryRepository.save(clubCategory1);
+
+        ClubCategory clubCategory2 = ClubCategory.builder()
+                .clubCategory("학술")
+                .build();
+        clubCategoryRepository.save(clubCategory2);
+
+        ClubCategory clubCategory3 = ClubCategory.builder()
+                .clubCategory("봉사")
+                .build();
+        clubCategoryRepository.save(clubCategory3);
+
+        ClubCategory clubCategory4 = ClubCategory.builder()
+                .clubCategory("개발")
+                .build();
+        clubCategoryRepository.save(clubCategory4);
+
+// 클럽-카테고리 매핑 더미 데이터 추가
+        ClubCategoryMapping mapping1 = ClubCategoryMapping.builder()
+                .club(flagClub)
+                .clubCategory(clubCategory2)
+                .build();
+        clubCategoryMappingRepository.save(mapping1);
+
+        ClubCategoryMapping mapping4 = ClubCategoryMapping.builder()
+                .club(flagClub)
+                .clubCategory(clubCategory4)
+                .build();
+        clubCategoryMappingRepository.save(mapping4);
+
+        ClubCategoryMapping mapping2 = ClubCategoryMapping.builder()
+                .club(badmintonClub)
+                .clubCategory(clubCategory1)
+                .build();
+        clubCategoryMappingRepository.save(mapping2);
+
+        ClubCategoryMapping mapping3 = ClubCategoryMapping.builder()
+                .club(volunteerClub)
+                .clubCategory(clubCategory3)
+                .build();
+        clubCategoryMappingRepository.save(mapping3);
+
+        ClubCategoryMapping mapping5 = ClubCategoryMapping.builder()
+                .club(volunteerClub)
+                .clubCategory(clubCategory2)
+                .build();
+        clubCategoryMappingRepository.save(mapping5);
+
     }
 
 
@@ -608,7 +663,7 @@ public class DummyData {
 
         ClubIntro basketballIntro = ClubIntro.builder()
                 .club(basketballClub)
-                .clubIntro("테니스 동아리입니다.")
+                .clubIntro("농구 동아리입니다.")
                 .googleFormUrl("basketball_google_url")
                 .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
