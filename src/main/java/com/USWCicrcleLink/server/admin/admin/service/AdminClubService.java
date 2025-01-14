@@ -21,6 +21,8 @@ import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,25 +47,18 @@ public class AdminClubService {
     private final PasswordEncoder passwordEncoder;
 
     // 동아리 목록 조회(웹)
-    public List<ClubAdminListResponse> getAllClubs() {
-        List<ClubAdminListResponse> results;
+    public Page<AdminClubListResponse> getAllClubs(Pageable pageable) {
         try {
-            results = clubRepository.findAllWithMemberAndLeaderCount();
+            return clubRepository.findAllWithMemberAndLeaderCount(pageable);
         } catch (Exception e) {
             throw new ClubException(ExceptionType.ClUB_CHECKING_ERROR);
         }
-        return results;
     }
 
-    // 동아리 생성(웹)
-    public ClubCreationResponse createClub(ClubCreationRequest request) {
+    // 동아리 생성(웹) - 동아리 생성 완료하기
+    public void createClub(ClubCreationRequest request) {
         // 인증된 관리자 정보 가져오기
         Admin admin = getAuthenticatedAdmin();
-
-        // 관리자 비밀번호 검증
-        if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
-            throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
-        }
 
         // 동아리 회장 비밀번호 확인
         if (!request.getLeaderPw().equals(request.getLeaderPwConfirm())) {
@@ -76,6 +71,13 @@ public class AdminClubService {
         validateLeaderAccount(request.getLeaderAccount());
         validateClubName(request.getClubName());
 
+        // 관리자 비밀번호 검증
+        if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
+            throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
+        }
+
+        log.debug("관리자 비밀번호 확인 성공");
+
         // Club 생성 및 저장
         Club club = Club.builder()
                 .clubName(InputValidator.sanitizeContent(request.getClubName()))
@@ -83,6 +85,7 @@ public class AdminClubService {
                 .leaderName("")
                 .leaderHp("")
                 .clubInsta("")
+                .clubRoomNumber(request.getClubRoomNumber())
                 .build();
         clubRepository.save(club);
 
@@ -126,24 +129,23 @@ public class AdminClubService {
         }
         clubIntroPhotoRepository.saveAll(introPhotos);
         log.debug("동아리 생성 성공");
-        return new ClubCreationResponse(club, leader);
     }
 
-    // 동아리 회장 아이디 중복 확인
+    // 동아리 생성(웹) - 동아리 회장 아이디 중복 확인
     public void validateLeaderAccount(String leaderAccount) {
         if (leaderRepository.existsByLeaderAccount(leaderAccount)) {
             throw new ClubException(ExceptionType.LEADER_ACCOUNT_ALREADY_EXISTS);
         }
     }
 
-    // 동아리 이름 중복 확인
+    // 동아리 생성(웹) - 동아리 이름 중복 확인
     public void validateClubName(String clubName) {
         if (clubRepository.existsByClubName(clubName)) {
             throw new ClubException(ExceptionType.CLUB_NAME_ALREADY_EXISTS);
         }
     }
 
-    // 동아리 삭제(웹)
+    // 동아리 삭제(웹) - 동아리 삭제 완료하기
     public void deleteClub(Long clubId, AdminPwRequest request) {
 
         // 인증된 관리자 정보 가져오기

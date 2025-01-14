@@ -1,11 +1,13 @@
 package com.USWCicrcleLink.server.club.club.repository;
 
-import com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminClubListResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface ClubRepositoryCustom {
-    List<ClubAdminListResponse> findAllWithMemberAndLeaderCount();
+    Page<AdminClubListResponse> findAllWithMemberAndLeaderCount(Pageable pageable);
 
     void deleteClubAndDependencies(Long clubId);
 }

@@ -17,7 +17,7 @@ public class AdminFloorPhotoController {
     private final AdminFloorPhotoService adminFloorPhotoService;
 
     // 동아리 위치 정보 수정(웹) - 층별 사진 업로드
-    @PostMapping("/{floor}")
+    @PutMapping("/{floor}")
     public ResponseEntity<ApiResponse<FloorPhotoCreationResponse>> uploadFloorPhoto(
             @PathVariable("floor") FloorPhotoEnum floor,
             @RequestPart("photo") MultipartFile photo) {

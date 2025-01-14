@@ -12,9 +12,8 @@ import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.club.repository.FloorPhotoRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.AplictException;
+import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
-import com.USWCicrcleLink.server.global.exception.errortype.FloorPhotoException;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
@@ -90,7 +89,7 @@ public class MypageService {
 
         return aplicts.stream()
                 .map(aplict -> {
-                    Club club = getClubByAplictId(aplict.getId());
+                    Club club = getClubByAplictId(aplict.getAplictId());
                     AplictStatus aplictStatus = aplict.getAplictStatus(); // 어플릭트의 상태 가져오기
                     return myAplictResponse(club, aplictStatus);
                 })
@@ -114,7 +113,7 @@ public class MypageService {
     // 어플리케이션 ID를 통해 클럽 조회
     private Club getClubByAplictId(Long aplictId) {
         Aplict aplict = aplictRepository.findById(aplictId)
-                .orElseThrow(() -> new AplictException(ExceptionType.APLICT_NOT_EXISTS));
+                .orElseThrow(() -> new BaseException(ExceptionType.APLICT_NOT_EXISTS));
         return clubRepository.findById(aplict.getClub().getClubId()).orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
     }
 
@@ -167,11 +166,11 @@ public class MypageService {
         try {
             floorEnum = FloorPhotoEnum.valueOf(floor);
         } catch (IllegalArgumentException e) {
-            throw new FloorPhotoException(ExceptionType.INVALID_ENUM_VALUE);
+            throw new BaseException(ExceptionType.INVALID_ENUM_VALUE);
         }
 
         FloorPhoto floorPhoto = floorPhotoRepository.findByFloor(floorEnum)
-                .orElseThrow(() -> new FloorPhotoException(ExceptionType.PHOTO_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(ExceptionType.PHOTO_NOT_FOUND));
 
         String presignedUrl = s3FileUploadService.generatePresignedGetUrl(floorPhoto.getFloorPhotoPhotoS3key());
 

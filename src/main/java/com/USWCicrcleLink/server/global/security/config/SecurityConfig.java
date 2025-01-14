@@ -91,7 +91,7 @@ public class SecurityConfig {
 
                     // ADMIN - Notice
                     auth.requestMatchers(HttpMethod.POST, "/notices").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/notices/{noticeId}", "/notices/paged").hasAnyRole("ADMIN", "LEADER");
+                    auth.requestMatchers(HttpMethod.GET, "/notices/{noticeId}", "/notices").hasAnyRole("ADMIN", "LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/notices/{noticeId}").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/notices/{noticeId}").hasRole("ADMIN");
 

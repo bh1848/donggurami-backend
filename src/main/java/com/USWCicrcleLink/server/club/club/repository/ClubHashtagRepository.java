@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ClubHashtagRepository extends JpaRepository<ClubHashtag, Long> {
     List<ClubHashtag> findByClub(Club club);
+    void deleteByClub_ClubId(Long clubId);
 }

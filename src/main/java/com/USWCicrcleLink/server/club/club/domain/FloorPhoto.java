@@ -18,13 +18,13 @@ public class FloorPhoto {
     @Column(name = "floor_photo_id")
     private Long floorPhotoId;
 
-    @Column(name = "floor_photo_name")
+    @Column(name = "floor_photo_name", nullable = false)
     private String floorPhotoPhotoName;
 
-    @Column(name = "floor_photo_s3_key")
+    @Column(name = "floor_photo_s3_key", nullable = false)
     private String floorPhotoPhotoS3key;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "floor_photo_floor")
+    @Column(name = "floor_photo_floor", nullable = false)
     private FloorPhotoEnum floor;
 }

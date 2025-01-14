@@ -5,12 +5,8 @@ import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantsResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
-import com.USWCicrcleLink.server.club.club.domain.Club;
-import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
-import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
-import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
-import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.club.domain.*;
+import com.USWCicrcleLink.server.club.club.repository.*;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
@@ -63,6 +59,9 @@ public class ClubLeaderService {
     private final AplictRepository aplictRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
+    private final ClubHashtagRepository clubHashtagRepository;
+    private final ClubCategoryRepository clubCategoryRepository;
+    private final ClubCategoryMappingRepository clubCategoryMappingRepository;
 
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
@@ -100,26 +99,54 @@ public class ClubLeaderService {
 
     // 동아리 기본 정보 변경
     public ApiResponse<UpdateClubInfoResponse> updateClubInfo(Long clubId, ClubInfoRequest clubInfoRequest, MultipartFile mainPhoto) throws IOException {
-
+        // 동아리 회장 유효성 검증
         Club club = validateLeader(clubId);
-
-        // 동아리 회장의 이름 필수
-        if (clubInfoRequest.getLeaderName() == null || clubInfoRequest.getLeaderName().trim().isEmpty()) {
-            throw new ClubLeaderException(ExceptionType.LEADER_NAME_REQUIRED);
-        }
 
         // 입력값 검증 (XSS 공격 방지)
         String sanitizedLeaderName = InputValidator.sanitizeContent(clubInfoRequest.getLeaderName());
-        String sanitizedClubInsta = clubInfoRequest.getClubInsta() != null ? InputValidator.sanitizeContent(clubInfoRequest.getClubInsta()) : "";
-        String sanitizedLeaderHp = clubInfoRequest.getLeaderHp() != null ? InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp()) : "";
+        String sanitizedLeaderHp = InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp());
+        String sanitizedClubInsta = InputValidator.sanitizeContent(clubInfoRequest.getClubInsta());
 
-        // 사진이 없을 경우 null
+        // 동아리 해시태그 처리
+        if (clubInfoRequest.getClubHashtag() != null) {
+            // 기존 해시태그 삭제
+            clubHashtagRepository.deleteByClub_ClubId(clubId);
+
+            // 새로운 해시태그 저장
+            for (String hashtag : clubInfoRequest.getClubHashtag()) {
+                ClubHashtag clubHashtag = ClubHashtag.builder()
+                        .club(club)
+                        .clubHashtag(InputValidator.sanitizeContent(hashtag))
+                        .build();
+                clubHashtagRepository.save(clubHashtag);
+            }
+        }
+
+        // 동아리 카테고리 처리
+        if (clubInfoRequest.getClubCategory() != null) {
+            // 기존 카테고리 매핑 삭제
+            clubCategoryMappingRepository.deleteByClub_ClubId(clubId);
+
+            // 새로운 카테고리 매핑 저장
+            for (String category : clubInfoRequest.getClubCategory()) {
+                ClubCategory clubCategory = clubCategoryRepository.findByClubCategory(category)
+                        .orElseThrow(() -> new ClubException(ExceptionType.INVALID_CATEGORY));
+
+                ClubCategoryMapping categoryMapping = ClubCategoryMapping.builder()
+                        .club(club)
+                        .clubCategory(clubCategory)
+                        .build();
+                clubCategoryMappingRepository.save(categoryMapping);
+            }
+        }
+
+        // 사진 처리
         S3FileResponse s3FileResponse = null;
         if (mainPhoto != null && !mainPhoto.isEmpty()) {
             // 기존 동아리 대표 사진 조회
             ClubMainPhoto existingPhoto = clubMainPhotoRepository.findByClub_ClubId(clubId);
 
-            // 기존 사진이 존재할 경우
+            // 기존 사진 삭제
             if (existingPhoto != null && existingPhoto.getClubMainPhotoS3Key() != null && !existingPhoto.getClubMainPhotoS3Key().isEmpty()) {
                 s3FileUploadService.deleteFile(existingPhoto.getClubMainPhotoS3Key());
                 log.debug("기존 대표 사진 삭제 완료: {}", existingPhoto.getClubMainPhotoS3Key());
@@ -129,11 +156,12 @@ public class ClubLeaderService {
             s3FileResponse = updateClubMainPhotoAndS3File(mainPhoto, existingPhoto);
         }
 
-        // 동아리 기본 정보 변경
-        club.updateClubInfo(sanitizedLeaderName, sanitizedLeaderHp, sanitizedClubInsta);
+        // 동아리 기본 정보 업데이트
+        club.updateClubInfo(sanitizedLeaderName, sanitizedLeaderHp, sanitizedClubInsta, clubInfoRequest.getClubRoomNumber());
         clubRepository.save(club);
         log.debug("동아리 기본 정보 변경 완료: {}", club.getClubName());
 
+        // 응답 생성
         String mainPhotoUrl = s3FileResponse != null ? s3FileResponse.getPresignedUrl() : "";
         return new ApiResponse<>("동아리 기본 정보 변경 완료", new UpdateClubInfoResponse(mainPhotoUrl));
     }
@@ -472,7 +500,7 @@ public class ClubLeaderService {
                 false);
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
-                        ap.getId(),
+                        ap.getAplictId(),
                         ap.getProfile()
                 ))
                 .collect(toList());
@@ -500,11 +528,11 @@ public class ClubLeaderService {
 
         // 지원자 검증(지원한 동아리 + 지원서 + check안된 상태)
         for (ApplicantResultsRequest result : results) {
-            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndChecked(
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndAplictIdAndChecked(
                             club.getClubId(),
                             result.getAplictId(),
                             false)
-                    .orElseThrow(() -> new AplictException(ExceptionType.APPLICANT_NOT_EXISTS));
+                    .orElseThrow(() -> new BaseException(ExceptionType.APPLICANT_NOT_EXISTS));
 
             // 동아리원 중복 존재 검사
             ClubMembers isInClubMember = clubMembersRepository
@@ -524,10 +552,10 @@ public class ClubLeaderService {
                         .build();
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
                 clubMembersRepository.save(newClubMembers);
-                log.debug("합격 처리 완료: {}", applicant.getId());
+                log.debug("합격 처리 완료: {}", applicant.getAplictId());
             } else if (aplictResult == AplictStatus.FAIL) {
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
-                log.debug("불합격 처리 완료: {}", applicant.getId());
+                log.debug("불합격 처리 완료: {}", applicant.getAplictId());
             }
 
             aplictRepository.save(applicant);
@@ -538,7 +566,7 @@ public class ClubLeaderService {
     // 선택된 지원자 수와 전체 지원자 수 비교
     private void validateTotalApplicants(List<Aplict> applicants, List<ApplicantResultsRequest> results) {
         Set<Long> applicantIds = applicants.stream()
-                .map(Aplict::getId)
+                .map(Aplict::getAplictId)
                 .collect(Collectors.toSet());
 
         Set<Long> requestedApplicantIds = results.stream()
@@ -546,7 +574,7 @@ public class ClubLeaderService {
                 .collect(Collectors.toSet());
 
         if (!requestedApplicantIds.equals(applicantIds)) {
-            throw new AplictException(ExceptionType.APPLICANT_COUNT_MISMATCH);
+            throw new BaseException(ExceptionType.APPLICANT_COUNT_MISMATCH);
         }
     }
 
@@ -566,7 +594,7 @@ public class ClubLeaderService {
 
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
-                        ap.getId(),
+                        ap.getAplictId(),
                         ap.getProfile()
                 ))
                 .collect(toList());
@@ -588,13 +616,13 @@ public class ClubLeaderService {
 
         // 지원자 검증(지원한 동아리 + 지원서 + check된 상태 + 불합)
         for (ApplicantResultsRequest result : results) {
-            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndCheckedAndAplictStatus(
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndAplictIdAndCheckedAndAplictStatus(
                             club.getClubId(),
                             result.getAplictId(),
                             true,
                             AplictStatus.FAIL
                     )
-                    .orElseThrow(() -> new AplictException(ExceptionType.ADDITIONAL_APPLICANT_NOT_EXISTS));
+                    .orElseThrow(() -> new BaseException(ExceptionType.ADDITIONAL_APPLICANT_NOT_EXISTS));
 
             // 동아리원 중복 존재 검사
             ClubMembers isInClubMember = clubMembersRepository
@@ -616,7 +644,7 @@ public class ClubLeaderService {
             aplictRepository.save(applicant);
 
             fcmService.sendMessageTo(applicant, aplictResult);
-            log.debug("추가 합격 처리 완료: {}", applicant.getId());
+            log.debug("추가 합격 처리 완료: {}", applicant.getAplictId());
         }
     }
 

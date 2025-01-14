@@ -60,6 +60,12 @@ public enum ExceptionType {
     CLUB_NAME_ALREADY_EXISTS("CLUB-203", "이미 존재하는 동아리 이름입니다.", CONFLICT),
 
     /**
+     * Domain: ClubCategory
+     */
+    INVALID_CATEGORY("CTG-201", "유효하지 않은 카테고리입니다.", BAD_REQUEST),
+    DUPLICATE_CATEGORY("CTG-202", "이미 존재하는 카테고리입니다.", BAD_REQUEST),
+
+    /**
      * Domain: ClubIntro
      */
     CLUB_INTRO_NOT_EXISTS("CINT-201", "해당 동아리 소개글이 존재하지 않습니다.", NOT_FOUND),
@@ -78,6 +84,7 @@ public enum ExceptionType {
     UP_TO_5_PHOTOS_CAN_BE_UPLOADED("NOT-202", "최대 5개의 사진이 업로드 가능합니다.", PAYLOAD_TOO_LARGE),
     NOTICE_PHOTO_NOT_EXISTS("NOT-204", "사진이 존재하지 않습니다.", NOT_FOUND),
     INVALID_PHOTO_ORDER("NOT-205", "사진 순서는 1에서 5 사이여야 합니다.", BAD_REQUEST),
+    NOTICE_CHECKING_ERROR("NOT-206", "공지사항 조회 중 에러가 발생했습니다.", BAD_REQUEST),
 
     /**
      * Domain: Profile
@@ -115,6 +122,8 @@ public enum ExceptionType {
     APPLICANT_COUNT_MISMATCH("APT-204", "선택한 지원자 수와 전체 지원자 수가 일치하지 않습니다.", BAD_REQUEST),
     ALREADY_APPLIED("APT-205", "이미 지원한 동아리입니다.", BAD_REQUEST),
     ALREADY_MEMBER("APT-206", "이미 해당 동아리 회원입니다.", BAD_REQUEST),
+    PHONE_NUMBER_ALREADY_REGISTERED("APT-207", "이미 등록된 전화번호입니다.", BAD_REQUEST),
+    STUDENT_NUMBER_ALREADY_REGISTERED("APT-208", "이미 등록된 학번입니다.", BAD_REQUEST),
 
     /**
      * Domain: AuthCodeToken
