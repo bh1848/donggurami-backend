@@ -6,9 +6,7 @@ import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.*;
-import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
-import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.club.repository.*;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
@@ -46,6 +44,9 @@ public class DummyData {
     private final LeaderRepository leaderRepository;
     private final PasswordEncoder passwordEncoder;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
+    private final ClubHashtagRepository clubHashtagRepository;
+    private final ClubCategoryRepository clubCategoryRepository;
+    private final ClubCategoryMappingRepository clubCategoryMappingRepository;
 
     @PostConstruct
     public void init() {
@@ -176,9 +177,10 @@ public class DummyData {
         Club flagClub = Club.builder()
                 .clubName("FLAG")
                 .leaderName("flag")
-                .leaderHp("dddd")
+                .leaderHp("01012345678")
                 .department(Department.ACADEMIC)
                 .clubInsta("ddddddd")
+                .clubRoomNumber("208호")
                 .build();
         clubRepository.save(flagClub);
 
@@ -188,6 +190,7 @@ public class DummyData {
                 .leaderHp("00000000000")
                 .department(Department.SPORT)
                 .clubInsta("badminton_insta")
+                .clubRoomNumber("B101호")
                 .build();
         clubRepository.save(badmintonClub);
 
@@ -197,8 +200,45 @@ public class DummyData {
                 .leaderHp("00000000000")
                 .department(Department.ACADEMIC)
                 .clubInsta("volunteer_insta")
+                .clubRoomNumber("108호")
                 .build();
         clubRepository.save(volunteerClub);
+
+        //플래그, 배드민턴, 봉사 해시태그 데이터
+        ClubHashtag flagHashtag1 = ClubHashtag.builder()
+                .club(flagClub)
+                .clubHashtag("IT")
+                .build();
+        ClubHashtag flagHashtag2 = ClubHashtag.builder()
+                .club(flagClub)
+                .clubHashtag("개발")
+                .build();
+        clubHashtagRepository.save(flagHashtag1);
+        clubHashtagRepository.save(flagHashtag2);
+
+        // 배드민턴 동아리 해시태그 추가
+        ClubHashtag badmintonHashtag1 = ClubHashtag.builder()
+                .club(badmintonClub)
+                .clubHashtag("스포츠")
+                .build();
+        ClubHashtag badmintonHashtag2 = ClubHashtag.builder()
+                .club(badmintonClub)
+                .clubHashtag("건강")
+                .build();
+        clubHashtagRepository.save(badmintonHashtag1);
+        clubHashtagRepository.save(badmintonHashtag2);
+
+        // 봉사 동아리 해시태그 추가
+        ClubHashtag volunteerHashtag1 = ClubHashtag.builder()
+                .club(volunteerClub)
+                .clubHashtag("봉사")
+                .build();
+        ClubHashtag volunteerHashtag2 = ClubHashtag.builder()
+                .club(volunteerClub)
+                .clubHashtag("공헌")
+                .build();
+        clubHashtagRepository.save(volunteerHashtag1);
+        clubHashtagRepository.save(volunteerHashtag2);
 
         ClubMainPhoto clubMainPhoto = ClubMainPhoto.builder()
                 .club(flagClub)
@@ -268,7 +308,7 @@ public class DummyData {
                 .club(volunteerClub)
                 .clubIntro("봉사동아리입니다.")
                 .googleFormUrl("volunteerClub_google_url")
-                .recruitmentStatus(RecruitmentStatus.OPEN)
+                .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
         clubIntroRepository.save(clubIntro2);
 
@@ -367,6 +407,59 @@ public class DummyData {
                 .aplictStatus(AplictStatus.FAIL)
                 .build();
         aplictRepository.save(volunteerAplict);
+
+        // 클럽 카테고리 더미 데이터 추가
+        ClubCategory clubCategory1 = ClubCategory.builder()
+                .clubCategory("운동")
+                .build();
+        clubCategoryRepository.save(clubCategory1);
+
+        ClubCategory clubCategory2 = ClubCategory.builder()
+                .clubCategory("학술")
+                .build();
+        clubCategoryRepository.save(clubCategory2);
+
+        ClubCategory clubCategory3 = ClubCategory.builder()
+                .clubCategory("봉사")
+                .build();
+        clubCategoryRepository.save(clubCategory3);
+
+        ClubCategory clubCategory4 = ClubCategory.builder()
+                .clubCategory("개발")
+                .build();
+        clubCategoryRepository.save(clubCategory4);
+
+// 클럽-카테고리 매핑 더미 데이터 추가
+        ClubCategoryMapping mapping1 = ClubCategoryMapping.builder()
+                .club(flagClub)
+                .clubCategory(clubCategory2)
+                .build();
+        clubCategoryMappingRepository.save(mapping1);
+
+        ClubCategoryMapping mapping4 = ClubCategoryMapping.builder()
+                .club(flagClub)
+                .clubCategory(clubCategory4)
+                .build();
+        clubCategoryMappingRepository.save(mapping4);
+
+        ClubCategoryMapping mapping2 = ClubCategoryMapping.builder()
+                .club(badmintonClub)
+                .clubCategory(clubCategory1)
+                .build();
+        clubCategoryMappingRepository.save(mapping2);
+
+        ClubCategoryMapping mapping3 = ClubCategoryMapping.builder()
+                .club(volunteerClub)
+                .clubCategory(clubCategory3)
+                .build();
+        clubCategoryMappingRepository.save(mapping3);
+
+        ClubCategoryMapping mapping5 = ClubCategoryMapping.builder()
+                .club(volunteerClub)
+                .clubCategory(clubCategory2)
+                .build();
+        clubCategoryMappingRepository.save(mapping5);
+
     }
 
 
@@ -403,9 +496,24 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("allabout_insta")
+                .clubRoomNumber("B103호")
                 .build();
 
         clubRepository.save(allaboutClub);
+
+        // 올어바웃 해시태그
+        ClubHashtag allaboutHashtag1 = ClubHashtag.builder()
+                .club(allaboutClub)
+                .clubHashtag("댄스")
+                .build();
+
+        ClubHashtag allaboutHashtag2 = ClubHashtag.builder()
+                .club(allaboutClub)
+                .clubHashtag("공연")
+                .build();
+
+        clubHashtagRepository.save(allaboutHashtag1);
+        clubHashtagRepository.save(allaboutHashtag2);
 
         Leader allaboutLeader = Leader.builder()
                 .leaderAccount("allaboutClub")
@@ -474,6 +582,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("gullisae_insta")
+                .clubRoomNumber("205호")
                 .build();
 
         clubRepository.save(gullisaeClub);
@@ -519,6 +628,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("tennis_insta")
+                .clubRoomNumber("105호")
                 .build();
 
         clubRepository.save(tennisclub);
@@ -546,13 +656,14 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("basketball_insta")
+                .clubRoomNumber("201호")
                 .build();
 
         clubRepository.save(basketballClub);
 
         ClubIntro basketballIntro = ClubIntro.builder()
                 .club(basketballClub)
-                .clubIntro("테니스 동아리입니다.")
+                .clubIntro("농구 동아리입니다.")
                 .googleFormUrl("basketball_google_url")
                 .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
@@ -573,6 +684,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.ACADEMIC)
                 .clubInsta("basketball_insta")
+                .clubRoomNumber("B106호")
                 .build();
 
         clubRepository.save(argClub);
@@ -600,6 +712,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.ACADEMIC)
                 .clubInsta("hamster_insta")
+                .clubRoomNumber("107호")
                 .build();
 
         clubRepository.save(hamsterClub);
@@ -627,6 +740,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("sunmoon_insta")
+                .clubRoomNumber("210호")
                 .build();
 
         clubRepository.save(sunmoonClub);
@@ -654,6 +768,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("pig_insta")
+                .clubRoomNumber("B109호")
                 .build();
 
             clubRepository.save(pigClub);
@@ -682,6 +797,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("pig_insta")
+                .clubRoomNumber("203호")
                 .build();
 
         clubRepository.save(catClub);

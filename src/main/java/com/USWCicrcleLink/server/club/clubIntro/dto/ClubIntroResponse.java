@@ -24,8 +24,9 @@ public class ClubIntroResponse {
     private String clubInsta;
     private String clubIntro;
     private RecruitmentStatus recruitmentStatus;
+    private List<String> clubHashtag;
 
-    public ClubIntroResponse(ClubIntro clubIntro, Club club, String mainPhotoUrl, List<String> introPhotoUrls) {
+    public ClubIntroResponse(ClubIntro clubIntro, Club club, String mainPhotoUrl, List<String> introPhotoUrls, List<String> clubHashtag) {
         this.clubId = club.getClubId();
         this.mainPhoto = mainPhotoUrl;  // S3 presigned URL
         this.introPhotos = introPhotoUrls;  // List of S3 presigned URLs
@@ -35,5 +36,6 @@ public class ClubIntroResponse {
         this.clubInsta = club.getClubInsta();
         this.clubIntro = clubIntro.getClubIntro();
         this.recruitmentStatus = clubIntro.getRecruitmentStatus();
+        this.clubHashtag = clubHashtag;
     }
 }

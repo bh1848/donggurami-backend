@@ -31,9 +31,13 @@ public class Club {
     @Enumerated(EnumType.STRING)
     private Department department;
 
-    public void updateClubInfo(String leaderName, String leaderHp, String clubInsta) {
+    @Column(name = "club_room_number")
+    private String clubRoomNumber;
+
+    public void updateClubInfo(String leaderName, String leaderHp, String clubInsta, String clubRoomNumber) {
         this.leaderName = leaderName;
         this.leaderHp = leaderHp;
         this.clubInsta = clubInsta;
+        this.clubRoomNumber = clubRoomNumber;
     }
 }
