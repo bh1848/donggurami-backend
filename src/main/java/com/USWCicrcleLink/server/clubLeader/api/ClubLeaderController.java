@@ -6,7 +6,6 @@ import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
-import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ public class ClubLeaderController {
 
     private final ClubLeaderService clubLeaderService;
     private final FcmServiceImpl fcmService;
-    private final S3FileUploadService fileUploadService;
 
     // 동아리 기본 정보 조회
     @GetMapping("/{clubId}/info")
@@ -88,9 +86,10 @@ public class ClubLeaderController {
 
     // 동아리원 엑셀 파일 추출
     @GetMapping("/{clubId}/members/export")
-    public void exportClubMembers(@PathVariable("clubId") Long clubId, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse> exportClubMembers(@PathVariable("clubId") Long clubId, HttpServletResponse response) {
         // 엑셀 파일 생성
         clubLeaderService.downloadExcel(clubId, response);
+        return new ResponseEntity<>(new ApiResponse<>("동아리 회원 엑셀 파일 내보내기 완료"), HttpStatus.OK);
     }
 
     // fcm 토큰 갱신
@@ -130,5 +129,12 @@ public class ClubLeaderController {
     @PostMapping("/{clubId}/members/import")
     public ResponseEntity<ApiResponse<List<ClubMembersImportExcelResponse>>> importClubMembers(@PathVariable("clubId") Long clubId, @RequestPart(value = "clubMembersFile", required = false) MultipartFile clubMembersFile) throws IOException {
         return new ResponseEntity<>(clubLeaderService.uploadExcel(clubId, clubMembersFile), HttpStatus.OK);
+    }
+
+    // 기존 동아리원 엑셀 파일로 추가
+    @PostMapping("/{clubId}/members")
+    public ResponseEntity<ApiResponse> addClubMembersFromExcel(@PathVariable("clubId") Long clubId, @RequestBody List<ClubMembersAddFromExcelRequest> clubMembersAddFromExcelRequest) {
+        clubLeaderService.addClubMembersFromExcel(clubId, clubMembersAddFromExcelRequest);
+        return new ResponseEntity<>(new ApiResponse<>("엑셀로 추가된 기존 동아리 회원 저장 완료"), HttpStatus.OK);
     }
 }

@@ -86,6 +86,7 @@ public enum ExceptionType {
     PROFILE_UPDATE_FAIL("PFL-202", "프로필 업데이트에 실패했습니다.", INTERNAL_SERVER_ERROR),
     PROFILE_NOT_INPUT("PFL-203","프로필 입력값은 필수입니다.", BAD_REQUEST),
     DUPLICATE_PROFILE("PFL-204","이미 존재하는 회원입니다.", BAD_REQUEST),
+    DEPARTMENT_NOT_INPUT("PFL-205", "학과 정보는 필수 입력 항목입니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubIntroPhoto, Club(MainPhoto)

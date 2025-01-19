@@ -364,7 +364,7 @@ public class ClubLeaderService {
                 findClubMembers.getTotalPages()
         );
 
-        return new ApiResponse<>("소속 동아리원 조회 완료", pageResponse);
+        return new ApiResponse<>("소속 동아리 회원 조회 완료", pageResponse);
     }
 
     // 소속 동아리원 삭제
@@ -374,7 +374,7 @@ public class ClubLeaderService {
 
         // 동아리원 삭제
         clubMembersRepository.deleteById(clubMemberId);
-        return new ApiResponse<>("동아리원 삭제 완료");
+        return new ApiResponse<>("동아리 회원 삭제 완료");
     }
 
     // 소속 동아리원 엑셀 다운
@@ -730,7 +730,7 @@ public class ClubLeaderService {
             excelClubMembers.add(new ClubMembersImportExcelResponse(rowData.getStudentNumber(), rowData.getUserName(), rowData.getUserHp()));
         }
 
-        return new ApiResponse<>("기존 동아리 회원 엑셀로 추가 완료", excelClubMembers);
+        return new ApiResponse<>("기존 동아리 회원 엑셀로 가져오기 완료", excelClubMembers);
     }
 
     private String validateClubMembersExcelFile(MultipartFile clubMembersFile) {
@@ -772,5 +772,75 @@ public class ClubLeaderService {
             }
         }
         return true;
+    }
+
+    // 기존 동아리원 추가(엑셀)
+    public void addClubMembersFromExcel(Long clubId, List<ClubMembersAddFromExcelRequest> clubMembersAddFromExcelRequests) {
+        Club club = validateLeader(clubId);
+
+        // 중복 확인 데이터 수집
+        Map<String, ClubMembersAddFromExcelRequest> requestDataMap = new HashMap<>();
+        List<Map<String, String>> duplicateUsers = new ArrayList<>();
+
+        // 요청 데이터를 키로 매핑 (이름_학번_전화번호_전공)
+        for (ClubMembersAddFromExcelRequest request : clubMembersAddFromExcelRequests) {
+            if (request.getMajor() == null || request.getMajor().trim().isEmpty()) {
+                throw new ProfileException(ExceptionType.DEPARTMENT_NOT_INPUT);
+            }
+
+            String clubMemberKey = request.getUserName() + "_"
+                    + request.getStudentNumber() + "_"
+                    + request.getUserHp() + "_"
+                    + request.getMajor();
+            requestDataMap.put(clubMemberKey, request);
+        }
+
+        // DB에서 중복 데이터 확인 (이름, 학번, 전화번호, 전공을 모두 포함)
+        List<Profile> duplicateProfiles = profileRepository.findByUserNameInAndStudentNumberInAndUserHpInAndMajorIn(
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getUserName).collect(Collectors.toSet()),
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getStudentNumber).collect(Collectors.toSet()),
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getUserHp).collect(Collectors.toSet()),
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getMajor).collect(Collectors.toSet())
+        );
+
+        // 중복 확인 및 매핑
+        for (Profile profile : duplicateProfiles) {
+            String uniqueKey = profile.getUserName() + "_" + profile.getStudentNumber() + "_" + profile.getUserHp() + "_" + profile.getMajor();
+
+            ClubMembersAddFromExcelRequest duplicateRequest = requestDataMap.get(uniqueKey);
+            if (duplicateRequest != null) {
+                duplicateUsers.add(Map.of(
+                        "이름", profile.getUserName(),
+                        "학번", profile.getStudentNumber(),
+                        "전화번호", profile.getUserHp(),
+                        "전공", profile.getMajor()
+                ));
+                requestDataMap.remove(uniqueKey); // 중복 데이터는 저장 대상에서 제거
+            }
+        }
+
+        // 중복된 데이터가 있으면 예외 처리
+        if (!duplicateUsers.isEmpty()) {
+            throw new ProfileException(ExceptionType.DUPLICATE_PROFILE, duplicateUsers);
+        }
+
+        // 중복되지 않은 데이터만 저장
+        for (ClubMembersAddFromExcelRequest validRequest : requestDataMap.values()) {
+            Profile profile = Profile.builder()
+                    .userName(validRequest.getUserName())
+                    .studentNumber(validRequest.getStudentNumber())
+                    .userHp(validRequest.getUserHp())
+                    .major(validRequest.getMajor())
+                    .profileCreatedAt(LocalDateTime.now())
+                    .profileUpdatedAt(LocalDateTime.now())
+                    .build();
+            profileRepository.save(profile);
+
+            ClubMembers clubMember = ClubMembers.builder()
+                    .club(club)
+                    .profile(profile)
+                    .build();
+            clubMembersRepository.save(clubMember);
+        }
     }
 }

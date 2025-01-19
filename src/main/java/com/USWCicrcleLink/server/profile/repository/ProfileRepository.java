@@ -15,4 +15,5 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
     Optional<Profile> findByUserUserId(Long userId);
     List<Profile> findAllByFcmTokenCertificationTimestampBefore(LocalDateTime dateTime);
     List<Profile> findByUserNameInAndStudentNumberInAndUserHpIn(Set<String> userNames, Set<String> studentNumbers, Set<String> userHpNumbers);
+    List<Profile> findByUserNameInAndStudentNumberInAndUserHpInAndMajorIn(Set<String> userNameCollects, Set<String> studentNumberCollects, Set<String> userHpCollects, Set<String> majorCollects);
 }
