@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClubMembersExcelResponse {
+public class ClubMembersExportExcelResponse {
 
     private String userName;
 
@@ -18,7 +18,7 @@ public class ClubMembersExcelResponse {
 
     private String userHp;
 
-    public ClubMembersExcelResponse(Profile profile) {
+    public ClubMembersExportExcelResponse(Profile profile) {
         this.userName = profile.getUserName();
         this.major = profile.getMajor();
         this.studentNumber = profile.getStudentNumber();

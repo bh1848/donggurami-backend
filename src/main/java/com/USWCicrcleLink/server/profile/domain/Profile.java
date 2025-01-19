@@ -24,7 +24,7 @@ public class Profile {
     private Long profileId;
 
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
     @Column(name = "user_name", nullable = false)
@@ -49,7 +49,7 @@ public class Profile {
     private LocalDateTime profileUpdatedAt;
 
     @Column(name = "fcm_token")
-    private String fcmToken;
+    private String fcmToken;// 회원이 직접 로그인할 때
 
     @Column(name = "fcm_token_updated_at")
     private LocalDateTime fcmTokenCertificationTimestamp;

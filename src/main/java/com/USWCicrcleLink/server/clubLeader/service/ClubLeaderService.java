@@ -13,6 +13,7 @@ import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoReposit
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
+import com.USWCicrcleLink.server.clubLeader.util.ClubMemberExcelDataDto;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.*;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
@@ -20,10 +21,15 @@ import com.USWCicrcleLink.server.global.response.PageResponse;
 import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
+import com.USWCicrcleLink.server.global.util.validator.FileSignatureValidator;
 import com.USWCicrcleLink.server.global.util.validator.InputValidator;
+import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -59,6 +65,7 @@ public class ClubLeaderService {
     private final AplictRepository aplictRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
+    private final ProfileRepository profileRepository;
     private final ClubHashtagRepository clubHashtagRepository;
     private final ClubCategoryRepository clubCategoryRepository;
     private final ClubCategoryMappingRepository clubCategoryMappingRepository;
@@ -385,7 +392,7 @@ public class ClubLeaderService {
                 findClubMembers.getTotalPages()
         );
 
-        return new ApiResponse<>("소속 동아리원 조회 완료", pageResponse);
+        return new ApiResponse<>("소속 동아리 회원 조회 완료", pageResponse);
     }
 
     // 소속 동아리원 삭제
@@ -395,7 +402,7 @@ public class ClubLeaderService {
 
         // 동아리원 삭제
         clubMembersRepository.deleteById(clubMemberId);
-        return new ApiResponse<>("동아리원 삭제 완료");
+        return new ApiResponse<>("동아리 회원 삭제 완료");
     }
 
     // 소속 동아리원 엑셀 다운
@@ -408,8 +415,8 @@ public class ClubLeaderService {
         List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfile(club.getClubId());
 
         // 동아리원의 프로필 조회 후 동아리원 정보로 정리
-        List<ClubMembersExcelResponse> memberProfiles = findClubMembers.stream()
-                .map(cm -> new ClubMembersExcelResponse(
+        List<ClubMembersExportExcelResponse> memberProfiles = findClubMembers.stream()
+                .map(cm -> new ClubMembersExportExcelResponse(
                         cm.getProfile()
                 ))
                 .collect(toList());
@@ -452,7 +459,7 @@ public class ClubLeaderService {
 
             // DB값 엑셀 파일에 넣기
             int rowNum = 1;
-            for (ClubMembersExcelResponse member : memberProfiles) {
+            for (ClubMembersExportExcelResponse member : memberProfiles) {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(member.getMajor());
                 row.createCell(1).setCellValue(member.getStudentNumber());
@@ -667,5 +674,201 @@ public class ClubLeaderService {
         }
 
         return club;
+    }
+
+    // 기존 동아리원 가져오기(엑셀 파일)
+    @Transactional(readOnly = true)
+    public ApiResponse<List<ClubMembersImportExcelResponse>> uploadExcel(Long clubId, MultipartFile clubMembersFile) throws IOException {
+        Club club = validateLeader(clubId);
+
+        // 엑셀 파일의 개수 확인
+        if (clubMembersFile == null || clubMembersFile.isEmpty()) {
+            throw new FileException(ExceptionType.MAXIMUM_FILE_LIMIT_EXCEEDED);
+        }
+
+        // 파일 확장자 확인
+        String fileExtension = validateClubMembersExcelFile(clubMembersFile);
+
+        // 엑셀 파일 확장자(구, 신버전)
+        Workbook workbook;
+        if (fileExtension.equals("xls")) {// 엑셀 버전 ~03
+            workbook = new HSSFWorkbook(clubMembersFile.getInputStream());
+        } else {// 엑셀 버전 07~
+            workbook = new XSSFWorkbook(clubMembersFile.getInputStream());
+        }
+
+        Sheet sheet = workbook.getSheetAt(0); // 첫 번째 시트 사용
+        // 추가 회원
+        List<ClubMembersImportExcelResponse> excelClubMembers = new ArrayList<>();
+        // 중복 회원
+        List<Map<String, String>> duplicateUsers = new ArrayList<>();
+
+        // 엑셀 데이터를 읽어 이름, 학번, 전화번호 수집
+        Set<String> userNames = new HashSet<>();
+        Set<String> studentNumbers = new HashSet<>();
+        Set<String> userHpNumbers = new HashSet<>();
+        // 이름_학번_전화번호를 키로 원본 데이터 저장
+        Map<String, ClubMemberExcelDataDto> rowExcelDataMap = new HashMap<>();
+
+        // 엑셀 파일 읽기
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) { // 첫 번째 행(헤더) 건너뛰기
+            Row row = sheet.getRow(i);
+            // 빈 줄은 무시
+            if (row == null || isRowEmpty(row)) {
+                continue;
+            }
+
+            // 셀 읽기
+            String userName = getCellValue(row.getCell(0)).replaceAll("\\s+", ""); // 이름
+            String studentNumber = getCellValue(row.getCell(1)).replaceAll("\\s+", ""); // 학번
+            String userHp = getCellValue(row.getCell(2)).replaceAll("-", "").replaceAll("\\s+", ""); // 전화번호
+
+            // 데이터 수집 후 한번에 조회
+            userNames.add(userName);
+            studentNumbers.add(studentNumber);
+            userHpNumbers.add(userHp);
+            rowExcelDataMap.put(userName + "_" + studentNumber + "_" + userHp, new ClubMemberExcelDataDto(userName, studentNumber, userHp));
+        }
+        // DB에서 중복 데이터 한 번에 확인
+        List<Profile> duplicateProfiles = profileRepository.findByUserNameInAndStudentNumberInAndUserHpIn(userNames, studentNumbers, userHpNumbers);
+
+        // 중복 데이터 매핑
+        for (Profile profile : duplicateProfiles) {
+            // 엑셀 데이터를 기반으로 매핑
+            String duplicateProfileKey = profile.getUserName() + "_" + profile.getStudentNumber() + "_" + profile.getUserHp();// key
+            ClubMemberExcelDataDto duplicateExcelData = rowExcelDataMap.get(duplicateProfileKey);// map 검색
+            if (duplicateExcelData != null) {
+                duplicateUsers.add(Map.of(
+                        "이름", profile.getUserName(),
+                        "학번", profile.getStudentNumber(),
+                        "전화번호", profile.getUserHp()
+                ));
+            }
+            // 확인한 key:value 삭제
+            rowExcelDataMap.remove(duplicateProfileKey);
+        }
+
+        // 중복된 데이터가 있으면 예외 처리
+        if (!duplicateUsers.isEmpty()) {
+            throw new ProfileException(ExceptionType.DUPLICATE_PROFILE, duplicateUsers);
+        }
+
+        // 중복이 아닌 데이터 추가
+        for (ClubMemberExcelDataDto rowData : rowExcelDataMap.values()) {
+            excelClubMembers.add(new ClubMembersImportExcelResponse(rowData.getStudentNumber(), rowData.getUserName(), rowData.getUserHp()));
+        }
+
+        return new ApiResponse<>("기존 동아리 회원 엑셀로 가져오기 완료", excelClubMembers);
+    }
+
+    private String validateClubMembersExcelFile(MultipartFile clubMembersFile) {
+        // 파일 확장자 확인
+        String fileExtension = FilenameUtils.getExtension(clubMembersFile.getOriginalFilename());
+        if (!fileExtension.equals("xls") && !fileExtension.equals("xlsx")) {
+            throw new FileException(ExceptionType.UNSUPPORTED_FILE_EXTENSION);
+        }
+
+        // 파일 시그니처를 통해 실제 파일 형식이 올바른지 확인
+        try {
+            if (!FileSignatureValidator.isValidFileType(clubMembersFile.getInputStream(), fileExtension)) {
+                throw new FileException(ExceptionType.UNSUPPORTED_FILE_EXTENSION);
+            }
+        } catch (IOException e) {
+            throw new FileException(ExceptionType.FILE_VALIDATION_FAILED);
+        }
+
+        return fileExtension;
+    }
+
+    private String getCellValue(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
+        if (cell.getCellType() == CellType.STRING) {
+            return cell.getStringCellValue();
+        } else if (cell.getCellType() == CellType.NUMERIC) {
+            return String.valueOf((long) cell.getNumericCellValue());
+        }
+        return "";
+    }
+
+    private boolean isRowEmpty(Row row) {
+        for (int i = 0; i < row.getLastCellNum(); i++) {
+            Cell cell = row.getCell(i);
+            if (cell != null && cell.getCellType() != CellType.BLANK) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 기존 동아리원 추가(엑셀)
+    public void addClubMembersFromExcel(Long clubId, List<ClubMembersAddFromExcelRequest> clubMembersAddFromExcelRequests) {
+        Club club = validateLeader(clubId);
+
+        // 중복 확인 데이터 수집
+        Map<String, ClubMembersAddFromExcelRequest> requestDataMap = new HashMap<>();
+        List<Map<String, String>> duplicateUsers = new ArrayList<>();
+
+        // 요청 데이터를 키로 매핑 (이름_학번_전화번호_전공)
+        for (ClubMembersAddFromExcelRequest request : clubMembersAddFromExcelRequests) {
+            if (request.getMajor() == null || request.getMajor().trim().isEmpty()) {
+                throw new ProfileException(ExceptionType.DEPARTMENT_NOT_INPUT);
+            }
+
+            String clubMemberKey = request.getUserName() + "_"
+                    + request.getStudentNumber() + "_"
+                    + request.getUserHp() + "_"
+                    + request.getMajor();
+            requestDataMap.put(clubMemberKey, request);
+        }
+
+        // DB에서 중복 데이터 확인 (이름, 학번, 전화번호, 전공을 모두 포함)
+        List<Profile> duplicateProfiles = profileRepository.findByUserNameInAndStudentNumberInAndUserHpInAndMajorIn(
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getUserName).collect(Collectors.toSet()),
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getStudentNumber).collect(Collectors.toSet()),
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getUserHp).collect(Collectors.toSet()),
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getMajor).collect(Collectors.toSet())
+        );
+
+        // 중복 확인 및 매핑
+        for (Profile profile : duplicateProfiles) {
+            String uniqueKey = profile.getUserName() + "_" + profile.getStudentNumber() + "_" + profile.getUserHp() + "_" + profile.getMajor();
+
+            ClubMembersAddFromExcelRequest duplicateRequest = requestDataMap.get(uniqueKey);
+            if (duplicateRequest != null) {
+                duplicateUsers.add(Map.of(
+                        "이름", profile.getUserName(),
+                        "학번", profile.getStudentNumber(),
+                        "전화번호", profile.getUserHp(),
+                        "전공", profile.getMajor()
+                ));
+                requestDataMap.remove(uniqueKey); // 중복 데이터는 저장 대상에서 제거
+            }
+        }
+
+        // 중복된 데이터가 있으면 예외 처리
+        if (!duplicateUsers.isEmpty()) {
+            throw new ProfileException(ExceptionType.DUPLICATE_PROFILE, duplicateUsers);
+        }
+
+        // 중복되지 않은 데이터만 저장
+        for (ClubMembersAddFromExcelRequest validRequest : requestDataMap.values()) {
+            Profile profile = Profile.builder()
+                    .userName(validRequest.getUserName())
+                    .studentNumber(validRequest.getStudentNumber())
+                    .userHp(validRequest.getUserHp())
+                    .major(validRequest.getMajor())
+                    .profileCreatedAt(LocalDateTime.now())
+                    .profileUpdatedAt(LocalDateTime.now())
+                    .build();
+            profileRepository.save(profile);
+
+            ClubMembers clubMember = ClubMembers.builder()
+                    .club(club)
+                    .profile(profile)
+                    .build();
+            clubMembersRepository.save(clubMember);
+        }
     }
 }
