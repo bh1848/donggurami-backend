@@ -38,6 +38,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -541,16 +542,11 @@ public class ClubLeaderService {
                             false)
                     .orElseThrow(() -> new BaseException(ExceptionType.APPLICANT_NOT_EXISTS));
 
-            // 동아리원 중복 존재 검사
-            ClubMembers isInClubMember = clubMembersRepository
-                    .findByProfileProfileIdAndClubClubId(applicant.getProfile().getProfileId(), club.getClubId());
-            if (isInClubMember != null) {
-                throw new ClubMemberException(ExceptionType.CLUB_MEMBER_ALREADY_EXISTS);
-            }
+            // 동아리 회원 중복 검사
+            checkDuplicateClubMember(applicant.getProfile().getProfileId(), club.getClubId());
 
             // 합격 불합격 상태 업데이트
             // 합/불, checked, 삭제 날짜
-
             AplictStatus aplictResult = result.getAplictStatus();// 지원 결과 PASS/ FAIL
             if (aplictResult == AplictStatus.PASS) {
                 ClubMembers newClubMembers = ClubMembers.builder()
@@ -567,6 +563,17 @@ public class ClubLeaderService {
 
             aplictRepository.save(applicant);
             fcmService.sendMessageTo(applicant, aplictResult);
+        }
+    }
+
+    // 동아리 회원 중복 검사
+    private void checkDuplicateClubMember(Long profileId, Long clubId) {
+        boolean isDuplicate = clubMembersRepository
+                .findByProfileProfileIdAndClubClubId(profileId, clubId)
+                .isPresent();
+
+        if (isDuplicate) {
+            throw new ClubMemberException(ExceptionType.CLUB_MEMBER_ALREADY_EXISTS);
         }
     }
 
@@ -631,12 +638,8 @@ public class ClubLeaderService {
                     )
                     .orElseThrow(() -> new BaseException(ExceptionType.ADDITIONAL_APPLICANT_NOT_EXISTS));
 
-            // 동아리원 중복 존재 검사
-            ClubMembers isInClubMember = clubMembersRepository
-                    .findByProfileProfileIdAndClubClubId(applicant.getProfile().getProfileId(), club.getClubId());
-            if (isInClubMember != null) {
-                throw new ClubMemberException(ExceptionType.CLUB_MEMBER_ALREADY_EXISTS);
-            }
+            // 동아리 회원 중복 검사
+            checkDuplicateClubMember(applicant.getProfile().getProfileId(), club.getClubId());
 
             // 합격 불합격 상태 업데이트
             // 합격
@@ -871,4 +874,30 @@ public class ClubLeaderService {
             clubMembersRepository.save(clubMember);
         }
     }
+
+    // 프로필 중복 동아리 회원 추가
+    public ApiResponse addDuplicateProfileMember(Long clubId, DuplicateProfileMemberRequest duplicateProfileMemberRequest) {
+        Club club = validateLeader(clubId);
+
+        // 프로필 중복 회원 조회
+        Profile duplicateProfile = profileRepository
+                .findByUserNameAndStudentNumberAndUserHp(
+                        duplicateProfileMemberRequest.getUserName(),
+                        duplicateProfileMemberRequest.getStudentNumber(),
+                        duplicateProfileMemberRequest.getUserHp()
+                ).orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
+
+        // 동아리 회원 중복 검사
+        checkDuplicateClubMember(duplicateProfile.getProfileId(), club.getClubId());
+
+        // 존재하면 동아리 회원으로 추가
+        ClubMembers duplicateProfileClubMember = ClubMembers.builder()
+                .club(club)
+                .profile(duplicateProfile)
+                .build();
+
+        clubMembersRepository.save(duplicateProfileClubMember);
+        return new ApiResponse<>("프로필 중복 동아리 회원 추가 완료", duplicateProfileMemberRequest);
+    }
+
 }

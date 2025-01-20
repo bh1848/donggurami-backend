@@ -17,7 +17,7 @@ public interface ClubMembersRepository extends JpaRepository<ClubMembers,Long>, 
     //동아리원 조회 성능 비교
     List<ClubMembers> findByClub(Club club);
     List<ClubMembers> findByProfileProfileId(Long profileId);
-    ClubMembers findByProfileProfileIdAndClubClubId(Long profileId, Long clubId);
+    Optional<ClubMembers> findByProfileProfileIdAndClubClubId(Long profileId, Long clubId);
 
     void deleteAllByProfile(Profile profile);
 
@@ -25,4 +25,5 @@ public interface ClubMembersRepository extends JpaRepository<ClubMembers,Long>, 
 
     @Query("SELECT cm.profile FROM ClubMembers cm WHERE cm.club.clubId = :clubId")
     List<Profile> findProfilesByClubId(@Param("clubId") Long clubId);
+
 }
