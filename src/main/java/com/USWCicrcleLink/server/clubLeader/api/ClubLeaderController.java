@@ -6,6 +6,7 @@ import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
+import com.USWCicrcleLink.server.profile.domain.Profile;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -136,5 +137,11 @@ public class ClubLeaderController {
     public ResponseEntity<ApiResponse> addClubMembersFromExcel(@PathVariable("clubId") Long clubId, @RequestBody List<ClubMembersAddFromExcelRequest> clubMembersAddFromExcelRequest) {
         clubLeaderService.addClubMembersFromExcel(clubId, clubMembersAddFromExcelRequest);
         return new ResponseEntity<>(new ApiResponse<>("엑셀로 추가된 기존 동아리 회원 저장 완료"), HttpStatus.OK);
+    }
+
+    // 프로필 중복 동아리 회원 추가
+    @PostMapping("/{clubId}/members/duplicate-profiles")
+    public ResponseEntity<ApiResponse> getDuplicateProfileMember(@PathVariable("clubId") Long clubId, @RequestBody DuplicateProfileMemberRequest duplicateProfileMemberRequest) {
+        return new ResponseEntity<>(clubLeaderService.addDuplicateProfileMember(clubId, duplicateProfileMemberRequest), HttpStatus.OK);
     }
 }
