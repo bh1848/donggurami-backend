@@ -23,6 +23,7 @@ import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
 import com.USWCicrcleLink.server.global.util.validator.FileSignatureValidator;
 import com.USWCicrcleLink.server.global.util.validator.InputValidator;
+import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -367,15 +368,13 @@ public class ClubLeaderService {
 //        return new ApiResponse<>("소속 동아리원 조회 완료", memberProfiles);
 //    }
 
-    // 소속 동아리원 조회
+    // 소속 동아리 회원 조회(가나다순 정렬)
     @Transactional(readOnly = true)
-    public ApiResponse<PageResponse<ClubMembersResponse>> getClubMembers(Long clubId, int page, int size) {
+    public ApiResponse<List<ClubMembersResponse>> getClubMembers(Long clubId) {
 
         Club club = validateLeader(clubId);
 
-        PageRequest pageable = PageRequest.of(page, size);
-
-        Page<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfileByClubId(club.getClubId(), pageable);
+        List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfileByName(clubId);
 
         // 동아리원과 프로필 조회
         List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
@@ -385,15 +384,26 @@ public class ClubLeaderService {
                 ))
                 .collect(toList());
 
-        PageResponse<ClubMembersResponse> pageResponse = new PageResponse<>(
-                memberProfiles,
-                findClubMembers.getNumber(),
-                findClubMembers.getSize(),
-                findClubMembers.getTotalElements(),
-                findClubMembers.getTotalPages()
-        );
+        return new ApiResponse<>("소속 동아리 회원 조회 완료", memberProfiles);
+    }
 
-        return new ApiResponse<>("소속 동아리 회원 조회 완료", pageResponse);
+    // 소속 동아리 회원 조회(정회원/ 비회원 정렬)
+    @Transactional(readOnly = true)
+    public ApiResponse<List<ClubMembersResponse>> getClubMembersByMemberType(Long clubId, MemberType memberType) {
+
+        Club club = validateLeader(clubId);
+
+        List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfileByMemberType(clubId, memberType);
+
+        // 동아리원과 프로필 조회
+        List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
+                .map(cm -> new ClubMembersResponse(
+                        cm.getClubMemberId(),
+                        cm.getProfile()
+                ))
+                .collect(toList());
+
+        return new ApiResponse<>("소속 동아리 회원 조회 완료", memberProfiles);
     }
 
     // 소속 동아리원 삭제

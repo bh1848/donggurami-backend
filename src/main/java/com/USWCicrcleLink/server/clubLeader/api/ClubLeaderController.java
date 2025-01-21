@@ -6,7 +6,7 @@ import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
-import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.profile.domain.MemberType;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -73,10 +73,25 @@ public class ClubLeaderController {
 //        return new ResponseEntity<>(clubLeaderService.findClubMembers(token), HttpStatus.OK);
 //    }
 
-    // 소속 동아리원 조회
+    // 소속 동아리 회원 조회
     @GetMapping("/{clubId}/members")
-    public ResponseEntity<ApiResponse> getClubMembers(@PathVariable("clubId") Long clubId, @RequestParam("page") int page, @RequestParam("size") int size) {
-        return new ResponseEntity<>(clubLeaderService.getClubMembers(clubId, page, size), HttpStatus.OK);
+    public ResponseEntity<ApiResponse> getClubMembers(
+            @PathVariable("clubId") Long clubId,
+            @RequestParam(value = "sort", defaultValue = "default") String sort) {
+        ApiResponse<List<ClubMembersResponse>> response;
+        switch (sort) {
+            case "regular-member":
+                response = clubLeaderService.getClubMembersByMemberType(clubId, MemberType.REGULARMEMBER);
+                break;
+
+            case "non-member":
+                response = clubLeaderService.getClubMembersByMemberType(clubId, MemberType.NONMEMBER);
+                break;
+
+            default:
+                response = clubLeaderService.getClubMembers(clubId);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 동아리원 퇴출
