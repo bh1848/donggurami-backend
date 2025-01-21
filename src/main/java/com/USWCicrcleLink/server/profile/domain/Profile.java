@@ -48,6 +48,9 @@ public class Profile {
     @Column(name = "profile_updated_at", nullable = false)
     private LocalDateTime profileUpdatedAt;
 
+    @Column(name = "member_type", nullable = false)
+    private MemberType memberType;
+
     @Column(name = "fcm_token")
     private String fcmToken;// 회원이 직접 로그인할 때
 

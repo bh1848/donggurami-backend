@@ -14,6 +14,7 @@ import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.security.domain.Role;
+import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -30,7 +31,7 @@ import java.util.UUID;
 @Component
 @Transactional
 @RequiredArgsConstructor
-@org.springframework.context.annotation.Profile({"test","local"})
+@org.springframework.context.annotation.Profile({"test", "local"})
 public class DummyData {
 
     private final ProfileRepository profileRepository;
@@ -50,11 +51,11 @@ public class DummyData {
 
     @PostConstruct
     public void init() {
-            initAdmin();
-            initUser1();
-            initUser2();
-            initUser3();
-            initclub();
+        initAdmin();
+        initUser1();
+        initUser2();
+        initUser3();
+        initclub();
     }
 
     //관리자 동연회 데이터
@@ -129,6 +130,50 @@ public class DummyData {
                 .build();
         userRepository.save(user4);
 
+        User user5 = User.builder()
+                .userUUID(UUID.randomUUID())
+                .userAccount("user555")
+                .userPw(passwordEncoder.encode("12345"))
+                .email("user555@example.com")
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
+                .build();
+        userRepository.save(user5);
+
+        User user6 = User.builder()
+                .userUUID(UUID.randomUUID())
+                .userAccount("user666")
+                .userPw(passwordEncoder.encode("12345"))
+                .email("user666@example.com")
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
+                .build();
+        userRepository.save(user6);
+
+        User user7 = User.builder()
+                .userUUID(UUID.randomUUID())
+                .userAccount("user777")
+                .userPw(passwordEncoder.encode("12345"))
+                .email("user777@example.com")
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
+                .build();
+        userRepository.save(user7);
+
+        User user8 = User.builder()
+                .userUUID(UUID.randomUUID())
+                .userAccount("user888")
+                .userPw(passwordEncoder.encode("12345"))
+                .email("user888@example.com")
+                .userCreatedAt(LocalDateTime.now())
+                .userUpdatedAt(LocalDateTime.now())
+                .role(Role.USER)
+                .build();
+        userRepository.save(user8);
+
         Profile profile1 = Profile.builder()
                 .user(user1)
                 .userName("김땡떙")
@@ -137,6 +182,7 @@ public class DummyData {
                 .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
                 .build();
         profileRepository.save(profile1);
 
@@ -148,6 +194,7 @@ public class DummyData {
                 .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
                 .build();
         profileRepository.save(profile2);
 
@@ -159,6 +206,7 @@ public class DummyData {
                 .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
                 .build();
         profileRepository.save(profile3);
 
@@ -170,8 +218,57 @@ public class DummyData {
                 .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
                 .build();
         profileRepository.save(profile4);
+
+        Profile profile5 = Profile.builder()
+                .user(user5)
+                .userName("이성계")
+                .studentNumber("1001")
+                .userHp("01011112222")
+                .major("컴퓨터공학과")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
+                .build();
+        profileRepository.save(profile5);
+
+        Profile profile6 = Profile.builder()
+                .user(user6)
+                .userName("이순신")
+                .studentNumber("1002")
+                .userHp("01022223333")
+                .major("정보보호학과")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.NONMEMBER)
+                .build();
+        profileRepository.save(profile6);
+
+        Profile profile7 = Profile.builder()
+                .user(user7)
+                .userName("장보고")
+                .studentNumber("1003")
+                .userHp("01033334444")
+                .major("데이터과학부")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
+                .build();
+        profileRepository.save(profile7);
+
+        Profile profile8 = Profile.builder()
+                .user(user8)
+                .userName("김유신")
+                .studentNumber("1004")
+                .userHp("01044445555")
+                .major("소프트웨어학과")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.NONMEMBER)
+                .build();
+        profileRepository.save(profile8);
 
         // flag 데이터
         Club flagClub = Club.builder()
@@ -376,6 +473,32 @@ public class DummyData {
                 .build();
         aplictRepository.save(aplict4);
 
+        // flag동아리 소속
+        ClubMembers clubMember5 = ClubMembers.builder()
+                .club(flagClub)
+                .profile(profile5)
+                .build();
+        clubMembersRepository.save(clubMember5);
+
+        ClubMembers clubMember6 = ClubMembers.builder()
+                .club(flagClub)
+                .profile(profile6)
+                .build();
+        clubMembersRepository.save(clubMember6);
+
+        ClubMembers clubMember7 = ClubMembers.builder()
+                .club(flagClub)
+                .profile(profile7)
+                .build();
+        clubMembersRepository.save(clubMember7);
+
+        ClubMembers clubMember8 = ClubMembers.builder()
+                .club(flagClub)
+                .profile(profile8)
+                .build();
+        clubMembersRepository.save(clubMember8);
+
+
         // 배드민턴동아리 소속 및 지원
         ClubMembers badmintonMember = ClubMembers.builder()
                 .club(badmintonClub)
@@ -486,6 +609,7 @@ public class DummyData {
                 .major("컴퓨터SW학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
                 .build();
 
         profileRepository.save(profile);
@@ -572,6 +696,7 @@ public class DummyData {
                 .major("데이터과학부")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
                 .build();
 
         profileRepository.save(profile);
@@ -620,7 +745,8 @@ public class DummyData {
 
         aplictRepository.save(aplict);
     }
-    void initclub(){
+
+    void initclub() {
         //테니스 동아리
         Club tennisclub = Club.builder()
                 .clubName("테니스")
@@ -771,7 +897,7 @@ public class DummyData {
                 .clubRoomNumber("B109호")
                 .build();
 
-            clubRepository.save(pigClub);
+        clubRepository.save(pigClub);
 
         ClubIntro pigIntro = ClubIntro.builder()
                 .club(pigClub)
@@ -779,7 +905,7 @@ public class DummyData {
                 .googleFormUrl("pig_google_url")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
-            clubIntroRepository.save(pigIntro);
+        clubIntroRepository.save(pigIntro);
 
         Leader pigLeader = Leader.builder()
                 .leaderAccount("pigClub")
@@ -787,7 +913,7 @@ public class DummyData {
                 .club(pigClub)
                 .role(Role.LEADER)
                 .build();
-            leaderRepository.save(pigLeader);
+        leaderRepository.save(pigLeader);
 
 
         //고양이동아리
