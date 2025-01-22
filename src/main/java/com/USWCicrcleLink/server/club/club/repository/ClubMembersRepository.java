@@ -4,10 +4,8 @@ import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +16,7 @@ public interface ClubMembersRepository extends JpaRepository<ClubMembers,Long>, 
     List<ClubMembers> findByClub(Club club);
     List<ClubMembers> findByProfileProfileId(Long profileId);
     Optional<ClubMembers> findByProfileProfileIdAndClubClubId(Long profileId, Long clubId);
+    Optional<ClubMembers> findByClubClubIdAndClubMemberId(Long clubId, Long memberId);
 
     void deleteAllByProfile(Profile profile);
 

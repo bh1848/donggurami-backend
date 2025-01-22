@@ -41,7 +41,7 @@ public class ProfileService {
     //프로필 업데이트
     public ProfileResponse updateProfile(ProfileRequest profileRequest) {
 
-        if(!confirmPW(profileRequest.getUserPw())){
+        if (!confirmPW(profileRequest.getUserPw())) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
 
@@ -49,7 +49,11 @@ public class ProfileService {
 
         Profile profile = getProfileByAuth();
 
-        profile.updateProfile(profileRequest);
+        profile.updateProfile(profileRequest.getUserName(),
+                profileRequest.getMajor(),
+                profileRequest.getStudentNumber(),
+                profileRequest.getUserHp()
+        );
 
         Profile updatedProfile = profileRepository.save(profile);
 
@@ -80,12 +84,14 @@ public class ProfileService {
         User user = userDetails.user();
 
         return profileRepository.findByUserUserId(user.getUserId())
-                .orElseThrow(()-> {log.error("존재하지 않는 프로필");
-                    throw new ProfileException(ExceptionType.PROFILE_NOT_EXISTS);});
+                .orElseThrow(() -> {
+                    log.error("존재하지 않는 프로필");
+                    throw new ProfileException(ExceptionType.PROFILE_NOT_EXISTS);
+                });
     }
 
     //프로필 조회
-    public ProfileResponse getMyProfile(){
+    public ProfileResponse getMyProfile() {
         Profile profile = getProfileByAuth();
         return new ProfileResponse(profile);
     }
@@ -98,7 +104,7 @@ public class ProfileService {
     }
 
     //현재 비밀번호 확인
-    private boolean confirmPW(String userpw){
+    private boolean confirmPW(String userpw) {
         User user = getUserByAuth();
         return passwordEncoder.matches(userpw, user.getUserPw());
     }

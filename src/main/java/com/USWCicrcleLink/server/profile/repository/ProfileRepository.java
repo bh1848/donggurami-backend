@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
-
+    Optional<Profile> findByProfileId(Long profileId);
     Optional<Profile> findByUser_UserUUID(UUID userUUID);
     Optional<Profile> findByUserUserId(Long userId);
     Optional<Profile> findByUserNameAndStudentNumberAndUserHp(String userName, String studentNumber, String userHp);

@@ -39,7 +39,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -910,4 +909,26 @@ public class ClubLeaderService {
         return new ApiResponse<>("프로필 중복 동아리 회원 추가 완료", duplicateProfileMemberRequest);
     }
 
+    // 비회원 프로필 업데이트
+    public ApiResponse updateNonMemberProfile(Long clubId,
+                                              Long clubMemberId,
+                                              ClubNonMemberUpdateRequest request) {
+        Club club = validateLeader(clubId);
+
+        // 동아리 회원 확인
+        ClubMembers clubMember = clubMembersRepository.findByClubClubIdAndClubMemberId(club.getClubId(), clubMemberId)
+                .orElseThrow(() -> new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS));
+
+        // 비회원 확인
+        if (clubMember.getProfile().getMemberType() != MemberType.NONMEMBER) {
+            throw new ClubMemberException(ExceptionType.NOT_NON_MEMBER);
+        }
+
+        // 프로필 업데이트
+        Profile profile = clubMember.getProfile();
+        profile.updateProfile(request.getUserName(), request.getStudentNumber(), request.getUserHp(), request.getMajor());
+        profileRepository.save(profile);
+
+        return new ApiResponse("비회원 프로필 업데이트 완료", request);
+    }
 }
