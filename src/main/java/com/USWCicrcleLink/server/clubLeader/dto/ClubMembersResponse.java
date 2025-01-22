@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.clubLeader.dto;
 
+import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,11 +21,14 @@ public class ClubMembersResponse {
 
     private String userHp;
 
+    private MemberType memberType;
+
     public ClubMembersResponse(Long clubMemberId, Profile profile) {
         this.clubMemberId = clubMemberId;
         this.userName = profile.getUserName();
         this.major = profile.getMajor();
         this.studentNumber = profile.getStudentNumber();
         this.userHp = profile.getUserHp();
+        this.memberType = profile.getMemberType();
     }
 }

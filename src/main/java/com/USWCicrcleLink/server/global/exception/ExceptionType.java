@@ -19,7 +19,9 @@ public enum ExceptionType {
     /**
      * SERVER ERROR
      */
-    SERVER_ERROR("SER-501", "서버 오류입니다. 관리자에게 문의해주세요", INTERNAL_SERVER_ERROR),
+    // ======= 공통 예외 =======
+    SERVER_ERROR("COM-501", "서버 오류입니다. 관리자에게 문의해주세요.", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_INPUT("COM-302", "잘못된 입력 값입니다.", HttpStatus.BAD_REQUEST),
 
     /**
      * Domain: EmailToken
@@ -94,6 +96,7 @@ public enum ExceptionType {
     PROFILE_NOT_INPUT("PFL-203","프로필 입력값은 필수입니다.", BAD_REQUEST),
     DUPLICATE_PROFILE("PFL-204","이미 존재하는 회원입니다.", BAD_REQUEST),
     DEPARTMENT_NOT_INPUT("PFL-205", "학과 정보는 필수 입력 항목입니다.", BAD_REQUEST),
+    NOT_NON_MEMBER("PFL-206", "비회원만 수정할 수 있습니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubIntroPhoto, Club(MainPhoto)

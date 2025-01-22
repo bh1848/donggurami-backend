@@ -159,4 +159,12 @@ public class ClubLeaderController {
     public ResponseEntity<ApiResponse> getDuplicateProfileMember(@PathVariable("clubId") Long clubId, @RequestBody DuplicateProfileMemberRequest duplicateProfileMemberRequest) {
         return new ResponseEntity<>(clubLeaderService.addDuplicateProfileMember(clubId, duplicateProfileMemberRequest), HttpStatus.OK);
     }
+
+    // 비회원 프로필 업데이트
+    @PatchMapping("/{clubId}/members/{clubMemberId}/non-member")
+    public ResponseEntity<ApiResponse> updateNonMemberProfile(@PathVariable("clubId") Long clubId,
+                                                              @PathVariable("clubMemberId") Long clubMemberId,
+                                                              @RequestBody ClubNonMemberUpdateRequest clubNonMemberUpdateRequest) {
+        return new ResponseEntity<>(clubLeaderService.updateNonMemberProfile(clubId, clubMemberId, clubNonMemberUpdateRequest), HttpStatus.OK);
+    }
 }
