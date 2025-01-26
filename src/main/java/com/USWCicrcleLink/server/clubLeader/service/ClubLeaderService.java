@@ -406,13 +406,25 @@ public class ClubLeaderService {
     }
 
     // 소속 동아리원 삭제
-    public ApiResponse deleteClubMember(Long clubMemberId, Long clubId) {
+    public ApiResponse deleteClubMembers(Long clubId, List<ClubMembersDeleteRequest> clubMemberIdList) {
 
         Club club = validateLeader(clubId);
 
-        // 동아리원 삭제
-        clubMembersRepository.deleteById(clubMemberId);
-        return new ApiResponse<>("동아리 회원 삭제 완료");
+        List<Long> clubMemberIds = clubMemberIdList.stream()
+                .map(ClubMembersDeleteRequest::getClubMemberId)
+                .collect(toList());
+
+        // 동아리 회원인지 확인
+        List<ClubMembers> membersToDelete = clubMembersRepository.findByClubClubIdAndClubMemberIdIn(club.getClubId(), clubMemberIds);
+
+        // 조회된 수와 요청한 수와 같은지(다르면 다른 동아리 회원이 존재)
+        if (membersToDelete.size() != clubMemberIdList.size()) {
+            throw new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS);
+        }
+
+        // 동아리 회원 삭제
+        clubMembersRepository.deleteAll(membersToDelete);
+        return new ApiResponse<>("동아리 회원 삭제 완료", clubMemberIdList);
     }
 
     // 소속 동아리원 엑셀 다운

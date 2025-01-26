@@ -95,9 +95,9 @@ public class ClubLeaderController {
     }
 
     // 동아리원 퇴출
-    @DeleteMapping("/{clubId}/members/{clubMemberId}")
-    public ResponseEntity<ApiResponse> deleteClubMember(@PathVariable("clubMemberId") Long clubMemberId, @PathVariable("clubId") Long clubId) {
-        return new ResponseEntity<>(clubLeaderService.deleteClubMember(clubMemberId, clubId), HttpStatus.OK);
+    @DeleteMapping("/{clubId}/members")
+    public ResponseEntity<ApiResponse> deleteClubMembers(@PathVariable("clubId") Long clubId, @RequestBody List<ClubMembersDeleteRequest> clubMemberIdList) {
+        return new ResponseEntity<>(clubLeaderService.deleteClubMembers(clubId, clubMemberIdList), HttpStatus.OK);
     }
 
     // 동아리원 엑셀 파일 추출
