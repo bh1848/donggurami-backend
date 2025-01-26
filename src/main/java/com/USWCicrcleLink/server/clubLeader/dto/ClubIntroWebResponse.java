@@ -22,10 +22,11 @@ public class ClubIntroWebResponse {
     private String leaderHp;
     private String clubInsta;
     private String clubIntro;
+    private String clubRecruitment;
     private RecruitmentStatus recruitmentStatus;
     private String googleFormUrl;
 
-    public ClubIntroWebResponse(ClubIntro clubIntro, Club club, String mainPhotoUrl, List<String> introPhotoUrls, String googleFormUrl) {
+    public ClubIntroWebResponse(ClubIntro clubIntro, Club club, String clubRecruitment, String mainPhotoUrl, List<String> introPhotoUrls) {
         this.clubId = club.getClubId();
         this.mainPhoto = mainPhotoUrl;
         this.introPhotos = introPhotoUrls;
@@ -34,7 +35,8 @@ public class ClubIntroWebResponse {
         this.leaderHp = club.getLeaderHp();
         this.clubInsta = club.getClubInsta();
         this.clubIntro = clubIntro.getClubIntro();
+        this.clubRecruitment = clubRecruitment;
         this.recruitmentStatus = clubIntro.getRecruitmentStatus();
-        this.googleFormUrl = googleFormUrl;
+        this.googleFormUrl = clubIntro.getGoogleFormUrl();
     }
 }

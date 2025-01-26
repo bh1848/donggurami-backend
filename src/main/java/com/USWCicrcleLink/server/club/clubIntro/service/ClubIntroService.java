@@ -107,7 +107,7 @@ public class ClubIntroService {
                 .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
 
         // 동아리 소개 조회
-        ClubIntro clubIntro = clubIntroRepository.findByClub(club)
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         // 동아리 메인 사진 조회

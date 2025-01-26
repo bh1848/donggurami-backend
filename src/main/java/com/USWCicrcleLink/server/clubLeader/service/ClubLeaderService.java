@@ -192,8 +192,13 @@ public class ClubLeaderService {
         Club club = validateLeader(clubId);
 
         // 동아리 소개 조회
-        ClubIntro clubIntro = clubIntroRepository.findByClub(club)
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+
+        // open인 경우 모집글 반환
+        String clubRecruitment = (clubIntro.getRecruitmentStatus() == RecruitmentStatus.OPEN)
+                ? clubIntro.getClubRecruitment()
+                : null;
 
         // 동아리 메인 사진 조회
         ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
@@ -215,7 +220,7 @@ public class ClubLeaderService {
                 .collect(Collectors.toList());
 
         // ClubIntroResponse 반환
-        return new ClubIntroWebResponse(clubIntro, club, mainPhotoUrl, introPhotoUrls, clubIntro.getGoogleFormUrl());
+        return new ClubIntroWebResponse(clubIntro, club, clubRecruitment, mainPhotoUrl, introPhotoUrls);
     }
 
     // 동아리 소개 변경
@@ -232,10 +237,11 @@ public class ClubLeaderService {
         }
 
         // 모집 상태 CLOSE인데 모집 글 존재하면 예외처리
-        if (clubIntroRequest.getRecruitmentStatus() == RecruitmentStatus.CLOSE
-                && clubIntroRequest.getClubRecruitment() != null) {
-            throw new ClubIntroException(ExceptionType.INVALID_RECRUITMENT_STATUS);
-        }
+//        if (clubIntroRequest.getRecruitmentStatus() == RecruitmentStatus.CLOSE
+//                && clubIntroRequest.getClubRecruitment() != null
+//                && !clubIntroRequest.getClubRecruitment().trim().isEmpty()) {
+//            throw new ClubIntroException(ExceptionType.INVALID_RECRUITMENT_STATUS);
+//        }
 
         // 입력값 검증 (XSS 공격 방지)
         String sanitizedClubIntro = clubIntroRequest.getClubIntro() != null
