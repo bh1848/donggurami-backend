@@ -27,6 +27,9 @@ public class ClubIntro {
     @Column(name = "club_intro", length=3000)
     private String clubIntro;
 
+    @Column(name = "club_recruitment", length=3000)
+    private String clubRecruitment;
+
     @Column(name = "googleForm_url")
     private String googleFormUrl;
 
@@ -35,8 +38,9 @@ public class ClubIntro {
     @Column(name = "club_intro_recruitment_status", nullable = false)
     private RecruitmentStatus recruitmentStatus = RecruitmentStatus.CLOSE;
 
-    public void updateClubIntro(String clubIntro, String googleFormUrl) {
+    public void updateClubIntro(String clubIntro, String clubRecruitment , String googleFormUrl) {
         this.clubIntro = clubIntro;
+        this.clubRecruitment = clubRecruitment;
         this.googleFormUrl = googleFormUrl;
     }
 

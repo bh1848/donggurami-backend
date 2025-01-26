@@ -226,13 +226,27 @@ public class ClubLeaderService {
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
+        // 모집 상태가 null일 때 예외 처리
+        if (clubIntroRequest.getRecruitmentStatus() == null) {
+            throw new ClubIntroException(ExceptionType.INVALID_RECRUITMENT_STATUS);
+        }
+
+        // 모집 상태 CLOSE인데 모집 글 존재하면 예외처리
+        if (clubIntroRequest.getRecruitmentStatus() == RecruitmentStatus.CLOSE
+                && clubIntroRequest.getClubRecruitment() != null) {
+            throw new ClubIntroException(ExceptionType.INVALID_RECRUITMENT_STATUS);
+        }
+
         // 입력값 검증 (XSS 공격 방지)
         String sanitizedClubIntro = clubIntroRequest.getClubIntro() != null
                 ? InputValidator.sanitizeContent(clubIntroRequest.getClubIntro()) : "";
+        String sanitizedClubRecruitment = clubIntroRequest.getClubRecruitment() != null
+                ? InputValidator.sanitizeContent(clubIntroRequest.getClubRecruitment()) : "";
         String sanitizedGoogleFormUrl = clubIntroRequest.getGoogleFormUrl() != null
                 ? InputValidator.sanitizeContent(clubIntroRequest.getGoogleFormUrl()) : "";
 
-        if (clubIntroRequest.getDeletedOrders() != null && !clubIntroRequest.getDeletedOrders().isEmpty()) {// 삭제할 사진이 있다면
+        // 삭제할 사진 확인
+        if (clubIntroRequest.getDeletedOrders() != null && !clubIntroRequest.getDeletedOrders().isEmpty()) {
             // 순서 개수, 범위 검증
             validateOrderValues(clubIntroRequest.getDeletedOrders());
 
@@ -252,7 +266,7 @@ public class ClubLeaderService {
             }
         }
 
-        // 각 사진의 presignedUrls
+        // 각 사진의 조회 presignedUrls
         List<String> presignedUrls = new ArrayList<>();
 
         // 동아리 소개 사진을 넣을 경우
@@ -295,8 +309,8 @@ public class ClubLeaderService {
             }
         }
 
-        // 소개 글, google form 저장
-        clubIntro.updateClubIntro(sanitizedClubIntro, sanitizedGoogleFormUrl);
+        // 소개 글, 모집 글, google form 저장
+        clubIntro.updateClubIntro(sanitizedClubIntro, sanitizedClubRecruitment, sanitizedGoogleFormUrl);
         clubIntroRepository.save(clubIntro);
 
         log.debug("{} 동아리 소개 변경 완료", club.getClubName());
