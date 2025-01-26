@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.user.domain;
 
 import com.USWCicrcleLink.server.global.bucket4j.ClientIdentifier;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -10,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -49,4 +52,18 @@ public class UserTemp implements ClientIdentifier {
     public String getClientId() {
         return this.tempEmail;
     }
+
+    public static UserTemp createUserTemp (ClubMemberTemp clubMemberTemp){
+        return UserTemp.builder()
+                .tempAccount(clubMemberTemp.getProfileTempAccount())
+                .tempPw(clubMemberTemp.getProfileTempPw())
+                .tempName(clubMemberTemp.getProfileTempName())
+                .tempHp(clubMemberTemp.getProfileTempHp())
+                .tempMajor(clubMemberTemp.getProfileTempMajor())
+                .tempHp(clubMemberTemp.getProfileTempHp())
+                .tempStudentNumber(clubMemberTemp.getProfileTempStudentNumber())
+                .tempEmail(clubMemberTemp.getProfileTempEmail())
+                .build();
+    }
+
 }

@@ -6,6 +6,7 @@ import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -23,8 +24,8 @@ public class Profile {
     @Column(name = "profile_id")
     private Long profileId;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @OneToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Column(name = "user_name", nullable = false)
@@ -37,6 +38,7 @@ public class Profile {
 
     @Column(name = "user_hp", nullable = false)
     @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다",groups = ValidationGroups.PatternGroup.class)
+    @Size(min = 11, max = 11, message = "전화번호는 11자리 숫자여야 합니다.",groups = ValidationGroups.SizeGroup.class)
     private String userHp;
 
     @Column(name = "major", nullable = false)
@@ -47,6 +49,10 @@ public class Profile {
 
     @Column(name = "profile_updated_at", nullable = false)
     private LocalDateTime profileUpdatedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "member_type", nullable = false)
+    private MemberType memberType;
 
     @Column(name = "fcm_token")
     private String fcmToken;
@@ -61,6 +67,7 @@ public class Profile {
                 .studentNumber(userTemp.getTempStudentNumber())
                 .userHp(userTemp.getTempHp())
                 .major(userTemp.getTempMajor())
+                .memberType(MemberType.REGULARMEMBER) // 정회원
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
                 .build();

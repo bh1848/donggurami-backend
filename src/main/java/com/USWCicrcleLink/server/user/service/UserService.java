@@ -1,24 +1,28 @@
 package com.USWCicrcleLink.server.user.service;
 
+import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
+import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
+import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.profile.service.ProfileService;
-import com.USWCicrcleLink.server.user.domain.AuthToken;
-import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.domain.UserTemp;
-import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
+import com.USWCicrcleLink.server.user.domain.*;
 import com.USWCicrcleLink.server.user.dto.*;
+import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
+import com.USWCicrcleLink.server.user.repository.ClubMemerAccountStatusRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 import jakarta.mail.internet.MimeMessage;
@@ -35,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -53,6 +58,9 @@ public class UserService {
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final ProfileService profileService;
+    private final ClubMemberTempRepository clubMemberTempRepository;
+    private final ClubRepository clubRepository;
+    private final ClubMemerAccountStatusRepository clubMemerAccoutStatusRepository;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
@@ -122,6 +130,15 @@ public class UserService {
         }
     }
 
+    // 전화번호 - 제거하는 메서드
+    public String removeHyphensFromPhoneNumber(String telephone) {
+        if(telephone.contains("-")){
+            return telephone.replaceAll("-", "");
+        }
+        return telephone;
+    }
+
+
     // 임시 회원 생성 및 저장
     public UserTemp registerUserTemp(SignUpRequest request) {
 
@@ -130,20 +147,64 @@ public class UserService {
         // 임시 회원 정보 존재시 기존 데이터 삭제
         userTempRepository.findByTempEmail(request.getEmail())
                 .ifPresent( userTemp -> {
-                    emailTokenService.deleteEmailTokenAndUserTemp(userTemp);
+                    emailTokenService.deleteEmailToken(userTemp);
                     log.debug("중복된 임시 회원 데이터 삭제: userTemp_email= {}", request.getEmail());
                 });
 
         // 회원 테이블 이메일 중복 검증
         verifyUserDuplicate(request.getEmail());
 
+        // 번호만 추출해서 저장하기
+        String telephone = removeHyphensFromPhoneNumber(request.getTelephone());
+
         // 비밀번호 인코딩
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         log.debug("임시 회원 생성 완료 email= {}", request.getEmail());
 
-        return userTempRepository.save(request.toEntity(encodedPassword));
+        return userTempRepository.save(request.toEntity(encodedPassword,telephone));
     }
 
+    // 임시 동아리원 생성하기
+    public ClubMemberTemp registerClubMemberTemp(ExistingMemberSignUpRequest request) {
+        // 지원한 동아리의 개수
+        int total = request.getClubs().size();
+        // 전화번호 - 제거
+        String telephone = removeHyphensFromPhoneNumber(request.getTelephone());
+        // 비밀번호 인코딩
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        return clubMemberTempRepository.save(request.toEntity(encodedPassword,telephone,total));
+    }
+
+    // 동아리 회장에게 가입신청 보내기
+    public void sendRequest(ExistingMemberSignUpRequest request, ClubMemberTemp clubMemberTemp) {
+
+        for (ClubDTO clubDto : request.getClubs()) {
+            // club 객체 가져오기
+            Club club = clubRepository.findById(clubDto.getClubId())
+                    .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+            // ClubMemberAccountStatus 객체 생성
+            ClubMemberAccountStatus clubMemberAccountStatus = ClubMemberAccountStatus.createClubMemberAccountStatus(club, clubMemberTemp);
+            // ClubAccountStatus 저장
+            clubMemerAccoutStatusRepository.save(clubMemberAccountStatus);
+        }
+        // 요청이 전부 제대로 갔는지 검증
+        checkRequest(request,clubMemberTemp);
+    }
+
+    // 각 동아리에 대한 요청 전송이 제대로 되었는지 검증
+    public void checkRequest(ExistingMemberSignUpRequest request, ClubMemberTemp clubMemberTemp){
+        // 총 생성된 ClubMemberAccountStatus 확인
+        long savedCount = clubMemerAccoutStatusRepository.countByClubMemberTempId(clubMemberTemp.getId());
+        int expectedCount = request.getClubs().size();
+
+        if (savedCount == expectedCount) {
+           log.debug("모든 동아리에게 요청 전송 성공");
+        } else {
+            throw new UserException(ExceptionType.USER_SIGNUP_REQUEST_FAILED);
+        }
+    }
+
+    // 이메일 중복 검증
     private void verifyUserDuplicate(String email){
         log.debug("이메일 중복 검증 시작 email= {}",email);
         userRepository.findByEmail(email)
@@ -165,23 +226,29 @@ public class UserService {
         return token.getUserTemp();
     }
 
+    // userTemp -> user,profile 객체 생성
+    public void createUserAndProfile(UserTemp userTemp){
+        User user = User.createUser(userTemp);
+        Profile profile = Profile.createProfile(userTemp, user);
+
+        userRepository.save(user);
+        profileRepository.save(profile);
+    }
+
     // 회원가입
     public void signUp(UserTemp userTemp) {
 
         log.debug("회원 가입 요청 시작");
-        User user = User.createUser(userTemp);
-        Profile profile = Profile.createProfile(userTemp, user);
+        createUserAndProfile(userTemp);
+        log.debug("회원 가입 완료 account = {}", userTemp.getTempAccount());
 
-        // 회원 가입
-        userRepository.save(user);
-        profileRepository.save(profile);
-        log.debug("회원 가입 완료 account = {}", user.getUserAccount());
-
-        // 임시 회원 정보 삭제
-        emailTokenService.deleteEmailTokenAndUserTemp(userTemp);
+        // 임시 회원 정보와 관련된 이메일 토큰 삭제
+        emailTokenService.deleteEmailToken(userTemp);
         log.debug("임시 회원 정보 삭제 완료");
     }
 
+
+    // 아이디 중복 검증
     public void verifyAccountDuplicate(String account) {
         log.debug("계정 중복 체크 요청 시작 account = {}",account);
             userRepository.findByUserAccount(account)
@@ -343,5 +410,17 @@ public class UserService {
         userRepository.delete(getUserByAuth());
 
         log.debug("회원 탈퇴 성공");
+    }
+
+    // 로그인 가능 여부 판단
+    public void verifyLogin(LogInRequest request) {
+        // account로 user조회
+        User user = userRepository.findByUserAccount(request.getAccount())
+                .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
+        // user로 프로필 조회하여 로그인 여부 판단
+        Profile profile = profileRepository.findByUserUserId(user.getUserId()).orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
+        if(profile.getMemberType().equals(MemberType.NONMEMBER)){ // 비회원인 경우 로그인 불가
+            throw new UserException(ExceptionType.USER_LOGIN_FAILED);
+        }
     }
 }

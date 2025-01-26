@@ -49,7 +49,7 @@ public class SignUpRequest {
 
     private Boolean isEmailVerified = false;
 
-    public UserTemp toEntity(String encodedPassword) {
+    public UserTemp toEntity(String encodedPassword,String telephone) {
         return UserTemp.builder()
                 .tempAccount(account)
                 .tempPw(encodedPassword)

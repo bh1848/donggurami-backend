@@ -16,6 +16,7 @@ import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.security.domain.Role;
+import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -136,6 +137,7 @@ public class DummyData {
                 .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
                 .build();
         profileRepository.save(profile1);
 
@@ -147,6 +149,7 @@ public class DummyData {
                 .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
                 .build();
         profileRepository.save(profile2);
 
@@ -158,6 +161,7 @@ public class DummyData {
                 .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.NONMEMBER)
                 .build();
         profileRepository.save(profile3);
 
@@ -169,6 +173,7 @@ public class DummyData {
                 .major("정보보호학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.NONMEMBER)
                 .build();
         profileRepository.save(profile4);
 
@@ -393,6 +398,7 @@ public class DummyData {
                 .major("컴퓨터SW학과")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
                 .build();
 
         profileRepository.save(profile);
@@ -464,6 +470,7 @@ public class DummyData {
                 .major("데이터과학부")
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER)
                 .build();
 
         profileRepository.save(profile);

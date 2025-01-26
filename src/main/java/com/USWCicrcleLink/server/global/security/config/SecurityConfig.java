@@ -64,7 +64,8 @@ public class SecurityConfig {
                             "/introPhoto/**",
                             "/my-notices/**",
                             "/clubs/**", // 동아리 조회(모바일)
-                            "/profiles/check-duplicated" // 프로필 중복 조회
+                            "/profiles/check-duplicated", // 프로필 중복 조회
+                            "/users//existing" // 기존 동아리회원의 회원가입
                     ).permitAll();
 
                     // photo
