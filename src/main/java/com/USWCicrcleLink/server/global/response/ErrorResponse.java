@@ -17,4 +17,6 @@ public class ErrorResponse {
 
     private String error;
 
+    private final Object additionalData;
+
 }

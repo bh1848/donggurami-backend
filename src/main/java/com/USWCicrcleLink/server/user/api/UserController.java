@@ -66,7 +66,7 @@ public class UserController {
     }
 
     // 임시 회원 등록 및 인증 메일 전송
-    @PostMapping("/temporary")
+    @PostMapping("/temporary/register")
     public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated(ValidationSequence.class) @RequestBody SignUpRequest request)  {
 
         UserTemp userTemp = userService.registerUserTemp(request);
@@ -98,7 +98,7 @@ public class UserController {
     }
 
     // 기존 동아리원 회원가입
-    @GetMapping("/existing")
+    @PostMapping("/existing/register")
     public ResponseEntity<ApiResponse<Void>> ExistingMemberSignUp(@Validated(ValidationSequence.class) @RequestBody ExistingMemberSignUpRequest request)  {
         // 임시 동아리 회원 생성
         ClubMemberTemp clubMemberTemp = userService.registerClubMemberTemp(request);

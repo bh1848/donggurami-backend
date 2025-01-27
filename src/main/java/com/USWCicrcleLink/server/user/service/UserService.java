@@ -78,13 +78,13 @@ public class UserService {
     }
 
     //현재 비밀번호 확인
-    private boolean confirmPW(String userpw){
+    private boolean confirmPW(String userpw) {
         User user = getUserByAuth();
         return passwordEncoder.matches(userpw, user.getUserPw());
     }
 
     //비밀번호 변경
-    public void updateNewPW(UpdatePwRequest updatePwRequest){
+    public void updateNewPW(UpdatePwRequest updatePwRequest) {
 
         if (!confirmPW(updatePwRequest.getUserPw())) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
@@ -94,7 +94,7 @@ public class UserService {
         // 새로운 비밀번호의 유효성 검사
         checkPasswordCondition(updatePwRequest.getNewPw());
         // 비밀번호가 일치하는지 확인
-        checkPasswordMatch(updatePwRequest.getNewPw(),updatePwRequest.getConfirmNewPw());
+        checkPasswordMatch(updatePwRequest.getNewPw(), updatePwRequest.getConfirmNewPw());
 
         User user = getUserByAuth();
         String encryptedNewPw = passwordEncoder.encode(updatePwRequest.getNewPw());
@@ -106,25 +106,25 @@ public class UserService {
             log.error("비밀번호 업데이트 실패 {}", user.getUserId());
             throw new UserException(ExceptionType.PROFILE_UPDATE_FAIL);
         }
-        log.info("비밀번호 변경 완료: {}",user.getUserId());
+        log.info("비밀번호 변경 완료: {}", user.getUserId());
     }
 
     // 비밀번호 칸이 빈칸인지 확인
-    private void checkPasswordFieldBlank(String password, String comfimPw){
+    private void checkPasswordFieldBlank(String password, String comfimPw) {
         if (password.trim().isEmpty() || comfimPw.trim().isEmpty()) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_INPUT);
         }
     }
 
     // 비밀번호 일치 확인
-    private void checkPasswordMatch(String password, String confirmPw){
-        if(!password.equals(confirmPw)){
+    private void checkPasswordMatch(String password, String confirmPw) {
+        if (!password.equals(confirmPw)) {
             throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
         }
     }
 
     // 비밀번호 조건이 충족되는지 확인
-    private void checkPasswordCondition(String password){
+    private void checkPasswordCondition(String password) {
         if (!letterPattern.matcher(password).find() || !numberPattern.matcher(password).find() || !specialCharPattern.matcher(password).find()) {
             throw new UserException(ExceptionType.USER_PASSWORD_CONDITION_FAILED);
         }
@@ -132,7 +132,7 @@ public class UserService {
 
     // 전화번호 - 제거하는 메서드
     public String removeHyphensFromPhoneNumber(String telephone) {
-        if(telephone.contains("-")){
+        if (telephone.contains("-")) {
             return telephone.replaceAll("-", "");
         }
         return telephone;
@@ -146,7 +146,7 @@ public class UserService {
 
         // 임시 회원 정보 존재시 기존 데이터 삭제
         userTempRepository.findByTempEmail(request.getEmail())
-                .ifPresent( userTemp -> {
+                .ifPresent(userTemp -> {
                     emailTokenService.deleteEmailToken(userTemp);
                     log.debug("중복된 임시 회원 데이터 삭제: userTemp_email= {}", request.getEmail());
                 });
@@ -161,7 +161,7 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         log.debug("임시 회원 생성 완료 email= {}", request.getEmail());
 
-        return userTempRepository.save(request.toEntity(encodedPassword,telephone));
+        return userTempRepository.save(request.toEntity(encodedPassword, telephone));
     }
 
     // 임시 동아리원 생성하기
@@ -213,14 +213,14 @@ public class UserService {
             // ClubAccountStatus 저장
             clubMemerAccoutStatusRepository.save(clubMemberAccountStatus);
             log.debug("ClubMemberAccountStatus 저장 완료 - Club ID: {}", club.getClubId());
-
-            // 요청이 전부 제대로 갔는지 검증
-            log.debug("가입신청 검증 시작 - 사용자: {}, 예상 요청 개수: {}",
-                    clubMemberTemp.getProfileTempName(), request.getClubs().size());
-            checkRequest(request, clubMemberTemp);
-            log.debug("가입신청 검증 완료 - 사용자: {}", clubMemberTemp.getProfileTempName());
-
         }
+
+        // 요청이 전부 제대로 갔는지 검증
+        log.debug("가입신청 검증 시작 - 사용자: {}, 예상 요청 개수: {}",
+                clubMemberTemp.getProfileTempName(), request.getClubs().size());
+        checkRequest(request, clubMemberTemp);
+        log.debug("가입신청 검증 완료 - 사용자: {}", clubMemberTemp.getProfileTempName());
+
     }
 
     // 각 동아리에 대한 요청 전송이 제대로 되었는지 검증
@@ -461,7 +461,7 @@ public class UserService {
                 });
         log.debug("사용자 조회 성공 - 계정: {}, 사용자 ID: {}", user.getUserAccount(), user.getUserId());
 
-        // user로 프로필 조회하여 로그인 여부 판단
+        // user로 프로필 조회하여 로그인 가능 여부 판단
         Profile profile = profileRepository.findByUserUserId(user.getUserId())
                 .orElseThrow(() -> {
                     log.error("로그인 실패 - 프로필 없음 - 사용자 ID: {}", user.getUserId());

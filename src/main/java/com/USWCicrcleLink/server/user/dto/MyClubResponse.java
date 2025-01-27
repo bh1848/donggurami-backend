@@ -19,4 +19,6 @@ public class MyClubResponse {
 
     private String clubInsta;
 
+    private String clubRoomNumber;
+
 }

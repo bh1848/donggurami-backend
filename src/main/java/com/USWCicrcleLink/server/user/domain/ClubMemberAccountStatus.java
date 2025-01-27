@@ -15,19 +15,19 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "CLUBMEMBER_ACCOUNTSTATUS_TABLE")
+@Table(name = "CLUB_MEMBER_ACCOUNTSTATUS_TABLE")
 public class ClubMemberAccountStatus {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "CLUBMEMBER_ACCOUNTSTATUS_ID")
+    @Column(name = "CLUB_MEMBER_ACCOUNTSTATUS_ID")
     private Long id;
 
     @OneToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
 
-    @OneToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "CLUBMEMBERTEMP_ID", nullable = false)
     private ClubMemberTemp clubMemberTemp;
 

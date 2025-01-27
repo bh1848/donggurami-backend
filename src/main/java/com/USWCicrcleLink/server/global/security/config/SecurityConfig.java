@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(
                             "/users/login", // 모바일 로그인
-                            "/users/temporary",
+                            "/users/temporary/register",
                             "/users/email/verify-token",
                             "/users/finish-signup",
                             "/users/verify-duplicate/{account}",
@@ -64,35 +64,46 @@ public class SecurityConfig {
                             "/introPhoto/**",
                             "/my-notices/**",
                             "/clubs/**", // 동아리 조회(모바일)
-                            "/profiles/check-duplicated", // 프로필 중복 조회
-                            "/users//existing" // 기존 동아리회원의 회원가입
+                            "/profiles/duplication-check", // 프로필 중복 조회
+                            "/users/existing/register",// 기존 동아리회원의 회원가입
+                            "/mypages/clubs/{floor}/photo", //동아리방 층별 사진 조회
+                            "/clubs/filter/**" //카테고리별 동아리 조회
                     ).permitAll();
 
                     // photo
                     auth.requestMatchers(HttpMethod.GET, "/mainPhoto/**", "/introPhoto/**", "/noticePhoto/**")
 //                            .hasAnyRole("USER", "ADMIN", "LEADER");
                             .permitAll();
-                    // CLUB(웹)
+                    // ADMIN - FloorPhoto
+                    auth.requestMatchers(HttpMethod.POST, "/admin/floor/photo/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/floor/photo/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/admin/floor/photo/**").hasRole("ADMIN");
+
+                    // ADMIN - Category
+                    auth.requestMatchers(HttpMethod.POST, "/admin/category/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/category/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/admin/category/**").hasRole("ADMIN");
+
+                    // ADMIN - Club
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/clubs/{clubId}").hasAnyRole("ADMIN", "LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET,"/admin/clubs/leader/check").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET,"/admin/clubs/name/check").hasRole("ADMIN");
 
-                    // NOTICE(웹)
+                    // ADMIN - Notice
                     auth.requestMatchers(HttpMethod.POST, "/notices").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/notices/{noticeId}", "/notices/paged").hasAnyRole("ADMIN", "LEADER");
+                    auth.requestMatchers(HttpMethod.GET, "/notices/{noticeId}", "/notices").hasAnyRole("ADMIN", "LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/notices/{noticeId}").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.PATCH, "/notices/{noticeId}").hasRole("ADMIN");
-
-                    // APLICT(모바일)
-                    auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/can-apply/").hasRole("USER");
 
                     // USER
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw","/club-leader/fcmtoken").hasRole("USER");
                     auth.requestMatchers(HttpMethod.GET,"/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/my-notices/{noticeId}/details").hasRole("USER");
                     auth.requestMatchers(HttpMethod.DELETE, "/exit").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/exit/send-code").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.POST, "/apply/**").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/**").hasRole("USER");
 
                     // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**").hasRole("LEADER");

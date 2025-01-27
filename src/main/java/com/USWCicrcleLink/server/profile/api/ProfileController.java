@@ -2,6 +2,7 @@ package com.USWCicrcleLink.server.profile.api;
 
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.validation.ValidationSequence;
+import com.USWCicrcleLink.server.profile.dto.DuplicationProfileRequest;
 import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
 import com.USWCicrcleLink.server.profile.dto.ProfileResponse;
 import com.USWCicrcleLink.server.profile.service.ProfileService;
@@ -31,7 +32,7 @@ public class ProfileController {
     }
 
     @GetMapping("/duplication-check")
-    public ResponseEntity<ApiResponse<String>> checkProfileDuplicated(@Validated(ValidationSequence.class) @RequestBody ProfileRequest request){
+    public ResponseEntity<ApiResponse<String>> checkProfileDuplicated(@Validated(ValidationSequence.class) @RequestBody DuplicationProfileRequest request){
         profileService.checkProfileDuplicated(request);
 
         ApiResponse<String> response = new ApiResponse<>("사용 가능한 프로필 입니다.",request.getUserName());

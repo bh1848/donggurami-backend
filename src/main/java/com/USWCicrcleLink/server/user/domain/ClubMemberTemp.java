@@ -18,12 +18,12 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "CLUBMEMBERTEMP_TABLE")
+@Table(name = "CLUB_MEMBERTEMP_TABLE")
 public class ClubMemberTemp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "CLUBMEMBERTEMP_ID")
+    @Column(name = "CLUB_MEMBERTEMP_ID")
     private Long id;
 
     @NotBlank(message = "아이디는 필수 입력 값입니다.",groups = ValidationGroups.NotBlankGroup.class)

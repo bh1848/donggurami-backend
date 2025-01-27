@@ -17,7 +17,7 @@ public class Aplict {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "aplict_id")
-    private Long id;
+    private Long aplictId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)
