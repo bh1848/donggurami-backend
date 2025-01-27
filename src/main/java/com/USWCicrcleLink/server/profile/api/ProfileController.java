@@ -30,7 +30,7 @@ public class ProfileController {
         return new ApiResponse<>("프로필 조회 성공", profileResponse);
     }
 
-    @GetMapping("/check-duplicated")
+    @GetMapping("/duplication-check")
     public ResponseEntity<ApiResponse<String>> checkProfileDuplicated(@Validated(ValidationSequence.class) @RequestBody ProfileRequest request){
         profileService.checkProfileDuplicated(request);
 

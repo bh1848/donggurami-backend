@@ -100,12 +100,13 @@ public class ProfileService {
 
     // 프로필 중복 확인
     public void checkProfileDuplicated(ProfileRequest request) {
-        log.debug("프로필 중복 체크 요청 시작 profile_name = {}",request.getUserName());
+        log.debug("프로필 중복 체크 요청 시작 - 이름: {}, 전화번호: {}, 학번: {}",
+                request.getUserName(), request.getUserHp(), request.getStudentNumber());
         profileRepository.findByUserNameAndUserHpAndStudentNumber(request.getUserName(),request.getUserHp(),request.getStudentNumber())
                 .ifPresent(profile -> {
                     throw new ProfileException(ExceptionType.PROFILE_ALREADY_EXISTS);
                 });
-        log.debug("프로필 중복 확인 완료");
+        log.debug("프로필 중복 확인 완료- 중복없음");
     }
 
 }
