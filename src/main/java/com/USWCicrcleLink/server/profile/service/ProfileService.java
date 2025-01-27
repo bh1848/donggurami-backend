@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
@@ -34,16 +35,25 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final AplictRepository aplictRepository;
     private final ClubMembersRepository clubMembersRepository;
+    private final PasswordEncoder passwordEncoder;
 
 
     //프로필 업데이트
     public ProfileResponse updateProfile(ProfileRequest profileRequest) {
 
+        if (!confirmPW(profileRequest.getUserPw())) {
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
+        }
+
         validateProfileRequest(profileRequest);
 
         Profile profile = getProfileByAuth();
 
-        profile.updateProfile(profileRequest);
+        profile.updateProfile(profileRequest.getUserName(),
+                profileRequest.getMajor(),
+                profileRequest.getStudentNumber(),
+                profileRequest.getUserHp()
+        );
 
         Profile updatedProfile = profileRepository.save(profile);
 
@@ -59,6 +69,7 @@ public class ProfileService {
     private void validateProfileRequest(ProfileRequest profileRequest) {
         if (profileRequest.getUserName() == null || profileRequest.getUserName().trim().isEmpty() ||
                 profileRequest.getStudentNumber() == null || profileRequest.getStudentNumber().trim().isEmpty() ||
+                profileRequest.getUserHp() == null || profileRequest.getUserHp().trim().isEmpty() ||
                 profileRequest.getMajor() == null || profileRequest.getMajor().trim().isEmpty()) {
 
             throw new ProfileException(ExceptionType.PROFILE_NOT_INPUT);
@@ -73,14 +84,29 @@ public class ProfileService {
         User user = userDetails.user();
 
         return profileRepository.findByUserUserId(user.getUserId())
-                .orElseThrow(()-> {log.error("존재하지 않는 프로필");
-                    throw new ProfileException(ExceptionType.PROFILE_NOT_EXISTS);});
+                .orElseThrow(() -> {
+                    log.error("존재하지 않는 프로필");
+                    throw new ProfileException(ExceptionType.PROFILE_NOT_EXISTS);
+                });
     }
 
     //프로필 조회
-    public ProfileResponse getMyProfile(){
+    public ProfileResponse getMyProfile() {
         Profile profile = getProfileByAuth();
         return new ProfileResponse(profile);
+    }
+
+    // 어세스토큰에서 유저정보 가져오기
+    public User getUserByAuth() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userDetails.user();
+    }
+
+    //현재 비밀번호 확인
+    private boolean confirmPW(String userpw) {
+        User user = getUserByAuth();
+        return passwordEncoder.matches(userpw, user.getUserPw());
     }
 
     @Transactional

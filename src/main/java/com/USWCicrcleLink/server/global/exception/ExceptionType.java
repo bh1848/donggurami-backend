@@ -19,7 +19,9 @@ public enum ExceptionType {
     /**
      * SERVER ERROR
      */
-    SERVER_ERROR("SER-501", "서버 오류입니다. 관리자에게 문의해주세요", INTERNAL_SERVER_ERROR),
+    // ======= 공통 예외 =======
+    SERVER_ERROR("COM-501", "서버 오류입니다. 관리자에게 문의해주세요.", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_INPUT("COM-302", "잘못된 입력 값입니다.", HttpStatus.BAD_REQUEST),
 
     /**
      * Domain: EmailToken
@@ -31,7 +33,7 @@ public enum ExceptionType {
      * Domain: User
      */
     USER_NOT_EXISTS("USR-201", "사용자가 존재하지 않습니다.", BAD_REQUEST),
-    USER_NEW_PASSWORD_NOT_MATCH("USR-202","새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.", BAD_REQUEST),
+    USER_NEW_PASSWORD_NOT_MATCH("USR-202","두 비밀번호가 일치하지 않습니다.", BAD_REQUEST),
     USER_PASSWORD_NOT_INPUT("USR-203","비밀번호 값이 빈칸입니다",BAD_REQUEST),
     USER_PASSWORD_NOT_MATCH("USR-204","현재 비밀번호와 일치하지 않습니다",BAD_REQUEST),
     USER_PASSWORD_UPDATE_FAIL("USR-205","비밀번호 업데이트에 실패했습니다",INTERNAL_SERVER_ERROR),
@@ -41,8 +43,8 @@ public enum ExceptionType {
     USER_INVALID_ACCOUNT_AND_EMAIL("USR-209", "올바르지 않은 이메일 혹은 아이디입니다.", BAD_REQUEST),
     USER_UUID_NOT_FOUND("USR-210","회원의 uuid를 찾을 수 없습니다.", BAD_REQUEST),
     USER_AUTHENTICATION_FAILED("USR-211","아이디 혹은 비밀번호가 일치하지 않습니다",UNAUTHORIZED),
-    USER_PASSWORD_MISMATCH("USR-212", "두 비밀번호가 일치하지 않습니다", BAD_REQUEST),
     USER_PROFILE_NOT_FOUND("USR-213","프로필 정보를 찾을 수 없습니다", NOT_FOUND),
+    USER_PASSWORD_CONDITION_FAILED("USR-214","영문자,숫자,특수문자는 적어도 1개 이상씩 포함되어야합니다",BAD_REQUEST),
 
     /**
      * Domain: Jwt
@@ -58,6 +60,12 @@ public enum ExceptionType {
     CLUB_NOT_EXISTS("CLUB-201", "동아리가 존재하지 않습니다.", NOT_FOUND),
     ClUB_CHECKING_ERROR("CLUB-202", "동아리 조회 중 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
     CLUB_NAME_ALREADY_EXISTS("CLUB-203", "이미 존재하는 동아리 이름입니다.", CONFLICT),
+
+    /**
+     * Domain: ClubCategory
+     */
+    INVALID_CATEGORY("CTG-201", "유효하지 않은 카테고리입니다.", BAD_REQUEST),
+    DUPLICATE_CATEGORY("CTG-202", "이미 존재하는 카테고리입니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubIntro
@@ -78,6 +86,7 @@ public enum ExceptionType {
     UP_TO_5_PHOTOS_CAN_BE_UPLOADED("NOT-202", "최대 5개의 사진이 업로드 가능합니다.", PAYLOAD_TOO_LARGE),
     NOTICE_PHOTO_NOT_EXISTS("NOT-204", "사진이 존재하지 않습니다.", NOT_FOUND),
     INVALID_PHOTO_ORDER("NOT-205", "사진 순서는 1에서 5 사이여야 합니다.", BAD_REQUEST),
+    NOTICE_CHECKING_ERROR("NOT-206", "공지사항 조회 중 에러가 발생했습니다.", BAD_REQUEST),
 
     /**
      * Domain: Profile
@@ -85,6 +94,9 @@ public enum ExceptionType {
     PROFILE_NOT_EXISTS("PFL-201", "프로필이 존재하지 않습니다.", NOT_FOUND),
     PROFILE_UPDATE_FAIL("PFL-202", "프로필 업데이트에 실패했습니다.", INTERNAL_SERVER_ERROR),
     PROFILE_NOT_INPUT("PFL-203","프로필 입력값은 필수입니다.", BAD_REQUEST),
+    DUPLICATE_PROFILE("PFL-204","이미 존재하는 회원입니다.", BAD_REQUEST),
+    DEPARTMENT_NOT_INPUT("PFL-205", "학과 정보는 필수 입력 항목입니다.", BAD_REQUEST),
+    NOT_NON_MEMBER("PFL-206", "비회원만 수정할 수 있습니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubIntroPhoto, Club(MainPhoto)
@@ -98,12 +110,13 @@ public enum ExceptionType {
     CLUB_LEADER_NOT_EXISTS("CLDR-201","동아리 회장이 존재하지 않습니다.", BAD_REQUEST),
     ClUB_LEADER_PASSWORD_NOT_MATCH("CLDR-202", "동아리 회장 비밀번호가 일치하지 않습니다", BAD_REQUEST),
     LEADER_ACCOUNT_ALREADY_EXISTS("CLDR-203", "이미 존재하는 동아리 회장 계정입니다.", UNPROCESSABLE_ENTITY),
-
+    LEADER_NAME_REQUIRED("CLDR-204", "동아리 회장의 이름은 필수 입력 항목입니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubMember
      */
     CLUB_MEMBER_NOT_EXISTS("CMEM-201","클럽멤버가 존재하지 않습니다.", NOT_FOUND),
+    CLUB_MEMBER_ALREADY_EXISTS("CMEM-202","클럽멤버가 이미 존재합니다. 관리자에게 문의하세요.", BAD_REQUEST),
 
     /**
      * Domain: Aplict
@@ -112,6 +125,10 @@ public enum ExceptionType {
     APPLICANT_NOT_EXISTS("APT-202","유효한 지원자가 존재하지 않습니다.", NOT_FOUND),
     ADDITIONAL_APPLICANT_NOT_EXISTS("APT-203","유효한 추합 대상자가 존재하지 않습니다.", NOT_FOUND),
     APPLICANT_COUNT_MISMATCH("APT-204", "선택한 지원자 수와 전체 지원자 수가 일치하지 않습니다.", BAD_REQUEST),
+    ALREADY_APPLIED("APT-205", "이미 지원한 동아리입니다.", BAD_REQUEST),
+    ALREADY_MEMBER("APT-206", "이미 해당 동아리 회원입니다.", BAD_REQUEST),
+    PHONE_NUMBER_ALREADY_REGISTERED("APT-207", "이미 등록된 전화번호입니다.", BAD_REQUEST),
+    STUDENT_NUMBER_ALREADY_REGISTERED("APT-208", "이미 등록된 학번입니다.", BAD_REQUEST),
 
     /**
      * Domain: AuthCodeToken
@@ -126,13 +143,20 @@ public enum ExceptionType {
     WITHDRAWALTOKEN_NOT_EXISTS("WT-102", "탈퇴 토큰이 존재하지 않습니다", BAD_REQUEST),
 
     /**
+     * Domain: WithdrawalToken
+     */
+    CATEGORY_NOT_FOUND("CG-201","해당 카테고리가 존재하지 않습니다." , NOT_FOUND),
+    INVALID_CATEGORY_COUNT("CG-202","카테고리는 최대 3개까지 선택할수 있습니다.", BAD_REQUEST),
+
+    /**
      * 공통
      */
     SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR),
     INVALID_UUID_FORMAT("UUID-502", "유효하지 않은 UUID 형식입니다." , BAD_REQUEST),
     TOO_MANY_ATTEMPT("ATTEMPT-503", "최대 시도 횟수를 초과했습니다. 1분 후  다시 시도 하세요", BAD_REQUEST),
-    TEXT_IS_EMPTY("TEXT-503", "글이 비어있습니다.", BAD_REQUEST),
-
+    PHOTO_FILE_IS_EMPTY("PHOTO-504","사진 파일이 비어있습니다." ,BAD_REQUEST),
+    PHOTO_NOT_FOUND("PHOTO-505", "해당 사진이 존재하지 않습니다.", NOT_FOUND),
+    INVALID_ENUM_VALUE("ENUM-401", "유효하지 않은 Enum 값입니다.", BAD_REQUEST),
 
     /**
      * File I/O
@@ -144,7 +168,7 @@ public enum ExceptionType {
     FILE_SAVE_FAILED("FILE-305", "파일 저장에 실패했습니다.", INTERNAL_SERVER_ERROR),
     FILE_UPLOAD_FAILED("FILE-306", "파일 업로드에 실패했습니다.", BAD_REQUEST),
     FILE_DELETE_FAILED("FILE-307", "파일 삭제에 실패했습니다.", BAD_REQUEST),
-    MAXIMUM_FILE_LIMIT_EXCEEDED("FILE-308", "업로드 가능한 사진 갯수를 초과했습니다.", BAD_REQUEST),
+    MAXIMUM_FILE_LIMIT_EXCEEDED("FILE-308", "업로드 가능한 갯수를 초과했습니다.", BAD_REQUEST),
     INVALID_FILE_NAME("FILE-309", "파일 이름이 유효하지 않습니다.", BAD_REQUEST),
     MISSING_FILE_EXTENSION("FILE-310", "파일 확장자가 없습니다.", BAD_REQUEST),
     UNSUPPORTED_FILE_EXTENSION("FILE-311", "지원하지 않는 파일 확장자입니다.", BAD_REQUEST),

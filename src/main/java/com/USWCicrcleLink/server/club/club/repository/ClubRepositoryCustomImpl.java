@@ -1,11 +1,14 @@
 package com.USWCicrcleLink.server.club.club.repository;
 
-import com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminClubListResponse;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -20,17 +23,35 @@ public class ClubRepositoryCustomImpl implements ClubRepositoryCustom {
 
     private final S3FileUploadService s3FileUploadService;
     @Override
-    public List<ClubAdminListResponse> findAllWithMemberAndLeaderCount() {
-        String jpql = "SELECT new com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse(c.clubId, c.department, c.clubName, c.leaderName, " +
+    public Page<AdminClubListResponse> findAllWithMemberAndLeaderCount(Pageable pageable) {
+        // c: Club 테이블, cm: ClubMembers 테이블, l: Leader 테이블
+        // 각 Club의 멤버 수와 리더 정보를 함께 계산하여 AdminClubListResponse 객체로 반환
+        String jpql = "SELECT new com.USWCicrcleLink.server.admin.admin.dto.AdminClubListResponse(c.clubId, c.department, c.clubName, c.leaderName, " +
                 "(COUNT(cm) + (CASE WHEN l IS NOT NULL THEN 1 ELSE 0 END))) " +
-                "FROM Club c " +
-                "LEFT JOIN ClubMembers cm ON c.clubId = cm.club.clubId " +
-                "LEFT JOIN Leader l ON c.clubId = l.club.clubId " +
-                "GROUP BY c.clubId, l.leaderId";
+                "FROM Club c " + // Club 테이블을 조회
+                "LEFT JOIN ClubMembers cm ON c.clubId = cm.club.clubId " + // ClubMembers 테이블과 LEFT JOIN
+                "LEFT JOIN Leader l ON c.clubId = l.club.clubId " + // Leader 테이블과 LEFT JOIN
+                "GROUP BY c.clubId, l.leaderId"; // Club ID와 Leader ID로 그룹화
 
-        TypedQuery<ClubAdminListResponse> query = em.createQuery(jpql, ClubAdminListResponse.class);
-        return query.getResultList();
+        // Club 테이블에서 전체 Club 개수를 카운트하는 JPQL
+        String countJpql = "SELECT COUNT(c) FROM Club c";
+
+        // JPQL을 실행하기 위한 TypedQuery 생성
+        TypedQuery<AdminClubListResponse> query = em.createQuery(jpql, AdminClubListResponse.class);
+        // 페이지네이션 설정
+        query.setFirstResult((int) pageable.getOffset()); // 시작 위치 설정
+        query.setMaxResults(pageable.getPageSize()); // 페이지 크기 설정
+
+        // 전체 Club 개수를 조회
+        Long totalCount = em.createQuery(countJpql, Long.class).getSingleResult();
+
+        // JPQL 쿼리 결과를 리스트로 변환
+        List<AdminClubListResponse> results = query.getResultList();
+
+        // 결과를 Page 객체로 반환
+        return new PageImpl<>(results, pageable, totalCount);
     }
+
 
     @Override
     public void deleteClubAndDependencies(Long clubId) {

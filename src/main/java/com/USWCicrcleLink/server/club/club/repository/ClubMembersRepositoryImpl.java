@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.club.club.repository;
 
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
+import com.USWCicrcleLink.server.profile.domain.MemberType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -16,6 +17,7 @@ public class ClubMembersRepositoryImpl implements ClubMembersRepositoryCustom {
     @PersistenceContext
     private EntityManager em;
 
+    // 동아리 회원과 프로필 조회
     @Override
     public List<ClubMembers> findAllWithProfile(Long clubId) {
         return em.createQuery(
@@ -27,43 +29,32 @@ public class ClubMembersRepositoryImpl implements ClubMembersRepositoryCustom {
                 .getResultList();
     }
 
-    // 동아리원과 프로필 조회
+    // 동아리 회원과 프로필 조회 가나다순
     @Override
-    public Page<ClubMembers> findAllWithProfileByClubId(Long clubId, Pageable pageable) {
-        /*
-            쿼리 생성 fetch Join
-            ClubMembers + Profile
-        */
-        // 동아리원 목록을 먼저 가져옴
-        List<Long> clubMemberIds = findClubMemberIdsByClubId(clubId, pageable);
-        if (clubMemberIds.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, 0);
-        }
-
-        // 동아리원과 profile을 fetch join
-        String jpql = "SELECT cm FROM ClubMembers cm JOIN FETCH cm.profile" +
-                " WHERE cm.clubMemberId IN :clubMemberIds";
-        TypedQuery<ClubMembers> query = em.createQuery(jpql, ClubMembers.class);
-        query.setParameter("clubMemberIds", clubMemberIds);
-
-        List<ClubMembers> resultList = query.getResultList();
-        long total = getClubMembersTotalCount(clubId);
-        return new PageImpl<>(resultList, pageable, total);
+    public List<ClubMembers> findAllWithProfileByName(Long clubId) {
+        return em.createQuery(
+                        "SELECT cm FROM ClubMembers cm" +
+                                " JOIN FETCH cm.profile p" +
+                                " WHERE cm.club.clubId = :clubId" +
+                                " ORDER BY p.userName ASC",
+                        ClubMembers.class
+                ).setParameter("clubId", clubId)
+                .getResultList();
     }
 
-    // 동아리원의 id를 먼저 페이징 처리
-    private List<Long> findClubMemberIdsByClubId(Long clubId, Pageable pageable) {
-        String jpql = "SELECT cm.clubMemberId FROM ClubMembers cm WHERE cm.club.id = :clubId";
-        TypedQuery<Long> query = em.createQuery(jpql, Long.class);
-        query.setParameter("clubId", clubId);
-        query.setFirstResult((int) pageable.getOffset());
-        query.setMaxResults(pageable.getPageSize());
-        return query.getResultList();
-    }
-
-    private long getClubMembersTotalCount(Long clubId) {
-        String countJpql = "SELECT COUNT(cm) FROM ClubMembers cm WHERE cm.club.id = :clubId";
-        return em.createQuery(countJpql, Long.class).setParameter("clubId", clubId).getSingleResult();
+    // 동아리 회원과 프로필 조회 정회원, 비회원
+    @Override
+    public List<ClubMembers> findAllWithProfileByMemberType(Long clubId, MemberType memberType) {
+        return em.createQuery(
+                        "SELECT cm FROM ClubMembers cm" +
+                                " JOIN FETCH cm.profile p" +
+                                " WHERE cm.club.clubId = :clubId" +
+                                " AND p.memberType = :memberType",
+                        ClubMembers.class
+                )
+                .setParameter("clubId", clubId)
+                .setParameter("memberType", memberType)
+                .getResultList();
     }
 
 }

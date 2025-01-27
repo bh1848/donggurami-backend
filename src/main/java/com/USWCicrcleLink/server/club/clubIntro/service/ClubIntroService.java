@@ -1,10 +1,12 @@
 package com.USWCicrcleLink.server.club.clubIntro.service;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubHashtag;
 import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.club.dto.ClubByRecruitmentStatusResponse;
 import com.USWCicrcleLink.server.club.club.dto.ClubListResponse;
+import com.USWCicrcleLink.server.club.club.repository.ClubHashtagRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
@@ -37,15 +39,13 @@ public class ClubIntroService {
     private final ClubMainPhotoRepository clubMainPhotoRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final S3FileUploadService s3FileUploadService;
+    private final ClubHashtagRepository clubHashtagRepository;
 
     // 전체 동아리 리스트 조회 (모바일)
     @Transactional(readOnly = true)
     public List<ClubListResponse> getAllClubs() {
         log.debug("전체 동아리 리스트 조회");
         List<Club> clubs = clubRepository.findAll();  // 전체 동아리 조회로 수정
-        if (clubs.isEmpty()) {
-            throw new ClubException(ExceptionType.CLUB_NOT_EXISTS);
-        }
 
         return clubs.stream()
                 .map(club -> {
@@ -57,8 +57,13 @@ public class ClubIntroService {
                             ? s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key())
                             : null;
 
+                    // ClubHashtag 조회
+                    List<String> hashtags = clubHashtagRepository.findByClub(club).stream()
+                            .map(ClubHashtag::getClubHashtag)
+                            .collect(Collectors.toList());
+
                     // DTO 생성
-                    return new ClubListResponse(club, mainPhotoUrl);  // 전체 동아리 조회용 DTO로 수정
+                    return new ClubListResponse(club, mainPhotoUrl, hashtags);  // 전체 동아리 조회용 DTO로 수정
                 })
                 .collect(Collectors.toList());
     }
@@ -68,9 +73,6 @@ public class ClubIntroService {
     public List<ClubByRecruitmentStatusResponse> getClubsByRecruitmentStatus(RecruitmentStatus recruitmentStatus) {
         log.debug("모집 상태별 동아리 리스트 조회: recruitmentStatus={}", recruitmentStatus);
         List<ClubIntro> clubs = clubIntroRepository.findByRecruitmentStatus(recruitmentStatus);  // 분과 조건 제거
-        if (clubs.isEmpty()) {
-            throw new ClubException(ExceptionType.CLUB_NOT_EXISTS);
-        }
 
         return clubs.stream()
                 .map(clubIntro -> {
@@ -85,8 +87,13 @@ public class ClubIntroService {
                             ? s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key())
                             : null;
 
+                    // ClubHashtag 조회
+                    List<String> hashtags = clubHashtagRepository.findByClub(club).stream()
+                            .map(ClubHashtag::getClubHashtag)
+                            .collect(Collectors.toList());
+
                     // DTO 생성
-                    return new ClubByRecruitmentStatusResponse(club, clubIntro, mainPhotoUrl);  // 수정된 DTO로 변경
+                    return new ClubByRecruitmentStatusResponse(club, clubIntro, mainPhotoUrl, hashtags);  // 수정된 DTO로 변경
                 })
                 .collect(Collectors.toList());
     }
@@ -122,7 +129,12 @@ public class ClubIntroService {
                 .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
                 .collect(Collectors.toList());
 
+        // ClubHashtag 조회
+        List<String> hashtags = clubHashtagRepository.findByClub(club).stream()
+                .map(ClubHashtag::getClubHashtag)
+                .collect(Collectors.toList());
+
         // ClubIntroResponse 반환
-        return new ClubIntroResponse(clubIntro, club, mainPhotoUrl, introPhotoUrls);
+        return new ClubIntroResponse(clubIntro, club, mainPhotoUrl, introPhotoUrls,hashtags);
     }
 }

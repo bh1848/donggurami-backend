@@ -6,4 +6,7 @@ public class ProfileException extends BaseException{
     public ProfileException(ExceptionType exceptionType) {
         super(exceptionType);
     }
+    public ProfileException(ExceptionType exceptionType, Object additionalData) {
+        super(exceptionType, additionalData);
+    }
 }

@@ -44,7 +44,7 @@ public class UserController {
     private final WithdrawalTokenService withdrawalTokenService;
 
     @PatchMapping("/userpw")
-    public ApiResponse<String> updateUserPw(@RequestBody UpdatePwRequest request) {
+    public ApiResponse<String> updateUserPw(@Validated(ValidationSequence.class) @RequestBody UpdatePwRequest request) {
         userService.updateNewPW(request);
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
@@ -61,9 +61,9 @@ public class UserController {
 
     // 비밀번호 일치 확인
     @PostMapping("/validate-passwords-match")
-    public ResponseEntity<ApiResponse<Void>> validatePasswordsMatch(@Valid @RequestBody PasswordRequest request) {
+    public ResponseEntity<ApiResponse<Void>> validatePassword(@Validated(ValidationSequence.class) @RequestBody PasswordRequest request) {
 
-        userService.validatePasswordsMatch(request);
+        userService.validatePassword(request);
 
         return ResponseEntity.ok(new ApiResponse<>("비밀번호가 일치합니다"));
     }
@@ -142,6 +142,7 @@ public class UserController {
 
     // 비밀번호 찾기 - 인증 코드 전송
     @PostMapping("/auth/send-code")
+    @RateLimite(action = "PW_FOUND_EMAIL")
     ResponseEntity<ApiResponse<UUID>> sendAuthCode (@Valid @RequestBody UserInfoDto request) {
 
         User user = userService.validateAccountAndEmail(request);
@@ -174,6 +175,7 @@ public class UserController {
 
     // 회원 탈퇴 요청 및 메일 전송
     @PostMapping("/exit/send-code")
+    @RateLimite(action = "WITHDRAWAL_EMAIL")
     public ApiResponse<String> sendWithdrawalCode () {
 
         // 탈퇴 토큰 생성

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AplictResponse {
-    private Long id;
+    private Long aplictId;
     private Profile profile;
     private String aplictGoogleFormUrl;
     private LocalDateTime submittedAt;
@@ -22,7 +22,7 @@ public class AplictResponse {
 
     public static AplictResponse from(Aplict aplict) {
         return new AplictResponse(
-                aplict.getId(),
+                aplict.getAplictId(),
                 aplict.getProfile(),
                 aplict.getAplictGoogleFormUrl(),
                 aplict.getSubmittedAt(),

@@ -1,14 +1,24 @@
 package com.USWCicrcleLink.server.admin.admin.dto;
 
+import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.Department;
+import com.USWCicrcleLink.server.clubLeader.domain.Leader;
+import com.USWCicrcleLink.server.global.security.domain.Role;
+import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
@@ -29,10 +39,15 @@ public class ClubCreationRequest {
     private String leaderPwConfirm;
 
     @NotBlank(message = "동아리명은 필수 입력 값입니다.")
-    @Size(max = 10, message = "동아리명은 10글자 이내여야 합니다.")
+    @Size(max = 20, message = "동아리명은 20글자 이내여야 합니다.")
     private String clubName;
 
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "학부는 필수 입력 값입니다.")
     private Department department;
 
+    @NotBlank(message = "운영자 비밀번호는 필수 입력 값입니다.")
     private String adminPw;
+
+    private String clubRoomNumber;
 }

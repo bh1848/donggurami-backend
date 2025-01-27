@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ClubAdminListResponse {
+public class AdminClubListResponse {
     private Long clubId;
     private Department department;
     private String clubName;

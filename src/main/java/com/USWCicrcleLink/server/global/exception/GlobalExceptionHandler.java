@@ -21,41 +21,52 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception e) {
-        HttpStatus status = INTERNAL_SERVER_ERROR;
-        String code = "NO_CATCH_ERROR";
-        String className = e.getClass().getName();
-        String message = e.getMessage();
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .exception(className.substring(className.lastIndexOf(".") + 1))
+    // 공통 ErrorResponse 생성
+    private ErrorResponse buildErrorResponse(String exception, String code, String message, HttpStatus status, Object additionalData) {
+        return ErrorResponse.builder()
+                .exception(exception)
                 .code(code)
                 .message(message)
                 .status(status.value())
                 .error(status.getReasonPhrase())
+                .additionalData(additionalData)
                 .build();
+    }
 
-        log.error("code : {}, message : {}", errorResponse.getCode(), errorResponse.getMessage());
+    // 공통 로그 처리
+    private void logErrorResponse(ErrorResponse errorResponse) {
+        log.error("code : {}, message : {}, additionalData : {}",
+                errorResponse.getCode(),
+                errorResponse.getMessage(),
+                errorResponse.getAdditionalData());
+    }
 
-        return new ResponseEntity<>(errorResponse, status);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+        ErrorResponse errorResponse = buildErrorResponse(
+                e.getClass().getSimpleName(),
+                "NO_CATCH_ERROR",
+                e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                null
+        );
+
+        logErrorResponse(errorResponse);
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleBaseException(BaseException e) {
-        String className = e.getClass().getName();
         ExceptionType exceptionType = e.getExceptionType();
+        ErrorResponse errorResponse = buildErrorResponse(
+                e.getClass().getSimpleName(),
+                exceptionType.getCode(),
+                exceptionType.getMessage(),
+                exceptionType.getStatus(),
+                e.getAdditionalData()
+        );
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .exception(className.substring(className.lastIndexOf(".") + 1))
-                .code(exceptionType.getCode())
-                .message(exceptionType.getMessage())
-                .status(exceptionType.getStatus().value())
-                .error(exceptionType.getStatus().getReasonPhrase())
-                .build();
-
-        log.error("code : {}, message : {}", errorResponse.getCode(), errorResponse.getMessage());
-
+        logErrorResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, exceptionType.getStatus());
     }
 
@@ -75,35 +86,30 @@ public class GlobalExceptionHandler {
     // 유효하지 않은 enum값 예외 처리
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        String code = "BAD_REQUEST";
-        String className = e.getClass().getName();
-        String message = "해당 필드에서 지원하지 않는 값 입니다";
+        ErrorResponse errorResponse = buildErrorResponse(
+                e.getClass().getSimpleName(),
+                "BAD_REQUEST",
+                "해당 필드에서 지원하지 않는 값 입니다",
+                HttpStatus.BAD_REQUEST,
+                null
+        );
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .exception(className.substring(className.lastIndexOf(".") + 1))
-                .code(code)
-                .message(message)
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .build();
-
-        log.error("code : {}, message : {}", errorResponse.getCode(), errorResponse.getMessage());
-
-        return new ResponseEntity<>(errorResponse, status);
+        logErrorResponse(errorResponse);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     // 잘못된 경로로 요청시 반환
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException e) {
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .exception("NoResourceFoundException")
-                .code("RESOURCE_NOT_FOUND")
-                .message("요청하신 경로를 찾을 수 없습니다.")
-                .status(HttpStatus.NOT_FOUND.value())
-                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .build();
+        ErrorResponse errorResponse = buildErrorResponse(
+                "NoResourceFoundException",
+                "RESOURCE_NOT_FOUND",
+                "요청하신 경로를 찾을 수 없습니다.",
+                HttpStatus.NOT_FOUND,
+                null
+        );
 
+        logErrorResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 }

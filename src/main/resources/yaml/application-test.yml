@@ -6,7 +6,7 @@ logging:
   level:
     root: WARN
     com:
-      USWCircleLink:
+      USWCicrcleLink:
         server: debug
 
 # email url
@@ -30,7 +30,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: false

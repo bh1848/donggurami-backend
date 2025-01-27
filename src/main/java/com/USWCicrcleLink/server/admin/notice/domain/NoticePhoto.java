@@ -16,13 +16,13 @@ public class NoticePhoto {
     @Column(name = "notice_photo_id")
     private Long noticePhotoId;
 
-    @Column(name = "notice_photo_name")
+    @Column(name = "notice_photo_name", nullable = false)
     private String noticePhotoName;
 
-    @Column(name = "notice_photo_s3key")
+    @Column(name = "notice_photo_s3key", nullable = false)
     private String noticePhotoS3Key;
 
-    @Column(name = "photo_order")
+    @Column(name = "photo_order", nullable = false)
     private int order;
 
     @ManyToOne(fetch = FetchType.LAZY)

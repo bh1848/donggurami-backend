@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -23,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * JWT를 생성하고 검증
@@ -196,8 +199,16 @@ public class JwtProvider {
 
     // 엑세스 토큰에서 인증 정보 가져오기
     public Authentication getAuthentication(String accessToken) {
+        // JWT에서 사용자 정보와 역할(Role) 정보를 추출
         UserDetails userDetails = getUserDetails(accessToken);
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+
+        // 역할(Role)을 GrantedAuthority로 변환
+        List<GrantedAuthority> authorities = userDetails.getAuthorities().stream()
+                .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
+                .collect(Collectors.toList());
+
+        // Authentication 객체 반환 (SecurityContext에서 사용)
+        return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
     }
 
     // 리프레시 토큰 유효성 검증

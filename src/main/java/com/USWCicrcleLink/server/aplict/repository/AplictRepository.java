@@ -13,13 +13,16 @@ import java.util.Optional;
 public interface AplictRepository extends JpaRepository<Aplict, Long> ,AplictRepositoryCustom{
     List<Aplict> findByProfileProfileId(Long profileId);
 
-    Optional<Aplict> findByClub_ClubIdAndIdAndChecked (Long clubId, Long aplictId, boolean checked);
+    Optional<Aplict> findByClub_ClubIdAndAplictIdAndChecked (Long clubId, Long aplictId, boolean checked);
 
     List<Aplict> findByClub_ClubIdAndChecked (Long clubId, boolean checked);
 
-    Optional<Aplict> findByClub_ClubIdAndIdAndCheckedAndAplictStatus (Long clubId, Long aplictId, boolean checked, AplictStatus status);
+    Optional<Aplict> findByClub_ClubIdAndAplictIdAndCheckedAndAplictStatus (Long clubId, Long aplictId, boolean checked, AplictStatus status);
 
     List<Aplict> findAllByDeleteDateBefore(LocalDateTime dateTime);
 
     void deleteAllByProfile(Profile profile);
+
+    // AplictRepository에서 지원 여부 확인
+    boolean existsByProfileAndClub_ClubId(Profile profile, Long clubId);
 }
