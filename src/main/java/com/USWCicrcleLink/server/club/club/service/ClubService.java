@@ -1,3 +1,4 @@
+
 package com.USWCicrcleLink.server.club.club.service;
 
 import com.USWCicrcleLink.server.club.club.domain.*;
@@ -8,10 +9,14 @@ import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
+import com.USWCicrcleLink.server.user.dto.ClubInfoListResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +33,7 @@ public class ClubService {
     private final ClubHashtagRepository clubHashtagRepository;
     private final S3FileUploadService s3FileUploadService;
     private final ClubIntroRepository clubIntroRepository;
+    private final ClubRepository clubRepository;
 
     //카테고리별 전체 동아리 조회
     public List<ClubFilterResponse> getClubsByCategories(List<String> categories) {
@@ -42,7 +48,7 @@ public class ClubService {
 
         //카테고리 존재 여부 확인
         if(clubCategories.isEmpty()){
-                throw  new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
+            throw  new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
         }
 
         List<ClubFilterResponse> clubFilterResponseList = new ArrayList<>();
@@ -134,6 +140,28 @@ public class ClubService {
             }
         }
         return clubFilterResponseList;
+    }
+
+    // 모바일- 기존 회원가입시 전체 동아리 조회
+    @Transactional(readOnly = true)
+    public List<ClubInfoListResponse> getAllClubs() {
+        log.debug("전체 동아리 리스트 조회");
+        List<Club> clubs = clubRepository.findAll();
+
+        return clubs.stream()
+                .map(club -> {
+                    // ClubMainPhoto 조회
+                    ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
+
+                    // S3 presigned URL 생성 (기본 URL 또는 null 처리)
+                    String mainPhotoUrl = (clubMainPhoto != null)
+                            ? s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key())
+                            : null;
+
+                    // DTO 생성
+                    return new ClubInfoListResponse(club,mainPhotoUrl);  // 전체 동아리 조회용 DTO로 수정
+                })
+                .collect(Collectors.toList());
     }
 
 }

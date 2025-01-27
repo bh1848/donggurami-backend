@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.profile.repository;
 
 import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;

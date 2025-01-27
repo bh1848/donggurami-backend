@@ -44,7 +44,8 @@ public class JwtFilter extends OncePerRequestFilter {
             "/introPhoto/**",
             "/my-notices/**",
             "/clubs/**",
-            "/integration/logout"
+            "/integration/logout",
+            "/profiles/check-duplicated"
     );
     private final JwtProvider jwtProvider;
 

@@ -1,8 +1,6 @@
 package com.USWCicrcleLink.server.club.club.dto;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
-import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
-import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import lombok.*;
 
 import java.util.List;

@@ -46,7 +46,7 @@ public class EmailTokenService {
 
     // 임시 회원 정보 삭제
     @Transactional
-    public void deleteEmailTokenAndUserTemp(UserTemp userTemp){
+    public void deleteEmailToken(UserTemp userTemp){
         EmailToken findToken = emailTokenRepository.findByUserTemp(userTemp);
         emailTokenRepository.delete(findToken);
     }

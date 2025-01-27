@@ -1,24 +1,28 @@
 package com.USWCicrcleLink.server.user.service;
 
+import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
+import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.global.security.util.JwtProvider;
+import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.profile.service.ProfileService;
-import com.USWCicrcleLink.server.user.domain.AuthToken;
-import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.domain.UserTemp;
-import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
+import com.USWCicrcleLink.server.user.domain.*;
 import com.USWCicrcleLink.server.user.dto.*;
+import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
+import com.USWCicrcleLink.server.user.repository.ClubMemerAccountStatusRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 import jakarta.mail.internet.MimeMessage;
@@ -35,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -53,6 +58,9 @@ public class UserService {
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final ProfileService profileService;
+    private final ClubMemberTempRepository clubMemberTempRepository;
+    private final ClubRepository clubRepository;
+    private final ClubMemerAccountStatusRepository clubMemerAccoutStatusRepository;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
@@ -70,13 +78,13 @@ public class UserService {
     }
 
     //현재 비밀번호 확인
-    private boolean confirmPW(String userpw){
+    private boolean confirmPW(String userpw) {
         User user = getUserByAuth();
         return passwordEncoder.matches(userpw, user.getUserPw());
     }
 
     //비밀번호 변경
-    public void updateNewPW(UpdatePwRequest updatePwRequest){
+    public void updateNewPW(UpdatePwRequest updatePwRequest) {
 
         if (!confirmPW(updatePwRequest.getUserPw())) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
@@ -86,7 +94,7 @@ public class UserService {
         // 새로운 비밀번호의 유효성 검사
         checkPasswordCondition(updatePwRequest.getNewPw());
         // 비밀번호가 일치하는지 확인
-        checkPasswordMatch(updatePwRequest.getNewPw(),updatePwRequest.getConfirmNewPw());
+        checkPasswordMatch(updatePwRequest.getNewPw(), updatePwRequest.getConfirmNewPw());
 
         User user = getUserByAuth();
         String encryptedNewPw = passwordEncoder.encode(updatePwRequest.getNewPw());
@@ -98,29 +106,38 @@ public class UserService {
             log.error("비밀번호 업데이트 실패 {}", user.getUserId());
             throw new UserException(ExceptionType.PROFILE_UPDATE_FAIL);
         }
-        log.info("비밀번호 변경 완료: {}",user.getUserId());
+        log.info("비밀번호 변경 완료: {}", user.getUserId());
     }
 
     // 비밀번호 칸이 빈칸인지 확인
-    private void checkPasswordFieldBlank(String password, String comfimPw){
+    private void checkPasswordFieldBlank(String password, String comfimPw) {
         if (password.trim().isEmpty() || comfimPw.trim().isEmpty()) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_INPUT);
         }
     }
 
     // 비밀번호 일치 확인
-    private void checkPasswordMatch(String password, String confirmPw){
-        if(!password.equals(confirmPw)){
+    private void checkPasswordMatch(String password, String confirmPw) {
+        if (!password.equals(confirmPw)) {
             throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
         }
     }
 
     // 비밀번호 조건이 충족되는지 확인
-    private void checkPasswordCondition(String password){
+    private void checkPasswordCondition(String password) {
         if (!letterPattern.matcher(password).find() || !numberPattern.matcher(password).find() || !specialCharPattern.matcher(password).find()) {
             throw new UserException(ExceptionType.USER_PASSWORD_CONDITION_FAILED);
         }
     }
+
+    // 전화번호 - 제거하는 메서드
+    public String removeHyphensFromPhoneNumber(String telephone) {
+        if (telephone.contains("-")) {
+            return telephone.replaceAll("-", "");
+        }
+        return telephone;
+    }
+
 
     // 임시 회원 생성 및 저장
     public UserTemp registerUserTemp(SignUpRequest request) {
@@ -129,21 +146,102 @@ public class UserService {
 
         // 임시 회원 정보 존재시 기존 데이터 삭제
         userTempRepository.findByTempEmail(request.getEmail())
-                .ifPresent( userTemp -> {
-                    emailTokenService.deleteEmailTokenAndUserTemp(userTemp);
+                .ifPresent(userTemp -> {
+                    emailTokenService.deleteEmailToken(userTemp);
                     log.debug("중복된 임시 회원 데이터 삭제: userTemp_email= {}", request.getEmail());
                 });
 
         // 회원 테이블 이메일 중복 검증
         verifyUserDuplicate(request.getEmail());
 
+        // 번호만 추출해서 저장하기
+        String telephone = removeHyphensFromPhoneNumber(request.getTelephone());
+
         // 비밀번호 인코딩
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         log.debug("임시 회원 생성 완료 email= {}", request.getEmail());
 
-        return userTempRepository.save(request.toEntity(encodedPassword));
+        return userTempRepository.save(request.toEntity(encodedPassword, telephone));
     }
 
+    // 임시 동아리원 생성하기
+    public ClubMemberTemp registerClubMemberTemp(ExistingMemberSignUpRequest request) {
+        log.debug("임시 동아리원 등록 시작 - 이름: {}, 전화번호: {}, 동아리 개수: {}",
+                request.getUserName(), request.getTelephone(), request.getClubs().size());
+
+        // 지원한 동아리의 개수
+        int total = request.getClubs().size();
+        log.debug("지원한 동아리 개수 계산 완료 - 총 개수: {}", total);
+
+        // 전화번호 - 제거
+        String telephone = removeHyphensFromPhoneNumber(request.getTelephone());
+        log.debug("전화번호 형식 변환 완료 - 원본: {}, 변환 후: {}", request.getTelephone(), telephone);
+
+        // 비밀번호 인코딩
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        log.debug("비밀번호 인코딩 완료 - 사용자 이름: {}", request.getUserName());
+
+        // 엔터티 저장
+        ClubMemberTemp savedEntity = clubMemberTempRepository.save(request.toEntity(encodedPassword, telephone, total));
+        log.debug("임시 동아리원 등록 완료 - 저장된 엔터티: {}", savedEntity);
+
+        return savedEntity;
+    }
+
+
+    // 동아리 회장에게 가입신청 보내기
+    public void sendRequest(ExistingMemberSignUpRequest request, ClubMemberTemp clubMemberTemp) {
+        log.debug("가입신청 시작 - 사용자: {}, 요청 동아리 개수: {}",
+                clubMemberTemp.getProfileTempName(), request.getClubs().size());
+
+        // 동아리 정보 조회
+        for (ClubDTO clubDto : request.getClubs()) {
+            log.debug("동아리 정보 조회 중 - Club ID: {}", clubDto.getClubId());
+
+            // club 객체 가져오기
+            Club club = clubRepository.findById(clubDto.getClubId())
+                    .orElseThrow(() -> {
+                        log.error("동아리 조회 실패 - 존재하지 않는 동아리 ID: {}", clubDto.getClubId());
+                        return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
+                    });
+            log.debug("동아리 조회 성공 - Club ID: {}, 동아리 이름: {}", club.getClubId(), club.getClubName());
+
+            // ClubMemberAccountStatus 객체 생성
+            ClubMemberAccountStatus clubMemberAccountStatus = ClubMemberAccountStatus.createClubMemberAccountStatus(club, clubMemberTemp);
+            log.debug("ClubMemberAccountStatus 객체 생성 완료 - Club ID: {}, 사용자: {}", club.getClubId(), clubMemberTemp.getProfileTempName());
+
+            // ClubAccountStatus 저장
+            clubMemerAccoutStatusRepository.save(clubMemberAccountStatus);
+            log.debug("ClubMemberAccountStatus 저장 완료 - Club ID: {}", club.getClubId());
+        }
+
+        // 요청이 전부 제대로 갔는지 검증
+        log.debug("가입신청 검증 시작 - 사용자: {}, 예상 요청 개수: {}",
+                clubMemberTemp.getProfileTempName(), request.getClubs().size());
+        checkRequest(request, clubMemberTemp);
+        log.debug("가입신청 검증 완료 - 사용자: {}", clubMemberTemp.getProfileTempName());
+
+    }
+
+    // 각 동아리에 대한 요청 전송이 제대로 되었는지 검증
+    public void checkRequest(ExistingMemberSignUpRequest request, ClubMemberTemp clubMemberTemp){
+        // 총 생성된 ClubMemberAccountStatus 확인
+        long savedCount = clubMemerAccoutStatusRepository.countByClubMemberTempId(clubMemberTemp.getId());
+        int expectedCount = request.getClubs().size();
+
+        log.debug("검증 결과 - 사용자 ID: {}, 저장된 개수: {}, 예상 개수: {}",
+                clubMemberTemp.getId(), savedCount, expectedCount);
+
+        if (savedCount == expectedCount) {
+            log.debug("모든 동아리에게 요청 전송 성공 - 사용자 ID: {}", clubMemberTemp.getId());
+        } else {
+            log.error("요청 검증 실패 - 사용자 ID: {}, 저장된 개수: {}, 예상 개수: {}",
+                    clubMemberTemp.getId(), savedCount, expectedCount);
+            throw new UserException(ExceptionType.USER_SIGNUP_REQUEST_FAILED);
+        }
+    }
+
+    // 이메일 중복 검증
     private void verifyUserDuplicate(String email){
         log.debug("이메일 중복 검증 시작 email= {}",email);
         userRepository.findByEmail(email)
@@ -165,23 +263,29 @@ public class UserService {
         return token.getUserTemp();
     }
 
+    // userTemp -> user,profile 객체 생성
+    public void createUserAndProfile(UserTemp userTemp){
+        User user = User.createUser(userTemp);
+        Profile profile = Profile.createProfile(userTemp, user);
+
+        userRepository.save(user);
+        profileRepository.save(profile);
+    }
+
     // 회원가입
     public void signUp(UserTemp userTemp) {
 
         log.debug("회원 가입 요청 시작");
-        User user = User.createUser(userTemp);
-        Profile profile = Profile.createProfile(userTemp, user);
+        createUserAndProfile(userTemp);
+        log.debug("회원 가입 완료 account = {}", userTemp.getTempAccount());
 
-        // 회원 가입
-        userRepository.save(user);
-        profileRepository.save(profile);
-        log.debug("회원 가입 완료 account = {}", user.getUserAccount());
-
-        // 임시 회원 정보 삭제
-        emailTokenService.deleteEmailTokenAndUserTemp(userTemp);
+        // 임시 회원 정보와 관련된 이메일 토큰 삭제
+        emailTokenService.deleteEmailToken(userTemp);
         log.debug("임시 회원 정보 삭제 완료");
     }
 
+
+    // 아이디 중복 검증
     public void verifyAccountDuplicate(String account) {
         log.debug("계정 중복 체크 요청 시작 account = {}",account);
             userRepository.findByUserAccount(account)
@@ -344,4 +448,33 @@ public class UserService {
 
         log.debug("회원 탈퇴 성공");
     }
+
+    // 로그인 가능 여부 판단
+    public void verifyLogin(LogInRequest request) {
+        log.debug("로그인 검증 시작 - 요청 계정: {}", request.getAccount());
+
+        // account로 user 조회
+        User user = userRepository.findByUserAccount(request.getAccount())
+                .orElseThrow(() -> {
+                    log.error("로그인 실패 - 존재하지 않는 계정: {}", request.getAccount());
+                    return new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS);
+                });
+        log.debug("사용자 조회 성공 - 계정: {}, 사용자 ID: {}", user.getUserAccount(), user.getUserId());
+
+        // user로 프로필 조회하여 로그인 가능 여부 판단
+        Profile profile = profileRepository.findByUserUserId(user.getUserId())
+                .orElseThrow(() -> {
+                    log.error("로그인 실패 - 프로필 없음 - 사용자 ID: {}", user.getUserId());
+                    return new ProfileException(ExceptionType.PROFILE_NOT_EXISTS);
+                });
+        log.debug("프로필 조회 성공 - 사용자 ID: {}, 회원 타입: {}", user.getUserId(), profile.getMemberType());
+
+        if (profile.getMemberType().equals(MemberType.NONMEMBER)) { // 비회원인 경우 로그인 불가
+            log.error("로그인 실패 - 비회원 사용자 - 사용자 ID: {}", user.getUserId());
+            throw new UserException(ExceptionType.USER_LOGIN_FAILED);
+        }
+
+        log.debug("로그인 검증 완료 - 로그인 가능 사용자 ID: {}", user.getUserId());
+    }
+
 }

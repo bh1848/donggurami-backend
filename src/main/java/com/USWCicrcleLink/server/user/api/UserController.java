@@ -7,10 +7,7 @@ import com.USWCicrcleLink.server.global.exception.errortype.EmailException;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.global.validation.ValidationSequence;
-import com.USWCicrcleLink.server.user.domain.AuthToken;
-import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.domain.UserTemp;
-import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
+import com.USWCicrcleLink.server.user.domain.*;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
 import com.USWCicrcleLink.server.user.service.UserService;
@@ -69,7 +66,7 @@ public class UserController {
     }
 
     // 임시 회원 등록 및 인증 메일 전송
-    @PostMapping("/temporary")
+    @PostMapping("/temporary/register")
     public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated(ValidationSequence.class) @RequestBody SignUpRequest request)  {
 
         UserTemp userTemp = userService.registerUserTemp(request);
@@ -100,6 +97,16 @@ public class UserController {
         return modelAndView;
     }
 
+    // 기존 동아리원 회원가입
+    @PostMapping("/existing/register")
+    public ResponseEntity<ApiResponse<Void>> ExistingMemberSignUp(@Validated(ValidationSequence.class) @RequestBody ExistingMemberSignUpRequest request)  {
+        // 임시 동아리 회원 생성
+        ClubMemberTemp clubMemberTemp = userService.registerClubMemberTemp(request);
+        // 입력받은 동아리의 회장들에게 가입신청서 보내기
+        userService.sendRequest(request, clubMemberTemp);
+        return ResponseEntity.ok(new ApiResponse<>("가입 요청에 성공했습니다"));
+    }
+
     // 이메일 재인증
     @PostMapping("/email/resend-confirmation")
     public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader UUID emailToken_uuid) {
@@ -123,6 +130,7 @@ public class UserController {
     @RateLimite(action = "APP_LOGIN")
     public ResponseEntity<ApiResponse<TokenDto>> logIn(@RequestBody @Validated(ValidationSequence.class) LogInRequest request, HttpServletResponse response) {
 
+        userService.verifyLogin(request);
         TokenDto tokenDto = userService.logIn(request, response);
         ApiResponse<TokenDto> apiResponse = new ApiResponse<>("로그인 성공", tokenDto);
 

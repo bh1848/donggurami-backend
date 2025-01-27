@@ -50,6 +50,7 @@ public class Profile {
     @Column(name = "profile_updated_at", nullable = false)
     private LocalDateTime profileUpdatedAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "member_type", nullable = false)
     private MemberType memberType;
 

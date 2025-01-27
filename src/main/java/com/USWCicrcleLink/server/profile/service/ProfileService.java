@@ -8,6 +8,7 @@ import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.profile.dto.DuplicationProfileRequest;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
 import com.USWCicrcleLink.server.profile.dto.ProfileResponse;
@@ -122,4 +123,16 @@ public class ProfileService {
         // 프로필 삭제
         profileRepository.delete(profile);
     }
+
+    // 프로필 중복 확인
+    public void checkProfileDuplicated(DuplicationProfileRequest request) {
+        log.debug("프로필 중복 체크 요청 시작 - 이름: {}, 전화번호: {}, 학번: {}",
+                request.getUserName(), request.getUserHp(), request.getStudentNumber());
+        profileRepository.findByUserNameAndStudentNumberAndUserHp(request.getUserName(),request.getStudentNumber(),request.getUserHp())
+                .ifPresent(profile -> {
+                    throw new ProfileException(ExceptionType.PROFILE_ALREADY_EXISTS);
+                });
+        log.debug("프로필 중복 확인 완료- 중복없음");
+    }
+
 }

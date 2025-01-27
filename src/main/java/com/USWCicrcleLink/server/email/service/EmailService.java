@@ -4,11 +4,8 @@ import com.USWCicrcleLink.server.email.config.EmailConfig;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.EmailException;
-import com.USWCicrcleLink.server.user.domain.AuthToken;
-import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.domain.*;
 
-import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
@@ -35,7 +32,6 @@ public class EmailService {
 
     @Value("${spring.mail.username}")
     private String email_user;
-
 
     @Async
     public void sendEmail(MimeMessage mimeMessage) {

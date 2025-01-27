@@ -45,6 +45,9 @@ public enum ExceptionType {
     USER_AUTHENTICATION_FAILED("USR-211","아이디 혹은 비밀번호가 일치하지 않습니다",UNAUTHORIZED),
     USER_PROFILE_NOT_FOUND("USR-213","프로필 정보를 찾을 수 없습니다", NOT_FOUND),
     USER_PASSWORD_CONDITION_FAILED("USR-214","영문자,숫자,특수문자는 적어도 1개 이상씩 포함되어야합니다",BAD_REQUEST),
+    USER_SIGNUP_REQUEST_FAILED("USR-215","요청 전송을 실패했습니다 다시 시도해주세요",BAD_REQUEST),
+    USER_LOGIN_FAILED("USR-216","비회원 사용자입니다.인증을 완료해주세요",BAD_REQUEST),
+
 
     /**
      * Domain: Jwt
@@ -57,9 +60,12 @@ public enum ExceptionType {
     /**
      * Domain: Club
      */
-    CLUB_NOT_EXISTS("CLUB-201", "동아리가 존재하지 않습니다.", NOT_FOUND),
+    CLUB_NOT_EXISTS("CLUB-201", "존재하지않는 동아리 입니다.", NOT_FOUND),
     ClUB_CHECKING_ERROR("CLUB-202", "동아리 조회 중 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
     CLUB_NAME_ALREADY_EXISTS("CLUB-203", "이미 존재하는 동아리 이름입니다.", CONFLICT),
+    CLUB_MAINPHOTO_NOT_EXISTS("CLUB-204", "동아리 사진이 존재하지 않습니다", NOT_FOUND),
+
+
 
     /**
      * Domain: ClubCategory
@@ -97,6 +103,7 @@ public enum ExceptionType {
     DUPLICATE_PROFILE("PFL-204","이미 존재하는 회원입니다.", BAD_REQUEST),
     DEPARTMENT_NOT_INPUT("PFL-205", "학과 정보는 필수 입력 항목입니다.", BAD_REQUEST),
     NOT_NON_MEMBER("PFL-206", "비회원만 수정할 수 있습니다.", BAD_REQUEST),
+    PROFILE_ALREADY_EXISTS("PFL-207","프로필이 이미 존재합니다",BAD_REQUEST),
 
     /**
      * Domain: ClubIntroPhoto, Club(MainPhoto)
