@@ -166,29 +166,61 @@ public class UserService {
 
     // 임시 동아리원 생성하기
     public ClubMemberTemp registerClubMemberTemp(ExistingMemberSignUpRequest request) {
+        log.debug("임시 동아리원 등록 시작 - 이름: {}, 전화번호: {}, 동아리 개수: {}",
+                request.getUserName(), request.getTelephone(), request.getClubs().size());
+
         // 지원한 동아리의 개수
         int total = request.getClubs().size();
+        log.debug("지원한 동아리 개수 계산 완료 - 총 개수: {}", total);
+
         // 전화번호 - 제거
         String telephone = removeHyphensFromPhoneNumber(request.getTelephone());
+        log.debug("전화번호 형식 변환 완료 - 원본: {}, 변환 후: {}", request.getTelephone(), telephone);
+
         // 비밀번호 인코딩
         String encodedPassword = passwordEncoder.encode(request.getPassword());
-        return clubMemberTempRepository.save(request.toEntity(encodedPassword,telephone,total));
+        log.debug("비밀번호 인코딩 완료 - 사용자 이름: {}", request.getUserName());
+
+        // 엔터티 저장
+        ClubMemberTemp savedEntity = clubMemberTempRepository.save(request.toEntity(encodedPassword, telephone, total));
+        log.debug("임시 동아리원 등록 완료 - 저장된 엔터티: {}", savedEntity);
+
+        return savedEntity;
     }
+
 
     // 동아리 회장에게 가입신청 보내기
     public void sendRequest(ExistingMemberSignUpRequest request, ClubMemberTemp clubMemberTemp) {
+        log.debug("가입신청 시작 - 사용자: {}, 요청 동아리 개수: {}",
+                clubMemberTemp.getProfileTempName(), request.getClubs().size());
 
+        // 동아리 정보 조회
         for (ClubDTO clubDto : request.getClubs()) {
+            log.debug("동아리 정보 조회 중 - Club ID: {}", clubDto.getClubId());
+
             // club 객체 가져오기
             Club club = clubRepository.findById(clubDto.getClubId())
-                    .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+                    .orElseThrow(() -> {
+                        log.error("동아리 조회 실패 - 존재하지 않는 동아리 ID: {}", clubDto.getClubId());
+                        return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
+                    });
+            log.debug("동아리 조회 성공 - Club ID: {}, 동아리 이름: {}", club.getClubId(), club.getClubName());
+
             // ClubMemberAccountStatus 객체 생성
             ClubMemberAccountStatus clubMemberAccountStatus = ClubMemberAccountStatus.createClubMemberAccountStatus(club, clubMemberTemp);
+            log.debug("ClubMemberAccountStatus 객체 생성 완료 - Club ID: {}, 사용자: {}", club.getClubId(), clubMemberTemp.getProfileTempName());
+
             // ClubAccountStatus 저장
             clubMemerAccoutStatusRepository.save(clubMemberAccountStatus);
+            log.debug("ClubMemberAccountStatus 저장 완료 - Club ID: {}", club.getClubId());
+
+            // 요청이 전부 제대로 갔는지 검증
+            log.debug("가입신청 검증 시작 - 사용자: {}, 예상 요청 개수: {}",
+                    clubMemberTemp.getProfileTempName(), request.getClubs().size());
+            checkRequest(request, clubMemberTemp);
+            log.debug("가입신청 검증 완료 - 사용자: {}", clubMemberTemp.getProfileTempName());
+
         }
-        // 요청이 전부 제대로 갔는지 검증
-        checkRequest(request,clubMemberTemp);
     }
 
     // 각 동아리에 대한 요청 전송이 제대로 되었는지 검증
@@ -197,9 +229,14 @@ public class UserService {
         long savedCount = clubMemerAccoutStatusRepository.countByClubMemberTempId(clubMemberTemp.getId());
         int expectedCount = request.getClubs().size();
 
+        log.debug("검증 결과 - 사용자 ID: {}, 저장된 개수: {}, 예상 개수: {}",
+                clubMemberTemp.getId(), savedCount, expectedCount);
+
         if (savedCount == expectedCount) {
-           log.debug("모든 동아리에게 요청 전송 성공");
+            log.debug("모든 동아리에게 요청 전송 성공 - 사용자 ID: {}", clubMemberTemp.getId());
         } else {
+            log.error("요청 검증 실패 - 사용자 ID: {}, 저장된 개수: {}, 예상 개수: {}",
+                    clubMemberTemp.getId(), savedCount, expectedCount);
             throw new UserException(ExceptionType.USER_SIGNUP_REQUEST_FAILED);
         }
     }
@@ -414,13 +451,30 @@ public class UserService {
 
     // 로그인 가능 여부 판단
     public void verifyLogin(LogInRequest request) {
-        // account로 user조회
+        log.debug("로그인 검증 시작 - 요청 계정: {}", request.getAccount());
+
+        // account로 user 조회
         User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
+                .orElseThrow(() -> {
+                    log.error("로그인 실패 - 존재하지 않는 계정: {}", request.getAccount());
+                    return new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS);
+                });
+        log.debug("사용자 조회 성공 - 계정: {}, 사용자 ID: {}", user.getUserAccount(), user.getUserId());
+
         // user로 프로필 조회하여 로그인 여부 판단
-        Profile profile = profileRepository.findByUserUserId(user.getUserId()).orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
-        if(profile.getMemberType().equals(MemberType.NONMEMBER)){ // 비회원인 경우 로그인 불가
+        Profile profile = profileRepository.findByUserUserId(user.getUserId())
+                .orElseThrow(() -> {
+                    log.error("로그인 실패 - 프로필 없음 - 사용자 ID: {}", user.getUserId());
+                    return new ProfileException(ExceptionType.PROFILE_NOT_EXISTS);
+                });
+        log.debug("프로필 조회 성공 - 사용자 ID: {}, 회원 타입: {}", user.getUserId(), profile.getMemberType());
+
+        if (profile.getMemberType().equals(MemberType.NONMEMBER)) { // 비회원인 경우 로그인 불가
+            log.error("로그인 실패 - 비회원 사용자 - 사용자 ID: {}", user.getUserId());
             throw new UserException(ExceptionType.USER_LOGIN_FAILED);
         }
+
+        log.debug("로그인 검증 완료 - 로그인 가능 사용자 ID: {}", user.getUserId());
     }
+
 }
