@@ -69,6 +69,7 @@ public class Profile {
                 .major(userTemp.getTempMajor())
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.REGULARMEMBER) // 정회원
                 .build();
     }
 
