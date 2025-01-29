@@ -277,7 +277,7 @@ public class DummyData {
                 .leaderHp("01012345678")
                 .department(Department.ACADEMIC)
                 .clubInsta("ddddddd")
-                .clubRoomNumber("208호")
+                .clubRoomNumber("208")
                 .build();
         clubRepository.save(flagClub);
 
@@ -287,7 +287,7 @@ public class DummyData {
                 .leaderHp("00000000000")
                 .department(Department.SPORT)
                 .clubInsta("badminton_insta")
-                .clubRoomNumber("B101호")
+                .clubRoomNumber("B101")
                 .build();
         clubRepository.save(badmintonClub);
 
@@ -297,7 +297,7 @@ public class DummyData {
                 .leaderHp("00000000000")
                 .department(Department.ACADEMIC)
                 .clubInsta("volunteer_insta")
-                .clubRoomNumber("108호")
+                .clubRoomNumber("108")
                 .build();
         clubRepository.save(volunteerClub);
 
@@ -355,6 +355,7 @@ public class DummyData {
         ClubIntro clubIntro = ClubIntro.builder()
                 .club(flagClub)
                 .clubIntro("플래그입니다.")
+                .clubRecruitment("플래그 모집글입니다.")
                 .googleFormUrl("flag_google_url")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
@@ -371,6 +372,7 @@ public class DummyData {
         ClubIntro clubIntro1 = ClubIntro.builder()
                 .club(badmintonClub)
                 .clubIntro("배드민턴 동아리입니다.")
+                .clubRecruitment("배드민턴 모집글입니다.")
                 .googleFormUrl("badmintonClub_google_url")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
@@ -404,6 +406,7 @@ public class DummyData {
         ClubIntro clubIntro2 = ClubIntro.builder()
                 .club(volunteerClub)
                 .clubIntro("봉사동아리입니다.")
+                .clubRecruitment("봉사 모집글입니다.")
                 .googleFormUrl("volunteerClub_google_url")
                 .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
@@ -620,7 +623,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("allabout_insta")
-                .clubRoomNumber("B103호")
+                .clubRoomNumber("B103")
                 .build();
 
         clubRepository.save(allaboutClub);
@@ -650,6 +653,7 @@ public class DummyData {
         ClubIntro allaboutIntro = ClubIntro.builder()
                 .club(allaboutClub)
                 .clubIntro("올어바웃 동아리입니다.")
+                .clubRecruitment("올어바웃 모집글입니다.")
                 .googleFormUrl("allaboutClub_google_url")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
@@ -707,7 +711,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("gullisae_insta")
-                .clubRoomNumber("205호")
+                .clubRoomNumber("205")
                 .build();
 
         clubRepository.save(gullisaeClub);
@@ -730,6 +734,7 @@ public class DummyData {
         ClubIntro gullisaeIntro = ClubIntro.builder()
                 .club(gullisaeClub)
                 .clubIntro("굴리세 동아리입니다.")
+                .clubRecruitment("굴리세 모집글입니다.")
                 .googleFormUrl("gullisaeClub_google_url")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
@@ -754,7 +759,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("tennis_insta")
-                .clubRoomNumber("105호")
+                .clubRoomNumber("105")
                 .build();
 
         clubRepository.save(tennisclub);
@@ -762,6 +767,7 @@ public class DummyData {
         ClubIntro tennisIntro = ClubIntro.builder()
                 .club(tennisclub)
                 .clubIntro("테니스 동아리입니다.")
+                .clubRecruitment("테니스 모집글입니다.")
                 .googleFormUrl("tennisClub_google_url")
                 .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
@@ -782,7 +788,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("basketball_insta")
-                .clubRoomNumber("201호")
+                .clubRoomNumber("201")
                 .build();
 
         clubRepository.save(basketballClub);
@@ -790,6 +796,7 @@ public class DummyData {
         ClubIntro basketballIntro = ClubIntro.builder()
                 .club(basketballClub)
                 .clubIntro("농구 동아리입니다.")
+                .clubRecruitment("농구 모집글입니다.")
                 .googleFormUrl("basketball_google_url")
                 .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
@@ -810,7 +817,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.ACADEMIC)
                 .clubInsta("basketball_insta")
-                .clubRoomNumber("B106호")
+                .clubRoomNumber("B106")
                 .build();
 
         clubRepository.save(argClub);
@@ -818,6 +825,7 @@ public class DummyData {
         ClubIntro argIntro = ClubIntro.builder()
                 .club(argClub)
                 .clubIntro("토론 동아리입니다.")
+                .clubRecruitment("토론 모집글입니다.")
                 .googleFormUrl("arg_google_url")
                 .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
@@ -838,7 +846,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.ACADEMIC)
                 .clubInsta("hamster_insta")
-                .clubRoomNumber("107호")
+                .clubRoomNumber("107")
                 .build();
 
         clubRepository.save(hamsterClub);
@@ -846,6 +854,7 @@ public class DummyData {
         ClubIntro hamsterIntro = ClubIntro.builder()
                 .club(hamsterClub)
                 .clubIntro("햄스터 동아리입니다.")
+                .clubRecruitment("햄스터 모집글입니다.")
                 .googleFormUrl("hamster_google_url")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
@@ -866,7 +875,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("sunmoon_insta")
-                .clubRoomNumber("210호")
+                .clubRoomNumber("210")
                 .build();
 
         clubRepository.save(sunmoonClub);
@@ -874,6 +883,7 @@ public class DummyData {
         ClubIntro hsunmoonIntro = ClubIntro.builder()
                 .club(sunmoonClub)
                 .clubIntro("해달 동아리입니다.")
+                .clubRecruitment("해달 모집글입니다.")
                 .googleFormUrl("sunmoon_google_url")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
@@ -894,7 +904,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("pig_insta")
-                .clubRoomNumber("B109호")
+                .clubRoomNumber("B109")
                 .build();
 
         clubRepository.save(pigClub);
@@ -902,6 +912,7 @@ public class DummyData {
         ClubIntro pigIntro = ClubIntro.builder()
                 .club(pigClub)
                 .clubIntro("돼지 동아리입니다.")
+                .clubRecruitment("돼지 모집글입니다.")
                 .googleFormUrl("pig_google_url")
                 .recruitmentStatus(RecruitmentStatus.OPEN)
                 .build();
@@ -923,7 +934,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("pig_insta")
-                .clubRoomNumber("203호")
+                .clubRoomNumber("203")
                 .build();
 
         clubRepository.save(catClub);
@@ -931,6 +942,7 @@ public class DummyData {
         ClubIntro catIntro = ClubIntro.builder()
                 .club(catClub)
                 .clubIntro("고양이 동아리입니다.")
+                .clubRecruitment("고양이 모집글입니다.")
                 .googleFormUrl("cat_google_url")
                 .recruitmentStatus(RecruitmentStatus.CLOSE)
                 .build();
