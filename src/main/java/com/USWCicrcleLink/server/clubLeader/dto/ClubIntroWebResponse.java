@@ -1,6 +1,8 @@
 package com.USWCicrcleLink.server.clubLeader.dto;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
+import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
+import com.USWCicrcleLink.server.club.club.domain.ClubHashtag;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import lombok.AllArgsConstructor;
@@ -14,29 +16,51 @@ import java.util.List;
 @NoArgsConstructor
 public class ClubIntroWebResponse {
 
+    // club
     private long clubId;
-    private String mainPhoto;
-    private List<String> introPhotos;
     private String clubName;
     private String leaderName;
     private String leaderHp;
     private String clubInsta;
+    private String clubRoomNumber;
+
+    // clubHashtag
+    private List<String> clubHashtag;
+
+    // clubCategory
+    private List<String> clubCategory;
+
+    // clubIntro
     private String clubIntro;
     private String clubRecruitment;
     private RecruitmentStatus recruitmentStatus;
     private String googleFormUrl;
 
-    public ClubIntroWebResponse(ClubIntro clubIntro, Club club, String clubRecruitment, String mainPhotoUrl, List<String> introPhotoUrls) {
+    // photo
+    private String mainPhoto;
+    private List<String> introPhotos;
+
+    public ClubIntroWebResponse(Club club, List<String> clubHashtag, List<String> clubCategory,
+                                ClubIntro clubIntro, String clubRecruitment,
+                                String mainPhotoUrl, List<String> introPhotoUrls) {
+        // club
         this.clubId = club.getClubId();
-        this.mainPhoto = mainPhotoUrl;
-        this.introPhotos = introPhotoUrls;
         this.clubName = club.getClubName();
         this.leaderName = club.getLeaderName();
         this.leaderHp = club.getLeaderHp();
         this.clubInsta = club.getClubInsta();
+        this.clubRoomNumber = club.getClubRoomNumber();
+        // clubHashtag
+        this.clubHashtag = clubHashtag;
+        // clubCategory
+        this.clubCategory = clubCategory;
+        // clubIntro
         this.clubIntro = clubIntro.getClubIntro();
         this.clubRecruitment = clubRecruitment;
         this.recruitmentStatus = clubIntro.getRecruitmentStatus();
         this.googleFormUrl = clubIntro.getGoogleFormUrl();
+        // photo
+        this.mainPhoto = mainPhotoUrl;
+        this.introPhotos = introPhotoUrls;
     }
 }

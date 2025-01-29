@@ -277,7 +277,7 @@ public class DummyData {
                 .leaderHp("01012345678")
                 .department(Department.ACADEMIC)
                 .clubInsta("ddddddd")
-                .clubRoomNumber("208호")
+                .clubRoomNumber("208")
                 .build();
         clubRepository.save(flagClub);
 
@@ -287,7 +287,7 @@ public class DummyData {
                 .leaderHp("00000000000")
                 .department(Department.SPORT)
                 .clubInsta("badminton_insta")
-                .clubRoomNumber("B101호")
+                .clubRoomNumber("B101")
                 .build();
         clubRepository.save(badmintonClub);
 
@@ -297,7 +297,7 @@ public class DummyData {
                 .leaderHp("00000000000")
                 .department(Department.ACADEMIC)
                 .clubInsta("volunteer_insta")
-                .clubRoomNumber("108호")
+                .clubRoomNumber("108")
                 .build();
         clubRepository.save(volunteerClub);
 
@@ -623,7 +623,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("allabout_insta")
-                .clubRoomNumber("B103호")
+                .clubRoomNumber("B103")
                 .build();
 
         clubRepository.save(allaboutClub);
@@ -711,7 +711,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("gullisae_insta")
-                .clubRoomNumber("205호")
+                .clubRoomNumber("205")
                 .build();
 
         clubRepository.save(gullisaeClub);
@@ -759,7 +759,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("tennis_insta")
-                .clubRoomNumber("105호")
+                .clubRoomNumber("105")
                 .build();
 
         clubRepository.save(tennisclub);
@@ -788,7 +788,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
                 .clubInsta("basketball_insta")
-                .clubRoomNumber("201호")
+                .clubRoomNumber("201")
                 .build();
 
         clubRepository.save(basketballClub);
@@ -817,7 +817,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.ACADEMIC)
                 .clubInsta("basketball_insta")
-                .clubRoomNumber("B106호")
+                .clubRoomNumber("B106")
                 .build();
 
         clubRepository.save(argClub);
@@ -846,7 +846,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.ACADEMIC)
                 .clubInsta("hamster_insta")
-                .clubRoomNumber("107호")
+                .clubRoomNumber("107")
                 .build();
 
         clubRepository.save(hamsterClub);
@@ -875,7 +875,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("sunmoon_insta")
-                .clubRoomNumber("210호")
+                .clubRoomNumber("210")
                 .build();
 
         clubRepository.save(sunmoonClub);
@@ -904,7 +904,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("pig_insta")
-                .clubRoomNumber("B109호")
+                .clubRoomNumber("B109")
                 .build();
 
         clubRepository.save(pigClub);
@@ -934,7 +934,7 @@ public class DummyData {
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
                 .clubInsta("pig_insta")
-                .clubRoomNumber("203호")
+                .clubRoomNumber("203")
                 .build();
 
         clubRepository.save(catClub);

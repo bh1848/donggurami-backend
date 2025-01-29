@@ -200,6 +200,14 @@ public class ClubLeaderService {
                 ? clubIntro.getClubRecruitment()
                 : null;
 
+        // clubHashtag 조회
+        List<String> clubHashtags = clubHashtagRepository.findByClubClubId(club.getClubId())
+                .stream().map(ClubHashtag::getClubHashtag).collect(toList());
+
+        // clubCategory 조회
+        List<String> clubCategories = clubCategoryMappingRepository.findByClubClubId(club.getClubId())
+                .stream().map(mapping -> mapping.getClubCategory().getClubCategory()).collect(toList());
+
         // 동아리 메인 사진 조회
         ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
 
@@ -220,7 +228,7 @@ public class ClubLeaderService {
                 .collect(Collectors.toList());
 
         // ClubIntroResponse 반환
-        return new ClubIntroWebResponse(clubIntro, club, clubRecruitment, mainPhotoUrl, introPhotoUrls);
+        return new ClubIntroWebResponse(club, clubHashtags, clubCategories, clubIntro, clubRecruitment, mainPhotoUrl, introPhotoUrls);
     }
 
     // 동아리 소개 변경

@@ -46,7 +46,7 @@ public class ClubLeaderController {
 
     // 자신의 동아리 상세 페이지 조회(웹)
     @GetMapping("/{clubId}/intro")
-    public ResponseEntity<ApiResponse<ClubIntroWebResponse>> getClubById(@PathVariable("clubId") Long clubId) {
+    public ResponseEntity<ApiResponse<ClubIntroWebResponse>> getClubIntro(@PathVariable("clubId") Long clubId) {
         ClubIntroWebResponse clubIntroWebResponse = clubLeaderService.getClubIntro(clubId);
         ApiResponse<ClubIntroWebResponse> response = new ApiResponse<>("동아리 상세 조회 성공", clubIntroWebResponse);
         return ResponseEntity.ok(response);
