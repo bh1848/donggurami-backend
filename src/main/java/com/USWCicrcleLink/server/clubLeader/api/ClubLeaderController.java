@@ -1,6 +1,8 @@
 package com.USWCicrcleLink.server.clubLeader.api;
 
+import com.USWCicrcleLink.server.admin.admin.service.AdminClubCategoryService;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
+import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
@@ -26,6 +28,7 @@ import java.util.List;
 public class ClubLeaderController {
 
     private final ClubLeaderService clubLeaderService;
+    private final AdminClubCategoryService adminClubCategoryService;
     private final FcmServiceImpl fcmService;
 
     // 동아리 기본 정보 조회
@@ -33,6 +36,14 @@ public class ClubLeaderController {
     public ResponseEntity<ApiResponse> getClubInfo(@PathVariable("clubId") Long clubId) {
         ApiResponse<ClubInfoResponse> clubInfo = clubLeaderService.getClubInfo(clubId);
         return new ResponseEntity<>(clubInfo, HttpStatus.OK);
+    }
+
+    // 동아리 기본 정보 변경 - 카테고리 조회
+    @GetMapping("/category")
+    public ResponseEntity<ApiResponse<List<ClubCategory>>> getAllCategories() {
+        List<ClubCategory> categories = adminClubCategoryService.getAllCategories();
+        ApiResponse<List<ClubCategory>> response = new ApiResponse<>("카테고리 리스트 조회 성공", categories);
+        return ResponseEntity.ok(response);
     }
 
     // 동아리 기본 정보 변경
