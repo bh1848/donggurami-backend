@@ -93,12 +93,23 @@ public class ClubLeaderService {
                         photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubMainPhotoS3Key()))
                 .orElse(null);
 
+        // clubHashtag 조회
+        List<String> clubHashtags = clubHashtagRepository.findByClubClubId(club.getClubId())
+                .stream().map(ClubHashtag::getClubHashtag).collect(toList());
+
+        // clubCategory 조회
+        List<String> clubCategories = clubCategoryMappingRepository.findByClubClubId(club.getClubId())
+                .stream().map(mapping -> mapping.getClubCategory().getClubCategory()).collect(toList());
+
         ClubInfoResponse clubInfoResponse = new ClubInfoResponse(
                 mainPhotoUrl,
                 club.getClubName(),
                 club.getLeaderName(),
                 club.getLeaderHp(),
                 club.getClubInsta(),
+                club.getClubRoomNumber(),
+                clubHashtags,
+                clubCategories,
                 club.getDepartment()
         );
 

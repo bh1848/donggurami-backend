@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,6 +21,12 @@ public class ClubInfoResponse {
     private String leaderHp;
 
     private String clubInsta;
+
+    private String clubRoomNumber;
+
+    private List<String> clubHashtag;
+
+    private List<String> clubCategory;
 
     private Department department;
 
