@@ -93,12 +93,23 @@ public class ClubLeaderService {
                         photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubMainPhotoS3Key()))
                 .orElse(null);
 
+        // clubHashtag 조회
+        List<String> clubHashtags = clubHashtagRepository.findByClubClubId(club.getClubId())
+                .stream().map(ClubHashtag::getClubHashtag).collect(toList());
+
+        // clubCategory 조회
+        List<String> clubCategories = clubCategoryMappingRepository.findByClubClubId(club.getClubId())
+                .stream().map(mapping -> mapping.getClubCategory().getClubCategory()).collect(toList());
+
         ClubInfoResponse clubInfoResponse = new ClubInfoResponse(
                 mainPhotoUrl,
                 club.getClubName(),
                 club.getLeaderName(),
                 club.getLeaderHp(),
                 club.getClubInsta(),
+                club.getClubRoomNumber(),
+                clubHashtags,
+                clubCategories,
                 club.getDepartment()
         );
 
@@ -195,18 +206,9 @@ public class ClubLeaderService {
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
-        // open인 경우 모집글 반환
-        String clubRecruitment = (clubIntro.getRecruitmentStatus() == RecruitmentStatus.OPEN)
-                ? clubIntro.getClubRecruitment()
-                : null;
-
         // clubHashtag 조회
         List<String> clubHashtags = clubHashtagRepository.findByClubClubId(club.getClubId())
                 .stream().map(ClubHashtag::getClubHashtag).collect(toList());
-
-        // clubCategory 조회
-        List<String> clubCategories = clubCategoryMappingRepository.findByClubClubId(club.getClubId())
-                .stream().map(mapping -> mapping.getClubCategory().getClubCategory()).collect(toList());
 
         // 동아리 메인 사진 조회
         ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
@@ -228,7 +230,7 @@ public class ClubLeaderService {
                 .collect(Collectors.toList());
 
         // ClubIntroResponse 반환
-        return new ClubIntroWebResponse(club, clubHashtags, clubCategories, clubIntro, clubRecruitment, mainPhotoUrl, introPhotoUrls);
+        return new ClubIntroWebResponse(club, clubHashtags, clubIntro, mainPhotoUrl, introPhotoUrls);
     }
 
     // 동아리 소개 변경
@@ -243,13 +245,6 @@ public class ClubLeaderService {
         if (clubIntroRequest.getRecruitmentStatus() == null) {
             throw new ClubIntroException(ExceptionType.INVALID_RECRUITMENT_STATUS);
         }
-
-        // 모집 상태 CLOSE인데 모집 글 존재하면 예외처리
-//        if (clubIntroRequest.getRecruitmentStatus() == RecruitmentStatus.CLOSE
-//                && clubIntroRequest.getClubRecruitment() != null
-//                && !clubIntroRequest.getClubRecruitment().trim().isEmpty()) {
-//            throw new ClubIntroException(ExceptionType.INVALID_RECRUITMENT_STATUS);
-//        }
 
         // 입력값 검증 (XSS 공격 방지)
         String sanitizedClubIntro = clubIntroRequest.getClubIntro() != null

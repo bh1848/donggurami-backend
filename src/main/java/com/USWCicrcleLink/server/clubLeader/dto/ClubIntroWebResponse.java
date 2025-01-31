@@ -1,8 +1,6 @@
 package com.USWCicrcleLink.server.clubLeader.dto;
 
 import com.USWCicrcleLink.server.club.club.domain.Club;
-import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
-import com.USWCicrcleLink.server.club.club.domain.ClubHashtag;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import lombok.AllArgsConstructor;
@@ -27,9 +25,6 @@ public class ClubIntroWebResponse {
     // clubHashtag
     private List<String> clubHashtag;
 
-    // clubCategory
-    private List<String> clubCategory;
-
     // clubIntro
     private String clubIntro;
     private String clubRecruitment;
@@ -40,9 +35,8 @@ public class ClubIntroWebResponse {
     private String mainPhoto;
     private List<String> introPhotos;
 
-    public ClubIntroWebResponse(Club club, List<String> clubHashtag, List<String> clubCategory,
-                                ClubIntro clubIntro, String clubRecruitment,
-                                String mainPhotoUrl, List<String> introPhotoUrls) {
+    public ClubIntroWebResponse(Club club, List<String> clubHashtag,
+                                ClubIntro clubIntro, String mainPhotoUrl, List<String> introPhotoUrls) {
         // club
         this.clubId = club.getClubId();
         this.clubName = club.getClubName();
@@ -52,11 +46,9 @@ public class ClubIntroWebResponse {
         this.clubRoomNumber = club.getClubRoomNumber();
         // clubHashtag
         this.clubHashtag = clubHashtag;
-        // clubCategory
-        this.clubCategory = clubCategory;
         // clubIntro
         this.clubIntro = clubIntro.getClubIntro();
-        this.clubRecruitment = clubRecruitment;
+        this.clubRecruitment = clubIntro.getClubRecruitment();
         this.recruitmentStatus = clubIntro.getRecruitmentStatus();
         this.googleFormUrl = clubIntro.getGoogleFormUrl();
         // photo

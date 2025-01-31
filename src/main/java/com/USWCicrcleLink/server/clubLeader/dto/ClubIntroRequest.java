@@ -27,5 +27,4 @@ public class ClubIntroRequest {
 
     private List<Integer> deletedOrders;
 
-
 }
