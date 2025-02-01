@@ -178,4 +178,10 @@ public class ClubLeaderController {
                                                               @RequestBody ClubNonMemberUpdateRequest clubNonMemberUpdateRequest) {
         return new ResponseEntity<>(clubLeaderService.updateNonMemberProfile(clubId, clubMemberId, clubNonMemberUpdateRequest), HttpStatus.OK);
     }
+
+    // 기존 회원 가입 요청 조회
+    @GetMapping("/{clubId}/members/sign-up")
+    public ResponseEntity<ApiResponse> getSignUpRequest(@PathVariable("clubId") Long clubId) {
+        return new ResponseEntity<>(clubLeaderService.getSignUpRequest(clubId), HttpStatus.OK);
+    }
 }

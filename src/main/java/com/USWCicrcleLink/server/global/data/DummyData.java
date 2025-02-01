@@ -17,7 +17,11 @@ import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.ClubMemberAccountStatus;
+import com.USWCicrcleLink.server.user.domain.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.repository.ClubMemberAccountStatusRepository;
+import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
@@ -48,6 +52,8 @@ public class DummyData {
     private final ClubHashtagRepository clubHashtagRepository;
     private final ClubCategoryRepository clubCategoryRepository;
     private final ClubCategoryMappingRepository clubCategoryMappingRepository;
+    private final ClubMemberTempRepository clubMemberTempRepository;
+    private final ClubMemberAccountStatusRepository clubMemberAccountStatusRepository;
 
     @PostConstruct
     public void init() {
@@ -270,6 +276,58 @@ public class DummyData {
                 .build();
         profileRepository.save(profile8);
 
+        // 엑셀로 들어간 비회원
+        Profile profile9 = Profile.builder()
+                .userName("김엑원")
+                .studentNumber("00001009")
+                .userHp("01055556666")
+                .major("정보보호학과")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.NONMEMBER)
+                .build();
+        profileRepository.save(profile9);
+
+        Profile profile10 = Profile.builder()
+                .userName("김엑투")// 틀린 정보
+                .studentNumber("00001010")
+                .userHp("01066667777")
+                .major("정보보호학과")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.NONMEMBER)
+                .build();
+        profileRepository.save(profile10);
+
+        // 기존 동아리 회원 가입 요청 프로필
+        ClubMemberTemp clubMemberTemp1 = ClubMemberTemp.builder()
+                .profileTempAccount("clubMemberTemp1")
+                .profileTempPw("clubMemberTemp111")
+                .profileTempName("김엑원")
+                .profileTempStudentNumber("00001009")
+                .profileTempHp("01055556666")
+                .profileTempMajor("정보보호학과")
+                .profileTempEmail("clubMemberTemp1@naver.com")
+                .totalClubRequest(2)
+                .clubRequestCount(0)
+                .clubExpiryDate(LocalDateTime.now().plusDays(7))
+                .build();
+        clubMemberTempRepository.save(clubMemberTemp1);
+
+        ClubMemberTemp clubMemberTemp2 = ClubMemberTemp.builder()
+                .profileTempAccount("clubMemberTemp2")
+                .profileTempPw("clubMemberTemp222")
+                .profileTempName("김엑둘")
+                .profileTempStudentNumber("00001010")
+                .profileTempHp("01066667777")
+                .profileTempMajor("정보보호학과")
+                .profileTempEmail("clubMemberTemp2@naver.com")
+                .totalClubRequest(1)
+                .clubRequestCount(0)
+                .clubExpiryDate(LocalDateTime.now().plusDays(7))
+                .build();
+        clubMemberTempRepository.save(clubMemberTemp2);
+
         // flag 데이터
         Club flagClub = Club.builder()
                 .clubName("FLAG")
@@ -300,6 +358,25 @@ public class DummyData {
                 .clubRoomNumber("108")
                 .build();
         clubRepository.save(volunteerClub);
+
+        // 기존 동아리 회원 가입 요청 상태
+        ClubMemberAccountStatus clubMemberAccountStatus1 = ClubMemberAccountStatus.builder()
+                .clubMemberTemp(clubMemberTemp1)
+                .club(flagClub)
+                .build();
+        clubMemberAccountStatusRepository.save(clubMemberAccountStatus1);
+
+        ClubMemberAccountStatus clubMemberAccountStatus2 = ClubMemberAccountStatus.builder()
+                .clubMemberTemp(clubMemberTemp1)
+                .club(badmintonClub)
+                .build();
+        clubMemberAccountStatusRepository.save(clubMemberAccountStatus2);
+
+        ClubMemberAccountStatus clubMemberAccountStatus3 = ClubMemberAccountStatus.builder()
+                .clubMemberTemp(clubMemberTemp2)
+                .club(flagClub)
+                .build();
+        clubMemberAccountStatusRepository.save(clubMemberAccountStatus3);
 
         //플래그, 배드민턴, 봉사 해시태그 데이터
         ClubHashtag flagHashtag1 = ClubHashtag.builder()

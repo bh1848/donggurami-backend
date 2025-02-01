@@ -26,6 +26,8 @@ import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.ClubMemberAccountStatus;
+import com.USWCicrcleLink.server.user.repository.ClubMemberAccountStatusRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +54,7 @@ import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -73,6 +76,7 @@ public class ClubLeaderService {
 
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
+    private final ClubMemberAccountStatusRepository clubMemberAccountStatusRepository;
 
     // 최대 사진 순서(업로드, 삭제)
     int PHOTO_LIMIT = 5;
@@ -965,5 +969,19 @@ public class ClubLeaderService {
         profileRepository.save(profile);
 
         return new ApiResponse("비회원 프로필 업데이트 완료", request);
+    }
+
+    public ApiResponse getSignUpRequest(Long clubId) {
+        Club club = validateLeader(clubId);
+
+        List<ClubMemberAccountStatus> signUpClubMember = clubMemberAccountStatusRepository.findAllWithClubMemberTemp(club.getClubId());
+        List<SignUpRequestResponse> signUpRequestResponse = signUpClubMember.stream().map(
+                cmt -> new SignUpRequestResponse(
+                        cmt.getId(),
+                        cmt.getClubMemberTemp()
+                )
+        ).toList();
+
+        return new ApiResponse("기존 동아리 회원 가입 요청 조회 완료", signUpRequestResponse);
     }
 }

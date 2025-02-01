@@ -21,8 +21,8 @@ import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.profile.service.ProfileService;
 import com.USWCicrcleLink.server.user.domain.*;
 import com.USWCicrcleLink.server.user.dto.*;
+import com.USWCicrcleLink.server.user.repository.ClubMemberAccountStatusRepository;
 import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
-import com.USWCicrcleLink.server.user.repository.ClubMemerAccountStatusRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 import jakarta.mail.internet.MimeMessage;
@@ -39,7 +39,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -60,7 +59,7 @@ public class UserService {
     private final ProfileService profileService;
     private final ClubMemberTempRepository clubMemberTempRepository;
     private final ClubRepository clubRepository;
-    private final ClubMemerAccountStatusRepository clubMemerAccoutStatusRepository;
+    private final ClubMemberAccountStatusRepository clubMemberAccoutStatusRepository;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
@@ -211,7 +210,7 @@ public class UserService {
             log.debug("ClubMemberAccountStatus 객체 생성 완료 - Club ID: {}, 사용자: {}", club.getClubId(), clubMemberTemp.getProfileTempName());
 
             // ClubAccountStatus 저장
-            clubMemerAccoutStatusRepository.save(clubMemberAccountStatus);
+            clubMemberAccoutStatusRepository.save(clubMemberAccountStatus);
             log.debug("ClubMemberAccountStatus 저장 완료 - Club ID: {}", club.getClubId());
         }
 
@@ -226,7 +225,7 @@ public class UserService {
     // 각 동아리에 대한 요청 전송이 제대로 되었는지 검증
     public void checkRequest(ExistingMemberSignUpRequest request, ClubMemberTemp clubMemberTemp){
         // 총 생성된 ClubMemberAccountStatus 확인
-        long savedCount = clubMemerAccoutStatusRepository.countByClubMemberTempId(clubMemberTemp.getId());
+        long savedCount = clubMemberAccoutStatusRepository.countByClubMemberTempId(clubMemberTemp.getId());
         int expectedCount = request.getClubs().size();
 
         log.debug("검증 결과 - 사용자 ID: {}, 저장된 개수: {}, 예상 개수: {}",
