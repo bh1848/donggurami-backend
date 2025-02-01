@@ -25,6 +25,8 @@ public class ClubIntroResponse {
     private String clubIntro;
     private RecruitmentStatus recruitmentStatus;
     private List<String> clubHashtag;
+    private String ClubRoomNumber;
+    private String clubRecruitment;
 
     public ClubIntroResponse(ClubIntro clubIntro, Club club, String mainPhotoUrl, List<String> introPhotoUrls, List<String> clubHashtag) {
         this.clubId = club.getClubId();
@@ -37,5 +39,7 @@ public class ClubIntroResponse {
         this.clubIntro = clubIntro.getClubIntro();
         this.recruitmentStatus = clubIntro.getRecruitmentStatus();
         this.clubHashtag = clubHashtag;
+        this.ClubRoomNumber = club.getClubRoomNumber();
+        this.clubRecruitment = clubIntro.getClubRecruitment();
     }
 }
