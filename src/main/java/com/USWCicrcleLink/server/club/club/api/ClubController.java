@@ -1,4 +1,5 @@
 package com.USWCicrcleLink.server.club.club.api;
+import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.club.club.service.ClubService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.user.dto.ClubInfoListResponse;
@@ -32,6 +33,14 @@ public class ClubController {
             @PathVariable("categories") List<String> categories){
         List<ClubByRecruitmentStatusFilterResponse> clubByRecruitmentStatusFilterResponses = clubService.getClubsByRecruitmentStatusCategories(categories);
         ApiResponse<List<ClubByRecruitmentStatusFilterResponse>> response = new ApiResponse<>("카테고리별 모집중인 동아리 조회 완료", clubByRecruitmentStatusFilterResponses);
+        return ResponseEntity.ok(response);
+    }
+
+    //카테고리 조회
+    @GetMapping("/categories")
+    public ResponseEntity<ApiResponse<List<ClubCategoryResponse>>> getAllCategories() {
+        List<ClubCategoryResponse> clubCategoryResponses = clubService.getAllCategories();
+        ApiResponse<List<ClubCategoryResponse>> response = new ApiResponse<>("카테고리 조회 완료", clubCategoryResponses);
         return ResponseEntity.ok(response);
     }
 

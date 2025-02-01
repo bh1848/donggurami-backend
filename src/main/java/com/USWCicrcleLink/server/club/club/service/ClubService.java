@@ -3,13 +3,13 @@ package com.USWCicrcleLink.server.club.club.service;
 
 import com.USWCicrcleLink.server.club.club.domain.*;
 import com.USWCicrcleLink.server.club.club.dto.ClubByRecruitmentStatusFilterResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.club.club.dto.ClubFilterResponse;
 import com.USWCicrcleLink.server.club.club.repository.*;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
-import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.user.dto.ClubInfoListResponse;
 import lombok.RequiredArgsConstructor;
@@ -140,6 +140,13 @@ public class ClubService {
             }
         }
         return clubFilterResponseList;
+    }
+
+    public List<ClubCategoryResponse> getAllCategories() {
+        return clubCategoryRepository.findAll()
+                .stream()
+                .map(ClubCategoryResponse::new)
+                .collect(Collectors.toList());
     }
 
     // 모바일- 기존 회원가입시 전체 동아리 조회
