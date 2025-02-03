@@ -18,13 +18,13 @@ public class ClubMemberAccountStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "CLUB_MEMBER_ACCOUNTSTATUS_ID")
-    private Long id;
+    private Long clubMember_AccountStatus_Id;
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
 
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY,cascade = CascadeType.ALL)
     @JoinColumn(name = "CLUBMEMBERTEMP_ID", nullable = false)
     private ClubMemberTemp clubMemberTemp;
 

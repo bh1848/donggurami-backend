@@ -23,7 +23,7 @@ public class ClubMemberTemp {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "CLUB_MEMBERTEMP_ID")
-    private Long id;
+    private Long clubMemberTempId;
 
     @NotBlank(message = "아이디는 필수 입력 값입니다.",groups = ValidationGroups.NotBlankGroup.class)
     @Size(min = 5, max = 20, message = "아이디는 5~20자 이내여야 합니다.",groups = ValidationGroups.SizeGroup.class )
@@ -66,7 +66,7 @@ public class ClubMemberTemp {
     private int clubRequestCount; // 인증 받은 동아리 수
 
     @Column(nullable = false)
-    private LocalDateTime clubExpiryDate;  // 요청  마감 날짜
+    private LocalDateTime clubMemberTempExpiryDate;  // 요청  마감 날짜
 
 }
 
