@@ -45,8 +45,20 @@ public enum ExceptionType {
     USER_AUTHENTICATION_FAILED("USR-211","아이디 혹은 비밀번호가 일치하지 않습니다",UNAUTHORIZED),
     USER_PROFILE_NOT_FOUND("USR-213","프로필 정보를 찾을 수 없습니다", NOT_FOUND),
     USER_PASSWORD_CONDITION_FAILED("USR-214","영문자,숫자,특수문자는 적어도 1개 이상씩 포함되어야합니다",BAD_REQUEST),
-    USER_SIGNUP_REQUEST_FAILED("USR-215","요청 전송을 실패했습니다 다시 시도해주세요",BAD_REQUEST),
     USER_LOGIN_FAILED("USR-216","비회원 사용자입니다.인증을 완료해주세요",BAD_REQUEST),
+
+    /**
+     * Domain: ClubMemberTemp
+     */
+    CLUB_MEMBERTEMP_CREATE_FAILED("CMEM-TEMP-301","기존 회원가입 사용자 생성에 실패했습니다",INTERNAL_SERVER_ERROR),
+    /**
+     * Domain: ClubMemberAccountStatus
+     */
+    CLUB_MEMBER_ACCOUNTSTATUS_CREATE_FAILED("CMEM-ACST-301","AccountStatus 객체 생성 과정중 오류가 발생했습니다",INTERNAL_SERVER_ERROR),
+    CLUB_MEMBER_ACCOUNTSTATUS_SAVE_FAILED("CMEM-ACST-302","AccountStatus 객체 저장 과정중 오류가 발생했습니다",INTERNAL_SERVER_ERROR),
+    CLUB_MEMBER_ACCOUNTSTATUS_COUNT_NOT_MATCH("CMEM-ACST-303","사용자가 요청한 개수와 실제 요청된 개수가 다릅니다",INTERNAL_SERVER_ERROR),
+    CLUB_MEMBER_ACCOUNTSTATUS_REQEUST_NOT_MATCH("CMEM-ACST-304","사용자가 요청한 동아리와 실제 요청값이 다르게 생성되었습니다",INTERNAL_SERVER_ERROR),
+
 
 
     /**
