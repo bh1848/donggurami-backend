@@ -1,8 +1,8 @@
 package com.USWCicrcleLink.server.user.domain;
 
 import com.USWCicrcleLink.server.global.bucket4j.ClientIdentifier;
-import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
+import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -11,8 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter

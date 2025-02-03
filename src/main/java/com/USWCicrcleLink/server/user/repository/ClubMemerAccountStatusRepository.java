@@ -1,7 +1,6 @@
 package com.USWCicrcleLink.server.user.repository;
 
-import com.USWCicrcleLink.server.user.domain.ClubMemberAccountStatus;
-import org.checkerframework.checker.units.qual.C;
+import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberAccountStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

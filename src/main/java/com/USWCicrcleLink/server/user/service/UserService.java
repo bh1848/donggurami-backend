@@ -18,9 +18,9 @@ import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.profile.service.ProfileService;
 import com.USWCicrcleLink.server.user.domain.*;
+import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
-import com.USWCicrcleLink.server.user.repository.ClubMemerAccountStatusRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
 import jakarta.mail.internet.MimeMessage;
@@ -37,7 +37,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 

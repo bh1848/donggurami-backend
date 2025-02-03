@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.user.domain;
+package com.USWCicrcleLink.server.user.domain.ExistingMember;
 
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import jakarta.persistence.*;
@@ -10,9 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.annotation.Nullable;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Getter
