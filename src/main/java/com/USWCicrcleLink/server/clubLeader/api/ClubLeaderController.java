@@ -6,6 +6,8 @@ import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
@@ -89,19 +91,14 @@ public class ClubLeaderController {
     public ResponseEntity<ApiResponse> getClubMembers(
             @PathVariable("clubId") Long clubId,
             @RequestParam(value = "sort", defaultValue = "default") String sort) {
-        ApiResponse<List<ClubMembersResponse>> response;
-        switch (sort) {
-            case "regular-member":
-                response = clubLeaderService.getClubMembersByMemberType(clubId, MemberType.REGULARMEMBER);
-                break;
 
-            case "non-member":
-                response = clubLeaderService.getClubMembersByMemberType(clubId, MemberType.NONMEMBER);
-                break;
+        ApiResponse<List<ClubMembersResponse>> response = switch (sort.toLowerCase()) {
+            case "regular-member" -> clubLeaderService.getClubMembersByMemberType(clubId, MemberType.REGULARMEMBER);
+            case "non-member" -> clubLeaderService.getClubMembersByMemberType(clubId, MemberType.NONMEMBER);
+            case "default" -> clubLeaderService.getClubMembers(clubId);
+            default -> throw new ProfileException(ExceptionType.INVALID_MEMBER_TYPE);
+        };
 
-            default:
-                response = clubLeaderService.getClubMembers(clubId);
-        }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -190,4 +187,6 @@ public class ClubLeaderController {
     public ResponseEntity<ApiResponse> deleteSignUpRequest(@PathVariable("clubId") Long clubId, @PathVariable("clubMemberAccountStatusId") Long clubMemberAccountStatusId) {
         return new ResponseEntity<>(clubLeaderService.deleteSignUpRequest(clubId, clubMemberAccountStatusId), HttpStatus.OK);
     }
+
+
 }

@@ -410,7 +410,7 @@ public class ClubLeaderService {
                 ))
                 .collect(toList());
 
-        return new ApiResponse<>("소속 동아리 회원 조회 완료", memberProfiles);
+        return new ApiResponse<>("소속 동아리 회원 가나다순 조회 완료", memberProfiles);
     }
 
     // 소속 동아리 회원 조회(정회원/ 비회원 정렬)
@@ -429,7 +429,13 @@ public class ClubLeaderService {
                 ))
                 .collect(toList());
 
-        return new ApiResponse<>("소속 동아리 회원 조회 완료", memberProfiles);
+        // memberType에 따라 메시지 변경
+        String message = switch (memberType) {
+            case REGULARMEMBER -> "소속 동아리 정회원 조회 완료";
+            case NONMEMBER -> "소속 동아리 비회원 조회 완료";
+        };
+
+        return new ApiResponse<>(message, memberProfiles);
     }
 
     // 소속 동아리원 삭제

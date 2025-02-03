@@ -228,6 +228,7 @@ public class DummyData {
                 .build();
         profileRepository.save(profile4);
 
+        // 동아리 회원 정렬 가나다순, 정회원, 비회원
         Profile profile5 = Profile.builder()
                 .user(user5)
                 .userName("이성계")
@@ -276,7 +277,7 @@ public class DummyData {
                 .build();
         profileRepository.save(profile8);
 
-        // 엑셀로 들어간 비회원
+        // 엑셀로 들어간 비회원(FLAG, BADMINTON, FLAG)
         Profile profile9 = Profile.builder()
                 .userName("김엑원")
                 .studentNumber("00001009")
@@ -299,7 +300,7 @@ public class DummyData {
                 .build();
         profileRepository.save(profile10);
 
-        // 기존 동아리 회원 가입 요청 프로필
+        // 기존 동아리 회원 가입 요청 프로필(FLAG, BADMINTON, FLAG)
         ClubMemberTemp clubMemberTemp1 = ClubMemberTemp.builder()
                 .profileTempAccount("clubMemberTemp1")
                 .profileTempPw("clubMemberTemp111")
@@ -358,6 +359,25 @@ public class DummyData {
                 .clubRoomNumber("108")
                 .build();
         clubRepository.save(volunteerClub);
+
+        // 엑셀로 동아리에 추가된 회원(FLAG, BADMINTON, FLAG)
+        ClubMembers excelMemberOne1 = ClubMembers.builder()
+                .club(flagClub)
+                .profile(profile9)
+                .build();
+        clubMembersRepository.save(excelMemberOne1);
+
+        ClubMembers excelMemberOne2 = ClubMembers.builder()
+                .club(badmintonClub)
+                .profile(profile9)
+                .build();
+        clubMembersRepository.save(excelMemberOne2);
+
+        ClubMembers excelMemberTwo1 = ClubMembers.builder()
+                .club(flagClub)
+                .profile(profile10)
+                .build();
+        clubMembersRepository.save(excelMemberTwo1);
 
         // 기존 동아리 회원 가입 요청 상태
         ClubMemberAccountStatus clubMemberAccountStatus1 = ClubMemberAccountStatus.builder()
