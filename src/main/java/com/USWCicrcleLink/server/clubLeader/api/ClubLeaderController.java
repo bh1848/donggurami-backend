@@ -184,4 +184,10 @@ public class ClubLeaderController {
     public ResponseEntity<ApiResponse> getSignUpRequest(@PathVariable("clubId") Long clubId) {
         return new ResponseEntity<>(clubLeaderService.getSignUpRequest(clubId), HttpStatus.OK);
     }
+
+    // 기존 회원 가입 요청 삭제(거절)
+    @DeleteMapping("/{clubId}/members/sign-up/{clubMemberAccountStatusId}")
+    public ResponseEntity<ApiResponse> deleteSignUpRequest(@PathVariable("clubId") Long clubId, @PathVariable("clubMemberAccountStatusId") Long clubMemberAccountStatusId) {
+        return new ResponseEntity<>(clubLeaderService.deleteSignUpRequest(clubId, clubMemberAccountStatusId), HttpStatus.OK);
+    }
 }

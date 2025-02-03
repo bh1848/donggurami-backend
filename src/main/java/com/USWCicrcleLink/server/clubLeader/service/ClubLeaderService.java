@@ -971,6 +971,7 @@ public class ClubLeaderService {
         return new ApiResponse("비회원 프로필 업데이트 완료", request);
     }
 
+    // 기존 동아리 회원 가입 요청 조회
     public ApiResponse getSignUpRequest(Long clubId) {
         Club club = validateLeader(clubId);
 
@@ -984,4 +985,17 @@ public class ClubLeaderService {
 
         return new ApiResponse("기존 동아리 회원 가입 요청 조회 완료", signUpRequestResponse);
     }
+
+    // 기존 동아리 회원 가입 요청 삭제
+    public ApiResponse deleteSignUpRequest(Long clubId, Long clubMemberAccountStatusId) {
+        Club club = validateLeader(clubId);
+
+        // 동아리 + 기존 동아리 회원 가입 요청 확인
+        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByIdAndClubClubId(clubMemberAccountStatusId, club.getClubId())
+                .orElseThrow(() -> new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_TEMP_NOT_EXISTS));
+
+        clubMemberAccountStatusRepository.delete(clubMemberAccountStatus);
+        return new ApiResponse("기존 동아리 회원 가입 요청 거절 완료");
+    }
+
 }
