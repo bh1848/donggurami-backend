@@ -7,9 +7,7 @@ import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
-import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
-import com.USWCicrcleLink.server.global.exception.errortype.UserException;
+import com.USWCicrcleLink.server.global.exception.errortype.*;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
@@ -60,7 +58,7 @@ public class UserService {
     private final ProfileService profileService;
     private final ClubMemberTempRepository clubMemberTempRepository;
     private final ClubRepository clubRepository;
-    private final ClubMemerAccountStatusRepository clubMemerAccoutStatusRepository;
+    private final ClubMemberAccountStatusService clubMemberAccountStatusService;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
@@ -164,14 +162,13 @@ public class UserService {
         return userTempRepository.save(request.toEntity(encodedPassword, telephone));
     }
 
-    // 임시 동아리원 생성하기
+    // 기존 회원가입 - 임시 동아리원 생성하기
     public ClubMemberTemp registerClubMemberTemp(ExistingMemberSignUpRequest request) {
-        log.debug("임시 동아리원 등록 시작 - 이름: {}, 전화번호: {}, 동아리 개수: {}",
+        log.debug("임시 동아리원 등록 시작 - 이름: {}, 전화번호: {}, 지원한 동아리 개수: {}",
                 request.getUserName(), request.getTelephone(), request.getClubs().size());
 
         // 지원한 동아리의 개수
         int total = request.getClubs().size();
-        log.debug("지원한 동아리 개수 계산 완료 - 총 개수: {}", total);
 
         // 전화번호 - 제거
         String telephone = removeHyphensFromPhoneNumber(request.getTelephone());
@@ -182,8 +179,14 @@ public class UserService {
         log.debug("비밀번호 인코딩 완료 - 사용자 이름: {}", request.getUserName());
 
         // 엔터티 저장
-        ClubMemberTemp savedEntity = clubMemberTempRepository.save(request.toEntity(encodedPassword, telephone, total));
-        log.debug("임시 동아리원 등록 완료 - 저장된 엔터티: {}", savedEntity);
+        ClubMemberTemp savedEntity;
+        try{
+            savedEntity = clubMemberTempRepository.save(request.toEntity(encodedPassword, telephone, total));
+            log.debug("임시 동아리원 등록 완료 - 저장된 엔터티: {}", savedEntity);
+        }catch (Exception e){
+            log.error("임시 동아리원 등록 실패 - 사용자 이름: {}", request.getUserName());
+            throw new ClubMemberTempException(ExceptionType.CLUB_MEMBERTEMP_CREATE_FAILED);
+        }
 
         return savedEntity;
     }
@@ -192,13 +195,11 @@ public class UserService {
     // 동아리 회장에게 가입신청 보내기
     public void sendRequest(ExistingMemberSignUpRequest request, ClubMemberTemp clubMemberTemp) {
         log.debug("가입신청 시작 - 사용자: {}, 요청 동아리 개수: {}",
-                clubMemberTemp.getProfileTempName(), request.getClubs().size());
+                clubMemberTemp.getProfileTempName(), clubMemberTemp.getTotalClubRequest());
 
         // 동아리 정보 조회
         for (ClubDTO clubDto : request.getClubs()) {
             log.debug("동아리 정보 조회 중 - Club ID: {}", clubDto.getClubId());
-
-            // club 객체 가져오기
             Club club = clubRepository.findById(clubDto.getClubId())
                     .orElseThrow(() -> {
                         log.error("동아리 조회 실패 - 존재하지 않는 동아리 ID: {}", clubDto.getClubId());
@@ -206,40 +207,14 @@ public class UserService {
                     });
             log.debug("동아리 조회 성공 - Club ID: {}, 동아리 이름: {}", club.getClubId(), club.getClubName());
 
-            // ClubMemberAccountStatus 객체 생성
-            ClubMemberAccountStatus clubMemberAccountStatus = ClubMemberAccountStatus.createClubMemberAccountStatus(club, clubMemberTemp);
-            log.debug("ClubMemberAccountStatus 객체 생성 완료 - Club ID: {}, 사용자: {}", club.getClubId(), clubMemberTemp.getProfileTempName());
-
-            // ClubAccountStatus 저장
-            clubMemerAccoutStatusRepository.save(clubMemberAccountStatus);
-            log.debug("ClubMemberAccountStatus 저장 완료 - Club ID: {}", club.getClubId());
+            // accountStatus 객체 생성하기
+            clubMemberAccountStatusService.createAccountStatus(club,clubMemberTemp);
         }
-
         // 요청이 전부 제대로 갔는지 검증
-        log.debug("가입신청 검증 시작 - 사용자: {}, 예상 요청 개수: {}",
-                clubMemberTemp.getProfileTempName(), request.getClubs().size());
-        checkRequest(request, clubMemberTemp);
-        log.debug("가입신청 검증 완료 - 사용자: {}", clubMemberTemp.getProfileTempName());
-
+        clubMemberAccountStatusService.checkRequest(request, clubMemberTemp);
     }
 
-    // 각 동아리에 대한 요청 전송이 제대로 되었는지 검증
-    public void checkRequest(ExistingMemberSignUpRequest request, ClubMemberTemp clubMemberTemp){
-        // 총 생성된 ClubMemberAccountStatus 확인
-        long savedCount = clubMemerAccoutStatusRepository.countByClubMemberTempId(clubMemberTemp.getId());
-        int expectedCount = request.getClubs().size();
 
-        log.debug("검증 결과 - 사용자 ID: {}, 저장된 개수: {}, 예상 개수: {}",
-                clubMemberTemp.getId(), savedCount, expectedCount);
-
-        if (savedCount == expectedCount) {
-            log.debug("모든 동아리에게 요청 전송 성공 - 사용자 ID: {}", clubMemberTemp.getId());
-        } else {
-            log.error("요청 검증 실패 - 사용자 ID: {}, 저장된 개수: {}, 예상 개수: {}",
-                    clubMemberTemp.getId(), savedCount, expectedCount);
-            throw new UserException(ExceptionType.USER_SIGNUP_REQUEST_FAILED);
-        }
-    }
 
     // 이메일 중복 검증
     private void verifyUserDuplicate(String email){
