@@ -12,12 +12,14 @@ import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
-import com.USWCicrcleLink.server.clubLeader.dto.*;
+import com.USWCicrcleLink.server.clubLeader.dto.club.*;
+import com.USWCicrcleLink.server.clubLeader.dto.clubMembers.*;
 import com.USWCicrcleLink.server.clubLeader.util.ClubMemberExcelDataDto;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.*;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
@@ -26,6 +28,12 @@ import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.ClubMemberAccountStatus;
+import com.USWCicrcleLink.server.user.domain.ClubMemberTemp;
+import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.repository.ClubMemberAccountStatusRepository;
+import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
+import com.USWCicrcleLink.server.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,6 +81,9 @@ public class ClubLeaderService {
 
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
+    private final ClubMemberAccountStatusRepository clubMemberAccountStatusRepository;
+    private final ClubMemberTempRepository clubMemberTempRepository;
+    private final UserRepository userRepository;
 
     // 최대 사진 순서(업로드, 삭제)
     int PHOTO_LIMIT = 5;
@@ -406,7 +417,7 @@ public class ClubLeaderService {
                 ))
                 .collect(toList());
 
-        return new ApiResponse<>("소속 동아리 회원 조회 완료", memberProfiles);
+        return new ApiResponse<>("소속 동아리 회원 가나다순 조회 완료", memberProfiles);
     }
 
     // 소속 동아리 회원 조회(정회원/ 비회원 정렬)
@@ -425,7 +436,13 @@ public class ClubLeaderService {
                 ))
                 .collect(toList());
 
-        return new ApiResponse<>("소속 동아리 회원 조회 완료", memberProfiles);
+        // memberType에 따라 메시지 변경
+        String message = switch (memberType) {
+            case REGULARMEMBER -> "소속 동아리 정회원 조회 완료";
+            case NONMEMBER -> "소속 동아리 비회원 조회 완료";
+        };
+
+        return new ApiResponse<>(message, memberProfiles);
     }
 
     // 소속 동아리원 삭제
@@ -908,6 +925,7 @@ public class ClubLeaderService {
                     .major(validRequest.getMajor())
                     .profileCreatedAt(LocalDateTime.now())
                     .profileUpdatedAt(LocalDateTime.now())
+                    .memberType(MemberType.REGULARMEMBER)
                     .build();
             profileRepository.save(profile);
 
@@ -961,9 +979,141 @@ public class ClubLeaderService {
 
         // 프로필 업데이트
         Profile profile = clubMember.getProfile();
-        profile.updateProfile(request.getUserName(), request.getStudentNumber(), request.getUserHp(), request.getMajor());
+        profile.updateProfile(request.getUserName(), request.getStudentNumber(), request.getMajor(), request.getUserHp());
         profileRepository.save(profile);
 
         return new ApiResponse("비회원 프로필 업데이트 완료", request);
+    }
+
+    // 기존 동아리 회원 가입 요청 조회
+    @Transactional(readOnly = true)
+    public ApiResponse getSignUpRequest(Long clubId) {
+        Club club = validateLeader(clubId);
+
+        List<ClubMemberAccountStatus> signUpClubMember = clubMemberAccountStatusRepository.findAllWithClubMemberTemp(club.getClubId());
+        List<SignUpRequestResponse> signUpRequestResponse = signUpClubMember.stream().map(
+                cmt -> new SignUpRequestResponse(
+                        cmt.getId(),
+                        cmt.getClubMemberTemp()
+                )
+        ).toList();
+
+        return new ApiResponse("기존 동아리 회원 가입 요청 조회 완료", signUpRequestResponse);
+    }
+
+    // 기존 동아리 회원 가입 요청 삭제
+    public ApiResponse deleteSignUpRequest(Long clubId, Long clubMemberAccountStatusId) {
+        Club club = validateLeader(clubId);
+
+        // 동아리 + 기존 동아리 회원 가입 요청 확인
+        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByIdAndClubClubId(clubMemberAccountStatusId, club.getClubId())
+                .orElseThrow(() -> new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS));
+
+        clubMemberAccountStatusRepository.delete(clubMemberAccountStatus);
+        return new ApiResponse("기존 동아리 회원 가입 요청 거절 완료");
+    }
+
+    // 기존 동아리 회원 가입 요청 수락
+    public ApiResponse acceptSignUpRequest(Long clubId, ClubMembersAcceptSignUpRequest clubMembersAcceptSignUpRequest) {
+        Club club = validateLeader(clubId);
+
+        ClubMemberProfileRequest signUpProfile = clubMembersAcceptSignUpRequest.getSignUpProfileRequest();
+        ClubMemberProfileRequest clubNonMemberProfile = clubMembersAcceptSignUpRequest.getClubNonMemberProfileRequest();
+
+        // 요청한 프로필의 존재 여부, 필드 값 유효성 확인
+        ClubMemberAccountStatus clubMemberAccountStatus = validateSignUpProfile(signUpProfile, club.getClubId());
+        ClubMemberTemp clubMemberTemp = clubMemberAccountStatus.getClubMemberTemp();
+        Profile clubNonMember = validateClubNonMemberProfile(clubNonMemberProfile, club.getClubId());
+
+        // 두 프로필 값이 같은지 비교, 예외처리
+        compareProfile(signUpProfile, clubNonMemberProfile);
+
+        // 두 프로필이 같으면 동아리 회장 수락 횟수 증가
+        clubMemberTemp.updateClubRequestCount();
+        clubMemberTempRepository.save(clubMemberTemp);
+
+        //회원 가입 요청 삭제
+        clubMemberAccountStatusRepository.delete(clubMemberAccountStatus);
+
+        // 가입 요청 횟수와 동아리 회장 수락 횟수가 같으면 계정 생성
+        if (clubMemberTemp.getTotalClubRequest() == clubMemberTemp.getClubRequestCount()) {
+            User user = User.builder()
+                    .userAccount(clubMemberTemp.getProfileTempAccount())
+                    .userPw(clubMemberTemp.getProfileTempPw())
+                    .email(clubMemberTemp.getProfileTempEmail())
+                    .userCreatedAt(LocalDateTime.now())
+                    .userUpdatedAt(LocalDateTime.now())
+                    .role(Role.USER)
+                    .build();
+            userRepository.save(user);
+
+            // 비회원의 프로필에 user 넣기(엑셀로 추가한 동아리 회원)
+            clubNonMember.updateUser(user);
+            profileRepository.save(clubNonMember);
+
+            // 계정 생성 후 필요 없는 테이블 정보 삭제
+            clubMemberTempRepository.delete(clubMemberTemp);
+
+            // 계정 생성 시 이름과 반환, 계정 생성된 사람에게 알려주는 팝업
+            return new ApiResponse<>("기존 동아리 회원 가입 요청 수락 후 계정 생성 완료", clubNonMember.getUserName());
+        }
+
+        return new ApiResponse("기존 동아리 회원 가입 요청 수락 완료");
+    }
+
+    // 기존 회원 가입 요청 검증
+    private ClubMemberAccountStatus validateSignUpProfile(ClubMemberProfileRequest signUpProfileRequest, Long clubId) {
+        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByIdAndClubClubId(signUpProfileRequest.getId(), clubId)
+                .orElseThrow(() -> new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS));
+
+        ClubMemberTemp clubMemberTemp = clubMemberAccountStatus.getClubMemberTemp();
+
+        // 요청의 필드 값과 DB와 비교
+        if (!Objects.equals(signUpProfileRequest.getUserName(), clubMemberTemp.getProfileTempName()) ||
+                !Objects.equals(signUpProfileRequest.getStudentNumber(), clubMemberTemp.getProfileTempStudentNumber()) ||
+                !Objects.equals(signUpProfileRequest.getMajor(), clubMemberTemp.getProfileTempMajor()) ||
+                !Objects.equals(signUpProfileRequest.getUserHp(), clubMemberTemp.getProfileTempHp())) {
+            throw new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS);
+        }
+        return clubMemberAccountStatus;
+    }
+
+    // 기존 비회원 프로필 검증
+    private Profile validateClubNonMemberProfile(ClubMemberProfileRequest clubNonMemberProfileRequest, Long clubId) {
+        Profile clubNonMember = clubMembersRepository.findByClubClubIdAndClubMemberId(clubId, clubNonMemberProfileRequest.getId())
+                .map(ClubMembers::getProfile)
+                .orElseThrow(() -> new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS));
+
+        // 요청의 필드 값과 DB와 비교
+        if (!Objects.equals(clubNonMemberProfileRequest.getUserName(), clubNonMember.getUserName()) ||
+                !Objects.equals(clubNonMemberProfileRequest.getStudentNumber(), clubNonMember.getStudentNumber()) ||
+                !Objects.equals(clubNonMemberProfileRequest.getMajor(), clubNonMember.getMajor()) ||
+                !Objects.equals(clubNonMemberProfileRequest.getUserHp(), clubNonMember.getUserHp())) {
+            throw new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS);
+        }
+        return clubNonMember;
+    }
+
+    // 두 프로필 값이 같은지 비교
+    private void compareProfile(ClubMemberProfileRequest clubMemberTempRequest, ClubMemberProfileRequest clubNonMemberRequest) {
+        List<String> message = new ArrayList<>();
+
+        if (!clubMemberTempRequest.getUserName().equals(clubNonMemberRequest.getUserName())) {
+            message.add("이름");
+        }
+        if (!clubMemberTempRequest.getStudentNumber().equals(clubNonMemberRequest.getStudentNumber())) {
+            message.add("학번");
+        }
+        if (!clubMemberTempRequest.getMajor().equals(clubNonMemberRequest.getMajor())) {
+            message.add("학과");
+        }
+        if (!clubMemberTempRequest.getUserHp().equals(clubNonMemberRequest.getUserHp())) {
+            message.add("전화번호");
+        }
+
+        // 프로필이 일치하지 않는 경우
+        if (!message.isEmpty()) {
+            throw new ProfileException(ExceptionType.PROFILE_VALUE_MISMATCH, message);
+        }
     }
 }

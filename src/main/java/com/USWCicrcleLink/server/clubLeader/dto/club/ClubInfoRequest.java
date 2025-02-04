@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.clubLeader.dto;
+package com.USWCicrcleLink.server.clubLeader.dto.club;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;

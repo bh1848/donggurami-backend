@@ -23,7 +23,7 @@ public class ClubMemberAccountStatus {
     @Column(name = "CLUB_MEMBER_ACCOUNTSTATUS_ID")
     private Long id;
 
-    @OneToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
 
