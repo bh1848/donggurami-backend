@@ -106,6 +106,7 @@ public enum ExceptionType {
     NOT_NON_MEMBER("PFL-206", "비회원만 수정할 수 있습니다.", BAD_REQUEST),
     PROFILE_ALREADY_EXISTS("PFL-207","프로필이 이미 존재합니다",BAD_REQUEST),
     INVALID_MEMBER_TYPE("PFL-208","유효하지 않은 회원 종류입니다.",BAD_REQUEST),
+    PROFILE_VALUE_MISMATCH("PFL-209","프로필 값이 일치하지 않습니다.",BAD_REQUEST),
 
 
     /**
@@ -131,7 +132,7 @@ public enum ExceptionType {
     /**
      * Domain: ClubMemberAccountStatus
      */
-    CLUB_MEMBER_TEMP_NOT_EXISTS("CMEMT-201","회원 가입 요청이 존재하지 않습니다.", NOT_FOUND),
+    CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS("CMEMT-201","회원 가입 요청이 존재하지 않습니다.", NOT_FOUND),
 
     /**
      * Domain: Aplict

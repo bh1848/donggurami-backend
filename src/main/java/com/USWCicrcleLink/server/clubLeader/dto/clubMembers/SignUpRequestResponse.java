@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.clubLeader.dto;
+package com.USWCicrcleLink.server.clubLeader.dto.clubMembers;
 
 import com.USWCicrcleLink.server.user.domain.ClubMemberTemp;
 import lombok.AllArgsConstructor;
