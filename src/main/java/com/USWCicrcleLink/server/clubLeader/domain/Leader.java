@@ -39,8 +39,16 @@ public class Leader{
     @Column(name = "role", nullable = false)
     private Role role;
 
+    @Builder.Default
+    @Column(name = "is_agreed_terms", nullable = false)
+    private boolean isAgreedTerms = false;
+
     @PrePersist
     public void prePersist() {
         this.leaderUUID = UUID.randomUUID();
+    }
+
+    public void setAgreeTerms(boolean isAgreed) {
+        this.isAgreedTerms = isAgreed;
     }
 }

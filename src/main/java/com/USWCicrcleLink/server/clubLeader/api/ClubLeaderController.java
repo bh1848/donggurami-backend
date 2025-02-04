@@ -178,4 +178,11 @@ public class ClubLeaderController {
                                                               @RequestBody ClubNonMemberUpdateRequest clubNonMemberUpdateRequest) {
         return new ResponseEntity<>(clubLeaderService.updateNonMemberProfile(clubId, clubMemberId, clubNonMemberUpdateRequest), HttpStatus.OK);
     }
+
+    // 약관 동의 완료 업데이트
+    @PatchMapping("/terms/agreement")
+    public ResponseEntity<ApiResponse<String>> SetAgreedTermsTrue (){
+        clubLeaderService.updateAgreedTermsTrue();
+        return new ResponseEntity<>(new ApiResponse<>("약관 동의 완료"),HttpStatus.OK);
+    }
 }

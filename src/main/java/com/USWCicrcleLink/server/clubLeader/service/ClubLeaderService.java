@@ -13,6 +13,7 @@ import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoReposit
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
+import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.clubLeader.util.ClubMemberExcelDataDto;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.*;
@@ -50,6 +51,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -70,9 +72,9 @@ public class ClubLeaderService {
     private final ClubHashtagRepository clubHashtagRepository;
     private final ClubCategoryRepository clubCategoryRepository;
     private final ClubCategoryMappingRepository clubCategoryMappingRepository;
-
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
+    private final LeaderRepository leaderRepository;
 
     // 최대 사진 순서(업로드, 삭제)
     int PHOTO_LIMIT = 5;
@@ -121,10 +123,23 @@ public class ClubLeaderService {
         // 동아리 회장 유효성 검증
         Club club = validateLeader(clubId);
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomLeaderDetails leaderDetails = (CustomLeaderDetails) authentication.getPrincipal();
+        Leader leader = leaderDetails.leader();
+
+        // 기존 동아리 회장 이름 저장
+        String oldLeaderName = club.getLeaderName();
+
         // 입력값 검증 (XSS 공격 방지)
         String sanitizedLeaderName = InputValidator.sanitizeContent(clubInfoRequest.getLeaderName());
         String sanitizedLeaderHp = InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp());
         String sanitizedClubInsta = InputValidator.sanitizeContent(clubInfoRequest.getClubInsta());
+
+        // 동아리 회장 이름 변경 여부 확인
+        if (!oldLeaderName.equals(sanitizedLeaderName)) {
+            leader.setAgreeTerms(false);
+            leaderRepository.save(leader);
+        }
 
         // 동아리 해시태그 처리
         if (clubInfoRequest.getClubHashtag() != null) {
@@ -966,4 +981,15 @@ public class ClubLeaderService {
 
         return new ApiResponse("비회원 프로필 업데이트 완료", request);
     }
+
+    //약관 동의 여부 완료 업데이트
+    public void updateAgreedTermsTrue(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomLeaderDetails leaderDetails = (CustomLeaderDetails) authentication.getPrincipal();
+        Leader leader = leaderDetails.leader();
+
+        leader.setAgreeTerms(true);
+        leaderRepository.save(leader);
+    }
+
 }
