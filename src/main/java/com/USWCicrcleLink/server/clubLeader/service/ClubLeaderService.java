@@ -793,6 +793,7 @@ public class ClubLeaderService {
             userHpNumbers.add(userHp);
             rowExcelDataMap.put(userName + "_" + studentNumber + "_" + userHp, new ClubMemberExcelDataDto(userName, studentNumber, userHp));
         }
+
         // DB에서 중복 데이터 한 번에 확인
         List<Profile> duplicateProfiles = profileRepository.findByUserNameInAndStudentNumberInAndUserHpIn(userNames, studentNumbers, userHpNumbers);
 
@@ -819,7 +820,7 @@ public class ClubLeaderService {
 
         // 중복이 아닌 데이터 추가
         for (ClubMemberExcelDataDto rowData : rowExcelDataMap.values()) {
-            excelClubMembers.add(new ClubMembersImportExcelResponse(rowData.getStudentNumber(), rowData.getUserName(), rowData.getUserHp()));
+            excelClubMembers.add(new ClubMembersImportExcelResponse(rowData.getUserName(), rowData.getStudentNumber(), rowData.getUserHp()));
         }
 
         return new ApiResponse<>("기존 동아리 회원 엑셀로 가져오기 완료", excelClubMembers);
