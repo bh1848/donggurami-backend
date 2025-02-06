@@ -4,8 +4,15 @@ import com.USWCicrcleLink.server.admin.admin.service.AdminClubCategoryService;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
 import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.clubLeader.dto.*;
+import com.USWCicrcleLink.server.clubLeader.dto.club.ClubInfoRequest;
+import com.USWCicrcleLink.server.clubLeader.dto.club.ClubInfoResponse;
+import com.USWCicrcleLink.server.clubLeader.dto.club.ClubIntroRequest;
+import com.USWCicrcleLink.server.clubLeader.dto.club.ClubIntroWebResponse;
+import com.USWCicrcleLink.server.clubLeader.dto.clubMembers.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.response.PageResponse;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
@@ -37,6 +44,13 @@ public class ClubLeaderController {
         LeaderLoginResponse leaderLoginResponse = clubLeaderService.LeaderLogin(request,response);
         ApiResponse<LeaderLoginResponse> apiResponse = new ApiResponse<>("동아리 회장 로그인 성공", leaderLoginResponse);
         return ResponseEntity.ok(apiResponse);
+    }
+
+    // 약관 동의 완료 업데이트
+    @PatchMapping("/terms/agreement")
+    public ResponseEntity<ApiResponse<String>> SetAgreedTermsTrue (){
+        clubLeaderService.updateAgreedTermsTrue();
+        return new ResponseEntity<>(new ApiResponse<>("약관 동의 완료"),HttpStatus.OK);
     }
 
     // 동아리 기본 정보 조회
@@ -97,29 +111,24 @@ public class ClubLeaderController {
     public ResponseEntity<ApiResponse> getClubMembers(
             @PathVariable("clubId") Long clubId,
             @RequestParam(value = "sort", defaultValue = "default") String sort) {
-        ApiResponse<List<ClubMembersResponse>> response;
-        switch (sort) {
-            case "regular-member":
-                response = clubLeaderService.getClubMembersByMemberType(clubId, MemberType.REGULARMEMBER);
-                break;
 
-            case "non-member":
-                response = clubLeaderService.getClubMembersByMemberType(clubId, MemberType.NONMEMBER);
-                break;
+        ApiResponse<List<ClubMembersResponse>> response = switch (sort.toLowerCase()) {
+            case "regular-member" -> clubLeaderService.getClubMembersByMemberType(clubId, MemberType.REGULARMEMBER);
+            case "non-member" -> clubLeaderService.getClubMembersByMemberType(clubId, MemberType.NONMEMBER);
+            case "default" -> clubLeaderService.getClubMembers(clubId);
+            default -> throw new ProfileException(ExceptionType.INVALID_MEMBER_TYPE);
+        };
 
-            default:
-                response = clubLeaderService.getClubMembers(clubId);
-        }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 동아리원 퇴출
+    // 동아리 회원 퇴출
     @DeleteMapping("/{clubId}/members")
     public ResponseEntity<ApiResponse> deleteClubMembers(@PathVariable("clubId") Long clubId, @RequestBody List<ClubMembersDeleteRequest> clubMemberIdList) {
         return new ResponseEntity<>(clubLeaderService.deleteClubMembers(clubId, clubMemberIdList), HttpStatus.OK);
     }
 
-    // 동아리원 엑셀 파일 추출
+    // 동아리 회원 엑셀 파일 추출
     @GetMapping("/{clubId}/members/export")
     public ResponseEntity<ApiResponse> exportClubMembers(@PathVariable("clubId") Long clubId, HttpServletResponse response) {
         // 엑셀 파일 생성
@@ -160,13 +169,13 @@ public class ClubLeaderController {
         return new ResponseEntity<>(new ApiResponse<>("추합 결과 처리 완료"), HttpStatus.OK);
     }
 
-    // 기존 동아리원 엑셀 파일 업로드
+    // 기존 동아리 회원 엑셀 파일 업로드
     @PostMapping("/{clubId}/members/import")
     public ResponseEntity<ApiResponse<List<ClubMembersImportExcelResponse>>> importClubMembers(@PathVariable("clubId") Long clubId, @RequestPart(value = "clubMembersFile", required = false) MultipartFile clubMembersFile) throws IOException {
         return new ResponseEntity<>(clubLeaderService.uploadExcel(clubId, clubMembersFile), HttpStatus.OK);
     }
 
-    // 기존 동아리원 엑셀 파일로 추가
+    // 기존 동아리 회원 엑셀 파일로 추가
     @PostMapping("/{clubId}/members")
     public ResponseEntity<ApiResponse> addClubMembersFromExcel(@PathVariable("clubId") Long clubId, @RequestBody List<ClubMembersAddFromExcelRequest> clubMembersAddFromExcelRequest) {
         clubLeaderService.addClubMembersFromExcel(clubId, clubMembersAddFromExcelRequest);
@@ -187,10 +196,22 @@ public class ClubLeaderController {
         return new ResponseEntity<>(clubLeaderService.updateNonMemberProfile(clubId, clubMemberId, clubNonMemberUpdateRequest), HttpStatus.OK);
     }
 
-    // 약관 동의 완료 업데이트
-    @PatchMapping("/terms/agreement")
-    public ResponseEntity<ApiResponse<String>> SetAgreedTermsTrue (){
-        clubLeaderService.updateAgreedTermsTrue();
-        return new ResponseEntity<>(new ApiResponse<>("약관 동의 완료"),HttpStatus.OK);
+    // 기존 동아리 회원 가입 요청 조회
+    @GetMapping("/{clubId}/members/sign-up")
+    public ResponseEntity<ApiResponse> getSignUpRequest(@PathVariable("clubId") Long clubId) {
+        return new ResponseEntity<>(clubLeaderService.getSignUpRequest(clubId), HttpStatus.OK);
     }
+
+    // 기존 동아리 회원 가입 요청 삭제(거절)
+    @DeleteMapping("/{clubId}/members/sign-up/{clubMemberAccountStatusId}")
+    public ResponseEntity<ApiResponse> deleteSignUpRequest(@PathVariable("clubId") Long clubId, @PathVariable("clubMemberAccountStatusId") Long clubMemberAccountStatusId) {
+        return new ResponseEntity<>(clubLeaderService.deleteSignUpRequest(clubId, clubMemberAccountStatusId), HttpStatus.OK);
+    }
+
+    // 기존 동아리 회원 가입 요청 수락
+    @PostMapping("/{clubId}/members/sign-up")
+    public ResponseEntity<ApiResponse> acceptSignUpRequest(@PathVariable("clubId") Long clubId, @RequestBody @Valid ClubMembersAcceptSignUpRequest clubMembersAcceptSignUpRequest) {
+        return new ResponseEntity<>(clubLeaderService.acceptSignUpRequest(clubId, clubMembersAcceptSignUpRequest), HttpStatus.OK);
+    }
+
 }

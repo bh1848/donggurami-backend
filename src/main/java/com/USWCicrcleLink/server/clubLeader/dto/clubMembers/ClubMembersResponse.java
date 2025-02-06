@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.clubLeader.dto;
+package com.USWCicrcleLink.server.clubLeader.dto.clubMembers;
 
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;

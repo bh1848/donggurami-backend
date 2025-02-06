@@ -51,8 +51,8 @@ public class ProfileService {
         Profile profile = getProfileByAuth();
 
         profile.updateProfile(profileRequest.getUserName(),
-                profileRequest.getMajor(),
                 profileRequest.getStudentNumber(),
+                profileRequest.getMajor(),
                 profileRequest.getUserHp()
         );
 
