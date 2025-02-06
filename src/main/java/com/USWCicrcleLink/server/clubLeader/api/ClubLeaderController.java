@@ -31,6 +31,14 @@ public class ClubLeaderController {
     private final AdminClubCategoryService adminClubCategoryService;
     private final FcmServiceImpl fcmService;
 
+    //동아리 회장 로그인
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LeaderLoginResponse>> LeaderLogin(@RequestBody LeaderLoginRequest request, HttpServletResponse response){
+        LeaderLoginResponse leaderLoginResponse = clubLeaderService.LeaderLogin(request,response);
+        ApiResponse<LeaderLoginResponse> apiResponse = new ApiResponse<>("동아리 회장 로그인 성공", leaderLoginResponse);
+        return ResponseEntity.ok(apiResponse);
+    }
+
     // 동아리 기본 정보 조회
     @GetMapping("/{clubId}/info")
     public ResponseEntity<ApiResponse> getClubInfo(@PathVariable("clubId") Long clubId) {
