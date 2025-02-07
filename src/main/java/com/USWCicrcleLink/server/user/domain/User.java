@@ -76,8 +76,5 @@ public class User implements ClientIdentifier {
     public String getClientId() {
         return this.email;
     }
-
-
-
 }
 

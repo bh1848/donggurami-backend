@@ -7,7 +7,7 @@ import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberAccountSta
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.dto.ClubDTO;
 import com.USWCicrcleLink.server.user.dto.ExistingMemberSignUpRequest;
-import com.USWCicrcleLink.server.user.repository.ClubMemerAccountStatusRepository;
+import com.USWCicrcleLink.server.user.repository.ClubMemberAccountStatusRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class ClubMemberAccountStatusService {
-    private final ClubMemerAccountStatusRepository clubMemerAccountStatusRepository;
+    private final ClubMemberAccountStatusRepository clubMemberAccountStatusRepository;
 
     // clubMemberAccountStatus 객체 생성 메서드
     public void createAccountStatus(Club club, ClubMemberTemp clubMemberTemp){
@@ -40,7 +40,7 @@ public class ClubMemberAccountStatusService {
         // 생성된 ClubMemberAccountStatus 저장
         try{
             log.debug("clubMember_Account_Status 객체 저장 완료- Club ID: {}, 사용자 ID : {}", club.getClubId(), clubMemberTemp.getClubMemberTempId());
-            clubMemerAccountStatusRepository.save(status);
+            clubMemberAccountStatusRepository.save(status);
         }catch (Exception e){
             log.error("clubMember_Account_Status 객체 저장 실패- Club ID: {}, 사용자 ID : {}", club.getClubId(), clubMemberTemp.getClubMemberTempId());
             throw new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_ACCOUNTSTATUS_CREATE_FAILED);
@@ -54,7 +54,7 @@ public class ClubMemberAccountStatusService {
         log.debug("가입신청 검증 시작");
 
         // 총 생성된 ClubMemberAccountStatus 개수 확인
-        long savedCount = clubMemerAccountStatusRepository.countByClubMemberTemp_ClubMemberTempId(clubMemberTemp.getClubMemberTempId());
+        long savedCount = clubMemberAccountStatusRepository.countByClubMemberTemp_ClubMemberTempId(clubMemberTemp.getClubMemberTempId());
         int expectedCount = request.getClubs().size();
 
         log.debug("개수 검증 결과 - 사용자 ID: {}, 저장된 개수: {}, 예상 개수: {}",
@@ -77,7 +77,7 @@ public class ClubMemberAccountStatusService {
 
         // 요청을 실제로 보낸 동아리 List
         // 검증하고자 하는 값
-        Set<Long> saved_clubId = clubMemerAccountStatusRepository.findAllByClubMemberTemp_ClubMemberTempId(clubMemberTemp.getClubMemberTempId())
+        Set<Long> saved_clubId = clubMemberAccountStatusRepository.findAllByClubMemberTemp_ClubMemberTempId(clubMemberTemp.getClubMemberTempId())
                 .stream()
                 .map(accountStatus -> accountStatus.getClub().getClubId())
                 .collect(Collectors.toSet());
@@ -88,7 +88,7 @@ public class ClubMemberAccountStatusService {
         }
         else{
             log.error("사용자가 요청한 동아리Id 와 저장된 동아리Id 값이 일치하지않습니다");
-            throw new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_ACCOUNTSTATUS_NOT_MATCH);
+            throw new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_ACCOUNTSTATUS_REQEUST_NOT_MATCH);
         }
         log.debug("가입신청 검증 완료");
     }
@@ -97,7 +97,7 @@ public class ClubMemberAccountStatusService {
     @Transactional
     public void deleteAccountStatus(ClubMemberTemp expired) {
 
-        List<ClubMemberAccountStatus> relatedStatuses = clubMemerAccountStatusRepository.findAllByClubMemberTemp_ClubMemberTempId(expired.getClubMemberTempId());
+        List<ClubMemberAccountStatus> relatedStatuses = clubMemberAccountStatusRepository.findAllByClubMemberTemp_ClubMemberTempId(expired.getClubMemberTempId());
 
        /* // 리스트로 조회된 accountStatus 객체들 출력해보기
         for (ClubMemberAccountStatus relatedStatus : relatedStatuses) {
@@ -106,7 +106,7 @@ public class ClubMemberAccountStatusService {
 
         try {
             if (!relatedStatuses.isEmpty()) {
-                clubMemerAccountStatusRepository.deleteAll(relatedStatuses);
+                clubMemberAccountStatusRepository.deleteAll(relatedStatuses);
                 log.debug("clubMemberTemp ID: {} -> 연관된 모든 AccountStatus 삭제 성공 완료", expired.getClubMemberTempId());
             } else {
                 log.debug("삭제할 clubMemberTemp 없음: {}", expired.getClubMemberTempId());

@@ -20,6 +20,7 @@ import com.USWCicrcleLink.server.profile.service.ProfileService;
 import com.USWCicrcleLink.server.user.domain.*;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.dto.*;
+import com.USWCicrcleLink.server.user.repository.ClubMemberAccountStatusRepository;
 import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
@@ -58,6 +59,7 @@ public class UserService {
     private final ClubMemberTempRepository clubMemberTempRepository;
     private final ClubRepository clubRepository;
     private final ClubMemberAccountStatusService clubMemberAccountStatusService;
+    private final ClubMemberAccountStatusRepository clubMemberAccountStatusRepository;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
@@ -212,8 +214,6 @@ public class UserService {
         // 요청이 전부 제대로 갔는지 검증
         clubMemberAccountStatusService.checkRequest(request, clubMemberTemp);
     }
-
-
 
     // 이메일 중복 검증
     private void verifyUserDuplicate(String email){

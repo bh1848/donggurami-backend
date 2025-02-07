@@ -18,7 +18,7 @@ public class ClubMemberAccountStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "CLUB_MEMBER_ACCOUNTSTATUS_ID")
-    private Long clubMember_AccountStatus_Id;
+    private Long clubMemberAccountStatusId;
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)

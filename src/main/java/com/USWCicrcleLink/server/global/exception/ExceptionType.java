@@ -117,6 +117,9 @@ public enum ExceptionType {
     DEPARTMENT_NOT_INPUT("PFL-205", "학과 정보는 필수 입력 항목입니다.", BAD_REQUEST),
     NOT_NON_MEMBER("PFL-206", "비회원만 수정할 수 있습니다.", BAD_REQUEST),
     PROFILE_ALREADY_EXISTS("PFL-207","프로필이 이미 존재합니다",BAD_REQUEST),
+    INVALID_MEMBER_TYPE("PFL-208","유효하지 않은 회원 종류입니다.",BAD_REQUEST),
+    PROFILE_VALUE_MISMATCH("PFL-209","프로필 값이 일치하지 않습니다.",BAD_REQUEST),
+
 
     /**
      * Domain: ClubIntroPhoto, Club(MainPhoto)
@@ -137,6 +140,11 @@ public enum ExceptionType {
      */
     CLUB_MEMBER_NOT_EXISTS("CMEM-201","클럽멤버가 존재하지 않습니다.", NOT_FOUND),
     CLUB_MEMBER_ALREADY_EXISTS("CMEM-202","클럽멤버가 이미 존재합니다. 관리자에게 문의하세요.", BAD_REQUEST),
+
+    /**
+     * Domain: ClubMemberAccountStatus
+     */
+    CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS("CMEMT-201","회원 가입 요청이 존재하지 않습니다.", NOT_FOUND),
 
     /**
      * Domain: Aplict

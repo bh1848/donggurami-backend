@@ -59,6 +59,8 @@ public class SecurityConfig {
                             "/users/email/resend-confirmation",
                             "/auth/refresh-token", // 토큰 재발급
                             "/integration/login", // 동아리 회장, 동연회-개발자 통합 로그인
+                            "/club-leader/login", // 동아리 회장 로그인
+                            "/admins/login", // 운영팀 로그인
                             "/integration/logout", // 통합 로그아웃
                             "/mainPhoto/**",
                             "/introPhoto/**",
@@ -66,8 +68,8 @@ public class SecurityConfig {
                             "/clubs/**", // 동아리 조회(모바일)
                             "/profiles/duplication-check", // 프로필 중복 조회
                             "/users/existing/register",// 기존 동아리회원의 회원가입
-                            "/mypages/clubs/{floor}/photo", //동아리방 층별 사진 조회
-                            "/clubs/filter/**" //카테고리별 동아리 조회
+                            "/mypages/clubs/{floor}/photo", // 동아리방 층별 사진 조회
+                            "/clubs/filter/**" // 카테고리별 동아리 조회
                     ).permitAll();
 
                     // photo

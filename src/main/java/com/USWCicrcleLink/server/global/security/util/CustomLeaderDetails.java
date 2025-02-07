@@ -6,7 +6,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 public record CustomLeaderDetails(Leader leader, Long clubId) implements UserDetails {
 
     public Long getClubId() {
@@ -27,6 +26,8 @@ public record CustomLeaderDetails(Leader leader, Long clubId) implements UserDet
     public String getUsername() {
         return leader.getLeaderUUID().toString();
     }
+
+    public Boolean getIsAgreedTerms() { return leader.isAgreedTerms();}
 
     @Override
     public boolean isAccountNonExpired() {

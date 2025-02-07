@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.clubLeader.dto;
+package com.USWCicrcleLink.server.clubLeader.dto.club;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -15,12 +15,12 @@ public class ClubInfoRequest {
     private String leaderName;
 
     @NotEmpty(message = "회장 전화번호는 필수 입력 값입니다.")
-    @Pattern(regexp = "^\\d{11}$", message = "전화번호는 하이픈 없이 11자리여야 합니다.")
+    @Pattern(regexp = "^\\d{11}$|^$", message = "전화번호는 하이픈 없이 11자리여야 합니다.")
     private String leaderHp;
 
     // 선택 입력값
     @Pattern(
-            regexp = "^(https?://)?(www\\.)?instagram\\.com/.+$",
+            regexp = "^(https?://)?(www\\.)?instagram\\.com/.+$|^$",
             message = "유효한 인스타그램 링크를 입력해주세요."
     )
     private String clubInsta;

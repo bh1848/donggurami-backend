@@ -73,18 +73,18 @@ public class Profile {
                 .build();
     }
 
-    public void updateProfile(String userName, String major, String studentNumber, String userHp) {
+    public void updateProfile(String userName, String studentNumber, String major, String userHp) {
         if (userName != null) {
             validateProfileInput("userName", userName);
             this.userName = userName;
         }
-        if (major != null) {
-            validateProfileInput("major", major);
-            this.major = major;
-        }
         if (studentNumber != null) {
             validateProfileInput("studentNumber", studentNumber);
             this.studentNumber = studentNumber;
+        }
+        if (major != null) {
+            validateProfileInput("major", major);
+            this.major = major;
         }
         if (userHp != null) {
             validateProfileInput("userHp", userHp);
@@ -108,5 +108,9 @@ public class Profile {
     public void updateFcmTokenTime(String fcmToken, LocalDateTime fcmTokenCertificationTimestamp) {
         this.fcmToken = fcmToken;
         this.fcmTokenCertificationTimestamp = fcmTokenCertificationTimestamp;
+    }
+
+    public void updateUser(User user) {
+        this.user = user;
     }
 }

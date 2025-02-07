@@ -4,12 +4,10 @@ import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberAccountSta
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface ClubMemerAccountStatusRepository extends JpaRepository<ClubMemberAccountStatus,Long> {
+public interface ClubMemberAccountStatusRepository extends JpaRepository<ClubMemberAccountStatus,Long>, ClubMemberAccountStatusCustomRepository {
     Long countByClubMemberTemp_ClubMemberTempId(Long clubMemberTempId);
-
-    // clubMemberTemp_Id로 객체 조회
     List<ClubMemberAccountStatus> findAllByClubMemberTemp_ClubMemberTempId(Long clubMemberTempId);
-
-
+    Optional<ClubMemberAccountStatus> findByClubMemberAccountStatusIdAndClub_ClubId(Long clubMemberAccountStatusId, Long clubId);
 }

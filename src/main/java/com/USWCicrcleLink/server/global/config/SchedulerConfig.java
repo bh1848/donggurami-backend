@@ -7,7 +7,6 @@ import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
-import com.USWCicrcleLink.server.user.repository.ClubMemerAccountStatusRepository;
 import com.USWCicrcleLink.server.user.service.ClubMemberAccountStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,6 @@ public class SchedulerConfig {
     private final EmailTokenRepository emailTokenRepository;
     private final AplictRepository aplictRepository;
     private final ProfileRepository profileRepository;
-    private final ClubMemerAccountStatusRepository clubMemerAccountStatusRepository;
     private final ClubMemberTempRepository clubMemberTempRepository;
     private final ClubMemberAccountStatusService clubMemberAccountStatusService;
 

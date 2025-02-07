@@ -63,10 +63,14 @@ public class ClubMemberTemp {
     private int totalClubRequest; // 총 지원한 동아리 수
 
     @Column(nullable = false)
-    private int clubAcceptanceCount=0; // 인증 받은 동아리 수
+    private int clubRequestCount=0; // 동아리 회장이 수락한 횟수
 
     @Column(nullable = false)
     private LocalDateTime clubMemberTempExpiryDate;  // 요청  마감 날짜
+
+    public void updateClubRequestCount() {
+        this.clubRequestCount = this.clubRequestCount + 1;
+    }
 
 }
 

@@ -11,7 +11,6 @@ import com.USWCicrcleLink.server.user.domain.*;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
-import com.USWCicrcleLink.server.user.service.ClubMemberAccountStatusService;
 import com.USWCicrcleLink.server.user.service.UserService;
 
 import com.USWCicrcleLink.server.user.service.WithdrawalTokenService;
@@ -41,7 +40,6 @@ public class UserController {
     private final AuthTokenService authTokenService;
     private final EmailTokenService emailTokenService;
     private final WithdrawalTokenService withdrawalTokenService;
-    private final ClubMemberAccountStatusService clubMemberAccountStatusService;
 
     @PatchMapping("/userpw")
     public ApiResponse<String> updateUserPw(@Validated(ValidationSequence.class) @RequestBody UpdatePwRequest request) {
