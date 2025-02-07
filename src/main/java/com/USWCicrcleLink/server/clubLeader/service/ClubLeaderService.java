@@ -33,8 +33,8 @@ import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
-import com.USWCicrcleLink.server.user.domain.ClubMemberAccountStatus;
-import com.USWCicrcleLink.server.user.domain.ClubMemberTemp;
+import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberAccountStatus;
+import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.repository.ClubMemberAccountStatusRepository;
 import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
@@ -1074,7 +1074,7 @@ public class ClubLeaderService {
         List<ClubMemberAccountStatus> signUpClubMember = clubMemberAccountStatusRepository.findAllWithClubMemberTemp(club.getClubId());
         List<SignUpRequestResponse> signUpRequestResponse = signUpClubMember.stream().map(
                 cmt -> new SignUpRequestResponse(
-                        cmt.getId(),
+                        cmt.getClubMemberAccountStatusId(),
                         cmt.getClubMemberTemp()
                 )
         ).toList();
@@ -1087,7 +1087,7 @@ public class ClubLeaderService {
         Club club = validateLeader(clubId);
 
         // 동아리 + 기존 동아리 회원 가입 요청 확인
-        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByIdAndClubClubId(clubMemberAccountStatusId, club.getClubId())
+        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByClubMemberAccountStatusIdAndClub_ClubId(clubMemberAccountStatusId, club.getClubId())
                 .orElseThrow(() -> new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS));
 
         clubMemberAccountStatusRepository.delete(clubMemberAccountStatus);
@@ -1144,7 +1144,7 @@ public class ClubLeaderService {
 
     // 기존 회원 가입 요청 검증
     private ClubMemberAccountStatus validateSignUpProfile(ClubMemberProfileRequest signUpProfileRequest, Long clubId) {
-        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByIdAndClubClubId(signUpProfileRequest.getId(), clubId)
+        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByClubMemberAccountStatusIdAndClub_ClubId(signUpProfileRequest.getId(), clubId)
                 .orElseThrow(() -> new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS));
 
         ClubMemberTemp clubMemberTemp = clubMemberAccountStatus.getClubMemberTemp();

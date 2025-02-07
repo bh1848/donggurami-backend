@@ -17,8 +17,8 @@ import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
-import com.USWCicrcleLink.server.user.domain.ClubMemberAccountStatus;
-import com.USWCicrcleLink.server.user.domain.ClubMemberTemp;
+import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberAccountStatus;
+import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.repository.ClubMemberAccountStatusRepository;
 import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
@@ -311,7 +311,7 @@ public class DummyData {
                 .profileTempEmail("clubMemberTemp1@naver.com")
                 .totalClubRequest(2)
                 .clubRequestCount(0)
-                .clubExpiryDate(LocalDateTime.now().plusDays(7))
+                .clubMemberTempExpiryDate(LocalDateTime.now().plusDays(7))
                 .build();
         clubMemberTempRepository.save(clubMemberTemp1);
 
@@ -325,7 +325,7 @@ public class DummyData {
                 .profileTempEmail("clubMemberTemp2@naver.com")
                 .totalClubRequest(1)
                 .clubRequestCount(0)
-                .clubExpiryDate(LocalDateTime.now().plusDays(7))
+                .clubMemberTempExpiryDate(LocalDateTime.now().plusDays(7))
                 .build();
         clubMemberTempRepository.save(clubMemberTemp2);
 

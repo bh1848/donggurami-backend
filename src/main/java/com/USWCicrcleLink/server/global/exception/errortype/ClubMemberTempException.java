@@ -1,10 +1,9 @@
-
 package com.USWCicrcleLink.server.global.exception.errortype;
 
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 
-public class ClubMemberAccountStatusException extends BaseException {
-    public ClubMemberAccountStatusException(ExceptionType exceptionType) {
+public class ClubMemberTempException extends BaseException{
+    public ClubMemberTempException (ExceptionType exceptionType) {
         super(exceptionType);
     }
 }

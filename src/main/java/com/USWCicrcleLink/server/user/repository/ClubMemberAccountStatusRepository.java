@@ -1,12 +1,13 @@
 package com.USWCicrcleLink.server.user.repository;
 
-import com.USWCicrcleLink.server.user.domain.ClubMemberAccountStatus;
+import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberAccountStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ClubMemberAccountStatusRepository extends JpaRepository<ClubMemberAccountStatus,Long>, ClubMemberAccountStatusCustomRepository {
-    Long countByClubMemberTempId(Long clubMemberTempId);
-
-    Optional<ClubMemberAccountStatus> findByIdAndClubClubId(Long clubMemberAccountStatusId, Long clubId);
+    Long countByClubMemberTemp_ClubMemberTempId(Long clubMemberTempId);
+    List<ClubMemberAccountStatus> findAllByClubMemberTemp_ClubMemberTempId(Long clubMemberTempId);
+    Optional<ClubMemberAccountStatus> findByClubMemberAccountStatusIdAndClub_ClubId(Long clubMemberAccountStatusId, Long clubId);
 }

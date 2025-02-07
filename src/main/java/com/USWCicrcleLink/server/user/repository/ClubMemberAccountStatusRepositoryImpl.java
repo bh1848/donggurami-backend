@@ -1,6 +1,6 @@
 package com.USWCicrcleLink.server.user.repository;
 
-import com.USWCicrcleLink.server.user.domain.ClubMemberAccountStatus;
+import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberAccountStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
