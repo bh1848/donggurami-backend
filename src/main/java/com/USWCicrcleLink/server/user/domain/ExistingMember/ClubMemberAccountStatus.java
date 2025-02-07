@@ -24,7 +24,7 @@ public class ClubMemberAccountStatus {
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
 
-    @ManyToOne(fetch=FetchType.LAZY,cascade = CascadeType.ALL)
+    @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "CLUBMEMBERTEMP_ID", nullable = false)
     private ClubMemberTemp clubMemberTemp;
 

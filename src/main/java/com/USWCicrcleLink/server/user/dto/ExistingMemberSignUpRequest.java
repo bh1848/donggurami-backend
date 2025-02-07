@@ -62,8 +62,8 @@ public class ExistingMemberSignUpRequest {
                 .profileTempMajor(major)
                 .profileTempEmail(email)
                 .totalClubRequest(total) // 총 지원한 동아리의 개수
-                .clubRequestCount(0) // 0으로 초기화
-                .clubExpiryDate(LocalDateTime.now().plusDays(7)) // 요청 마감일 7일후로 설정
+                .clubAcceptanceCount(0) // 0으로 초기화
+                .clubMemberTempExpiryDate(LocalDateTime.now().plusDays(7)) // 요청 마감일 7일후로 설정
                 .build();
     }
 
