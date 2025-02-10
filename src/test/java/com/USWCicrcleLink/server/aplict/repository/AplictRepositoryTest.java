@@ -95,7 +95,7 @@
 //    @DisplayName("동아리 ID로 지원자 조회 테스트")
 //    void testFindAllWithProfileByClubId() {
 //        Pageable pageable = PageRequest.of(0, 10);
-//        Page<Aplict> resultPage = aplictRepositoryCustom.findAllWithProfileByClubId(1L, pageable, true);
+//        Page<Aplict> resultPage = aplictRepositoryCustom.findAllWithProfileCollectionsInByClubClubId(1L, pageable, true);
 //
 //        assertThat(resultPage.getTotalElements()).isGreaterThanOrEqualTo(0);
 //    }

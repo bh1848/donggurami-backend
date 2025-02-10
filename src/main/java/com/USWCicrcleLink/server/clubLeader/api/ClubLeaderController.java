@@ -171,7 +171,7 @@ public class ClubLeaderController {
 
     // 기존 동아리 회원 엑셀 파일 업로드
     @PostMapping("/{clubId}/members/import")
-    public ResponseEntity<ApiResponse<List<ClubMembersImportExcelResponse>>> importClubMembers(@PathVariable("clubId") Long clubId, @RequestPart(value = "clubMembersFile", required = false) MultipartFile clubMembersFile) throws IOException {
+    public ResponseEntity<ApiResponse<ClubMembersImportExcelResponse>> importClubMembers(@PathVariable("clubId") Long clubId, @RequestPart(value = "clubMembersFile", required = true) MultipartFile clubMembersFile) throws IOException {
         return new ResponseEntity<>(clubLeaderService.uploadExcel(clubId, clubMembersFile), HttpStatus.OK);
     }
 
