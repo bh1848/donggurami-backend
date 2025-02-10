@@ -26,7 +26,7 @@ public class ClubInfoResponse {
 
     private List<String> clubHashtag;
 
-    private List<String> clubCategory;
+    private List<String> clubCategoryName;
 
     private Department department;
 

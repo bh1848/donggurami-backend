@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ClubCategoryResponse {
     private Long clubCategoryId;
-    private String clubCategory;
+    private String clubCategoryName;
 
     public ClubCategoryResponse(ClubCategory clubCategory) {
         this.clubCategoryId = clubCategory.getClubCategoryId();
-        this.clubCategory = clubCategory.getClubCategory();
+        this.clubCategoryName = clubCategory.getClubCategoryName();
     }
 }

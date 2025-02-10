@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.clubLeader.api;
 
+import com.USWCicrcleLink.server.admin.admin.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.admin.admin.service.AdminClubCategoryService;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
 import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
@@ -62,10 +63,9 @@ public class ClubLeaderController {
 
     // 동아리 기본 정보 변경 - 카테고리 조회
     @GetMapping("/category")
-    public ResponseEntity<ApiResponse<List<ClubCategory>>> getAllCategories() {
-        List<ClubCategory> categories = adminClubCategoryService.getAllCategories();
-        ApiResponse<List<ClubCategory>> response = new ApiResponse<>("카테고리 리스트 조회 성공", categories);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<List<ClubCategoryResponse>>> getAllCategories() {
+        List<ClubCategoryResponse> categories = adminClubCategoryService.getAllCategories();
+        return ResponseEntity.ok(new ApiResponse<>("카테고리 리스트 조회 성공", categories));
     }
 
     // 동아리 기본 정보 변경

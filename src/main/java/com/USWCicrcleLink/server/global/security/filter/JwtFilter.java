@@ -41,7 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
             "/auth/refresh-token", // 토큰 재발급
             "/integration/login", // 동아리 회장, 동연회-개발자 통합 로그인
             "/club-leader/login", // 동아리 회장 로그인
-            "/admins/login", // 운영팀 로그인
+            "/admin/login", // 운영팀 로그인
             "/mainPhoto/**",
             "/introPhoto/**",
             "/my-notices/**",

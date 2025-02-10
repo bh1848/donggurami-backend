@@ -177,7 +177,7 @@ public class ClubLeaderService {
 
         // clubCategory 조회
         List<String> clubCategories = clubCategoryMappingRepository.findByClubClubId(club.getClubId())
-                .stream().map(mapping -> mapping.getClubCategory().getClubCategory()).collect(toList());
+                .stream().map(mapping -> mapping.getClubCategory().getClubCategoryName()).collect(toList());
 
         ClubInfoResponse clubInfoResponse = new ClubInfoResponse(
                 mainPhotoUrl,
@@ -233,13 +233,13 @@ public class ClubLeaderService {
         }
 
         // 동아리 카테고리 처리
-        if (clubInfoRequest.getClubCategory() != null) {
+        if (clubInfoRequest.getClubCategoryName() != null) {
             // 기존 카테고리 매핑 삭제
             clubCategoryMappingRepository.deleteByClub_ClubId(clubId);
 
             // 새로운 카테고리 매핑 저장
-            for (String category : clubInfoRequest.getClubCategory()) {
-                ClubCategory clubCategory = clubCategoryRepository.findByClubCategory(category)
+            for (String categoryName : clubInfoRequest.getClubCategoryName()) {
+                ClubCategory clubCategory = clubCategoryRepository.findByClubCategoryName(categoryName)
                         .orElseThrow(() -> new ClubException(ExceptionType.INVALID_CATEGORY));
 
                 ClubCategoryMapping categoryMapping = ClubCategoryMapping.builder()

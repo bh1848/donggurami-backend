@@ -6,6 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ClubCategoryRepository extends JpaRepository<ClubCategory, Long> {
-    List<ClubCategory> findByClubCategoryIn(List<String> categories);
-    Optional<ClubCategory> findByClubCategory(String clubCategory);
+    List<ClubCategory> findByClubCategoryNameIn(List<String> categories);
+    Optional<ClubCategory> findByClubCategoryName(String clubCategoryName);
 }

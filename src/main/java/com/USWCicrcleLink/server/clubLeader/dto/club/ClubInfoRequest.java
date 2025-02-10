@@ -31,5 +31,5 @@ public class ClubInfoRequest {
     private List<String> clubHashtag;
 
     @Size(max = 3, message = "카테고리는 3개까지 입력 가능합니다.")
-    private List<String> clubCategory;
+    private List<String> clubCategoryName;
 }

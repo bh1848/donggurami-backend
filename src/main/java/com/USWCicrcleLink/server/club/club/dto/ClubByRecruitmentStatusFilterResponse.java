@@ -13,12 +13,12 @@ import java.util.List;
 @NoArgsConstructor
 public class ClubByRecruitmentStatusFilterResponse {
     private Long categoryId;
-    private String category;
+    private String categoryName;
     private List<ClubFilterResponse.ClubResponse> clubs;
 
     public ClubByRecruitmentStatusFilterResponse(ClubCategory clubCategory, List<ClubFilterResponse.ClubResponse> clubs){
         this.categoryId = clubCategory.getClubCategoryId();
-        this.category = clubCategory.getClubCategory();
+        this.categoryName = clubCategory.getClubCategoryName();
         this.clubs = clubs;
     }
 

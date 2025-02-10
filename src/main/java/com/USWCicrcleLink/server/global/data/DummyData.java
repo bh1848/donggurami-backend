@@ -633,22 +633,22 @@ public class DummyData {
 
         // 클럽 카테고리 더미 데이터 추가
         ClubCategory clubCategory1 = ClubCategory.builder()
-                .clubCategory("운동")
+                .clubCategoryName("운동")
                 .build();
         clubCategoryRepository.save(clubCategory1);
 
         ClubCategory clubCategory2 = ClubCategory.builder()
-                .clubCategory("학술")
+                .clubCategoryName("학술")
                 .build();
         clubCategoryRepository.save(clubCategory2);
 
         ClubCategory clubCategory3 = ClubCategory.builder()
-                .clubCategory("봉사")
+                .clubCategoryName("봉사")
                 .build();
         clubCategoryRepository.save(clubCategory3);
 
         ClubCategory clubCategory4 = ClubCategory.builder()
-                .clubCategory("개발")
+                .clubCategoryName("개발")
                 .build();
         clubCategoryRepository.save(clubCategory4);
 

@@ -86,10 +86,16 @@ public class GlobalExceptionHandler {
     // 유효하지 않은 enum값 예외 처리
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        // 예외 메시지에서 불필요한 부분 제거
+        String rawMessage = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
+
+        // 필요 없는 부분 필터링하여 메시지만 추출
+        String errorMessage = extractUsefulMessage(rawMessage);
+
         ErrorResponse errorResponse = buildErrorResponse(
                 e.getClass().getSimpleName(),
                 "BAD_REQUEST",
-                "해당 필드에서 지원하지 않는 값 입니다",
+                errorMessage,  // 메시지 반환
                 HttpStatus.BAD_REQUEST,
                 null
         );
@@ -111,5 +117,17 @@ public class GlobalExceptionHandler {
 
         logErrorResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 예외 메시지에서 필요한 부분만 추출하는 메서드
+    private String extractUsefulMessage(String rawMessage) {
+        if (rawMessage == null) {
+            return "잘못된 요청 값입니다.";
+        }
+        // "problem: " 이후 메시지만 추출하여 반환
+        if (rawMessage.contains("problem: ")) {
+            return rawMessage.substring(rawMessage.indexOf("problem: ") + 9).split("\n")[0].trim();
+        }
+        return rawMessage.split("\n")[0].trim(); // 첫 번째 줄만 반환
     }
 }

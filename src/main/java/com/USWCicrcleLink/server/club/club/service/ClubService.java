@@ -44,7 +44,7 @@ public class ClubService {
         }
 
         // 각 카테고리에 해당하는 동아리들을 조회
-        List<ClubCategory> clubCategories = clubCategoryRepository.findByClubCategoryIn(categories);
+        List<ClubCategory> clubCategories = clubCategoryRepository.findByClubCategoryNameIn(categories);
 
         //카테고리 존재 여부 확인
         if(clubCategories.isEmpty()){
@@ -92,7 +92,7 @@ public class ClubService {
         }
 
         // 각 카테고리에 해당하는 동아리들을 조회
-        List<ClubCategory> clubCategories = clubCategoryRepository.findByClubCategoryIn(categories);
+        List<ClubCategory> clubCategories = clubCategoryRepository.findByClubCategoryNameIn(categories);
 
         // 카테고리 존재 여부 확인
         if (clubCategories.isEmpty()) {

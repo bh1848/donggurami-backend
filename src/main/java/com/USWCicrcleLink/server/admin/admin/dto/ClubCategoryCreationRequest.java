@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.admin.admin.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ClubCategoryCreationRequest {
 
-    private String clubCategory;
+    @NotBlank(message = "카테고리 이름은 필수 입력 값입니다.")
+    private String clubCategoryName;
 
 }

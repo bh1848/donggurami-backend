@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ClubCategoryResponse {
     private Long clubCategoryId;
-    private String clubCategory;
+    private String clubCategoryName;
 }
 

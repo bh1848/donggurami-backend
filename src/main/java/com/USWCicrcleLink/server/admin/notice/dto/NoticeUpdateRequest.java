@@ -1,21 +1,14 @@
 package com.USWCicrcleLink.server.admin.notice.dto;
 
-import com.USWCicrcleLink.server.admin.admin.domain.Admin;
-import com.USWCicrcleLink.server.admin.notice.domain.Notice;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Setter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class NoticeUpdateRequest {
