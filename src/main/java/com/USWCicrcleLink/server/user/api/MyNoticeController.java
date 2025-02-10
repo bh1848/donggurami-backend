@@ -6,7 +6,6 @@ import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.user.dto.MyNoticeResponse;
 import com.USWCicrcleLink.server.user.service.MyNoticeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,8 +22,8 @@ public class MyNoticeController {
     private final NoticeService noticeService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<MyNoticeResponse>>> getNotices(Pageable pageable) {
-        List<MyNoticeResponse> notices = myNoticeService.getNotices(pageable);
+    public ResponseEntity<ApiResponse<List<MyNoticeResponse>>> getNotices() {
+        List<MyNoticeResponse> notices = myNoticeService.getNotices();
         ApiResponse<List<MyNoticeResponse>> response = new ApiResponse<>("공지사항 조회 성공", notices);
         return ResponseEntity.ok(response);
     }
@@ -32,7 +31,7 @@ public class MyNoticeController {
     @GetMapping("/{noticeId}/details")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNoticeById(@PathVariable("noticeId") Long noticeId) {
         NoticeDetailResponse notice = noticeService.getNoticeById(noticeId);
-        ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 조회 성공", notice);
+        ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 세부 조회 성공", notice);
         return ResponseEntity.ok(response);
     }
 }
