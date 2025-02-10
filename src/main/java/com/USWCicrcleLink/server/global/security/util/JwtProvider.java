@@ -46,7 +46,7 @@ public class JwtProvider {
     private String secretKeyString;
 
     @Value("${security.cookie.secure}")
-    private boolean secureCookie; // 프로덕션 환경에서는 true로 설정됨
+    private boolean secureCookie; // prod 환경에서는 true로 설정됨
     private Key secretKey;
 
     @PostConstruct

@@ -22,19 +22,10 @@ public class IntegrationController {
 
     private final IntegrationService integrationService;
 
-    // 동아리 회장, 동연회-개발자 통합 로그인
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<IntegrationLoginResponse>> integrationLogin(@RequestBody @Valid IntegrationLoginRequest loginRequest, HttpServletResponse response) {
-        IntegrationLoginResponse tokenDto = integrationService.integrationLogin(loginRequest, response);
-        ApiResponse<IntegrationLoginResponse> apiResponse = new ApiResponse<>("로그인 성공", tokenDto);
-        return ResponseEntity.ok(apiResponse);
-    }
-
     // 동아리 회장, 동연회-개발자, 사용자 통합 로그아웃
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> integrationLogout(HttpServletRequest request, HttpServletResponse response) {
         integrationService.integrationLogout(request, response);
-        ApiResponse<String> apiResponse = new ApiResponse<>("로그아웃 성공");
-        return ResponseEntity.ok(apiResponse);
+        return ResponseEntity.ok(new ApiResponse<>("로그아웃 성공"));
     }
 }

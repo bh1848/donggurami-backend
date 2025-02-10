@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -19,6 +21,16 @@ public class ClubCategory {
     @Column(name = "club_category_id")
     private Long clubCategoryId;
 
+    @Column(name = "club_category_uuid", nullable = false, unique = true, updatable = false)
+    private UUID clubCategoryUUID;
+
     @Column(name = "club_category_name", nullable = false)
     private String clubCategoryName;
+
+    @PrePersist
+    public void generateUUID() {
+        if (this.clubCategoryUUID == null) {
+            this.clubCategoryUUID = UUID.randomUUID();
+        }
+    }
 }

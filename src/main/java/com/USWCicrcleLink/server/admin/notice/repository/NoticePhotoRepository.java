@@ -11,5 +11,4 @@ import java.util.Optional;
 public interface NoticePhotoRepository extends JpaRepository<NoticePhoto, Long> {
     List<NoticePhoto> findByNotice(Notice notice);
 
-    Optional<NoticePhoto> findByNoticeAndOrder(Notice notice, int order);
 }

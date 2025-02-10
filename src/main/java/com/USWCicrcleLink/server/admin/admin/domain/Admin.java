@@ -40,7 +40,6 @@ public class Admin {
     @Column(name = "role", nullable = false)
     private Role role;
 
-    // UUID 자동 생성
     @PrePersist
     public void generateUUID() {
         if (this.adminUUID == null) {

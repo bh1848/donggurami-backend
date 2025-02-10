@@ -64,7 +64,7 @@ public class ClubLeaderController {
     // 동아리 기본 정보 변경 - 카테고리 조회
     @GetMapping("/category")
     public ResponseEntity<ApiResponse<List<ClubCategoryResponse>>> getAllCategories() {
-        List<ClubCategoryResponse> categories = adminClubCategoryService.getAllCategories();
+        List<ClubCategoryResponse> categories = adminClubCategoryService.getAllClubCategories();
         return ResponseEntity.ok(new ApiResponse<>("카테고리 리스트 조회 성공", categories));
     }
 

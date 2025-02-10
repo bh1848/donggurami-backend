@@ -1,0 +1,31 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+    activate:
+      on-profile: security
+
+  security:
+    permit-all-paths:
+      - /users/login
+      - /users/temporary/register
+      - /users/email/verify-token
+      - /users/finish-signup
+      - /users/verify-duplicate/{account}
+      - /users/validate-passwords-match
+      - /users/find-account/{email}
+      - /users/auth/send-code
+      - /users/auth/verify-token
+      - /users/reset-password
+      - /users/email/resend-confirmation
+      - /auth/refresh-token
+      - /club-leader/login
+      - /admin/login
+      - /integration/logout
+      - /mainPhoto/**
+      - /introPhoto/**
+      - /my-notices/**
+      - /clubs/**
+      - /profiles/duplication-check
+      - /users/existing/register
+      - /mypages/clubs/{floor}/photo
+      - /clubs/filter/**

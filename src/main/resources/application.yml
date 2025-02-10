@@ -7,6 +7,7 @@ spring:
       - classpath:/yaml/application-secret.yml
       - classpath:/yaml/application-file.yml
       - classpath:/yaml/application-test.yml
+      - classpath:/yaml/application-security.yml
 
   profiles:
     active: local #default
@@ -14,12 +15,15 @@ spring:
       local:
         - secret
         - file # local + secret + file 실행
+        - security
       prod:
         - secret
         - file
+        - security
       test:
         - secret
         - file
+        - security
 ---
 spring:
   config:

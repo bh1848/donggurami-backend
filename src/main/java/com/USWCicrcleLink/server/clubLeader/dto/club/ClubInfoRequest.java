@@ -3,14 +3,17 @@ package com.USWCicrcleLink.server.clubLeader.dto.club;
 import com.USWCicrcleLink.server.global.validation.Sanitize;
 import com.USWCicrcleLink.server.global.validation.ValidClubRoomNumber;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Data
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ClubInfoRequest {
 
     @NotBlank(message = "회장 이름은 필수 입력 값입니다.")
@@ -22,7 +25,6 @@ public class ClubInfoRequest {
     @Sanitize
     private String leaderHp;
 
-    // 선택 입력값
     @Pattern(
             regexp = "^(https?://)?(www\\.)?instagram\\.com/.+$|^$",
             message = "유효한 인스타그램 링크를 입력해주세요."
