@@ -14,7 +14,7 @@ public interface ClubCategoryMappingRepository
         extends JpaRepository<ClubCategoryMapping,Long> {
     List<ClubCategoryMapping> findByClubCategory(ClubCategory clubCategory);
     List<ClubCategoryMapping> findByClubClubId(Long clubId);
-    void deleteByClub_ClubId(Long clubId);
+    List<ClubCategoryMapping> findByClub_ClubId(Long clubId);
 
     @Modifying
     @Query("DELETE FROM ClubCategoryMapping cm WHERE cm.clubCategory = :clubCategory")
