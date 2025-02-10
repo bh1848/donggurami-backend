@@ -35,9 +35,9 @@ public class AdminFloorPhotoService {
 
         if (existingPhoto != null) {
             // 기존 사진 삭제 (S3 및 DB)
-            s3FileUploadService.deleteFile(existingPhoto.getFloorPhotoPhotoS3key());
+            s3FileUploadService.deleteFile(existingPhoto.getFloorPhotoS3key());
             floorPhotoRepository.delete(existingPhoto);
-            log.debug("기존 해당 층 사진 삭제 완료: Floor={}, S3Key={}", floor, existingPhoto.getFloorPhotoPhotoS3key());
+            log.debug("기존 해당 층 사진 삭제 완료: Floor={}, S3Key={}", floor, existingPhoto.getFloorPhotoS3key());
         }
 
         // 새로운 사진 업로드
@@ -46,8 +46,8 @@ public class AdminFloorPhotoService {
         // 새로운 FloorPhoto 엔티티 생성 및 저장
         FloorPhoto newPhoto = FloorPhoto.builder()
                 .floor(floor)
-                .floorPhotoPhotoName(photo.getOriginalFilename())
-                .floorPhotoPhotoS3key(s3FileResponse.getS3FileName())
+                .floorPhotoName(photo.getOriginalFilename())
+                .floorPhotoS3key(s3FileResponse.getS3FileName())
                 .build();
         floorPhotoRepository.save(newPhoto);
 
@@ -64,7 +64,7 @@ public class AdminFloorPhotoService {
                 .orElseThrow(() -> new BaseException(ExceptionType.PHOTO_NOT_FOUND));
 
         // S3 presigned URL 생성
-        String presignedUrl = s3FileUploadService.generatePresignedGetUrl(floorPhoto.getFloorPhotoPhotoS3key());
+        String presignedUrl = s3FileUploadService.generatePresignedGetUrl(floorPhoto.getFloorPhotoS3key());
         return new FloorPhotoCreationResponse(floor, presignedUrl);
     }
 
@@ -74,11 +74,11 @@ public class AdminFloorPhotoService {
                 .orElseThrow(() -> new BaseException(ExceptionType.PHOTO_NOT_FOUND));
 
         // S3 파일 삭제
-        s3FileUploadService.deleteFile(floorPhoto.getFloorPhotoPhotoS3key());
+        s3FileUploadService.deleteFile(floorPhoto.getFloorPhotoS3key());
 
         // 데이터베이스에서 삭제
         floorPhotoRepository.delete(floorPhoto);
 
-        log.debug("해당 층 사진 삭제 완료: Floor={}, S3Key={}", floor, floorPhoto.getFloorPhotoPhotoS3key());
+        log.debug("해당 층 사진 삭제 완료: Floor={}, S3Key={}", floor, floorPhoto.getFloorPhotoS3key());
     }
 }

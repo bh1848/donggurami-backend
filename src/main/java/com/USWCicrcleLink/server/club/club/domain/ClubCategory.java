@@ -19,6 +19,6 @@ public class ClubCategory {
     @Column(name = "club_category_id")
     private Long clubCategoryId;
 
-    @Column(name = "club_category", nullable = false)
+    @Column(name = "club_category_name", nullable = false)
     private String clubCategoryName;
 }

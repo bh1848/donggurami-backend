@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.admin.admin.dto;
 
 import com.USWCicrcleLink.server.club.club.domain.Department;
+import com.USWCicrcleLink.server.global.validation.ValidClubRoomNumber;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
@@ -42,5 +43,7 @@ public class ClubCreationRequest {
     @NotBlank(message = "운영자 비밀번호는 필수 입력 값입니다.")
     private String adminPw;
 
+    @NotBlank(message = "동아리 호수는 필수 입력 값입니다.")
+    @ValidClubRoomNumber
     private String clubRoomNumber;
 }

@@ -19,10 +19,10 @@ public class FloorPhoto {
     private Long floorPhotoId;
 
     @Column(name = "floor_photo_name", nullable = false)
-    private String floorPhotoPhotoName;
+    private String floorPhotoName;
 
     @Column(name = "floor_photo_s3_key", nullable = false)
-    private String floorPhotoPhotoS3key;
+    private String floorPhotoS3key;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "floor_photo_floor", nullable = false)

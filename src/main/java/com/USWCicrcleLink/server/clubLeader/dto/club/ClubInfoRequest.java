@@ -1,5 +1,7 @@
 package com.USWCicrcleLink.server.clubLeader.dto.club;
 
+import com.USWCicrcleLink.server.global.validation.ValidClubRoomNumber;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -10,11 +12,10 @@ import java.util.List;
 @Data
 public class ClubInfoRequest {
 
-    // 필수 입력값
-    @NotEmpty(message = "회장 이름은 필수 입력 값입니다.")
+    @NotBlank(message = "회장 이름은 필수 입력 값입니다.")
     private String leaderName;
 
-    @NotEmpty(message = "회장 전화번호는 필수 입력 값입니다.")
+    @NotBlank(message = "회장 전화번호는 필수 입력 값입니다.")
     @Pattern(regexp = "^\\d{11}$|^$", message = "전화번호는 하이픈 없이 11자리여야 합니다.")
     private String leaderHp;
 
@@ -25,6 +26,8 @@ public class ClubInfoRequest {
     )
     private String clubInsta;
 
+    @NotBlank(message = "동아리방 호수는 필수 입력 값입니다.")
+    @ValidClubRoomNumber
     private String clubRoomNumber;
 
     @Size(max = 2, message = "해시태그는 2개까지 입력 가능합니다.")
