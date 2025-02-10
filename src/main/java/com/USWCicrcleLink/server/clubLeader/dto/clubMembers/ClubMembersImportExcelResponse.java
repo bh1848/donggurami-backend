@@ -4,14 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClubMembersImportExcelResponse {
-    private String userName;
 
-    private String studentNumber;
+    private List<ExcelProfileMemberResponse> addClubMembers;
 
-    private String userHp;
+    private List<ExcelProfileMemberResponse> duplicateClubMembers;
 
 }

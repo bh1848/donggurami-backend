@@ -145,7 +145,7 @@ public class ClubLeaderService {
     }
 
     //약관 동의 여부 완료 업데이트
-    public void updateAgreedTermsTrue(){
+    public void updateAgreedTermsTrue() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomLeaderDetails leaderDetails = (CustomLeaderDetails) authentication.getPrincipal();
         Leader leader = leaderDetails.leader();
@@ -790,8 +790,8 @@ public class ClubLeaderService {
 
     // 기존 동아리원 가져오기(엑셀 파일)
     @Transactional(readOnly = true)
-    public ApiResponse<List<ClubMembersImportExcelResponse>> uploadExcel(Long clubId, MultipartFile clubMembersFile) throws IOException {
-        Club club = validateLeader(clubId);
+    public ApiResponse<ClubMembersImportExcelResponse> uploadExcel(Long clubId, MultipartFile clubMembersFile) throws IOException {
+        validateLeader(clubId);
 
         // 엑셀 파일의 개수 확인
         if (clubMembersFile == null || clubMembersFile.isEmpty()) {
@@ -810,10 +810,11 @@ public class ClubLeaderService {
         }
 
         Sheet sheet = workbook.getSheetAt(0); // 첫 번째 시트 사용
-        // 추가 회원
-        List<ClubMembersImportExcelResponse> excelClubMembers = new ArrayList<>();
-        // 중복 회원
-        List<Map<String, String>> duplicateUsers = new ArrayList<>();
+
+        // 추가 동아리 회원
+        List<ExcelProfileMemberResponse> addClubMembers = new ArrayList<>();
+        // 중복 동아리 회원
+        List<ExcelProfileMemberResponse> duplicateClubMembers = new ArrayList<>();
 
         // 엑셀 데이터를 읽어 이름, 학번, 전화번호 수집
         Set<String> userNames = new HashSet<>();
@@ -851,27 +852,27 @@ public class ClubLeaderService {
             String duplicateProfileKey = profile.getUserName() + "_" + profile.getStudentNumber() + "_" + profile.getUserHp();// key
             ClubMemberExcelDataDto duplicateExcelData = rowExcelDataMap.get(duplicateProfileKey);// map 검색
             if (duplicateExcelData != null) {
-                duplicateUsers.add(Map.of(
-                        "이름", profile.getUserName(),
-                        "학번", profile.getStudentNumber(),
-                        "전화번호", profile.getUserHp()
+                duplicateClubMembers.add(new ExcelProfileMemberResponse(
+                        profile.getUserName(),
+                        profile.getStudentNumber(),
+                        profile.getUserHp()
                 ));
             }
             // 확인한 key:value 삭제
             rowExcelDataMap.remove(duplicateProfileKey);
         }
 
-        // 중복된 데이터가 있으면 예외 처리
-        if (!duplicateUsers.isEmpty()) {
-            throw new ProfileException(ExceptionType.DUPLICATE_PROFILE, duplicateUsers);
-        }
-
         // 중복이 아닌 데이터 추가
-        for (ClubMemberExcelDataDto rowData : rowExcelDataMap.values()) {
-            excelClubMembers.add(new ClubMembersImportExcelResponse(rowData.getUserName(), rowData.getStudentNumber(), rowData.getUserHp()));
+        for (ClubMemberExcelDataDto addClubMember : rowExcelDataMap.values()) {
+            addClubMembers.add(new ExcelProfileMemberResponse(
+                    addClubMember.getUserName(),
+                    addClubMember.getStudentNumber(),
+                    addClubMember.getUserHp()
+            ));
         }
 
-        return new ApiResponse<>("기존 동아리 회원 엑셀로 가져오기 완료", excelClubMembers);
+        ClubMembersImportExcelResponse response = new ClubMembersImportExcelResponse(addClubMembers, duplicateClubMembers);
+        return new ApiResponse<>("기존 동아리 회원 엑셀로 가져오기 완료", response);
     }
 
     private String validateClubMembersExcelFile(MultipartFile clubMembersFile) {
@@ -936,7 +937,7 @@ public class ClubLeaderService {
             requestDataMap.put(clubMemberKey, request);
         }
 
-        // DB에서 중복 프로필 확인 (이름, 학번, 전화번호, 전공)
+        // DB에서 중복 데이터 확인 (이름, 학번, 전화번호, 전공을 모두 포함)
         List<Profile> duplicateProfiles = profileRepository.findByUserNameInAndStudentNumberInAndUserHpInAndMajorIn(
                 requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getUserName).collect(Collectors.toSet()),
                 requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getStudentNumber).collect(Collectors.toSet()),
@@ -944,7 +945,7 @@ public class ClubLeaderService {
                 requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getMajor).collect(Collectors.toSet())
         );
 
-        // 프로필 중복 확인 및 매핑
+        // 중복 확인 및 매핑
         for (Profile profile : duplicateProfiles) {
             String uniqueKey = profile.getUserName() + "_" + profile.getStudentNumber() + "_" + profile.getUserHp() + "_" + profile.getMajor();
 
@@ -960,7 +961,7 @@ public class ClubLeaderService {
             }
         }
 
-        // 중복된 프로필이 있으면 예외 처리
+        // 중복된 데이터가 있으면 예외 처리
         if (!duplicateUsers.isEmpty()) {
             throw new ProfileException(ExceptionType.DUPLICATE_PROFILE, duplicateUsers);
         }
