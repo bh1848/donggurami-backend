@@ -48,9 +48,13 @@ public class AdminClubService {
 
     // 동아리 목록 조회(웹)
     public Page<AdminClubListResponse> getAllClubs(Pageable pageable) {
+        log.debug("동아리 목록 조회 요청 - 페이지 정보: {}", pageable);
         try {
-            return clubRepository.findAllWithMemberAndLeaderCount(pageable);
+            Page<AdminClubListResponse> result = clubRepository.findAllWithMemberAndLeaderCount(pageable);
+            log.debug("동아리 목록 조회 성공 - 총 {}개", result.getTotalElements());
+            return result;
         } catch (Exception e) {
+            log.error("동아리 목록 조회 실패", e);
             throw new ClubException(ExceptionType.ClUB_CHECKING_ERROR);
         }
     }
@@ -59,13 +63,13 @@ public class AdminClubService {
     public void createClub(ClubCreationRequest request) {
         // 인증된 관리자 정보 가져오기
         Admin admin = getAuthenticatedAdmin();
+        log.debug("동아리 생성 요청 - 관리자 ID: {}, 동아리명: {}", admin.getAdminId(), request.getClubName());
 
         // 동아리 회장 비밀번호 확인
         if (!request.getLeaderPw().equals(request.getLeaderPwConfirm())) {
+            log.warn("동아리 생성 실패 - 회장 비밀번호 불일치");
             throw new ClubException(ExceptionType.ClUB_LEADER_PASSWORD_NOT_MATCH);
         }
-
-        log.debug("동아리 회장 비밀번호 확인 성공");
 
         //동아리 회장, 동아리 이름 중복 확인
         validateLeaderAccount(request.getLeaderAccount());
@@ -73,10 +77,9 @@ public class AdminClubService {
 
         // 관리자 비밀번호 검증
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
+            log.warn("동아리 생성 실패 - 관리자 비밀번호 불일치, 관리자 ID: {}", admin.getAdminId());
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
-
-        log.debug("관리자 비밀번호 확인 성공");
 
         // Club 생성 및 저장
         Club club = Club.builder()
@@ -88,6 +91,7 @@ public class AdminClubService {
                 .clubRoomNumber(request.getClubRoomNumber())
                 .build();
         clubRepository.save(club);
+        log.info("동아리 생성 성공 - Club ID: {}, 동아리명: {}", club.getClubId(), club.getClubName());
 
         // Leader 생성 및 저장
         Leader leader = Leader.builder()
@@ -98,6 +102,7 @@ public class AdminClubService {
                 .club(club)
                 .build();
         leaderRepository.save(leader);
+        log.info("회장 계정 생성 성공 - Leader ID: {}, 계정명: {}", leader.getLeaderId(), leader.getLeaderAccount());
 
         // ClubMainPhoto 생성 및 저장
         ClubMainPhoto mainPhoto = ClubMainPhoto.builder()
@@ -128,12 +133,13 @@ public class AdminClubService {
             introPhotos.add(introPhoto);
         }
         clubIntroPhotoRepository.saveAll(introPhotos);
-        log.debug("동아리 생성 성공");
+        log.info("동아리 생성 및 초기 데이터 저장 완료 - Club ID: {}", club.getClubId());
     }
 
     // 동아리 생성(웹) - 동아리 회장 아이디 중복 확인
     public void validateLeaderAccount(String leaderAccount) {
         if (leaderRepository.existsByLeaderAccount(leaderAccount)) {
+            log.warn("동아리 회장 계정 중복 - LeaderAccount: {}", leaderAccount);
             throw new ClubException(ExceptionType.LEADER_ACCOUNT_ALREADY_EXISTS);
         }
     }
@@ -141,6 +147,7 @@ public class AdminClubService {
     // 동아리 생성(웹) - 동아리 이름 중복 확인
     public void validateClubName(String clubName) {
         if (clubRepository.existsByClubName(clubName)) {
+            log.warn("동아리명 중복 - ClubName: {}", clubName);
             throw new ClubException(ExceptionType.CLUB_NAME_ALREADY_EXISTS);
         }
     }
@@ -150,19 +157,24 @@ public class AdminClubService {
 
         // 인증된 관리자 정보 가져오기
         Admin admin = getAuthenticatedAdmin();
+        log.info("동아리 삭제 요청 - 관리자 ID: {}, 동아리 ID: {}", admin.getAdminId(), clubId);
 
         // 관리자 비밀번호 검증
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
+            log.warn("동아리 삭제 실패 - 관리자 비밀번호 불일치, 관리자 ID: {}", admin.getAdminId());
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
 
         // 동아리 존재 여부 확인
         clubRepository.findById(clubId)
-                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+                .orElseThrow(() -> {
+                    log.error("동아리 삭제 실패 - 존재하지 않는 Club ID: {}", clubId);
+                    return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
+                });
 
-        // 동아리 및 관련 종속 엔티티와 S3 파일 삭제
+        // 동아리 및 관련 데이터 삭제
         clubRepository.deleteClubAndDependencies(clubId);
-        log.debug("동아리 삭제 성공: clubId = {}", clubId);
+        log.info("동아리 삭제 성공 - Club ID: {}", clubId);
     }
 
     // 인증된 관리자 정보 가져오기

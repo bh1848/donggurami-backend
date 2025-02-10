@@ -23,6 +23,6 @@ public class ClubHashtag {
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
 
-    @Column(name = "club_hashtag")
+    @Column(name = "club_hashtag", nullable = false, unique = true)
     private String clubHashtag;
 }

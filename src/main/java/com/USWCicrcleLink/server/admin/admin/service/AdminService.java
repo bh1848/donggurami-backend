@@ -29,7 +29,7 @@ public class AdminService {
     // 운영팀 로그인
     @RateLimite(action = "WEB_LOGIN")
     public AdminLoginResponse adminLogin(AdminLoginRequest request, HttpServletResponse response) {
-        log.debug("로그인 요청: {}, 사용자 유형: {}", request.getAdminAccount(), request.getLoginType());
+        log.debug("운영팀 로그인 요청 - 계정: {}, 사용자 유형: {}", request.getAdminAccount(), request.getLoginType());
 
         Role role = getRoleFromLoginType(request.getLoginType());
         UserDetails userDetails;
@@ -37,20 +37,21 @@ public class AdminService {
         try {
             userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAdminAccount(), role);
         } catch (UserException e) {
-            // 아이디가 존재하지 않는 경우
+            log.warn("운영팀 로그인 실패 - 존재하지 않는 계정: {}, 역할: {}", request.getAdminAccount(), role);
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
         // 비밀번호 검증
         if (!passwordEncoder.matches(request.getAdminPw(), userDetails.getPassword())) {
+            log.warn("운영팀 로그인 실패 - 비밀번호 불일치, 계정: {}", request.getAdminAccount());
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
+        log.info("운영팀 로그인 성공 - 계정: {}, 역할: {}", request.getAdminAccount(), role);
 
         // 토큰 생성
         String accessToken = jwtProvider.createAccessToken(userDetails.getUsername(), response);
         String refreshToken = jwtProvider.createRefreshToken(userDetails.getUsername(), response);
 
-        log.debug("로그인 성공, uuid: {}", userDetails.getUsername());
         return new AdminLoginResponse(accessToken, refreshToken, role);
     }
 
