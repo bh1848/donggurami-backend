@@ -16,7 +16,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "ADMIN_TABLE")
 public class Admin {
 
