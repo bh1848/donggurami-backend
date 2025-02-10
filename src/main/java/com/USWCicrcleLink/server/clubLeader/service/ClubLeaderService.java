@@ -1097,6 +1097,9 @@ public class ClubLeaderService {
                     .build();
             userRepository.save(user);
 
+            // 비회원-> 정회원 변경
+            clubNonMember.updateMemberType(MemberType.REGULARMEMBER);
+
             // 비회원의 프로필에 user 넣기(엑셀로 추가한 동아리 회원)
             clubNonMember.updateUser(user);
             profileRepository.save(clubNonMember);
