@@ -49,9 +49,6 @@ import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -637,32 +634,19 @@ public class ClubLeaderService {
 
     // 동아리 지원자 조회
     @Transactional(readOnly = true)
-    public ApiResponse<PageResponse> getApplicants(Long clubId, int page, int size) {
+    public ApiResponse<List<ApplicantsResponse>> getApplicants(Long clubId) {
         Club club = validateLeader(clubId);
 
-        Pageable pageable = PageRequest.of(page, size);
-
         // 합/불 처리되지 않은 동아리 지원자 조회
-        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubId(
-                club.getClubId(),
-                pageable,
-                false);
+        List<Aplict> aplicts = aplictRepository.findAllWithProfileByClubId(club.getClubId(), false);
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
                         ap.getAplictId(),
                         ap.getProfile()
                 ))
-                .collect(toList());
+                .toList();
 
-        PageResponse<ApplicantsResponse> pageResponse = new PageResponse<>(
-                applicants,
-                aplicts.getNumber(),
-                aplicts.getSize(),
-                aplicts.getTotalElements(),
-                aplicts.getTotalPages()
-        );
-
-        return new ApiResponse<>("지원자 조회 완료", pageResponse);
+        return new ApiResponse<>("최초 동아리 지원자 조회 완료", applicants);
     }
 
     // 최초 합격자 알림
@@ -735,34 +719,19 @@ public class ClubLeaderService {
 
     // 불합격자 조회
     @Transactional(readOnly = true)
-    public ApiResponse<PageResponse> getFailedApplicants(Long clubId, int page, int size) {
+    public ApiResponse<List<ApplicantsResponse>> getFailedApplicants(Long clubId) {
         Club club = validateLeader(clubId);
 
-        Pageable pageable = PageRequest.of(page, size);
-
         // 불합격자 동아리 지원자 조회
-        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubIdAndFailed(
-                club.getClubId(),
-                pageable,
-                true,
-                AplictStatus.FAIL);
-
+        List<Aplict> aplicts = aplictRepository.findAllWithProfileByClubIdAndFailed(club.getClubId(), true, AplictStatus.FAIL);
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
                         ap.getAplictId(),
                         ap.getProfile()
                 ))
-                .collect(toList());
+                .toList();
 
-        PageResponse<ApplicantsResponse> pageResponse = new PageResponse<>(
-                applicants,
-                aplicts.getNumber(),
-                aplicts.getSize(),
-                aplicts.getTotalElements(),
-                aplicts.getTotalPages()
-        );
-
-        return new ApiResponse<>("불합격자 조회 완료", pageResponse);
+        return new ApiResponse<>("불합격자 조회 완료", applicants);
     }
 
     // 동아리 지원자 추가 합격 처리
@@ -1127,6 +1096,9 @@ public class ClubLeaderService {
                     .role(Role.USER)
                     .build();
             userRepository.save(user);
+
+            // 비회원-> 정회원 변경
+            clubNonMember.updateMemberType(MemberType.REGULARMEMBER);
 
             // 비회원의 프로필에 user 넣기(엑셀로 추가한 동아리 회원)
             clubNonMember.updateUser(user);

@@ -16,7 +16,6 @@ import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import com.USWCicrcleLink.server.global.response.PageResponse;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -72,7 +71,7 @@ public class ClubLeaderController {
     // 동아리 기본 정보 변경
     @PutMapping("/{clubId}/info")
     public ResponseEntity<ApiResponse> updateClubInfo(@PathVariable("clubId") Long clubId,
-                                                      @RequestPart(value = "mainPhoto", required = true) MultipartFile mainPhoto,
+                                                      @RequestPart(value = "mainPhoto", required = false) MultipartFile mainPhoto,
                                                       @Valid @RequestPart(value = "clubInfoRequest", required = false) ClubInfoRequest clubInfoRequest) throws IOException {
 
         return new ResponseEntity<>(clubLeaderService.updateClubInfo(clubId, clubInfoRequest, mainPhoto), HttpStatus.OK);
@@ -146,8 +145,8 @@ public class ClubLeaderController {
 
     // 최초 지원자 조회
     @GetMapping("/{clubId}/applicants")
-    public ResponseEntity<ApiResponse> getApplicants(@PathVariable("clubId") Long clubId, @RequestParam("page") int page, @RequestParam("size") int size) {
-        return new ResponseEntity<>(clubLeaderService.getApplicants(clubId, page, size), HttpStatus.OK);
+    public ResponseEntity<ApiResponse> getApplicants(@PathVariable("clubId") Long clubId) {
+        return new ResponseEntity<>(clubLeaderService.getApplicants(clubId), HttpStatus.OK);
     }
 
     // 최초 합격자 알림
@@ -159,8 +158,8 @@ public class ClubLeaderController {
 
     // 불합격자 조회
     @GetMapping("/{clubId}/failed-applicants")
-    public ApiResponse<PageResponse> getFailedApplicants(@PathVariable("clubId") Long clubId, @RequestParam("page") int page, @RequestParam("size") int size) {
-        return clubLeaderService.getFailedApplicants(clubId, page, size);
+    public ResponseEntity<ApiResponse> getFailedApplicants(@PathVariable("clubId") Long clubId) {
+        return new ResponseEntity<>(clubLeaderService.getFailedApplicants(clubId), HttpStatus.OK);
     }
 
     // 지원자 추가 합격 알림
