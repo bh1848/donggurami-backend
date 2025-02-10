@@ -1,9 +1,9 @@
-package com.USWCicrcleLink.server.global.util.s3File.Service;
+package com.USWCicrcleLink.server.global.s3File.Service;
 
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.FileException;
-import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
-import com.USWCicrcleLink.server.global.util.validator.FileSignatureValidator;
+import com.USWCicrcleLink.server.global.s3File.dto.S3FileResponse;
+import com.USWCicrcleLink.server.global.validation.FileSignatureValidator;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;

@@ -4,7 +4,7 @@ import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.clubLeader.dto.FcmMessageDto;
 import com.USWCicrcleLink.server.clubLeader.dto.FcmTokenRequest;
-import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
+import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;

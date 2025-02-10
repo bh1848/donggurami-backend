@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.club.club.repository;
 
 import com.USWCicrcleLink.server.admin.admin.dto.AdminClubListResponse;
-import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
+import com.USWCicrcleLink.server.global.s3File.Service.S3FileUploadService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;

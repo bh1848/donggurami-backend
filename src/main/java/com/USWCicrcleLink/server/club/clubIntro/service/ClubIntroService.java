@@ -17,7 +17,7 @@ import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubIntroException;
-import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
+import com.USWCicrcleLink.server.global.s3File.Service.S3FileUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

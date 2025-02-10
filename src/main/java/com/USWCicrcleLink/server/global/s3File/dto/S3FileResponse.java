@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.global.util.s3File.dto;
+package com.USWCicrcleLink.server.global.s3File.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

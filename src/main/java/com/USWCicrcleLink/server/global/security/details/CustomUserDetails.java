@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.global.security.util;
+package com.USWCicrcleLink.server.global.security.details;
 
 import com.USWCicrcleLink.server.user.domain.User;
 import org.springframework.security.core.GrantedAuthority;

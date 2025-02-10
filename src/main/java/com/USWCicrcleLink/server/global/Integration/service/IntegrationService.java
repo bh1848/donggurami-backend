@@ -1,23 +1,12 @@
 package com.USWCicrcleLink.server.global.Integration.service;
 
-import com.USWCicrcleLink.server.global.Integration.domain.LoginType;
-import com.USWCicrcleLink.server.global.Integration.dto.IntegrationLoginRequest;
-import com.USWCicrcleLink.server.global.Integration.dto.IntegrationLoginResponse;
-import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
-import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.UserException;
-import com.USWCicrcleLink.server.global.security.domain.Role;
-import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
-import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
-import com.USWCicrcleLink.server.global.security.util.JwtProvider;
+import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

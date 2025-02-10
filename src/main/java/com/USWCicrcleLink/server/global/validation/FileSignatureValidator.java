@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.global.util.validator;
+package com.USWCicrcleLink.server.global.validation;
 
 import java.io.IOException;
 import java.io.InputStream;

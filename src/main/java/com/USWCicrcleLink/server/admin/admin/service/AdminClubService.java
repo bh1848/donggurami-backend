@@ -17,7 +17,7 @@ import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.security.domain.Role;
-import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
+import com.USWCicrcleLink.server.global.security.details.CustomAdminDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

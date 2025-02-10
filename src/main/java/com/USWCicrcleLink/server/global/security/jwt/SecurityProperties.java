@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.global.security.util;
+package com.USWCicrcleLink.server.global.security.jwt;
 
 import lombok.Getter;
 import lombok.Setter;

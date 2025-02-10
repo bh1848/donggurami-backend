@@ -1,8 +1,11 @@
-package com.USWCicrcleLink.server.global.security.util;
+package com.USWCicrcleLink.server.global.security.jwt;
 
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
+import com.USWCicrcleLink.server.global.security.details.CustomAdminDetails;
+import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
+import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;

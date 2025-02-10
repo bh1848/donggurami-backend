@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.global.security.config;
+package com.USWCicrcleLink.server.global.security.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

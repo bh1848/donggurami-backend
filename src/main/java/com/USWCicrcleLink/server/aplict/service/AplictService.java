@@ -3,7 +3,6 @@ package com.USWCicrcleLink.server.aplict.service;
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.dto.AplictRequest;
-import com.USWCicrcleLink.server.aplict.dto.AplictResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
@@ -15,7 +14,7 @@ import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubIntroException;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
-import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
+import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -28,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @Slf4j

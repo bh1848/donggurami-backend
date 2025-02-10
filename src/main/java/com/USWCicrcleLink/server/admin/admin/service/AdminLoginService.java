@@ -8,7 +8,7 @@ import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
-import com.USWCicrcleLink.server.global.security.util.JwtProvider;
+import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

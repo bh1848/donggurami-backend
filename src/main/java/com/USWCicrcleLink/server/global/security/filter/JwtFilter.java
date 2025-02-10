@@ -2,7 +2,7 @@ package com.USWCicrcleLink.server.global.security.filter;
 
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.JwtException;
-import com.USWCicrcleLink.server.global.security.util.JwtProvider;
+import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
