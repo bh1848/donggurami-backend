@@ -4,12 +4,6 @@ import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-
-import org.springframework.data.domain.Pageable;
-
 import java.util.List;
 
 public class ClubMembersRepositoryImpl implements ClubMembersRepositoryCustom {
@@ -19,7 +13,7 @@ public class ClubMembersRepositoryImpl implements ClubMembersRepositoryCustom {
 
     // 동아리 회원과 프로필 조회
     @Override
-    public List<ClubMembers> findAllWithProfile(Long clubId) {
+    public List<ClubMembers> findAllWithProfileByClubClubId(Long clubId) {
         return em.createQuery(
                         "select cm from ClubMembers cm" +
                                 " join fetch cm.profile p" +
