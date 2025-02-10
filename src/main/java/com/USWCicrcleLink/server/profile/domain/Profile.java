@@ -75,19 +75,19 @@ public class Profile {
 
     public void updateProfile(String userName, String studentNumber, String major, String userHp) {
         if (userName != null) {
-            validateProfileInput("userName", userName);
+            validateProfileInput(userName);
             this.userName = userName;
         }
         if (studentNumber != null) {
-            validateProfileInput("studentNumber", studentNumber);
+            validateProfileInput(studentNumber);
             this.studentNumber = studentNumber;
         }
         if (major != null) {
-            validateProfileInput("major", major);
+            validateProfileInput(major);
             this.major = major;
         }
         if (userHp != null) {
-            validateProfileInput("userHp", userHp);
+            validateProfileInput(userHp);
             this.userHp = userHp;
         }
 
@@ -95,7 +95,7 @@ public class Profile {
     }
 
 
-    private void validateProfileInput(String fieldName, String fieldValue) {
+    private void validateProfileInput(String fieldValue) {
         if (fieldValue == null || fieldValue.trim().isEmpty()) {
             throw new ProfileException(ExceptionType.INVALID_INPUT);
         }
@@ -112,5 +112,9 @@ public class Profile {
 
     public void updateUser(User user) {
         this.user = user;
+    }
+
+    public void updateMemberType(MemberType memberType) {
+        this.memberType = memberType;
     }
 }
