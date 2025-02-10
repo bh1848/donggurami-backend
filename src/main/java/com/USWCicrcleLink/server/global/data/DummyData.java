@@ -303,7 +303,7 @@ public class DummyData {
         // 기존 동아리 회원 가입 요청 프로필(FLAG, BADMINTON, FLAG)
         ClubMemberTemp clubMemberTemp1 = ClubMemberTemp.builder()
                 .profileTempAccount("clubMemberTemp1")
-                .profileTempPw("clubMemberTemp111")
+                .profileTempPw(passwordEncoder.encode("clubMemberTemp111"))
                 .profileTempName("김엑원")
                 .profileTempStudentNumber("00001009")
                 .profileTempHp("01055556666")
@@ -317,7 +317,7 @@ public class DummyData {
 
         ClubMemberTemp clubMemberTemp2 = ClubMemberTemp.builder()
                 .profileTempAccount("clubMemberTemp2")
-                .profileTempPw("clubMemberTemp222")
+                .profileTempPw(passwordEncoder.encode("clubMemberTemp222"))
                 .profileTempName("김엑둘")
                 .profileTempStudentNumber("00001010")
                 .profileTempHp("01066667777")
