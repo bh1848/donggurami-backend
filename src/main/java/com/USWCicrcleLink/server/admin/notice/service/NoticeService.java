@@ -3,7 +3,10 @@ package com.USWCicrcleLink.server.admin.notice.service;
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.notice.domain.Notice;
 import com.USWCicrcleLink.server.admin.notice.domain.NoticePhoto;
-import com.USWCicrcleLink.server.admin.notice.dto.*;
+import com.USWCicrcleLink.server.admin.notice.dto.NoticeCreationRequest;
+import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
+import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
+import com.USWCicrcleLink.server.admin.notice.dto.NoticeUpdateRequest;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticePhotoRepository;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
@@ -11,13 +14,10 @@ import com.USWCicrcleLink.server.global.exception.errortype.NoticeException;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
-import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -84,8 +84,8 @@ public class NoticeService {
 
         // Notice 빌드 및 저장
         Notice notice = Notice.builder()
-                .noticeTitle(InputValidator.sanitizeContent(request.getNoticeTitle()))
-                .noticeContent(InputValidator.sanitizeContent(request.getNoticeContent()))
+                .noticeTitle(request.getNoticeTitle())
+                .noticeContent(request.getNoticeContent())
                 .noticeCreatedAt(LocalDateTime.now())
                 .admin(admin)
                 .build();
@@ -114,8 +114,8 @@ public class NoticeService {
                 });
 
         // 제목과 내용 업데이트
-        notice.updateTitle(InputValidator.sanitizeContent(request.getNoticeTitle()));
-        notice.updateContent(InputValidator.sanitizeContent(request.getNoticeContent()));
+        notice.updateTitle(request.getNoticeTitle());
+        notice.updateContent(request.getNoticeContent());
 
         // 기존 사진 삭제
         deleteExistingPhotos(notice);

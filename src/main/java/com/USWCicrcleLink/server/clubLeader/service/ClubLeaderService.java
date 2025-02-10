@@ -29,7 +29,6 @@ import com.USWCicrcleLink.server.global.security.util.JwtProvider;
 import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
 import com.USWCicrcleLink.server.global.util.validator.FileSignatureValidator;
-import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
@@ -202,12 +201,9 @@ public class ClubLeaderService {
 
         // 기존 동아리 회장 이름 저장 후 입력값 검증 (XSS 방지)
         String oldLeaderName = club.getLeaderName();
-        String sanitizedLeaderName = InputValidator.sanitizeContent(clubInfoRequest.getLeaderName());
-        String sanitizedLeaderHp = InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp());
-        String sanitizedClubInsta = InputValidator.sanitizeContent(clubInfoRequest.getClubInsta());
 
         // 동아리 회장 이름 변경 시 약관 동의 갱신 필요
-        if (!oldLeaderName.equals(sanitizedLeaderName)) {
+        if (!oldLeaderName.equals(clubInfoRequest.getLeaderName())) {
             leader.setAgreeTerms(false);
             leaderRepository.save(leader);
         }
@@ -221,13 +217,13 @@ public class ClubLeaderService {
         // 사진 업데이트
         String mainPhotoUrl = updateClubMainPhoto(clubId, mainPhoto);
 
-        // 동아리 기본 정보 업데이트
-        club.updateClubInfo(sanitizedLeaderName, sanitizedLeaderHp, sanitizedClubInsta, clubInfoRequest.getClubRoomNumber());
+        club.updateClubInfo(clubInfoRequest.getLeaderName(), clubInfoRequest.getLeaderHp(), clubInfoRequest.getClubInsta(), clubInfoRequest.getClubRoomNumber());
         log.info("동아리 기본 정보 변경 완료 - Club ID: {}, Club Name: {}", clubId, club.getClubName());
 
         return new ApiResponse<>("동아리 기본 정보 변경 완료", new UpdateClubInfoResponse(mainPhotoUrl));
     }
 
+    // 동아리 해시태그 업데이트
     private void updateClubHashtags(Club club, Long clubId, List<String> newHashtags) {
         if (newHashtags == null) return;
 
@@ -248,13 +244,14 @@ public class ClubLeaderService {
                 .forEach(newHashtag -> {
                     ClubHashtag clubHashtag = ClubHashtag.builder()
                             .club(club)
-                            .clubHashtag(InputValidator.sanitizeContent(newHashtag))
+                            .clubHashtag(newHashtag)
                             .build();
                     clubHashtagRepository.save(clubHashtag);
                     log.info("새로운 해시태그 추가 - Club ID: {}, Hashtag: {}", clubId, newHashtag);
                 });
     }
 
+    // 동아리 카테고리 업데이트
     private void updateClubCategories(Club club, Long clubId, List<String> newCategories) {
         if (newCategories == null) return;
 
@@ -288,7 +285,7 @@ public class ClubLeaderService {
         log.info("카테고리 업데이트 완료 - Club ID: {}", clubId);
     }
 
-
+    // 동아리 메인 사진 업데이트
     private String updateClubMainPhoto(Long clubId, MultipartFile mainPhoto) throws IOException {
         if (mainPhoto == null || mainPhoto.isEmpty()) {
             log.debug("대표 사진 변경 없음 - Club ID: {}", clubId);
@@ -310,6 +307,7 @@ public class ClubLeaderService {
         return s3FileResponse.getPresignedUrl();
     }
 
+    // 사진 관련
     private S3FileResponse updateClubMainPhotoAndS3File(MultipartFile mainPhoto, ClubMainPhoto existingPhoto, Long clubId) throws IOException {
         // 새로운 파일 업로드
         S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(mainPhoto, S3_MAINPHOTO_DIR);
@@ -379,11 +377,11 @@ public class ClubLeaderService {
 
         // 입력값 검증 (XSS 공격 방지)
         String sanitizedClubIntro = clubIntroRequest.getClubIntro() != null
-                ? InputValidator.sanitizeContent(clubIntroRequest.getClubIntro()) : "";
+                ? clubIntroRequest.getClubIntro() : "";
         String sanitizedClubRecruitment = clubIntroRequest.getClubRecruitment() != null
-                ? InputValidator.sanitizeContent(clubIntroRequest.getClubRecruitment()) : "";
+                ? clubIntroRequest.getClubRecruitment() : "";
         String sanitizedGoogleFormUrl = clubIntroRequest.getGoogleFormUrl() != null
-                ? InputValidator.sanitizeContent(clubIntroRequest.getGoogleFormUrl()) : "";
+                ? clubIntroRequest.getGoogleFormUrl() : "";
 
         // 삭제할 사진 확인
         if (clubIntroRequest.getDeletedOrders() != null && !clubIntroRequest.getDeletedOrders().isEmpty()) {

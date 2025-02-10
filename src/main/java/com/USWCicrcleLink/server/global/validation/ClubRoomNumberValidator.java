@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 public class ClubRoomNumberValidator implements ConstraintValidator<ValidClubRoomNumber, String> {
 
-    // 허용된 동아리방 목록 (예외 제외)
+    // 허용된 동아리방 목록 (B109, 111, 204 제외)
     private static final Set<String> VALID_ROOMS = Set.of(
             // 지하
             "B101", "B102", "B103", "B104", "B105", "B106", "B107", "B108",
@@ -19,16 +19,16 @@ public class ClubRoomNumberValidator implements ConstraintValidator<ValidClubRoo
             "203", "205", "206", "207", "208", "209", "210"
     );
 
-    // "B" + 숫자 3자리 또는 숫자 3자리만 허용
+    // B + 숫자 3자리 또는 숫자 3자리만 허용
     private static final Pattern ROOM_PATTERN = Pattern.compile("^(B\\d{3}|\\d{3})$");
 
     @Override
     public boolean isValid(String clubRoomNumber, ConstraintValidatorContext context) {
         if (clubRoomNumber == null || clubRoomNumber.trim().isEmpty()) {
-            return false; // `@NotBlank` 검증을 위해 기본적으로 필수 값 처리
+            return false; // 필수 값 처리
         }
 
-        // 형식 검증: "B000" 또는 "000" 형태만 허용
+        // B000 또는 000 형태만 허용
         if (!ROOM_PATTERN.matcher(clubRoomNumber).matches()) {
             return false;
         }

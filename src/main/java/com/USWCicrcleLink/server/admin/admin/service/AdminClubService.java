@@ -18,7 +18,6 @@ import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
-import com.USWCicrcleLink.server.global.util.validator.InputValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -83,7 +82,7 @@ public class AdminClubService {
 
         // Club 생성 및 저장
         Club club = Club.builder()
-                .clubName(InputValidator.sanitizeContent(request.getClubName()))
+                .clubName(request.getClubName())
                 .department(request.getDepartment())
                 .leaderName("")
                 .leaderHp("")
@@ -95,7 +94,7 @@ public class AdminClubService {
 
         // Leader 생성 및 저장
         Leader leader = Leader.builder()
-                .leaderAccount(InputValidator.sanitizeContent(request.getLeaderAccount()))
+                .leaderAccount(request.getLeaderAccount())
                 .leaderPw(passwordEncoder.encode(request.getLeaderPw()))
                 .leaderUUID(UUID.randomUUID())
                 .role(Role.LEADER)
