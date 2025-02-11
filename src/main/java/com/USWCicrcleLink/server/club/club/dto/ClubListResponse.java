@@ -6,7 +6,6 @@ import lombok.*;
 import java.util.List;
 
 @Getter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ClubListResponse {
@@ -16,7 +15,6 @@ public class ClubListResponse {
     private String departmentName;
     private List<String> clubHashtags;
 
-    // Club 엔티티를 인수로 받는 생성자
     public ClubListResponse(Club club, String mainPhotoUrl, List<String> clubHashtags) {
         this.clubName = club.getClubName();
         this.mainPhoto = mainPhotoUrl;

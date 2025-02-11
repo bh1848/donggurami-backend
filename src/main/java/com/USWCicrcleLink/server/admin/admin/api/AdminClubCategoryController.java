@@ -1,9 +1,8 @@
 package com.USWCicrcleLink.server.admin.admin.api;
 
 import com.USWCicrcleLink.server.admin.admin.dto.ClubCategoryCreationRequest;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubCategoryResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.admin.admin.service.AdminClubCategoryService;
-import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/admin/category")
+@RequestMapping("/admin/clubs/category")
 @RequiredArgsConstructor
 public class AdminClubCategoryController {
 

@@ -60,9 +60,9 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/floor/photo/**").hasRole("ADMIN");
 
                     // ADMIN - Category
-                    auth.requestMatchers(HttpMethod.POST, "/admin/category/**").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/admin/category/**").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.DELETE, "/admin/category/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.POST, "/admin/clubs/category/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/clubs/category/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs/category/**").hasRole("ADMIN");
 
                     // ADMIN - Club
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs").hasRole("ADMIN");

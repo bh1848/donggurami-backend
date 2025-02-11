@@ -2,7 +2,7 @@ package com.USWCicrcleLink.server.admin.admin.service;
 
 import com.USWCicrcleLink.server.admin.admin.dto.ClubCategoryCreationRequest;
 import com.USWCicrcleLink.server.admin.admin.mapper.ClubCategoryMapper;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubCategoryResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.club.club.repository.ClubCategoryMappingRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubCategoryRepository;
@@ -26,6 +26,7 @@ public class AdminClubCategoryService {
     private final ClubCategoryMappingRepository clubCategoryMappingRepository;
 
     // 동아리 카테고리 설정(웹) - 카테고리 조회
+    @Transactional(readOnly = true)
     public List<ClubCategoryResponse> getAllClubCategories() {
         List<ClubCategory> clubCategories = clubCategoryRepository.findAll();
         log.debug("동아리 카테고리 조회 성공 - {}개 카테고리 반환", clubCategories.size());

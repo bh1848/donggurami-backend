@@ -275,7 +275,7 @@ public class ClubLeaderService {
         newCategoriesSet.stream()
                 .filter(categoryName -> !existingCategoryNames.contains(categoryName))
                 .map(categoryName -> clubCategoryRepository.findByClubCategoryName(categoryName)
-                        .orElseThrow(() -> new ClubException(ExceptionType.INVALID_CATEGORY)))
+                        .orElseThrow(() -> new ClubException(ExceptionType.CATEGORY_NOT_FOUND)))
                 .map(clubCategory -> ClubCategoryMapping.builder()
                         .club(club)
                         .clubCategory(clubCategory)

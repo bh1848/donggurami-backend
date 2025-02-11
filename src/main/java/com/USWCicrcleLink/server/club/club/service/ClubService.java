@@ -1,28 +1,31 @@
-
 package com.USWCicrcleLink.server.club.club.service;
 
+import com.USWCicrcleLink.server.admin.admin.mapper.ClubCategoryMapper;
 import com.USWCicrcleLink.server.club.club.domain.*;
-import com.USWCicrcleLink.server.club.club.dto.ClubByRecruitmentStatusFilterResponse;
 import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
-import com.USWCicrcleLink.server.club.club.dto.ClubFilterResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubListByClubCategoryResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubListResponse;
 import com.USWCicrcleLink.server.club.club.repository.*;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
+import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
+import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubIntroException;
 import com.USWCicrcleLink.server.global.s3File.Service.S3FileUploadService;
-import com.USWCicrcleLink.server.user.dto.ClubInfoListResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class ClubService {
@@ -34,141 +37,163 @@ public class ClubService {
     private final S3FileUploadService s3FileUploadService;
     private final ClubIntroRepository clubIntroRepository;
     private final ClubRepository clubRepository;
+    private final ClubIntroPhotoRepository clubIntroPhotoRepository;
 
-    //카테고리별 전체 동아리 조회
-    public List<ClubFilterResponse> getClubsByCategories(List<String> categories) {
-
-        //카테고리 선택을 3개로 제한
-        if (categories.size() > 3) {
-            throw new BaseException(ExceptionType.INVALID_CATEGORY_COUNT);
-        }
-
-        // 각 카테고리에 해당하는 동아리들을 조회
-        List<ClubCategory> clubCategories = clubCategoryRepository.findByClubCategoryNameIn(categories);
-
-        //카테고리 존재 여부 확인
-        if(clubCategories.isEmpty()){
-            throw  new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
-        }
-
-        List<ClubFilterResponse> clubFilterResponseList = new ArrayList<>();
-
-        for (ClubCategory category : clubCategories) {
-            // 카테고리에 해당하는 ClubCategoryMapping 조회
-            List<ClubCategoryMapping> clubCategoryMappingList = clubCategoryMappingRepository.findByClubCategory(category);
-
-            List<ClubFilterResponse.ClubResponse> clubResponses = new ArrayList<>();
-
-            for (ClubCategoryMapping clubCategoryMapping : clubCategoryMappingList) {
-                Club club = clubCategoryMapping.getClub();
-
-                // MainPhoto URL 가져오기
-                ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
-                String mainPhotoUrl = (clubMainPhoto != null)
-                        ? s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key())
-                        : null;
-
-                // 해시태그 리스트 가져오기
-                List<String> clubHashtags = clubHashtagRepository.findByClub(club).stream()
-                        .map(ClubHashtag::getClubHashtag)
-                        .collect(Collectors.toList());
-
-                // DTO 생성
-                ClubFilterResponse.ClubResponse clubResponse = new ClubFilterResponse.ClubResponse(club, mainPhotoUrl, clubHashtags);
-                clubResponses.add(clubResponse);
-
-            }
-            clubFilterResponseList.add(new ClubFilterResponse(category, clubResponses));
-        }
-        return clubFilterResponseList;
+    // 전체 동아리 리스트 조회 (모바일)
+    @Transactional(readOnly = true)
+    public List<ClubListResponse> getAllClubs() {
+        log.debug("전체 동아리 리스트 조회");
+        return clubRepository.findAll()
+                .stream()
+                .map(this::mapToClubListResponse)
+                .collect(Collectors.toList());
     }
 
-    //카테고리별 모집중인 동아리 조회
-    public List<ClubByRecruitmentStatusFilterResponse> getClubsByRecruitmentStatusCategories(List<String> categories) {
+    // 관심 카테고리 필터 적용한 전체 동아리 리스트 조회 (모바일)
+    @Transactional(readOnly = true)
+    public List<ClubListByClubCategoryResponse> getAllClubsByClubCategories(List<UUID> clubCategoryUUIDs) {
+        validateCategoryLimit(clubCategoryUUIDs);
 
-        // 카테고리 선택을 3개로 제한
-        if (categories.size() > 3) {
-            throw new BaseException(ExceptionType.INVALID_CATEGORY_COUNT);
-        }
+        List<ClubCategory> clubCategories = getValidatedCategories(clubCategoryUUIDs);
 
-        // 각 카테고리에 해당하는 동아리들을 조회
-        List<ClubCategory> clubCategories = clubCategoryRepository.findByClubCategoryNameIn(categories);
+        return clubCategories.stream()
+                .map(category -> {
+                    List<ClubListResponse> clubResponses = clubCategoryMappingRepository.findByClubCategory(category)
+                            .stream()
+                            .map(mapping -> mapToClubListResponse(mapping.getClub()))
+                            .collect(Collectors.toList());
 
-        // 카테고리 존재 여부 확인
-        if (clubCategories.isEmpty()) {
-            throw new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
-        }
+                    return new ClubListByClubCategoryResponse(
+                            category.getClubCategoryUUID(),
+                            category.getClubCategoryName(),
+                            clubResponses
+                    );
+                })
+                .collect(Collectors.toList());
+    }
 
-        // 모집 중인 동아리 조회 및 ID 필터링
-        List<ClubIntro> openClubs = clubIntroRepository.findByRecruitmentStatus(RecruitmentStatus.OPEN);
-        Set<Long> openClubIds = openClubs.stream()
+    // 모집 중 동아리 리스트 조회 (모바일)
+    @Transactional(readOnly = true)
+    public List<ClubListResponse> getOpenClubs() {
+        log.debug("모집 중인 동아리 리스트 조회");
+
+        return clubRepository.findOpenClubs()
+                .stream()
+                .map(this::mapToClubListResponse)
+                .collect(Collectors.toList());
+    }
+
+    // 관심 카테고리 필터 적용한 모집 중 동아리 리스트 조회 (모바일)
+    @Transactional(readOnly = true)
+    public List<ClubListByClubCategoryResponse> getOpenClubsByClubCategories(List<UUID> clubCategoryUUIDs) {
+        validateCategoryLimit(clubCategoryUUIDs);
+
+        List<ClubCategory> clubCategories = getValidatedCategories(clubCategoryUUIDs);
+
+        // 모집 중인 동아리 목록
+        Set<Long> openClubIds = clubIntroRepository.findByRecruitmentStatus(RecruitmentStatus.OPEN)
+                .stream()
                 .map(clubIntro -> clubIntro.getClub().getClubId())
                 .collect(Collectors.toSet());
 
-        List<ClubByRecruitmentStatusFilterResponse> clubFilterResponseList = new ArrayList<>();
-
-        for (ClubCategory category : clubCategories) {
-            // 카테고리에 해당하는 ClubCategoryMapping 조회
-            List<ClubCategoryMapping> clubCategoryMappingList = clubCategoryMappingRepository.findByClubCategory(category);
-
-            List<ClubFilterResponse.ClubResponse> clubResponses = new ArrayList<>();
-
-            for (ClubCategoryMapping clubCategoryMapping : clubCategoryMappingList) {
-                Club club = clubCategoryMapping.getClub();
-
-                // 모집 중인 동아리인지 확인
-                if (openClubIds.contains(club.getClubId())) {
-                    // MainPhoto URL 가져오기
-                    ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
-                    String mainPhotoUrl = (clubMainPhoto != null)
-                            ? s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key())
-                            : null;
-
-                    // 해시태그 리스트 가져오기
-                    List<String> clubHashtags = clubHashtagRepository.findByClub(club).stream()
-                            .map(ClubHashtag::getClubHashtag)
+        return clubCategories.stream()
+                .map(category -> {
+                    List<ClubListResponse> clubResponses = clubCategoryMappingRepository.findByClubCategory(category)
+                            .stream()
+                            .map(ClubCategoryMapping::getClub)
+                            .filter(club -> openClubIds.contains(club.getClubId()))
+                            .map(this::mapToClubListResponse)
                             .collect(Collectors.toList());
 
-                    // DTO 생성
-                    ClubFilterResponse.ClubResponse clubResponse = new ClubFilterResponse.ClubResponse(club, mainPhotoUrl, clubHashtags);
-                    clubResponses.add(clubResponse);
-                }
-            }
-            // 모집 중인 동아리가 있는 경우에만 추가
-            if (!clubResponses.isEmpty()) {
-                clubFilterResponseList.add(new ClubByRecruitmentStatusFilterResponse(category, clubResponses));
-            }
-        }
-        return clubFilterResponseList;
-    }
-
-    public List<ClubCategoryResponse> getAllCategories() {
-        return clubCategoryRepository.findAll()
-                .stream()
-                .map(ClubCategoryResponse::new)
-                .collect(Collectors.toList());
-    }
-
-    // 모바일- 기존 회원가입시 전체 동아리 조회
-    @Transactional(readOnly = true)
-    public List<ClubInfoListResponse> getAllClubs() {
-        log.debug("전체 동아리 리스트 조회");
-        List<Club> clubs = clubRepository.findAll();
-
-        return clubs.stream()
-                .map(club -> {
-                    // ClubMainPhoto 조회
-                    ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
-
-                    // S3 presigned URL 생성 (기본 URL 또는 null 처리)
-                    String mainPhotoUrl = (clubMainPhoto != null)
-                            ? s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key())
-                            : null;
-
-                    // DTO 생성
-                    return new ClubInfoListResponse(club,mainPhotoUrl);  // 전체 동아리 조회용 DTO로 수정
+                    return new ClubListByClubCategoryResponse(
+                            category.getClubCategoryUUID(),
+                            category.getClubCategoryName(),
+                            clubResponses
+                    );
                 })
                 .collect(Collectors.toList());
+    }
+
+    private ClubListResponse mapToClubListResponse(Club club) {
+        // 메인 사진 URL 조회
+        String mainPhotoUrl = clubMainPhotoRepository.findByClub(club)
+                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubMainPhotoS3Key()))
+                .orElse(null);
+
+        // 해시태그 리스트 조회
+        List<String> clubHashtags = clubHashtagRepository.findByClub(club)
+                .stream()
+                .map(ClubHashtag::getClubHashtag)
+                .collect(Collectors.toList());
+
+        return new ClubListResponse(club, mainPhotoUrl, clubHashtags);
+    }
+
+    // 카테고리 개수 검증 (최대 3개)
+    private void validateCategoryLimit(List<UUID> clubCategoryUUIDs) {
+        if (Optional.ofNullable(clubCategoryUUIDs).orElse(Collections.emptyList()).size() > 3) { // ✅ 안전한 처리
+            throw new BaseException(ExceptionType.INVALID_CATEGORY_COUNT);
+        }
+    }
+
+    // 선택한 카테고리 존재하는지 검증
+    private List<ClubCategory> getValidatedCategories(List<UUID> clubCategoryUUIDs) {
+        List<ClubCategory> clubCategories = clubCategoryRepository.findByClubCategoryUUIDIn(clubCategoryUUIDs);
+        if (clubCategories.isEmpty()) {
+            throw new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
+        }
+        return clubCategories;
+    }
+
+    // 카테고리 조회
+    @Transactional(readOnly = true)
+    public List<ClubCategoryResponse> getAllClubCategories() {
+        List<ClubCategory> clubCategories = clubCategoryRepository.findAll();
+        log.debug("동아리 카테고리 조회 성공 - {}개 카테고리 반환", clubCategories.size());
+
+        return ClubCategoryMapper.toDtoList(clubCategories);
+    }
+
+
+    // 동아리 상세 페이지 조회 (웹, 모바일)
+    @Transactional(readOnly = true)
+    public ClubIntroResponse getClubIntro(Long clubId) {
+        // 동아리 ID로 동아리 조회
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+
+        // 동아리 소개 조회
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
+                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+
+        // 동아리 메인 사진 조회
+        ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
+
+        // 동아리 소개 사진 조회
+        List<ClubIntroPhoto> clubIntroPhotos = clubIntroPhotoRepository.findByClubIntro(clubIntro);
+
+        // S3에서 메인 사진 URL 생성 (기본 URL 또는 null 처리)
+        String mainPhotoUrl = (clubMainPhoto != null)
+                ? s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key())
+                : null;
+
+        // S3에서 소개 사진 URL 생성 (소개 사진이 없을 경우 빈 리스트)
+        List<String> introPhotoUrls = Optional.ofNullable(clubIntroPhotoRepository.findByClubIntro(clubIntro))
+                .orElse(Collections.emptyList())
+                .stream()
+                .sorted(Comparator.comparingInt(ClubIntroPhoto::getOrder))
+                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
+                .collect(Collectors.toList());
+
+        // ClubHashtag 조회
+        List<String> hashtags = Optional.ofNullable(clubHashtagRepository.findByClub(club))
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(ClubHashtag::getClubHashtag)
+                .collect(Collectors.toList());
+
+        // ClubIntroResponse 반환
+        return new ClubIntroResponse(clubIntro, club, mainPhotoUrl, introPhotoUrls,hashtags);
     }
 
 }

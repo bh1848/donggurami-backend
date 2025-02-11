@@ -46,6 +46,7 @@ public class AdminClubService {
     private final PasswordEncoder passwordEncoder;
 
     // 동아리 목록 조회(웹)
+    @Transactional(readOnly = true)
     public Page<AdminClubListResponse> getAllClubs(Pageable pageable) {
         log.debug("동아리 목록 조회 요청 - 페이지 정보: {}", pageable);
         try {

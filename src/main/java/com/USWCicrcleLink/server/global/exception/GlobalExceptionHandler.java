@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.global.exception;
 import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -10,12 +11,11 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @Slf4j
 @RestControllerAdvice
@@ -83,19 +83,65 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    // 유효하지 않은 enum값 예외 처리
+    // UUID 변환 예외 처리
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleUUIDTypeMismatch(MethodArgumentTypeMismatchException ex) {
+
+        Throwable rootCause = NestedExceptionUtils.getRootCause(ex);
+        String errorMessage = (rootCause instanceof IllegalArgumentException)
+                ? "유효하지 않은 UUID 형식입니다. 올바른 UUID를 입력하세요."
+                : "잘못된 요청입니다.";
+
+        ErrorResponse errorResponse = buildErrorResponse(
+                ex.getClass().getSimpleName(),
+                "INVALID_UUID_FORMAT",
+                errorMessage,
+                HttpStatus.BAD_REQUEST,
+                null
+        );
+
+        logErrorResponse(errorResponse);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     *
+     * JsonCreator 예외 처리 때문에 기본 spring 예외 던짐.
+     *
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
-        // 예외 메시지에서 불필요한 부분 제거
-        String rawMessage = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
 
-        // 필요 없는 부분 필터링하여 메시지만 추출
-        String errorMessage = extractUsefulMessage(rawMessage);
+        Throwable rootCause = NestedExceptionUtils.getRootCause(e);
+        String errorMessage = (rootCause instanceof IllegalArgumentException)
+                ? rootCause.getMessage()
+                : "유효하지 않은 ENUM 값입니다. 올바른 값을 입력하세요.";
 
         ErrorResponse errorResponse = buildErrorResponse(
                 e.getClass().getSimpleName(),
-                "BAD_REQUEST",
-                errorMessage,  // 메시지 반환
+                "INVALID_ENUM_FORMAT",
+                errorMessage,
+                HttpStatus.BAD_REQUEST,
+                null
+        );
+
+        logErrorResponse(errorResponse);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // Null 예외 처리
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<ErrorResponse> handleNullPointerException(NullPointerException e) {
+
+        Throwable rootCause = NestedExceptionUtils.getRootCause(e);
+        String errorMessage = (rootCause != null)
+                ? "NullPointerException 발생: " + rootCause.getMessage()
+                : "잘못된 요청입니다. 필수 값을 확인하세요.";
+
+        ErrorResponse errorResponse = buildErrorResponse(
+                e.getClass().getSimpleName(),
+                "NULL_POINTER_EXCEPTION",
+                errorMessage,
                 HttpStatus.BAD_REQUEST,
                 null
         );
@@ -117,17 +163,5 @@ public class GlobalExceptionHandler {
 
         logErrorResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-    }
-
-    // 예외 메시지에서 필요한 부분만 추출하는 메서드
-    private String extractUsefulMessage(String rawMessage) {
-        if (rawMessage == null) {
-            return "잘못된 요청 값입니다.";
-        }
-        // "problem: " 이후 메시지만 추출하여 반환
-        if (rawMessage.contains("problem: ")) {
-            return rawMessage.substring(rawMessage.indexOf("problem: ") + 9).split("\n")[0].trim();
-        }
-        return rawMessage.split("\n")[0].trim(); // 첫 번째 줄만 반환
     }
 }

@@ -60,7 +60,6 @@ public enum ExceptionType {
     CLUB_MEMBER_ACCOUNTSTATUS_REQEUST_NOT_MATCH("CMEM-ACST-304","사용자가 요청한 동아리와 실제 요청값이 다르게 생성되었습니다",INTERNAL_SERVER_ERROR),
 
 
-
     /**
      * Domain: Jwt
      */
@@ -78,12 +77,12 @@ public enum ExceptionType {
     CLUB_MAINPHOTO_NOT_EXISTS("CLUB-204", "동아리 사진이 존재하지 않습니다", NOT_FOUND),
 
 
-
     /**
      * Domain: ClubCategory
      */
-    INVALID_CATEGORY("CTG-201", "유효하지 않은 카테고리입니다.", BAD_REQUEST),
-    DUPLICATE_CATEGORY("CTG-202", "이미 존재하는 카테고리입니다.", BAD_REQUEST),
+    CATEGORY_NOT_FOUND("CTG-201", "존재하지 않는 카테고리입니다.", NOT_FOUND),
+    INVALID_CATEGORY_COUNT("CG-202","카테고리는 최대 3개까지 선택할수 있습니다.", PAYLOAD_TOO_LARGE),
+    DUPLICATE_CATEGORY("CTG-203", "이미 존재하는 카테고리입니다.", CONFLICT),
 
     /**
      * Domain: ClubIntro
@@ -169,12 +168,6 @@ public enum ExceptionType {
      */
     INVALID_WITHDRAWAL_CODE("WT-101", "인증번호가 일치하지 않습니다", BAD_REQUEST),
     WITHDRAWALTOKEN_NOT_EXISTS("WT-102", "탈퇴 토큰이 존재하지 않습니다", BAD_REQUEST),
-
-    /**
-     * Domain: WithdrawalToken
-     */
-    CATEGORY_NOT_FOUND("CG-201","해당 카테고리가 존재하지 않습니다." , NOT_FOUND),
-    INVALID_CATEGORY_COUNT("CG-202","카테고리는 최대 3개까지 선택할수 있습니다.", BAD_REQUEST),
 
     /**
      * 공통
