@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/notices")
@@ -30,8 +31,8 @@ public class NoticeController {
     //공지사항 리스트 조회(웹, 페이징)
     @GetMapping()
     public ResponseEntity<ApiResponse<Page<NoticeListResponse>>> getNotices(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(name = "page",defaultValue = "0") int page,
+            @RequestParam(name = "size",defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("noticeCreatedAt").descending());
         Page<NoticeListResponse> pagedNotices = noticeService.getNotices(pageable);
@@ -40,9 +41,9 @@ public class NoticeController {
     }
 
     //공지사항 세부내용 조회(웹)
-    @GetMapping("/{noticeId}")
-    public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNoticeById(@PathVariable("noticeId") Long noticeId) {
-        NoticeDetailResponse notice = noticeService.getNoticeById(noticeId);
+    @GetMapping("/{noticeUUID}")
+    public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNoticeByUUID(@PathVariable("noticeUUID") UUID noticeUUID) {
+        NoticeDetailResponse notice = noticeService.getNoticeByUUID(noticeUUID);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 조회 성공", notice);
         return ResponseEntity.ok(response);
     }
@@ -58,21 +59,21 @@ public class NoticeController {
     }
 
     // 공지사항 수정(웹)
-    @PutMapping("/{noticeId}")
+    @PutMapping("/{noticeUUID}")
     public ResponseEntity<ApiResponse<List<String>>> updateNotice(
-            @PathVariable("noticeId") Long noticeId,
+            @PathVariable("noticeUUID") UUID noticeUUID,
             @RequestPart(value = "request", required = false) @Valid NoticeUpdateRequest request,
             @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos) {
-        List<String> presignedUrls = noticeService.updateNotice(noticeId, request, noticePhotos);
+        List<String> presignedUrls = noticeService.updateNotice(noticeUUID, request, noticePhotos);
         ApiResponse<List<String>> response = new ApiResponse<>("공지사항 수정 성공", presignedUrls);
         return ResponseEntity.ok(response);
     }
 
     //공지사항 삭제(웹)
-    @DeleteMapping("/{noticeId}")
-    public ResponseEntity<ApiResponse<Long>> deleteNotice(@PathVariable("noticeId") Long noticeId) {
-        noticeService.deleteNotice(noticeId);
-        ApiResponse<Long> response = new ApiResponse<>("공지사항 삭제 성공", noticeId);
+    @DeleteMapping("/{noticeUUID}")
+    public ResponseEntity<ApiResponse<UUID>> deleteNotice(@PathVariable("noticeUUID") UUID noticeUUID) {
+        noticeService.deleteNotice(noticeUUID);
+        ApiResponse<UUID> response = new ApiResponse<>("공지사항 삭제 성공", noticeUUID);
         return ResponseEntity.ok(response);
     }
 }
