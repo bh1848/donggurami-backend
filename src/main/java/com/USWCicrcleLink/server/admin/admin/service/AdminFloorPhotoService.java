@@ -33,21 +33,17 @@ public class AdminFloorPhotoService {
 
         log.debug("층별 사진 업로드 요청 - Floor: {}", floor);
 
-        // 기존 사진 조회
         FloorPhoto existingPhoto = floorPhotoRepository.findByFloor(floor).orElse(null);
 
         if (existingPhoto != null) {
-            // 기존 사진 삭제 (S3 및 DB)
             log.info("기존 층별 사진 삭제 진행 - Floor: {}, 기존 S3Key: {}", floor, existingPhoto.getFloorPhotoS3key());
             s3FileUploadService.deleteFile(existingPhoto.getFloorPhotoS3key());
             floorPhotoRepository.delete(existingPhoto);
         }
 
-        // 새로운 사진 업로드
         S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(photo, S3_FLOOR_PHOTO_DIR);
         log.info("새로운 층별 사진 S3 업로드 완료 - Floor: {}, 새 S3Key: {}", floor, s3FileResponse.getS3FileName());
 
-        // 새로운 FloorPhoto 엔티티 생성 및 저장
         FloorPhoto newPhoto = FloorPhoto.builder()
                 .floor(floor)
                 .floorPhotoName(photo.getOriginalFilename())
@@ -57,7 +53,6 @@ public class AdminFloorPhotoService {
 
         log.info("층별 사진 저장 완료 - Floor: {}, 저장된 S3Key: {}", floor, s3FileResponse.getS3FileName());
 
-        // 응답 DTO 생성 및 반환
         return new FloorPhotoCreationResponse(floor, s3FileResponse.getPresignedUrl());
     }
 
@@ -72,7 +67,6 @@ public class AdminFloorPhotoService {
                     return new BaseException(ExceptionType.PHOTO_NOT_FOUND);
                 });
 
-        // S3 presigned URL 생성
         String presignedUrl = s3FileUploadService.generatePresignedGetUrl(floorPhoto.getFloorPhotoS3key());
 
         log.debug("층별 사진 조회 성공 - Floor: {}, Presigned URL 생성 완료", floor);
@@ -89,11 +83,9 @@ public class AdminFloorPhotoService {
                     return new BaseException(ExceptionType.PHOTO_NOT_FOUND);
                 });
 
-        // S3 파일 삭제
         s3FileUploadService.deleteFile(floorPhoto.getFloorPhotoS3key());
         log.info("S3 사진 삭제 완료 - Floor: {}, S3Key: {}", floor, floorPhoto.getFloorPhotoS3key());
 
-        // 데이터베이스에서 삭제
         floorPhotoRepository.delete(floorPhoto);
         log.info("층별 사진 DB 삭제 완료 - Floor: {}", floor);
     }

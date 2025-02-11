@@ -41,7 +41,6 @@ public class AdminLoginService {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
-        // 비밀번호 검증
         if (!passwordEncoder.matches(request.getAdminPw(), userDetails.getPassword())) {
             log.warn("운영팀 로그인 실패 - 비밀번호 불일치, 계정: {}", request.getAdminAccount());
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);

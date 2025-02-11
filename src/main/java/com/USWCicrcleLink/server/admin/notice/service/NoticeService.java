@@ -82,7 +82,6 @@ public class NoticeService {
         Admin admin = getAuthenticatedAdmin();
         log.debug("공지사항 생성 요청 - 관리자 ID: {}", admin.getAdminId());
 
-        // Notice 빌드 및 저장
         Notice notice = Notice.builder()
                 .noticeTitle(request.getNoticeTitle())
                 .noticeContent(request.getNoticeContent())
@@ -91,7 +90,7 @@ public class NoticeService {
                 .build();
         Notice savedNotice = noticeRepository.save(notice);
 
-        // 사진 순서와 파일 개수 검증 추가
+        // 사진 순서와 파일 개수 검증
         validatePhotoOrdersAndPhotos(request.getPhotoOrders(), noticePhotos);
 
         // 사진 처리
@@ -113,7 +112,6 @@ public class NoticeService {
                     return new NoticeException(ExceptionType.NOTICE_NOT_EXISTS);
                 });
 
-        // 제목과 내용 업데이트
         notice.updateTitle(request.getNoticeTitle());
         notice.updateContent(request.getNoticeContent());
 
@@ -123,7 +121,7 @@ public class NoticeService {
         // 사진 순서와 파일 개수 검증 추가
         validatePhotoOrdersAndPhotos(request.getPhotoOrders(), noticePhotos);
 
-        // 새로운 사진 처리
+        // 사진 처리
         List<String> presignedUrls = handleNoticePhotos(notice, noticePhotos, request.getPhotoOrders());
 
         log.info("공지사항 수정 완료 - ID: {}, 첨부된 사진 수: {}", notice.getNoticeId(), noticePhotos == null ? 0 : noticePhotos.size());
@@ -141,10 +139,8 @@ public class NoticeService {
                     return new NoticeException(ExceptionType.NOTICE_NOT_EXISTS);
                 });
 
-        // 기존 사진 삭제
         deleteExistingPhotos(notice);
 
-        // 공지사항 삭제
         noticeRepository.delete(notice);
         log.info("공지사항 삭제 완료 - ID: {}", notice.getNoticeId());
     }
@@ -198,12 +194,10 @@ public class NoticeService {
                     continue;
                 }
 
-                // 새로운 NoticePhoto 생성 및 처리
                 NoticePhoto newPhoto = new NoticePhoto();
                 newPhoto.setNotice(notice);
                 newPhoto.setOrder(order);
 
-                // S3 파일 업로드 및 presigned URL 생성
                 S3FileResponse s3FileResponse = updateNoticePhotoAndS3File(noticePhoto, newPhoto, order);
                 presignedUrls.add(s3FileResponse.getPresignedUrl());
             }

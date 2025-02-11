@@ -158,18 +158,14 @@ public class ClubService {
     // 동아리 상세 페이지 조회 (웹, 모바일)
     @Transactional(readOnly = true)
     public ClubIntroResponse getClubIntro(Long clubId) {
-        // 동아리 ID로 동아리 조회
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
 
-        // 동아리 소개 조회
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
-        // 동아리 메인 사진 조회
         ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
 
-        // 동아리 소개 사진 조회
         List<ClubIntroPhoto> clubIntroPhotos = clubIntroPhotoRepository.findByClubIntro(clubIntro);
 
         // S3에서 메인 사진 URL 생성 (기본 URL 또는 null 처리)
@@ -185,14 +181,12 @@ public class ClubService {
                 .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
                 .collect(Collectors.toList());
 
-        // ClubHashtag 조회
         List<String> hashtags = Optional.ofNullable(clubHashtagRepository.findByClub(club))
                 .orElse(Collections.emptyList())
                 .stream()
                 .map(ClubHashtag::getClubHashtag)
                 .collect(Collectors.toList());
 
-        // ClubIntroResponse 반환
         return new ClubIntroResponse(clubIntro, club, mainPhotoUrl, introPhotoUrls,hashtags);
     }
 

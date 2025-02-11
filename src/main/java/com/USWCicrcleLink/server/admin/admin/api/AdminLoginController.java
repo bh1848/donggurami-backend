@@ -5,6 +5,7 @@ import com.USWCicrcleLink.server.admin.admin.dto.AdminLoginResponse;
 import com.USWCicrcleLink.server.admin.admin.service.AdminLoginService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +21,7 @@ public class AdminLoginController {
 
     // 동연회/운영팀 로그인 (웹)
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AdminLoginResponse>> adminLogin(@RequestBody AdminLoginRequest request, HttpServletResponse httpServletResponse){
+    public ResponseEntity<ApiResponse<AdminLoginResponse>> adminLogin(@RequestBody @Valid AdminLoginRequest request, HttpServletResponse httpServletResponse){
         AdminLoginResponse adminLoginResponse = adminLoginService.adminLogin(request,httpServletResponse);
         return ResponseEntity.ok(new ApiResponse<>("운영팀 로그인 성공", adminLoginResponse));
     }

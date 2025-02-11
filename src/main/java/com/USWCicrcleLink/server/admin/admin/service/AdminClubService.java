@@ -155,24 +155,20 @@ public class AdminClubService {
     // 동아리 삭제(웹) - 동아리 삭제 완료하기
     public void deleteClub(Long clubId, AdminPwRequest request) {
 
-        // 인증된 관리자 정보 가져오기
         Admin admin = getAuthenticatedAdmin();
         log.info("동아리 삭제 요청 - 관리자 ID: {}, 동아리 ID: {}", admin.getAdminId(), clubId);
 
-        // 관리자 비밀번호 검증
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
             log.warn("동아리 삭제 실패 - 관리자 비밀번호 불일치, 관리자 ID: {}", admin.getAdminId());
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
 
-        // 동아리 존재 여부 확인
         clubRepository.findById(clubId)
                 .orElseThrow(() -> {
                     log.error("동아리 삭제 실패 - 존재하지 않는 Club ID: {}", clubId);
                     return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
                 });
 
-        // 동아리 및 관련 데이터 삭제
         clubRepository.deleteClubAndDependencies(clubId);
         log.info("동아리 삭제 성공 - Club ID: {}", clubId);
     }

@@ -41,14 +41,12 @@ public class AplictService {
 
     // 동아리 지원 가능 여부 확인
     public void checkIfCanApply(Long clubId) {
-        // 인증된 사용자 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.user();
 
         log.debug("동아리 지원 가능 여부 확인 요청 - ClubID: {}, UserUUID: {}", clubId, user.getUserUUID());
 
-        // 사용자 프로필 조회
         Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
                 .orElseThrow(() -> {
                     log.error("동아리 지원 가능 여부 확인 실패 - 프로필 없음, UserUUID: {}", user.getUserUUID());
@@ -67,7 +65,6 @@ public class AplictService {
             throw new ClubException(ExceptionType.ALREADY_MEMBER);
         }
 
-        // 해당 동아리의 모든 회원 정보 조회
         List<Profile> clubMembers = clubMembersRepository.findProfilesByClubId(clubId);
 
         // 중복 학번 및 전화번호 확인
@@ -108,7 +105,6 @@ public class AplictService {
 
     //동아리 지원서 제출(모바일)
     public void submitAplict(Long clubId, AplictRequest request) {
-        // SecurityContextHolder에서 인증 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.user();

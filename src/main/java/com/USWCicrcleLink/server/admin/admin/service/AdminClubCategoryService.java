@@ -61,15 +61,12 @@ public class AdminClubCategoryService {
                     return new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
                 });
 
-        // 카테고리와 매핑된 ClubCategoryMapping 삭제
         clubCategoryMappingRepository.deleteByClubCategory(clubCategory);
         log.info("연결된 매핑 데이터 삭제 완료 - UUID: {}", clubCategoryUUID);
 
-        // 카테고리 삭제
         clubCategoryRepository.delete(clubCategory);
         log.info("동아리 카테고리 삭제 성공 -  UUID: {}", clubCategoryUUID);
 
-        // 삭제된 카테고리 정보를 응답으로 반환
         return ClubCategoryMapper.toDto(clubCategory);
     }
 }
