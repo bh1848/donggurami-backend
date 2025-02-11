@@ -35,15 +35,15 @@ public class AdminClubController {
         return ResponseEntity.ok(new ApiResponse<>("동아리 전체 리스트 조회 성공", pagedClubs));
     }
 
-    // 동아리 소개/모집글 페이지 (웹)
+    // 동아리 소개/모집글 페이지 조회 (웹 - 운영팀)
     @GetMapping("/{clubId}")
     public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubById(@PathVariable("clubId") Long clubId) {
         ClubIntroResponse clubIntroResponse = clubService.getClubIntro(clubId);
-        return ResponseEntity.ok(new ApiResponse<>("동아리 상세 조회 성공", clubIntroResponse));
+        return ResponseEntity.ok(new ApiResponse<>("동아리 소개/모집글 페이지 조회 성공", clubIntroResponse));
     }
 
     // 동아리 추가 (웹) - 동아리 추가
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<ApiResponse<String>> createClub(@RequestBody @Valid ClubCreationRequest clubRequest) {
         adminClubService.createClub(clubRequest);
         return ResponseEntity.ok(new ApiResponse<>("동아리 생성 성공"));

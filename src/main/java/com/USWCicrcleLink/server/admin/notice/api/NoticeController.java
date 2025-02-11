@@ -28,7 +28,7 @@ public class NoticeController {
     private final NoticeService noticeService;
 
     // 공지사항 리스트 조회 (웹, 페이징)
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<ApiResponse<Page<NoticeListResponse>>> getNotices(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -46,7 +46,7 @@ public class NoticeController {
     }
 
     // 공지사항 생성 (웹)
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<ApiResponse<List<String>>> createNotice(
             @RequestPart(value = "request", required = false) @Valid NoticeCreationRequest request,
             @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos) {

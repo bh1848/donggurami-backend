@@ -155,7 +155,7 @@ public class ClubService {
     }
 
 
-    // 동아리 상세 페이지 조회 (웹, 모바일)
+    // 동아리 소개/모집글 페이지 조회 (웹 - 운영팀, 모바일)
     @Transactional(readOnly = true)
     public ClubIntroResponse getClubIntro(Long clubId) {
         Club club = clubRepository.findById(clubId)
@@ -165,29 +165,35 @@ public class ClubService {
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
-
         List<ClubIntroPhoto> clubIntroPhotos = clubIntroPhotoRepository.findByClubIntro(clubIntro);
 
-        // S3에서 메인 사진 URL 생성 (기본 URL 또는 null 처리)
         String mainPhotoUrl = (clubMainPhoto != null)
                 ? s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key())
                 : null;
 
-        // S3에서 소개 사진 URL 생성 (소개 사진이 없을 경우 빈 리스트)
-        List<String> introPhotoUrls = Optional.ofNullable(clubIntroPhotoRepository.findByClubIntro(clubIntro))
-                .orElse(Collections.emptyList())
-                .stream()
+        List<String> introPhotoUrls = clubIntroPhotos.stream()
                 .sorted(Comparator.comparingInt(ClubIntroPhoto::getOrder))
                 .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
                 .collect(Collectors.toList());
 
-        List<String> hashtags = Optional.ofNullable(clubHashtagRepository.findByClub(club))
-                .orElse(Collections.emptyList())
+        List<String> hashtags = clubHashtagRepository.findByClub(club)
                 .stream()
                 .map(ClubHashtag::getClubHashtag)
                 .collect(Collectors.toList());
 
-        return new ClubIntroResponse(clubIntro, club, mainPhotoUrl, introPhotoUrls,hashtags);
+        return new ClubIntroResponse(
+                club.getClubId(),
+                mainPhotoUrl,
+                introPhotoUrls,
+                club.getClubName(),
+                club.getLeaderName(),
+                club.getLeaderHp(),
+                club.getClubInsta(),
+                clubIntro.getClubIntro(),
+                clubIntro.getRecruitmentStatus(),
+                hashtags,
+                club.getClubRoomNumber(),
+                clubIntro.getClubRecruitment()
+        );
     }
-
 }
