@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -89,7 +90,7 @@ public class MypageService {
 
         return aplicts.stream()
                 .map(aplict -> {
-                    Club club = getClubByAplictId(aplict.getAplictId());
+                    Club club = getClubByAplictUUID(aplict.getAplictUUID());
                     AplictStatus aplictStatus = aplict.getAplictStatus(); // 어플릭트의 상태 가져오기
                     return myAplictResponse(club, aplictStatus);
                 })
@@ -111,8 +112,8 @@ public class MypageService {
     }
 
     // 어플리케이션 ID를 통해 클럽 조회
-    private Club getClubByAplictId(Long aplictId) {
-        Aplict aplict = aplictRepository.findById(aplictId)
+    private Club getClubByAplictUUID(UUID aplictUUID) {
+        Aplict aplict = aplictRepository.findByAplictUUID(aplictUUID)
                 .orElseThrow(() -> new BaseException(ExceptionType.APLICT_NOT_EXISTS));
         return clubRepository.findById(aplict.getClub().getClubId()).orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
     }

@@ -48,7 +48,7 @@ public class AdminClubCategoryService {
                 .build();
 
         ClubCategory savedClubCategory = clubCategoryRepository.save(clubCategory);
-        log.info("동아리 카테고리 추가 성공 -  ID: {}, Name: {}", savedClubCategory.getClubCategoryId(), savedClubCategory.getClubCategoryName());
+        log.info("동아리 카테고리 추가 성공 -  UUID: {}, Name: {}", savedClubCategory.getClubCategoryUUID(), savedClubCategory.getClubCategoryName());
 
         return ClubCategoryMapper.toDto(savedClubCategory);
     }

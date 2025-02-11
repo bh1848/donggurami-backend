@@ -75,7 +75,7 @@ public class FcmServiceImpl implements FcmService {
 
             // 푸시 알림 전송 실패 예외처리
             if (response.getStatusCode() == HttpStatus.OK) {
-                log.debug("푸시 알림 전송 완료: {}", aplict.getAplictId());
+                log.debug("푸시 알림 전송 완료: UUID: {}", aplict.getAplictUUID());
                 return 1;
             } else {
                 // FCM 토큰아 유효하지 않음

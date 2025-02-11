@@ -9,16 +9,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface AplictRepository extends JpaRepository<Aplict, Long> ,AplictRepositoryCustom{
     List<Aplict> findByProfileProfileId(Long profileId);
 
-    Optional<Aplict> findByClub_ClubIdAndAplictIdAndChecked (Long clubId, Long aplictId, boolean checked);
+    Optional<Aplict> findByAplictUUID(UUID aplictUUID);
+
+    Optional<Aplict> findByClub_ClubIdAndAplictUUIDAndChecked(Long clubId, UUID aplictUUID, boolean checked);
 
     List<Aplict> findByClub_ClubIdAndChecked (Long clubId, boolean checked);
 
-    Optional<Aplict> findByClub_ClubIdAndAplictIdAndCheckedAndAplictStatus (Long clubId, Long aplictId, boolean checked, AplictStatus status);
-
+    Optional<Aplict> findByClub_ClubIdAndAplictUUIDAndCheckedAndAplictStatus(Long clubId, UUID aplictUUID, boolean checked, AplictStatus status);
     List<Aplict> findAllByDeleteDateBefore(LocalDateTime dateTime);
 
     void deleteAllByProfile(Profile profile);

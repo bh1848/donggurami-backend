@@ -682,7 +682,7 @@ public class ClubLeaderService {
         List<Aplict> aplicts = aplictRepository.findAllWithProfileByClubId(club.getClubId(), false);
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
-                        ap.getAplictId(),
+                        ap.getAplictUUID(),
                         ap.getProfile()
                 ))
                 .toList();
@@ -702,9 +702,9 @@ public class ClubLeaderService {
 
         // 지원자 검증(지원한 동아리 + 지원서 + check안된 상태)
         for (ApplicantResultsRequest result : results) {
-            Aplict applicant = aplictRepository.findByClub_ClubIdAndAplictIdAndChecked(
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndAplictUUIDAndChecked(
                             club.getClubId(),
-                            result.getAplictId(),
+                            result.getAplictUUID(),
                             false)
                     .orElseThrow(() -> new BaseException(ExceptionType.APPLICANT_NOT_EXISTS));
 
@@ -721,10 +721,10 @@ public class ClubLeaderService {
                         .build();
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
                 clubMembersRepository.save(newClubMembers);
-                log.debug("합격 처리 완료: {}", applicant.getAplictId());
+                log.debug("합격 처리 완료: {}", applicant.getAplictUUID());
             } else if (aplictResult == AplictStatus.FAIL) {
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
-                log.debug("불합격 처리 완료: {}", applicant.getAplictId());
+                log.debug("불합격 처리 완료: {}", applicant.getAplictUUID());
             }
 
             aplictRepository.save(applicant);
@@ -745,15 +745,15 @@ public class ClubLeaderService {
 
     // 선택된 지원자 수와 전체 지원자 수 비교
     private void validateTotalApplicants(List<Aplict> applicants, List<ApplicantResultsRequest> results) {
-        Set<Long> applicantIds = applicants.stream()
-                .map(Aplict::getAplictId)
+        Set<UUID> applicantUUIDs = applicants.stream()
+                .map(Aplict::getAplictUUID)
                 .collect(Collectors.toSet());
 
-        Set<Long> requestedApplicantIds = results.stream()
-                .map(ApplicantResultsRequest::getAplictId)
+        Set<UUID> requestedApplicantUUIDs = results.stream()
+                .map(ApplicantResultsRequest::getAplictUUID)
                 .collect(Collectors.toSet());
 
-        if (!requestedApplicantIds.equals(applicantIds)) {
+        if (!requestedApplicantUUIDs.equals(applicantUUIDs)) {
             throw new BaseException(ExceptionType.APPLICANT_COUNT_MISMATCH);
         }
     }
@@ -767,7 +767,7 @@ public class ClubLeaderService {
         List<Aplict> aplicts = aplictRepository.findAllWithProfileByClubIdAndFailed(club.getClubId(), true, AplictStatus.FAIL);
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
-                        ap.getAplictId(),
+                        ap.getAplictUUID(),
                         ap.getProfile()
                 ))
                 .toList();
@@ -781,9 +781,9 @@ public class ClubLeaderService {
 
         // 지원자 검증(지원한 동아리 + 지원서 + check된 상태 + 불합)
         for (ApplicantResultsRequest result : results) {
-            Aplict applicant = aplictRepository.findByClub_ClubIdAndAplictIdAndCheckedAndAplictStatus(
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndAplictUUIDAndCheckedAndAplictStatus(
                             club.getClubId(),
-                            result.getAplictId(),
+                            result.getAplictUUID(),
                             true,
                             AplictStatus.FAIL
                     )
@@ -805,7 +805,7 @@ public class ClubLeaderService {
             aplictRepository.save(applicant);
 
             fcmService.sendMessageTo(applicant, aplictResult);
-            log.debug("추가 합격 처리 완료: {}", applicant.getAplictId());
+            log.debug("추가 합격 처리 완료: {}", applicant.getAplictUUID());
         }
     }
 
