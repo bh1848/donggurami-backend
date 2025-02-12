@@ -570,7 +570,7 @@ public class ClubLeaderService {
 
         List<Long> clubMemberIds = clubMemberIdList.stream()
                 .map(ClubMembersDeleteRequest::getClubMemberId)
-                .collect(toList());
+                .toList();
 
         // 동아리 회원인지 확인
         List<ClubMembers> membersToDelete = clubMembersRepository.findByClubClubIdAndClubMemberIdIn(club.getClubId(), clubMemberIds);
@@ -582,6 +582,21 @@ public class ClubLeaderService {
 
         // 동아리 회원 삭제
         clubMembersRepository.deleteAll(membersToDelete);
+
+        // 삭제 후 비회원이면서 어떤 동아리에도 소속돼 있지 않을 경우, 프로필 삭제
+        List<Long> profileIdsToDelete = membersToDelete.stream()
+                .map(ClubMembers::getProfile)
+                .filter(profile -> profile.getMemberType() == MemberType.NONMEMBER)
+                .map(Profile::getProfileId)
+                .toList();
+
+        List<Long> profileIdsWithoutClub = clubMembersRepository.findByProfileProfileIdsWithoutClub(profileIdsToDelete);
+
+        if (!profileIdsWithoutClub.isEmpty()) {// 삭제할 회원이 존재할 경우
+            // 삭제할 id가 있는 경우
+            profileRepository.deleteAllByIdInBatch(profileIdsWithoutClub);
+        }
+
         return new ApiResponse<>("동아리 회원 삭제 완료", clubMemberIdList);
     }
 
