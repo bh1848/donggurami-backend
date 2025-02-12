@@ -12,47 +12,26 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ClubIntroWebResponse {
+public class ClubIntroResponse {
 
-    // club
     private long clubId;
-    private String clubName;
-    private String leaderName;
-    private String leaderHp;
-    private String clubInsta;
-    private String clubRoomNumber;
 
-    // clubHashtag
-    private List<String> clubHashtag;
-
-    // clubIntro
     private String clubIntro;
+
     private String clubRecruitment;
+
     private RecruitmentStatus recruitmentStatus;
+
     private String googleFormUrl;
 
-    // photo
-    private String mainPhoto;
     private List<String> introPhotos;
 
-    public ClubIntroWebResponse(Club club, List<String> clubHashtag,
-                                ClubIntro clubIntro, String mainPhotoUrl, List<String> introPhotoUrls) {
-        // club
+    public ClubIntroResponse(Club club, ClubIntro clubIntro, List<String> introPhotoUrls) {
         this.clubId = club.getClubId();
-        this.clubName = club.getClubName();
-        this.leaderName = club.getLeaderName();
-        this.leaderHp = club.getLeaderHp();
-        this.clubInsta = club.getClubInsta();
-        this.clubRoomNumber = club.getClubRoomNumber();
-        // clubHashtag
-        this.clubHashtag = clubHashtag;
-        // clubIntro
         this.clubIntro = clubIntro.getClubIntro();
         this.clubRecruitment = clubIntro.getClubRecruitment();
         this.recruitmentStatus = clubIntro.getRecruitmentStatus();
         this.googleFormUrl = clubIntro.getGoogleFormUrl();
-        // photo
-        this.mainPhoto = mainPhotoUrl;
         this.introPhotos = introPhotoUrls;
     }
 }

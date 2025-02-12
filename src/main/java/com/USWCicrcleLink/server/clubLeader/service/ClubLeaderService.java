@@ -175,19 +175,7 @@ public class ClubLeaderService {
         List<String> clubCategories = clubCategoryMappingRepository.findByClubClubId(club.getClubId())
                 .stream().map(mapping -> mapping.getClubCategory().getClubCategoryName()).collect(toList());
 
-        ClubInfoResponse clubInfoResponse = new ClubInfoResponse(
-                mainPhotoUrl,
-                club.getClubName(),
-                club.getLeaderName(),
-                club.getLeaderHp(),
-                club.getClubInsta(),
-                club.getClubRoomNumber(),
-                clubHashtags,
-                clubCategories,
-                club.getDepartment()
-        );
-
-        return new ApiResponse<>("동아리 기본 정보 조회 완료", clubInfoResponse);
+        return new ApiResponse<>("동아리 기본 정보 조회 완료", new ClubInfoResponse(mainPhotoUrl, club, clubHashtags, clubCategories));
     }
 
     // 동아리 기본 정보 변경
@@ -326,9 +314,9 @@ public class ClubLeaderService {
         return s3FileResponse;
     }
 
-    // 자신의 동아리 상세 페이지 조회(웹)
+    // 동아리 요약 조회
     @Transactional(readOnly = true)
-    public ClubIntroWebResponse getClubIntro(Long clubId) {
+    public ClubSummaryResponse getClubSummary(Long clubId) {
         Club club = validateLeader(clubId);
 
         // 동아리 소개 조회
@@ -358,8 +346,31 @@ public class ClubLeaderService {
                 .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
                 .collect(Collectors.toList());
 
+        return new ClubSummaryResponse(club, clubHashtags, clubIntro, mainPhotoUrl, introPhotoUrls);
+    }
+
+    // 동아리 소개 조회
+    @Transactional(readOnly = true)
+    public ApiResponse<ClubIntroResponse> getClubIntro(Long clubId) {
+        Club club = validateLeader(clubId);
+
+        // 동아리 소개 조회
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
+                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+
+        // 동아리 소개 사진 조회
+        List<ClubIntroPhoto> clubIntroPhotos = clubIntroPhotoRepository.findByClubIntro(clubIntro);
+
+        // S3에서 소개 사진 URL 생성 (소개 사진이 없을 경우 빈 리스트)
+        List<String> introPhotoUrls = clubIntroPhotos.isEmpty()
+                ? Collections.emptyList()
+                : clubIntroPhotos.stream()
+                .sorted(Comparator.comparingInt(ClubIntroPhoto::getOrder))
+                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
+                .collect(Collectors.toList());
+
         // ClubIntroResponse 반환
-        return new ClubIntroWebResponse(club, clubHashtags, clubIntro, mainPhotoUrl, introPhotoUrls);
+        return new ApiResponse<>("동아리 소개 조회 완료", new ClubIntroResponse(club, clubIntro, introPhotoUrls));
     }
 
     // 동아리 소개 변경

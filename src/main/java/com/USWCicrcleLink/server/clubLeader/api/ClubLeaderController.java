@@ -6,10 +6,7 @@ import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.FcmTokenRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginResponse;
-import com.USWCicrcleLink.server.clubLeader.dto.club.ClubInfoRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.club.ClubInfoResponse;
-import com.USWCicrcleLink.server.clubLeader.dto.club.ClubIntroRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.club.ClubIntroWebResponse;
+import com.USWCicrcleLink.server.clubLeader.dto.club.*;
 import com.USWCicrcleLink.server.clubLeader.dto.clubMembers.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
@@ -77,12 +74,18 @@ public class ClubLeaderController {
         return new ResponseEntity<>(clubLeaderService.updateClubInfo(clubId, clubInfoRequest, mainPhoto), HttpStatus.OK);
     }
 
-    // 자신의 동아리 상세 페이지 조회(웹)
-    @GetMapping("/{clubId}/intro")
-    public ResponseEntity<ApiResponse<ClubIntroWebResponse>> getClubIntro(@PathVariable("clubId") Long clubId) {
-        ClubIntroWebResponse clubIntroWebResponse = clubLeaderService.getClubIntro(clubId);
-        ApiResponse<ClubIntroWebResponse> response = new ApiResponse<>("동아리 상세 조회 성공", clubIntroWebResponse);
+    // 동아리 요약 조회
+    @GetMapping("/{clubId}/summary")
+    public ResponseEntity<ApiResponse<ClubSummaryResponse>> getClubSummary(@PathVariable("clubId") Long clubId) {
+        ClubSummaryResponse clubIntroWebResponse = clubLeaderService.getClubSummary(clubId);
+        ApiResponse<ClubSummaryResponse> response = new ApiResponse<>("동아리 요약 조회 완료", clubIntroWebResponse);
         return ResponseEntity.ok(response);
+    }
+
+    // 동아리 소개 조회
+    @GetMapping("/{clubId}/intro")
+    public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubIntro(@PathVariable("clubId") Long clubId) {
+        return new ResponseEntity<>(clubLeaderService.getClubIntro(clubId), HttpStatus.OK);
     }
 
     // 동아리 소개 변경
