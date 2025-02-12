@@ -51,4 +51,16 @@ public class ClubMembersRepositoryImpl implements ClubMembersRepositoryCustom {
                 .getResultList();
     }
 
+    // 프로필로 속한 동아리 조회
+    @Override
+    public List<Long> findByProfileProfileIdsWithoutClub(List<Long> profileIds) {
+        return em.createQuery(
+                        "SELECT p.profileId FROM Profile p" +
+                                " WHERE p.profileId IN :profileIds" +
+                                " AND NOT EXISTS (SELECT 1 FROM ClubMembers cm WHERE cm.profile.profileId = p.profileId)",
+                        Long.class
+                ).setParameter("profileIds", profileIds)
+                .getResultList();
+
+    }
 }
