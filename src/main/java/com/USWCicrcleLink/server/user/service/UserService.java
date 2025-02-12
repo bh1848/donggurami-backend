@@ -356,7 +356,7 @@ public class UserService {
     @RateLimite(action = "EMAIL_VERIFICATION")
     public void sendSignUpMail(UserTemp userTemp,EmailToken emailToken)  {
         log.debug("회원 가입 인증 메일 요청 ");
-        MimeMessage message = emailService.createSingUpLink(userTemp,emailToken);
+        MimeMessage message = emailService.createSignUpLink(userTemp,emailToken);
         emailService.sendEmail(message);
         log.debug("회원가입 인증메일 전송 완료 emailToken_uuid= {} ",emailToken.getEmailTokenUUID());
     }
