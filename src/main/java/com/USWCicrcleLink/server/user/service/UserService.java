@@ -389,7 +389,7 @@ public class UserService {
 
     // 회원 가입 확인
     @Transactional(readOnly = true)
-    public String signUpFinish(String account) {
+    public void signUpFinish(String account) {
 
         log.debug("회원 가입 완료 처리 요청 ");
         // 계정이 존재하는지 확인
@@ -397,8 +397,8 @@ public class UserService {
                 .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
 
         log.debug("최종 회원 가입 완료");
-        return "true";
     }
+
 
     // 회원 탈퇴
     public void cancelMembership(HttpServletRequest request, HttpServletResponse response) {

@@ -66,7 +66,7 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse<>("비밀번호가 일치합니다"));
     }
 
-    // 임시 회원 등록 및 인증 메일 전송
+    // 신규회원가입
     @PostMapping("/temporary/register")
     public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated(ValidationSequence.class) @RequestBody SignUpRequest request)  {
 
@@ -80,22 +80,27 @@ public class UserController {
         return new ResponseEntity<>(verifyEmailResponse, HttpStatus.OK);
     }
 
-    // 이메일 인증 확인 후 자동 회원가입
+    // 신규회원 - 이메일 인증 후 회원가입
     @GetMapping("/email/verify-token")
-    public ModelAndView verifySignUpMail (@RequestParam UUID emailToken_uuid) {
+    public ModelAndView verifySignUpMail (@RequestParam("emailToken_uuid") UUID emailToken_uuid) {
 
         ModelAndView modelAndView = new ModelAndView();
 
         try {
             UserTemp userTemp = userService.verifyEmailToken(emailToken_uuid);
             userService.signUp(userTemp);
-            modelAndView.setViewName("email_verification_success");
-            modelAndView.addObject("message", "이메일 인증이 성공했습니다. 앱으로 돌아가 회원가입 완료 버튼을 눌러주세요");
+            modelAndView.setViewName("success");
         } catch (EmailException e) {
-            modelAndView.setViewName("email_verification_failure");
-            modelAndView.addObject("message", "이메일 인증이 실패 했습니다. 이메일을 재전송 해주세요");
+            modelAndView.setViewName("failure");
         }
         return modelAndView;
+    }
+
+    // 로그인하러가기 - 회원가입 최종 확인
+    @PostMapping("/finish-signup")
+    public ResponseEntity<ApiResponse<Void>> signUpFinish(@RequestBody FinishSignupRequest request) {
+        userService.signUpFinish(request.getAccount());
+        return ResponseEntity.ok(new ApiResponse<>("회원가입이 정상적으로 완료되어 로그인이 가능합니다."));
     }
 
     // 기존 동아리원 회원가입
@@ -119,12 +124,7 @@ public class UserController {
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
-    // 회원 가입 완료 처리
-    @PostMapping("/finish-signup")
-    public ResponseEntity<ApiResponse<String>> signUpFinish(@RequestBody FinishSignupRequest request) {
-        ApiResponse<String> apiResponse = new ApiResponse<>(userService.signUpFinish(request.getAccount()), "회원가입 완료");
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
+
 
     // 로그인
     @PostMapping("/login")
