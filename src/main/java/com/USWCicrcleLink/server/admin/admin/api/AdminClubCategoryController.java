@@ -1,6 +1,6 @@
 package com.USWCicrcleLink.server.admin.admin.api;
 
-import com.USWCicrcleLink.server.admin.admin.dto.ClubCategoryCreationRequest;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminClubCategoryCreationRequest;
 import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.admin.admin.service.AdminClubCategoryService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
@@ -28,7 +28,7 @@ public class AdminClubCategoryController {
 
     // 동아리 카테고리 설정(웹) - 카테고리 추가
     @PostMapping
-    public ResponseEntity<ApiResponse<ClubCategoryResponse>> addClubCategory(@RequestBody @Valid ClubCategoryCreationRequest request) {
+    public ResponseEntity<ApiResponse<ClubCategoryResponse>> addClubCategory(@RequestBody @Valid AdminClubCategoryCreationRequest request) {
         ClubCategoryResponse addedClubCategory = adminClubCategoryService.addClubCategory(request);
         return ResponseEntity.ok(new ApiResponse<>("카테고리 추가 성공", addedClubCategory));
     }

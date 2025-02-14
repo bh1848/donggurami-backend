@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ClubCreationRequest {
+public class AdminClubCreationRequest {
 
     @NotBlank(message = "아이디는 필수 입력 값입니다.")
     @Size(min = 5, max = 20, message = "아이디는 5~20자 이내여야 합니다.")

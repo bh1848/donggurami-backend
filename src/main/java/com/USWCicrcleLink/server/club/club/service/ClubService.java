@@ -8,7 +8,7 @@ import com.USWCicrcleLink.server.club.club.dto.ClubListResponse;
 import com.USWCicrcleLink.server.club.club.repository.*;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
-import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminClubIntroResponse;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
@@ -54,14 +54,21 @@ public class ClubService {
     public List<ClubListByClubCategoryResponse> getAllClubsByClubCategories(List<UUID> clubCategoryUUIDs) {
         validateCategoryLimit(clubCategoryUUIDs);
 
-        List<ClubCategory> clubCategories = getValidatedCategories(clubCategoryUUIDs);
+        List<Long> clubCategoryIds = clubCategoryRepository.findClubCategoryIdsByUUIDs(clubCategoryUUIDs);
+        if (clubCategoryIds.isEmpty()) {
+            throw new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
+        }
 
-        return clubCategories.stream()
-                .map(category -> {
-                    List<ClubListResponse> clubResponses = clubCategoryMappingRepository.findByClubCategory(category)
-                            .stream()
-                            .map(mapping -> mapToClubListResponse(mapping.getClub()))
+        List<Club> clubs = clubCategoryMappingRepository.findClubsByCategoryIds(clubCategoryIds);
+
+        return clubCategoryIds.stream()
+                .map(categoryId -> {
+                    List<ClubListResponse> clubResponses = clubs.stream()
+                            .map(this::mapToClubListResponse)
                             .collect(Collectors.toList());
+
+                    ClubCategory category = clubCategoryRepository.findById(categoryId)
+                            .orElseThrow(() -> new BaseException(ExceptionType.CATEGORY_NOT_FOUND));
 
                     return new ClubListByClubCategoryResponse(
                             category.getClubCategoryUUID(),
@@ -88,22 +95,29 @@ public class ClubService {
     public List<ClubListByClubCategoryResponse> getOpenClubsByClubCategories(List<UUID> clubCategoryUUIDs) {
         validateCategoryLimit(clubCategoryUUIDs);
 
-        List<ClubCategory> clubCategories = getValidatedCategories(clubCategoryUUIDs);
+        List<Long> clubCategoryIds = clubCategoryRepository.findClubCategoryIdsByUUIDs(clubCategoryUUIDs);
+        if (clubCategoryIds.isEmpty()) {
+            throw new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
+        }
 
-        // 모집 중인 동아리 목록
         Set<Long> openClubIds = clubIntroRepository.findByRecruitmentStatus(RecruitmentStatus.OPEN)
                 .stream()
                 .map(clubIntro -> clubIntro.getClub().getClubId())
                 .collect(Collectors.toSet());
 
-        return clubCategories.stream()
-                .map(category -> {
-                    List<ClubListResponse> clubResponses = clubCategoryMappingRepository.findByClubCategory(category)
-                            .stream()
-                            .map(ClubCategoryMapping::getClub)
-                            .filter(club -> openClubIds.contains(club.getClubId()))
+        List<Club> clubs = clubCategoryMappingRepository.findClubsByCategoryIds(clubCategoryIds)
+                .stream()
+                .filter(club -> openClubIds.contains(club.getClubId()))
+                .toList();
+
+        return clubCategoryIds.stream()
+                .map(categoryId -> {
+                    List<ClubListResponse> clubResponses = clubs.stream()
                             .map(this::mapToClubListResponse)
                             .collect(Collectors.toList());
+
+                    ClubCategory category = clubCategoryRepository.findById(categoryId)
+                            .orElseThrow(() -> new BaseException(ExceptionType.CATEGORY_NOT_FOUND));
 
                     return new ClubListByClubCategoryResponse(
                             category.getClubCategoryUUID(),
@@ -131,18 +145,9 @@ public class ClubService {
 
     // 카테고리 개수 검증 (최대 3개)
     private void validateCategoryLimit(List<UUID> clubCategoryUUIDs) {
-        if (Optional.ofNullable(clubCategoryUUIDs).orElse(Collections.emptyList()).size() > 3) { // ✅ 안전한 처리
+        if (Optional.ofNullable(clubCategoryUUIDs).orElse(Collections.emptyList()).size() > 3) {
             throw new BaseException(ExceptionType.INVALID_CATEGORY_COUNT);
         }
-    }
-
-    // 선택한 카테고리 존재하는지 검증
-    private List<ClubCategory> getValidatedCategories(List<UUID> clubCategoryUUIDs) {
-        List<ClubCategory> clubCategories = clubCategoryRepository.findByClubCategoryUUIDIn(clubCategoryUUIDs);
-        if (clubCategories.isEmpty()) {
-            throw new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
-        }
-        return clubCategories;
     }
 
     // 카테고리 조회
@@ -157,11 +162,14 @@ public class ClubService {
 
     // 동아리 소개/모집글 페이지 조회 (웹 - 운영팀, 모바일)
     @Transactional(readOnly = true)
-    public ClubIntroResponse getClubIntro(Long clubId) {
+    public AdminClubIntroResponse getClubIntro(UUID clubUUID) {
+        Long clubId = clubRepository.findClubIdByUUID(clubUUID)
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
 
-        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId)
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
@@ -181,7 +189,7 @@ public class ClubService {
                 .map(ClubHashtag::getClubHashtag)
                 .collect(Collectors.toList());
 
-        return new ClubIntroResponse(
+        return new AdminClubIntroResponse(
                 club.getClubId(),
                 mainPhotoUrl,
                 introPhotoUrls,
@@ -196,4 +204,5 @@ public class ClubService {
                 clubIntro.getClubRecruitment()
         );
     }
+
 }

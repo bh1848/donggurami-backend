@@ -4,7 +4,7 @@ import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.club.club.dto.ClubListByClubCategoryResponse;
 import com.USWCicrcleLink.server.club.club.dto.ClubListResponse;
 import com.USWCicrcleLink.server.club.club.service.ClubService;
-import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminClubIntroResponse;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -57,9 +57,9 @@ public class ClubController {
     }
 
     // 동아리 소개글 조회 (모바일)
-    @GetMapping("/intro/{clubId}")
-    public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubIntroByClubId(@PathVariable("clubId") Long id) {
-        ClubIntroResponse clubIntroResponse = clubService.getClubIntro(id);
+    @GetMapping("/intro/{clubUUID}")
+    public ResponseEntity<ApiResponse<AdminClubIntroResponse>> getClubIntroByClubId(@PathVariable("clubUUID") UUID clubUUID) {
+        AdminClubIntroResponse clubIntroResponse = clubService.getClubIntro(clubUUID);
         return ResponseEntity.ok(new ApiResponse<>("동아리 소개글 조회 성공", clubIntroResponse));
     }
 }

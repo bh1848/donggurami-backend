@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ClubCategoryCreationRequest {
+public class AdminClubCategoryCreationRequest {
 
     @NotBlank(message = "카테고리 이름은 필수 입력 값입니다.")
     @Sanitize

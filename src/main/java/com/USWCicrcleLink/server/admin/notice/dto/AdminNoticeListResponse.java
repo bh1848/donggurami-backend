@@ -9,7 +9,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NoticeListResponse {
+public class AdminNoticeListResponse {
     private UUID noticeUUID;
     private String noticeTitle;
     private String adminName;

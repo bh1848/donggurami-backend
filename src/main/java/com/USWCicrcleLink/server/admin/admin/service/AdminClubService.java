@@ -60,7 +60,7 @@ public class AdminClubService {
     }
 
     // 동아리 생성(웹) - 동아리 생성 완료하기
-    public void createClub(ClubCreationRequest request) {
+    public void createClub(AdminClubCreationRequest request) {
         // 인증된 관리자 정보 가져오기
         Admin admin = getAuthenticatedAdmin();
         log.debug("동아리 생성 요청 - 관리자 ID: {}, 동아리명: {}", admin.getAdminId(), request.getClubName());

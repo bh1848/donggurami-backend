@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class FloorPhotoCreationResponse {
+public class AdminFloorPhotoCreationResponse {
     private FloorPhotoEnum floor;
     private String presignedUrl;
 }

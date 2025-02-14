@@ -3,10 +3,10 @@ package com.USWCicrcleLink.server.admin.notice.service;
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.notice.domain.Notice;
 import com.USWCicrcleLink.server.admin.notice.domain.NoticePhoto;
-import com.USWCicrcleLink.server.admin.notice.dto.NoticeCreationRequest;
+import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeCreationRequest;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
-import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
-import com.USWCicrcleLink.server.admin.notice.dto.NoticeUpdateRequest;
+import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeListResponse;
+import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeUpdateRequest;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticePhotoRepository;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public class NoticeService {
+public class AdminNoticeService {
 
     private static final int FILE_LIMIT = 5; // 최대 업로드 가능한 파일 수
     private static final String S3_NOTICE_PHOTO_DIR = "noticePhoto/"; // 공지사항 사진 경로
@@ -45,11 +45,11 @@ public class NoticeService {
 
     // 공지사항 목록 조회 (페이징)
     @Transactional(readOnly = true)
-    public Page<NoticeListResponse> getNotices(Pageable pageable) {
+    public Page<AdminNoticeListResponse> getNotices(Pageable pageable) {
         log.debug("공지사항 목록 조회 요청 - 페이지 정보: {}", pageable);
 
         try {
-            Page<NoticeListResponse> notices = noticeRepository.findAllNotices(pageable);
+            Page<AdminNoticeListResponse> notices = noticeRepository.findAllNotices(pageable);
             log.debug("공지사항 목록 조회 성공 - 총 {}개", notices.getTotalElements());
             return notices;
         } catch (Exception e) {
@@ -79,7 +79,7 @@ public class NoticeService {
     }
 
     // 공지사항 생성
-    public List<String> createNotice(NoticeCreationRequest request, List<MultipartFile> noticePhotos) {
+    public List<String> createNotice(AdminNoticeCreationRequest request, List<MultipartFile> noticePhotos) {
         Admin admin = getAuthenticatedAdmin();
         log.debug("공지사항 생성 요청 - 관리자 ID: {}", admin.getAdminId());
 
@@ -103,7 +103,7 @@ public class NoticeService {
 
 
     // 공지사항 수정
-    public List<String> updateNotice(UUID noticeUUID, NoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
+    public List<String> updateNotice(UUID noticeUUID, AdminNoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
         log.debug("공지사항 수정 요청 - ID: {}", noticeUUID);
 
         // 공지사항 조회

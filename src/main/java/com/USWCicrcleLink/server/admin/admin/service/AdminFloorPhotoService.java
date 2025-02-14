@@ -7,7 +7,7 @@ import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.s3File.dto.S3FileResponse;
-import com.USWCicrcleLink.server.admin.admin.dto.FloorPhotoCreationResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminFloorPhotoCreationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class AdminFloorPhotoService {
     private final S3FileUploadService s3FileUploadService;
 
     // 동아리 위치 정보 수정(웹) - 층별 사진 업로드
-    public FloorPhotoCreationResponse uploadPhoto(FloorPhotoEnum floor, MultipartFile photo) {
+    public AdminFloorPhotoCreationResponse uploadPhoto(FloorPhotoEnum floor, MultipartFile photo) {
         if (photo == null || photo.isEmpty()) {
             log.warn("층별 사진 업로드 실패 - 파일이 비어 있음: Floor: {}", floor);
             throw new BaseException(ExceptionType.PHOTO_FILE_IS_EMPTY);
@@ -53,12 +53,12 @@ public class AdminFloorPhotoService {
 
         log.info("층별 사진 저장 완료 - Floor: {}, 저장된 S3Key: {}", floor, s3FileResponse.getS3FileName());
 
-        return new FloorPhotoCreationResponse(floor, s3FileResponse.getPresignedUrl());
+        return new AdminFloorPhotoCreationResponse(floor, s3FileResponse.getPresignedUrl());
     }
 
     // 동아리 위치 정보 수정(웹) - 특정 층 사진 조회
     @Transactional(readOnly = true)
-    public FloorPhotoCreationResponse getPhotoByFloor(FloorPhotoEnum floor) {
+    public AdminFloorPhotoCreationResponse getPhotoByFloor(FloorPhotoEnum floor) {
         log.debug("층별 사진 조회 요청 - Floor: {}", floor);
 
         FloorPhoto floorPhoto = floorPhotoRepository.findByFloor(floor)
@@ -70,7 +70,7 @@ public class AdminFloorPhotoService {
         String presignedUrl = s3FileUploadService.generatePresignedGetUrl(floorPhoto.getFloorPhotoS3key());
 
         log.debug("층별 사진 조회 성공 - Floor: {}, Presigned URL 생성 완료", floor);
-        return new FloorPhotoCreationResponse(floor, presignedUrl);
+        return new AdminFloorPhotoCreationResponse(floor, presignedUrl);
     }
 
     // 동아리 위치 정보 수정(웹) - 특정 층 사진 삭제

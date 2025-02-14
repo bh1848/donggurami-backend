@@ -3,7 +3,7 @@ package com.USWCicrcleLink.server.admin.admin.api;
 import com.USWCicrcleLink.server.admin.admin.dto.*;
 import com.USWCicrcleLink.server.admin.admin.service.AdminClubService;
 import com.USWCicrcleLink.server.club.club.service.ClubService;
-import com.USWCicrcleLink.server.club.clubIntro.dto.ClubIntroResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminClubIntroResponse;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/admin/clubs")
@@ -36,15 +36,15 @@ public class AdminClubController {
     }
 
     // 동아리 소개/모집글 페이지 조회 (웹 - 운영팀)
-    @GetMapping("/{clubId}")
-    public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubById(@PathVariable("clubId") Long clubId) {
-        ClubIntroResponse clubIntroResponse = clubService.getClubIntro(clubId);
+    @GetMapping("/{clubUUID}")
+    public ResponseEntity<ApiResponse<AdminClubIntroResponse>> getClubById(@PathVariable("clubUUID") UUID clubUUID) {
+        AdminClubIntroResponse clubIntroResponse = clubService.getClubIntro(clubUUID);
         return ResponseEntity.ok(new ApiResponse<>("동아리 소개/모집글 페이지 조회 성공", clubIntroResponse));
     }
 
     // 동아리 추가 (웹) - 동아리 추가
     @PostMapping
-    public ResponseEntity<ApiResponse<String>> createClub(@RequestBody @Valid ClubCreationRequest clubRequest) {
+    public ResponseEntity<ApiResponse<String>> createClub(@RequestBody @Valid AdminClubCreationRequest clubRequest) {
         adminClubService.createClub(clubRequest);
         return ResponseEntity.ok(new ApiResponse<>("동아리 생성 성공"));
     }

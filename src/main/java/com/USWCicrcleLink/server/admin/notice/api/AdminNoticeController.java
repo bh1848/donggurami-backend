@@ -1,10 +1,10 @@
 package com.USWCicrcleLink.server.admin.notice.api;
 
-import com.USWCicrcleLink.server.admin.notice.dto.NoticeCreationRequest;
+import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeCreationRequest;
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
-import com.USWCicrcleLink.server.admin.notice.dto.NoticeListResponse;
-import com.USWCicrcleLink.server.admin.notice.dto.NoticeUpdateRequest;
-import com.USWCicrcleLink.server.admin.notice.service.NoticeService;
+import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeListResponse;
+import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeUpdateRequest;
+import com.USWCicrcleLink.server.admin.notice.service.AdminNoticeService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,17 +22,17 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/notices")
 @RequiredArgsConstructor
-public class NoticeController {
-    private final NoticeService noticeService;
+public class AdminNoticeController {
+    private final AdminNoticeService noticeService;
 
     // 공지사항 리스트 조회 (웹, 페이징)
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<NoticeListResponse>>> getNotices(
+    public ResponseEntity<ApiResponse<Page<AdminNoticeListResponse>>> getNotices(
             @RequestParam(name = "page",defaultValue = "0") int page,
             @RequestParam(name = "size",defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("noticeCreatedAt").descending());
-        Page<NoticeListResponse> pagedNotices = noticeService.getNotices(pageable);
+        Page<AdminNoticeListResponse> pagedNotices = noticeService.getNotices(pageable);
         return ResponseEntity.ok(new ApiResponse<>("공지사항 리스트 조회 성공", pagedNotices));
     }
 
@@ -47,7 +47,7 @@ public class NoticeController {
     // 공지사항 생성 (웹)
     @PostMapping
     public ResponseEntity<ApiResponse<List<String>>> createNotice(
-            @RequestPart(value = "request", required = false) @Valid NoticeCreationRequest request,
+            @RequestPart(value = "request", required = false) @Valid AdminNoticeCreationRequest request,
             @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos) {
         List<String> presignedUrls = noticeService.createNotice(request, noticePhotos);
         return ResponseEntity.ok(new ApiResponse<>("공지사항 생성 성공", presignedUrls));
@@ -57,7 +57,7 @@ public class NoticeController {
     @PutMapping("/{noticeUUID}")
     public ResponseEntity<ApiResponse<List<String>>> updateNotice(
             @PathVariable("noticeUUID") UUID noticeUUID,
-            @RequestPart(value = "request", required = false) @Valid NoticeUpdateRequest request,
+            @RequestPart(value = "request", required = false) @Valid AdminNoticeUpdateRequest request,
             @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos) {
 
         List<String> presignedUrls = noticeService.updateNotice(noticeUUID, request, noticePhotos);

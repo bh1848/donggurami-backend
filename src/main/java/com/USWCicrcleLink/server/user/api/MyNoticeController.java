@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.user.api;
 
 import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
-import com.USWCicrcleLink.server.admin.notice.service.NoticeService;
+import com.USWCicrcleLink.server.admin.notice.service.AdminNoticeService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.user.dto.MyNoticeResponse;
 import com.USWCicrcleLink.server.user.service.MyNoticeService;
@@ -20,7 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MyNoticeController {
     private final MyNoticeService myNoticeService;
-    private final NoticeService noticeService;
+    private final AdminNoticeService noticeService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<MyNoticeResponse>>> getNotices() {

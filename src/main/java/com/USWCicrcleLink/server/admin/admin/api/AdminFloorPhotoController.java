@@ -1,6 +1,6 @@
 package com.USWCicrcleLink.server.admin.admin.api;
 
-import com.USWCicrcleLink.server.admin.admin.dto.FloorPhotoCreationResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminFloorPhotoCreationResponse;
 import com.USWCicrcleLink.server.admin.admin.service.AdminFloorPhotoService;
 import com.USWCicrcleLink.server.club.club.domain.FloorPhotoEnum;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
@@ -18,18 +18,18 @@ public class AdminFloorPhotoController {
 
     // 동아리 위치 정보 수정 (웹) - 층별 사진 업로드
     @PutMapping("/{floor}")
-    public ResponseEntity<ApiResponse<FloorPhotoCreationResponse>> uploadFloorPhoto(
+    public ResponseEntity<ApiResponse<AdminFloorPhotoCreationResponse>> uploadFloorPhoto(
             @PathVariable("floor") FloorPhotoEnum floor,
             @RequestPart("photo") MultipartFile photo) {
-        FloorPhotoCreationResponse photoResponse = adminFloorPhotoService.uploadPhoto(floor, photo);
+        AdminFloorPhotoCreationResponse photoResponse = adminFloorPhotoService.uploadPhoto(floor, photo);
         return ResponseEntity.ok(new ApiResponse<>("해당 층 사진 업로드 성공", photoResponse));
     }
 
     // 동아리 위치 정보 수정 (웹) - 특정 층의 사진 조회
     @GetMapping("/{floor}")
-    public ResponseEntity<ApiResponse<FloorPhotoCreationResponse>> getPhotoByFloor(
+    public ResponseEntity<ApiResponse<AdminFloorPhotoCreationResponse>> getPhotoByFloor(
             @PathVariable("floor") FloorPhotoEnum floor) {
-        FloorPhotoCreationResponse photoResponse = adminFloorPhotoService.getPhotoByFloor(floor);
+        AdminFloorPhotoCreationResponse photoResponse = adminFloorPhotoService.getPhotoByFloor(floor);
         return ResponseEntity.ok(new ApiResponse<>("해당 층 사진 조회 성공", photoResponse));
     }
 

@@ -13,7 +13,6 @@ public interface ClubHashtagRepository extends JpaRepository<ClubHashtag, Long> 
     List<ClubHashtag> findByClubClubId(Long clubId);
     @Query("SELECT h.clubHashtag FROM ClubHashtag h WHERE h.club.clubId = :clubId")
     List<String> findHashtagsByClubId(@Param("clubId") Long clubId);
-    boolean existsByClub_ClubIdAndClubHashtag(Long clubId, String clubHashtag);
 
     void deleteByClub_ClubIdAndClubHashtag(Long clubId, String clubHashtag);
 }
