@@ -37,13 +37,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final ClubMembersRepository clubMembersRepository;
     private final ProfileRepository profileRepository;
 
-    // 주어진 uuid로 사용자 세부 정보 로드
+    // UUID로 사용자 로드
     @Override
     public UserDetails loadUserByUsername(String uuid) throws UsernameNotFoundException {
         return loadUserByUuidAndRole(uuid, null);
     }
 
-    // 주어진 uuid와 role로 사용자 세부 정보 로드
+    // UUID + Role로 사용자 로드
     public UserDetails loadUserByUuidAndRole(String uuid, Role role) throws UsernameNotFoundException {
         UUID userUuid;
         try {
@@ -64,23 +64,24 @@ public class CustomUserDetailsService implements UserDetailsService {
             if (user != null) {
                 Profile profile = profileRepository.findByUser_UserUUID(userUuid)
                         .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
-                List<Long> clubIds = getUserClubIds(profile);
-                return new CustomUserDetails(user, clubIds);
+                List<UUID> clubUUIDs = getUserClubUUIDs(profile.getProfileId());
+                return new CustomUserDetails(user, clubUUIDs);
             }
         }
 
         if (role == null || role == Role.LEADER) {
             Leader leader = leaderRepository.findByLeaderUUID(userUuid).orElse(null);
             if (leader != null) {
-                Long clubId = leader.getClub().getClubId();
-                return new CustomLeaderDetails(leader, clubId);
+                UUID clubUUID = leaderRepository.findClubUUIDByLeaderUUID(leader.getLeaderUUID())
+                        .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+                return new CustomLeaderDetails(leader, clubUUID);
             }
         }
 
         throw new UserException(ExceptionType.USER_NOT_EXISTS);
     }
 
-    // 주어진 account와 role로 사용자 세부 정보 로드
+    // account + Role로 사용자 로드
     public UserDetails loadUserByAccountAndRole(String account, Role role) throws UsernameNotFoundException {
         if (role == null || role == Role.ADMIN) {
             Admin admin = adminRepository.findByAdminAccount(account).orElse(null);
@@ -94,28 +95,24 @@ public class CustomUserDetailsService implements UserDetailsService {
             if (user != null) {
                 Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
                         .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
-                List<Long> clubIds = getUserClubIds(profile);
-                return new CustomUserDetails(user, clubIds);
+                List<UUID> clubUUIDs = getUserClubUUIDs(profile.getProfileId());
+                return new CustomUserDetails(user, clubUUIDs);
             }
         }
 
         if (role == null || role == Role.LEADER) {
             Leader leader = leaderRepository.findByLeaderAccount(account).orElse(null);
             if (leader != null) {
-                Long clubId = leader.getClub().getClubId();
-                return new CustomLeaderDetails(leader, clubId);
+                UUID clubUUID = leaderRepository.findClubUUIDByLeaderUUID(leader.getLeaderUUID())
+                        .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+                return new CustomLeaderDetails(leader, clubUUID);
             }
         }
 
         throw new UserException(ExceptionType.USER_NOT_EXISTS);
     }
 
-
-    // 프로필을 통해 사용자 clubId 조회
-    private List<Long> getUserClubIds(Profile profile) {
-        return clubMembersRepository.findByProfileProfileId(profile.getProfileId())
-                .stream()
-                .map(clubMember -> clubMember.getClub().getClubId())
-                .collect(Collectors.toList());
+    private List<UUID> getUserClubUUIDs(Long profileId) {
+        return clubMembersRepository.findClubUUIDsByProfileId(profileId);
     }
 }

@@ -86,10 +86,10 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.GET, "/apply/**").hasRole("USER");
 
                     // LEADER
-                    auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.GET, "/club-leader/{clubId}/**").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.PATCH, "/club-leader/{clubId}/**").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.DELETE, "/club-leader/{clubId}/members").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubUUID}/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.GET, "/club-leader/{clubUUID}/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.PATCH, "/club-leader/{clubUUID}/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/club-leader/{clubUUID}/members").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/category").hasRole("LEADER");
 
                     // 기타 모든 요청 인증 필요

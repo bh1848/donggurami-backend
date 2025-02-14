@@ -2,6 +2,8 @@ package com.USWCicrcleLink.server.clubLeader.repository;
 
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -14,4 +16,7 @@ public interface LeaderRepository extends JpaRepository<Leader,Long> {
 
     // 추가: Leader 계정 중복 확인 메서드
     boolean existsByLeaderAccount(String account);
+
+    @Query("SELECT l.club.clubUUID FROM Leader l WHERE l.leaderUUID = :leaderUUID")
+    Optional<UUID> findClubUUIDByLeaderUUID(@Param("leaderUUID") UUID leaderUUID);
 }

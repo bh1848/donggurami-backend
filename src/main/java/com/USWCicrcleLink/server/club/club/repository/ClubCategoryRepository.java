@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface ClubCategoryRepository extends JpaRepository<ClubCategory, UUID> {
+public interface ClubCategoryRepository extends JpaRepository<ClubCategory, Long> {
     Optional<ClubCategory> findByClubCategoryUUID(UUID clubCategoryUUID);
     Optional<ClubCategory> findByClubCategoryName(String clubCategoryName);
 

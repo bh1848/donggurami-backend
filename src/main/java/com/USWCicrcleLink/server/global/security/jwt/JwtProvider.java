@@ -63,15 +63,15 @@ public class JwtProvider {
         Claims claims = Jwts.claims().setSubject(uuid);
 
         Role role;
-        List<Long> clubIds = null;
-        Long clubId = null;
+        List<UUID> clubUUIDs = null;
+        UUID clubUUID = null;
 
         if (userDetails instanceof CustomUserDetails customUserDetails) {
             role = customUserDetails.user().getRole();
-            clubIds = customUserDetails.getClubIds();
+            clubUUIDs = customUserDetails.getClubUUIDs();
         } else if (userDetails instanceof CustomLeaderDetails customLeaderDetails) {
             role = customLeaderDetails.leader().getRole();
-            clubId = customLeaderDetails.getClubId();
+            clubUUID = customLeaderDetails.getClubUUID();
         } else if (userDetails instanceof CustomAdminDetails customAdminDetails) {
             role = customAdminDetails.admin().getRole();
         } else {
@@ -79,10 +79,10 @@ public class JwtProvider {
         }
 
         claims.put("role", role.name());
-        if (clubIds != null) {
-            claims.put("clubIds", clubIds);
-        } else if (clubId != null) {
-            claims.put("clubId", clubId);
+        if (clubUUIDs != null) {
+            claims.put("clubUUIDs", clubUUIDs);
+        } else if (clubUUID != null) {
+            claims.put("clubUUID", clubUUID);
         }
 
         Date now = new Date();

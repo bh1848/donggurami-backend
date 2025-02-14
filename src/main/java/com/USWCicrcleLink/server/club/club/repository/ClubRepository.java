@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface ClubRepository extends JpaRepository<Club, Long>, ClubRepositoryCustom{
     @NonNull
@@ -21,4 +22,8 @@ public interface ClubRepository extends JpaRepository<Club, Long>, ClubRepositor
 
     @Query("SELECT c FROM Club c JOIN ClubIntro ci ON c.clubId = ci.club.clubId WHERE ci.recruitmentStatus = 'OPEN'")
     List<Club> findOpenClubs();
+
+
+    Optional<Club> findByClubUUID(UUID clubUUID);
+
 }
