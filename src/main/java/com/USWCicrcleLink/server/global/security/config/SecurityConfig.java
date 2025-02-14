@@ -73,13 +73,13 @@ public class SecurityConfig {
 
                     // ADMIN - Notice
                     auth.requestMatchers(HttpMethod.POST, "/notices").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/notices/{noticeId}", "/notices").hasAnyRole("ADMIN", "LEADER");
-                    auth.requestMatchers(HttpMethod.DELETE, "/notices/{noticeId}").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.PATCH, "/notices/{noticeId}").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/notices/{noticeUUID}", "/notices").hasAnyRole("ADMIN", "LEADER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/notices/{noticeUUID}").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.PATCH, "/notices/{noticeUUID}").hasRole("ADMIN");
 
                     // USER
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw","/club-leader/fcmtoken").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET,"/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/my-notices/{noticeId}/details").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET,"/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/my-notices/{noticeUUID}/details").hasRole("USER");
                     auth.requestMatchers(HttpMethod.DELETE, "/exit").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/exit/send-code").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/apply/**").hasRole("USER");

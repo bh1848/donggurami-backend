@@ -31,7 +31,6 @@ public class ClubInfoResponse {
 
     private Department department;
 
-    // Club 객체를 받아와 DTO 생성
     public ClubInfoResponse(String mainPhotoUrl, Club club, List<String> clubHashtag, List<String> clubCategoryName) {
         this.mainPhotoUrl = mainPhotoUrl;
         this.clubName = club.getClubName();

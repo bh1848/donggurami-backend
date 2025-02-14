@@ -19,4 +19,7 @@ public interface LeaderRepository extends JpaRepository<Leader,Long> {
 
     @Query("SELECT l.club.clubUUID FROM Leader l WHERE l.leaderUUID = :leaderUUID")
     Optional<UUID> findClubUUIDByLeaderUUID(@Param("leaderUUID") UUID leaderUUID);
+
+    @Query("SELECT l FROM Leader l WHERE l.club.clubUUID = :clubUUID")
+    Optional<Leader> findByClubUUID(@Param("clubUUID") UUID clubUUID);
 }

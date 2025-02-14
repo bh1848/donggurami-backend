@@ -10,4 +10,5 @@ public interface ClubMembersRepositoryCustom {
     List<ClubMembers> findAllWithProfileByClubClubId(Long clubId);
     List<ClubMembers> findAllWithProfileByName(Long clubId);
     List<ClubMembers> findAllWithProfileByMemberType(Long clubId, MemberType memberType);
+    List<Long> findByProfileProfileIdsWithoutClub(List<Long> profileIds);
 }

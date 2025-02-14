@@ -9,6 +9,7 @@ import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginResponse;
 import com.USWCicrcleLink.server.clubLeader.dto.club.ClubInfoRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.club.ClubInfoResponse;
 import com.USWCicrcleLink.server.clubLeader.dto.club.ClubIntroRequest;
+import com.USWCicrcleLink.server.clubLeader.dto.club.*;
 import com.USWCicrcleLink.server.clubLeader.dto.clubMembers.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
 import com.USWCicrcleLink.server.clubLeader.service.FcmServiceImpl;
@@ -79,19 +80,19 @@ public class ClubLeaderController {
     }
 
 
-//    // 동아리 요약 조회
-//    @GetMapping("/{clubUUID}/summary")
-//    public ResponseEntity<ApiResponse<ClubSummaryResponse>> getClubSummary(@PathVariable("clubUUID") UUID clubUUID) {
-//        ClubSummaryResponse clubIntroWebResponse = clubLeaderService.getClubSummary(clubUUID);
-//        ApiResponse<ClubSummaryResponse> response = new ApiResponse<>("동아리 요약 조회 완료", clubIntroWebResponse);
-//        return ResponseEntity.ok(response);
-//    }
+    // 동아리 요약 조회
+    @GetMapping("/{clubUUID}/summary")
+    public ResponseEntity<ApiResponse<ClubSummaryResponse>> getClubSummary(@PathVariable("clubUUID") UUID clubUUID) {
+        ClubSummaryResponse clubIntroWebResponse = clubLeaderService.getClubSummary(clubUUID);
+        ApiResponse<ClubSummaryResponse> response = new ApiResponse<>("동아리 요약 조회 완료", clubIntroWebResponse);
+        return ResponseEntity.ok(response);
+    }
 
-//    // 동아리 소개 조회
-//    @GetMapping("/{clubUUID}/intro")
-//    public ResponseEntity<ApiResponse<ClubIntroResponse>> getClubIntro(@PathVariable("clubUUID") UUID clubUUID) {
-//        return new ResponseEntity<>(clubLeaderService.getClubIntro(clubUUID), HttpStatus.OK);
-//    }
+    // 동아리 소개 조회
+    @GetMapping("/{clubUUID}/intro")
+    public ResponseEntity<ApiResponse<LeaderClubIntroResponse>> getClubIntro(@PathVariable("clubUUID") UUID clubUUID) {
+        return new ResponseEntity<>(clubLeaderService.getClubIntro(clubUUID), HttpStatus.OK);
+    }
 
     // 동아리 소개 변경
     @PutMapping("/{clubUUID}/intro")

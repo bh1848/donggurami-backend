@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,12 +60,12 @@ public class NoticeService {
 
     // 공지사항 세부 정보 조회
     @Transactional(readOnly = true)
-    public NoticeDetailResponse getNoticeById(Long noticeId) {
-        log.debug("공지사항 상세 조회 요청 - ID: {}", noticeId);
+    public NoticeDetailResponse getNoticeByUUID(UUID noticeUUID) {
+        log.debug("공지사항 상세 조회 요청 - ID: {}", noticeUUID);
 
-        Notice notice = noticeRepository.findById(noticeId)
+        Notice notice = noticeRepository.findByNoticeUUID(noticeUUID)
                 .orElseThrow(() -> {
-                    log.warn("공지사항 조회 실패 - 존재하지 않는 ID: {}", noticeId);
+                    log.warn("공지사항 조회 실패 - 존재하지 않는 ID: {}", noticeUUID);
                     return new NoticeException(ExceptionType.NOTICE_NOT_EXISTS);
                 });
 
@@ -73,7 +74,7 @@ public class NoticeService {
                 .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getNoticePhotoS3Key()))
                 .collect(Collectors.toList());
 
-        log.debug("공지사항 상세 조회 성공 - ID: {}", noticeId);
+        log.debug("공지사항 상세 조회 성공 - ID: {}", noticeUUID);
         return NoticeDetailResponse.from(notice, noticePhotoUrls);
     }
 
@@ -102,13 +103,13 @@ public class NoticeService {
 
 
     // 공지사항 수정
-    public List<String> updateNotice(Long noticeId, NoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
-        log.debug("공지사항 수정 요청 - ID: {}", noticeId);
+    public List<String> updateNotice(UUID noticeUUID, NoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
+        log.debug("공지사항 수정 요청 - ID: {}", noticeUUID);
 
         // 공지사항 조회
-        Notice notice = noticeRepository.findById(noticeId)
+        Notice notice = noticeRepository.findByNoticeUUID(noticeUUID)
                 .orElseThrow(() -> {
-                    log.warn("공지사항 수정 실패 - 존재하지 않는 ID: {}", noticeId);
+                    log.warn("공지사항 수정 실패 - 존재하지 않는 ID: {}", noticeUUID);
                     return new NoticeException(ExceptionType.NOTICE_NOT_EXISTS);
                 });
 
@@ -130,12 +131,12 @@ public class NoticeService {
 
 
     // 공지사항 삭제
-    public void deleteNotice(Long noticeId) {
-        log.debug("공지사항 삭제 요청 - ID: {}", noticeId);
+    public void deleteNotice(UUID noticeUUID) {
+        log.debug("공지사항 삭제 요청 - ID: {}", noticeUUID);
 
-        Notice notice = noticeRepository.findById(noticeId)
+        Notice notice = noticeRepository.findByNoticeUUID(noticeUUID)
                 .orElseThrow(() -> {
-                    log.warn("공지사항 삭제 실패 - 존재하지 않는 ID: {}", noticeId);
+                    log.warn("공지사항 삭제 실패 - 존재하지 않는 ID: {}", noticeUUID);
                     return new NoticeException(ExceptionType.NOTICE_NOT_EXISTS);
                 });
 

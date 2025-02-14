@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ClubIntroWebResponse {
+public class ClubSummaryResponse {
 
     // club
     private long clubId;
@@ -35,8 +35,8 @@ public class ClubIntroWebResponse {
     private String mainPhoto;
     private List<String> introPhotos;
 
-    public ClubIntroWebResponse(Club club, List<String> clubHashtag,
-                                ClubIntro clubIntro, String mainPhotoUrl, List<String> introPhotoUrls) {
+    public ClubSummaryResponse(Club club, List<String> clubHashtag,
+                               ClubIntro clubIntro, String mainPhotoUrl, List<String> introPhotoUrls) {
         // club
         this.clubId = club.getClubId();
         this.clubName = club.getClubName();
