@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/my-notices")
@@ -28,9 +29,9 @@ public class MyNoticeController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{noticeId}/details")
-    public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNoticeById(@PathVariable("noticeId") Long noticeId) {
-        NoticeDetailResponse notice = noticeService.getNoticeById(noticeId);
+    @GetMapping("/{noticeUUID}/details")
+    public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNoticeByUUID(@PathVariable("noticeUUID") UUID noticeUUID) {
+        NoticeDetailResponse notice = noticeService.getNoticeByUUID(noticeUUID);
         ApiResponse<NoticeDetailResponse> response = new ApiResponse<>("공지사항 세부 조회 성공", notice);
         return ResponseEntity.ok(response);
     }
