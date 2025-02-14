@@ -75,7 +75,15 @@ public class AdminNoticeService {
                 .collect(Collectors.toList());
 
         log.debug("공지사항 상세 조회 성공 - ID: {}", noticeUUID);
-        return NoticeDetailResponse.from(notice, noticePhotoUrls);
+
+        return new NoticeDetailResponse(
+                notice.getNoticeUUID(),
+                notice.getNoticeTitle(),
+                notice.getNoticeContent(),
+                noticePhotoUrls,
+                notice.getNoticeCreatedAt(),
+                notice.getAdmin().getAdminName()
+        );
     }
 
     // 공지사항 생성

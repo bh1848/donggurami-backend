@@ -30,7 +30,7 @@ public class AdminClubController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("clubId").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("clubUUID").descending());
         Page<AdminClubListResponse> pagedClubs = adminClubService.getAllClubs(pageable);
         return ResponseEntity.ok(new ApiResponse<>("동아리 전체 리스트 조회 성공", pagedClubs));
     }
@@ -50,9 +50,9 @@ public class AdminClubController {
     }
 
     // 동아리 삭제 (웹)
-    @DeleteMapping("{clubId}")
-    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubId") Long clubId, @RequestBody @Valid AdminPwRequest request) {
-        adminClubService.deleteClub(clubId, request);
+    @DeleteMapping("{clubUUID}")
+    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubUUID") UUID clubUUID, @RequestBody @Valid AdminPwRequest request) {
+        adminClubService.deleteClub(clubUUID, request);
         return ResponseEntity.ok(new ApiResponse<>("동아리 삭제 성공"));
     }
 

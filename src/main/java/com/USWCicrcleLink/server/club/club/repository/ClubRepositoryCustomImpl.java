@@ -26,7 +26,7 @@ public class ClubRepositoryCustomImpl implements ClubRepositoryCustom {
     public Page<AdminClubListResponse> findAllWithMemberAndLeaderCount(Pageable pageable) {
         // c: Club 테이블, cm: ClubMembers 테이블, l: Leader 테이블
         // 각 Club의 멤버 수와 리더 정보를 함께 계산하여 AdminClubListResponse 객체로 반환
-        String jpql = "SELECT new com.USWCicrcleLink.server.admin.admin.dto.AdminClubListResponse(c.clubId, c.department, c.clubName, c.leaderName, " +
+        String jpql = "SELECT new com.USWCicrcleLink.server.admin.admin.dto.AdminClubListResponse(c.clubUUID, c.department, c.clubName, c.leaderName, " +
                 "(COUNT(cm) + (CASE WHEN l IS NOT NULL THEN 1 ELSE 0 END))) " +
                 "FROM Club c " + // Club 테이블을 조회
                 "LEFT JOIN ClubMembers cm ON c.clubId = cm.club.clubId " + // ClubMembers 테이블과 LEFT JOIN
@@ -52,11 +52,21 @@ public class ClubRepositoryCustomImpl implements ClubRepositoryCustom {
         return new PageImpl<>(results, pageable, totalCount);
     }
 
-
     @Override
     public void deleteClubAndDependencies(Long clubId) {
 
-        // 1. Club과 관련된 참조 엔티티들 삭제
+        em.createQuery("DELETE FROM ClubMemberAccountStatus cmas WHERE cmas.club.clubId = :clubId")
+                .setParameter("clubId", clubId)
+                .executeUpdate();
+
+        em.createQuery("DELETE FROM ClubHashtag ch WHERE ch.club.clubId = :clubId")
+                .setParameter("clubId", clubId)
+                .executeUpdate();
+
+        em.createQuery("DELETE FROM ClubCategoryMapping cm WHERE cm.club.clubId = :clubId")
+                .setParameter("clubId", clubId)
+                .executeUpdate();
+
         em.createQuery("DELETE FROM ClubMembers cm WHERE cm.club.clubId = :clubId")
                 .setParameter("clubId", clubId)
                 .executeUpdate();
@@ -92,16 +102,14 @@ public class ClubRepositoryCustomImpl implements ClubRepositoryCustom {
                 .setParameter("clubId", clubId)
                 .getResultList();
 
-        // 모든 키를 합친 리스트
         List<String> s3Keys = new ArrayList<>();
         s3Keys.addAll(clubIntroPhotoKeys);
         s3Keys.addAll(clubMainPhotoKeys);
 
         if (!s3Keys.isEmpty()) {
-            s3Keys.forEach(s3FileUploadService::deleteFile);
+            s3FileUploadService.deleteFiles(s3Keys);
         }
 
-        // 3. 마지막으로 Club 삭제
         em.createQuery("DELETE FROM Club c WHERE c.clubId = :clubId")
                 .setParameter("clubId", clubId)
                 .executeUpdate();

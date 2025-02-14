@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -40,12 +41,12 @@ public class AplictService {
     private final ClubMembersRepository clubMembersRepository;
 
     // 동아리 지원 가능 여부 확인
-    public void checkIfCanApply(Long clubId) {
+    public void checkIfCanApply(UUID clubUUID) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.user();
 
-        log.debug("동아리 지원 가능 여부 확인 요청 - ClubID: {}, UserUUID: {}", clubId, user.getUserUUID());
+        log.debug("동아리 지원 가능 여부 확인 요청 - ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
 
         Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
                 .orElseThrow(() -> {
@@ -53,63 +54,66 @@ public class AplictService {
                     return new UserException(ExceptionType.USER_NOT_EXISTS);
                 });
 
-        // 이미 해당 동아리에 지원했는지 확인
+        // UUID를 이용해 clubId 조회
+        Long clubId = clubRepository.findClubIdByUUID(clubUUID)
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+
         if (aplictRepository.existsByProfileAndClub_ClubId(profile, clubId)) {
-            log.warn("동아리 지원 실패 - 이미 지원한 사용자, ClubID: {}, UserUUID: {}", clubId, user.getUserUUID());
+            log.warn("동아리 지원 실패 - 이미 지원한 사용자, ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
             throw new BaseException(ExceptionType.ALREADY_APPLIED);
         }
 
-        // 이미 동아리 멤버인지 확인
         if (clubMembersRepository.existsByProfileAndClub_ClubId(profile, clubId)) {
-            log.warn("동아리 지원 실패 - 이미 동아리 멤버, ClubID: {}, UserUUID: {}", clubId, user.getUserUUID());
+            log.warn("동아리 지원 실패 - 이미 동아리 멤버, ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
             throw new ClubException(ExceptionType.ALREADY_MEMBER);
         }
 
         List<Profile> clubMembers = clubMembersRepository.findProfilesByClubId(clubId);
-
-        // 중복 학번 및 전화번호 확인
         for (Profile member : clubMembers) {
             if (profile.getUserHp().equals(member.getUserHp())) {
-                log.warn("동아리 지원 실패 - 중복된 전화번호, ClubID: {}, UserUUID: {}", clubId, user.getUserUUID());
+                log.warn("동아리 지원 실패 - 중복된 전화번호, ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
                 throw new BaseException(ExceptionType.PHONE_NUMBER_ALREADY_REGISTERED);
             }
             if (profile.getStudentNumber().equals(member.getStudentNumber())) {
-                log.warn("동아리 지원 실패 - 중복된 학번, ClubID: {}, UserUUID: {}", clubId, user.getUserUUID());
+                log.warn("동아리 지원 실패 - 중복된 학번, ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
                 throw new BaseException(ExceptionType.STUDENT_NUMBER_ALREADY_REGISTERED);
             }
         }
 
-        log.debug("동아리 지원 가능 - ClubID: {}, UserUUID: {}", clubId, user.getUserUUID());
+        log.debug("동아리 지원 가능 - ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
     }
 
-    //지원서 작성하기(구글 폼 반환)(모바일)
+    // 지원서 작성하기(구글 폼 반환)
     @Transactional(readOnly = true)
-    public String getGoogleFormUrlByClubId(Long clubId) {
-        log.debug("구글 폼 URL 조회 요청 - ClubID: {}", clubId);
+    public String getGoogleFormUrlByClubUUID(UUID clubUUID) {
+        log.debug("구글 폼 URL 조회 요청 - ClubUUID: {}", clubUUID);
+
+        Long clubId = clubRepository.findClubIdByUUID(clubUUID)
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
 
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId)
                 .orElseThrow(() -> {
-                    log.warn("구글 폼 URL 조회 실패 - 클럽 소개 없음, ClubID: {}", clubId);
+                    log.warn("구글 폼 URL 조회 실패 - 클럽 소개 없음, ClubUUID: {}", clubUUID);
                     return new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS);
                 });
 
         String googleFormUrl = clubIntro.getGoogleFormUrl();
         if (googleFormUrl == null || googleFormUrl.isEmpty()) {
-            log.warn("구글 폼 URL 조회 실패 - 구글 폼 없음, ClubID: {}", clubId);
+            log.warn("구글 폼 URL 조회 실패 - 구글 폼 없음, ClubUUID: {}", clubUUID);
             throw new ClubIntroException(ExceptionType.GOOGLE_FORM_URL_NOT_EXISTS);
         }
 
-        log.debug("구글 폼 URL 조회 성공 - ClubID: {}", clubId);
+        log.debug("구글 폼 URL 조회 성공 - ClubUUID: {}", clubUUID);
         return googleFormUrl;
     }
 
-    //동아리 지원서 제출(모바일)
-    public void submitAplict(Long clubId, AplictRequest request) {
+    // 동아리 지원서 제출
+    public void submitAplict(UUID clubUUID, AplictRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.user();
 
-        log.debug("동아리 지원서 제출 요청 - ClubID: {}, UserUUID: {}", clubId, user.getUserUUID());
+        log.debug("동아리 지원서 제출 요청 - ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
 
         Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
                 .orElseThrow(() -> {
@@ -117,11 +121,11 @@ public class AplictService {
                     return new UserException(ExceptionType.USER_NOT_EXISTS);
                 });
 
+        Long clubId = clubRepository.findClubIdByUUID(clubUUID)
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+
         Club club = clubRepository.findById(clubId)
-                .orElseThrow(() -> {
-                    log.error("동아리 지원서 제출 실패 - 존재하지 않는 동아리, ClubID: {}", clubId);
-                    return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
-                });
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
 
         Aplict aplict = Aplict.builder()
                 .profile(profile)
@@ -132,6 +136,6 @@ public class AplictService {
                 .build();
 
         aplictRepository.save(aplict);
-        log.info("동아리 지원서 제출 성공 - ClubID: {}, UserUUID: {}, Status: {}", clubId, user.getUserUUID(), AplictStatus.WAIT);
+        log.info("동아리 지원서 제출 성공 - ClubUUID: {}, UserUUID: {}, Status: {}", clubUUID, user.getUserUUID(), AplictStatus.WAIT);
     }
 }

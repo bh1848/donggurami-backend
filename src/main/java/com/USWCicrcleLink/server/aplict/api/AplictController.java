@@ -17,25 +17,25 @@ public class AplictController {
     private final AplictService aplictService;
 
     // 지원 가능 여부 확인 (모바일)
-    @GetMapping("/can-apply/{clubId}")
-    public ResponseEntity<ApiResponse<Boolean>> canApply(@PathVariable("clubId") Long clubId) {
-        aplictService.checkIfCanApply(clubId);
+    @GetMapping("/can-apply/{clubUUID}")
+    public ResponseEntity<ApiResponse<Boolean>> canApply(@PathVariable("clubUUID") UUID clubUUID) {
+        aplictService.checkIfCanApply(clubUUID);
         return ResponseEntity.ok(new ApiResponse<>("지원 가능"));
     }
 
     //구글 폼 URL 조회 (모바일)
-    @GetMapping("/{clubId}")
-    public ResponseEntity<ApiResponse<String>> getGoogleFormUrl(@PathVariable("clubId") Long clubId) {
-        String googleFormUrl = aplictService.getGoogleFormUrlByClubId(clubId);
+    @GetMapping("/{clubUUID}")
+    public ResponseEntity<ApiResponse<String>> getGoogleFormUrl(@PathVariable("clubUUID") UUID clubUUID) {
+        String googleFormUrl = aplictService.getGoogleFormUrlByClubUUID(clubUUID);
         return ResponseEntity.ok(new ApiResponse<>("구글 폼 URL 조회 성공", googleFormUrl));
     }
 
     //동아리 지원서 제출 (모바일)
-    @PostMapping("/{clubId}")
+    @PostMapping("/{clubUUID}")
     public ResponseEntity<ApiResponse<Void>> submitAplict(
-            @PathVariable("clubId") Long clubId,
+            @PathVariable("clubUUID") UUID clubUUID,
             @RequestBody @Valid AplictRequest request) {
-        aplictService.submitAplict(clubId, request);
+        aplictService.submitAplict(clubUUID, request);
         return ResponseEntity.ok(new ApiResponse<>("지원서 제출 성공"));
     }
 }

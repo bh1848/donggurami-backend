@@ -4,12 +4,13 @@ import com.USWCicrcleLink.server.club.club.domain.Club;
 import lombok.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ClubListResponse {
-    private Long clubId;
+    private UUID clubUUID;
     private String clubName;
     private String mainPhoto;
     private String departmentName;
@@ -19,7 +20,7 @@ public class ClubListResponse {
         this.clubName = club.getClubName();
         this.mainPhoto = mainPhotoUrl;
         this.departmentName = club.getDepartment().name();
-        this.clubId = club.getClubId();
+        this.clubUUID = club.getClubUUID();
         this.clubHashtags = clubHashtags;
     }
 }

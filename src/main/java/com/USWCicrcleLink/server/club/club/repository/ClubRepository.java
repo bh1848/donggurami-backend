@@ -5,6 +5,7 @@ import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -16,7 +17,6 @@ public interface ClubRepository extends JpaRepository<Club, Long>, ClubRepositor
     @NonNull
     Page<Club> findAll(@NonNull Pageable pageable);
 
-    // 추가: 동아리 이름 중복 확인 메서드
     boolean existsByClubName(String clubName);
 
     Optional<Club> findById(Long id);
@@ -29,5 +29,4 @@ public interface ClubRepository extends JpaRepository<Club, Long>, ClubRepositor
 
     @Query("SELECT c.clubId FROM Club c WHERE c.clubUUID = :clubUUID")
     Optional<Long> findClubIdByUUID(@Param("clubUUID") UUID clubUUID);
-
 }

@@ -66,7 +66,7 @@ public class SecurityConfig {
 
                     // ADMIN - Club
                     auth.requestMatchers(HttpMethod.POST, "/admin/clubs").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/clubs/{clubId}").hasAnyRole("ADMIN", "LEADER");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/clubs/{clubUUID}").hasAnyRole("ADMIN", "LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET,"/admin/clubs/leader/check").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET,"/admin/clubs/name/check").hasRole("ADMIN");

@@ -140,7 +140,13 @@ public class ClubService {
                 .map(ClubHashtag::getClubHashtag)
                 .collect(Collectors.toList());
 
-        return new ClubListResponse(club, mainPhotoUrl, clubHashtags);
+        return new ClubListResponse(
+                club.getClubUUID(),
+                club.getClubName(),
+                mainPhotoUrl,
+                club.getDepartment().name(),
+                clubHashtags
+        );
     }
 
     // 카테고리 개수 검증 (최대 3개)
@@ -190,7 +196,7 @@ public class ClubService {
                 .collect(Collectors.toList());
 
         return new AdminClubIntroResponse(
-                club.getClubId(),
+                club.getClubUUID(),
                 mainPhotoUrl,
                 introPhotoUrls,
                 club.getClubName(),

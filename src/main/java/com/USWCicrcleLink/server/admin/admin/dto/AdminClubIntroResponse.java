@@ -6,13 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class AdminClubIntroResponse {
-    private long clubId;
+    private UUID clubUUID;
     private String mainPhoto;
     private List<String> introPhotos;
     private String clubName;

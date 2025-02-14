@@ -7,8 +7,7 @@ import com.USWCicrcleLink.server.global.validation.FileSignatureValidator;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.amazonaws.services.s3.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -124,10 +123,11 @@ public class S3FileUploadService {
         }
     }
 
+    // 단일 삭제
     public void deleteFile(String fileName) {
         if (fileName == null || fileName.isEmpty()) {
             log.warn("잘못된 S3 파일 삭제 시도: 파일 이름이 유효하지 않음 - 삭제 건너뜀");
-            return; // 파일 이름이 유효하지 않으면 삭제 시도 건너뜀
+            return;
         }
 
         try {
@@ -135,6 +135,29 @@ public class S3FileUploadService {
             log.debug("S3 파일 삭제 완료: {}", fileName);
         } catch (AmazonS3Exception e) {
             log.error("S3 파일 삭제 오류: " + e.getMessage());
+            throw new FileException(ExceptionType.FILE_DELETE_FAILED);
+        }
+    }
+
+    // batch 삭제
+    public void deleteFiles(List<String> fileNames) {
+        if (fileNames == null || fileNames.isEmpty()) {
+            log.warn("잘못된 S3 파일 삭제 시도: 파일 목록이 비어 있음 - 삭제 건너뜀");
+            return;
+        }
+
+        try {
+            DeleteObjectsRequest deleteRequest = new DeleteObjectsRequest(bucket)
+                    .withKeys(fileNames.toArray(new String[0]));
+
+            DeleteObjectsResult result = amazonS3.deleteObjects(deleteRequest);
+            log.info("S3 파일 일괄 삭제 완료: {}개 파일 삭제됨", result.getDeletedObjects().size());
+
+        } catch (MultiObjectDeleteException e) {
+            log.error("S3 파일 일부 삭제 실패: {}", e.getMessage());
+            throw new FileException(ExceptionType.FILE_DELETE_FAILED);
+        } catch (AmazonS3Exception e) {
+            log.error("S3 파일 삭제 오류: {}", e.getMessage());
             throw new FileException(ExceptionType.FILE_DELETE_FAILED);
         }
     }
