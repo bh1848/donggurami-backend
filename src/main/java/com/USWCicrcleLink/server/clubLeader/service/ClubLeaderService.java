@@ -537,7 +537,7 @@ public class ClubLeaderService {
         // 동아리원과 프로필 조회
         List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
                 .map(cm -> new ClubMembersResponse(
-                        cm.getClubMemberId(),
+                        cm.getClubMemberUUID(),
                         cm.getProfile()
                 ))
                 .collect(toList());
@@ -556,7 +556,7 @@ public class ClubLeaderService {
         // 동아리원과 프로필 조회
         List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
                 .map(cm -> new ClubMembersResponse(
-                        cm.getClubMemberId(),
+                        cm.getClubMemberUUID(),
                         cm.getProfile()
                 ))
                 .collect(toList());
