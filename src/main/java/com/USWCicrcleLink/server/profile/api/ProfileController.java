@@ -31,11 +31,11 @@ public class ProfileController {
         return new ApiResponse<>("프로필 조회 성공", profileResponse);
     }
 
+    // 기존 회원가입시 프로필 중복 확인
     @GetMapping("/duplication-check")
     public ResponseEntity<ApiResponse<String>> checkProfileDuplicated(@Validated(ValidationSequence.class) @RequestBody DuplicationProfileRequest request){
         profileService.checkProfileDuplicated(request);
-
-        ApiResponse<String> response = new ApiResponse<>("사용 가능한 프로필 입니다.",request.getUserName());
+        ApiResponse<String> response = new ApiResponse<>("사용 가능한 프로필 입니다.");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

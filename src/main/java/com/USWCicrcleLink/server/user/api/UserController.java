@@ -49,11 +49,11 @@ public class UserController {
 
     // 회원가입시 계정 중복 체크
     @GetMapping("/verify-duplicate/{account}")
-    public ResponseEntity<ApiResponse<String>> verifyAccountDuplicate(@PathVariable String account) {
+    public ResponseEntity<ApiResponse<String>> verifyAccountDuplicate(@PathVariable("account") String account) {
 
         userService.verifyAccountDuplicate(account);
 
-        ApiResponse<String> response = new ApiResponse<>("사용 가능한 ID 입니다.", account);
+        ApiResponse<String> response = new ApiResponse<>("사용 가능한 ID 입니다.");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -66,7 +66,7 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse<>("비밀번호가 일치합니다"));
     }
 
-    // 임시 회원 등록 및 인증 메일 전송
+    // 신규회원가입
     @PostMapping("/temporary/register")
     public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated(ValidationSequence.class) @RequestBody SignUpRequest request)  {
 
@@ -80,32 +80,20 @@ public class UserController {
         return new ResponseEntity<>(verifyEmailResponse, HttpStatus.OK);
     }
 
-    // 이메일 인증 확인 후 자동 회원가입
+    // 신규회원 - 이메일 인증 후 회원가입
     @GetMapping("/email/verify-token")
-    public ModelAndView verifySignUpMail (@RequestParam UUID emailToken_uuid) {
+    public ModelAndView verifySignUpMail (@RequestParam("emailToken_uuid") UUID emailToken_uuid) {
 
         ModelAndView modelAndView = new ModelAndView();
 
         try {
             UserTemp userTemp = userService.verifyEmailToken(emailToken_uuid);
             userService.signUp(userTemp);
-            modelAndView.setViewName("email_verification_success");
-            modelAndView.addObject("message", "이메일 인증이 성공했습니다. 앱으로 돌아가 회원가입 완료 버튼을 눌러주세요");
+            modelAndView.setViewName("success");
         } catch (EmailException e) {
-            modelAndView.setViewName("email_verification_failure");
-            modelAndView.addObject("message", "이메일 인증이 실패 했습니다. 이메일을 재전송 해주세요");
+            modelAndView.setViewName("failure");
         }
         return modelAndView;
-    }
-
-    // 기존 동아리원 회원가입
-    @PostMapping("/existing/register")
-    public ResponseEntity<ApiResponse<Void>> ExistingMemberSignUp(@Validated(ValidationSequence.class) @RequestBody ExistingMemberSignUpRequest request)  {
-        // 임시 동아리 회원 생성
-        ClubMemberTemp clubMemberTemp = userService.registerClubMemberTemp(request);
-        // 입력받은 동아리의 회장들에게 가입신청서 보내기
-        userService.sendRequest(request, clubMemberTemp);
-        return ResponseEntity.ok(new ApiResponse<>("가입 요청에 성공했습니다"));
     }
 
     // 이메일 재인증
@@ -119,11 +107,21 @@ public class UserController {
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
-    // 회원 가입 완료 처리
+    // 로그인하러가기 - 회원가입 최종 확인
     @PostMapping("/finish-signup")
-    public ResponseEntity<ApiResponse<String>> signUpFinish(@RequestBody FinishSignupRequest request) {
-        ApiResponse<String> apiResponse = new ApiResponse<>(userService.signUpFinish(request.getAccount()), "회원가입 완료");
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<Void>> signUpFinish(@RequestBody FinishSignupRequest request) {
+        userService.signUpFinish(request.getAccount());
+        return ResponseEntity.ok(new ApiResponse<>("회원가입이 정상적으로 완료되어 로그인이 가능합니다."));
+    }
+
+    // 기존 동아리원 회원가입
+    @PostMapping("/existing/register")
+    public ResponseEntity<ApiResponse<Void>> ExistingMemberSignUp(@Validated(ValidationSequence.class) @RequestBody ExistingMemberSignUpRequest request)  {
+        // 임시 동아리 회원 생성
+        ClubMemberTemp clubMemberTemp = userService.registerClubMemberTemp(request);
+        // 입력받은 동아리의 회장들에게 가입신청서 보내기
+        userService.sendRequest(request, clubMemberTemp);
+        return ResponseEntity.ok(new ApiResponse<>("가입 요청에 성공했습니다"));
     }
 
     // 로그인
@@ -140,12 +138,12 @@ public class UserController {
 
     // 아이디 찾기
     @GetMapping ("/find-account/{email}")
-    ResponseEntity<ApiResponse<String>> findUserAccount(@PathVariable String email) {
+    ResponseEntity<ApiResponse<String>> findUserAccount(@PathVariable("email") String email) {
 
         User findUser= userService.findUser(email);
         userService.sendAccountInfoMail(findUser);
 
-        ApiResponse<String> response = new ApiResponse<>("계정 정보 전송 완료", findUser.getUserAccount());
+        ApiResponse<String> response = new ApiResponse<>("계정 정보 전송 완료");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

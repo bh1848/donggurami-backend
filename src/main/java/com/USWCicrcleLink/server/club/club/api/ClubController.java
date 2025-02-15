@@ -6,6 +6,7 @@ import com.USWCicrcleLink.server.club.club.dto.ClubListResponse;
 import com.USWCicrcleLink.server.club.club.service.ClubService;
 import com.USWCicrcleLink.server.admin.admin.dto.AdminClubIntroResponse;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubInfoListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,14 @@ public class ClubController {
     public ResponseEntity<ApiResponse<List<ClubListResponse>>> getAllClubs() {
         List<ClubListResponse> clubs = clubService.getAllClubs();
         return ResponseEntity.ok(new ApiResponse<>("전체 동아리 조회 완료", clubs));
+    }
+
+    // 모바일 기존회원가입시 모든 동아리 정보 출력
+    @GetMapping("/list")
+    public ResponseEntity<ApiResponse<List<ClubInfoListResponse>>> getAllClubInfo() {
+        List<ClubInfoListResponse> clubs = clubService.getAllClubsInfo();
+        ApiResponse<List<ClubInfoListResponse>> response = new ApiResponse<>("동아리 리스트 조회 성공", clubs);
+        return ResponseEntity.ok(response);
     }
 
     // 카테고리별 전체 동아리 조회 (모바일)
@@ -61,5 +70,6 @@ public class ClubController {
     public ResponseEntity<ApiResponse<AdminClubIntroResponse>> getClubIntroByClubId(@PathVariable("clubUUID") UUID clubUUID) {
         AdminClubIntroResponse clubIntroResponse = clubService.getClubIntro(clubUUID);
         return ResponseEntity.ok(new ApiResponse<>("동아리 소개글 조회 성공", clubIntroResponse));
+
     }
 }

@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.club.club.service;
 import com.USWCicrcleLink.server.admin.admin.mapper.ClubCategoryMapper;
 import com.USWCicrcleLink.server.club.club.domain.*;
 import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubInfoListResponse;
 import com.USWCicrcleLink.server.club.club.dto.ClubListByClubCategoryResponse;
 import com.USWCicrcleLink.server.club.club.dto.ClubListResponse;
 import com.USWCicrcleLink.server.club.club.repository.*;
@@ -48,6 +49,29 @@ public class ClubService {
                 .map(this::mapToClubListResponse)
                 .collect(Collectors.toList());
     }
+
+    // 기존 회원가입시 동아리 리스트 출력
+    @Transactional(readOnly = true)
+    public List<ClubInfoListResponse> getAllClubsInfo() {
+        log.debug("전체 동아리 리스트 조회");
+        List<Club> clubs = clubRepository.findAll();
+
+        return clubs.stream()
+                .map(club -> {
+                    // ClubMainPhoto 조회
+                    ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
+
+                    // S3 presigned URL 생성 (기본 URL 또는 null 처리)
+                    String mainPhotoUrl = (clubMainPhoto != null)
+                            ? s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key())
+                            : null;
+
+                    // DTO 생성
+                    return new ClubInfoListResponse(club,mainPhotoUrl);  // 전체 동아리 조회용 DTO로 수정
+                })
+                .collect(Collectors.toList());
+    }
+
 
     // 관심 카테고리 필터 적용한 전체 동아리 리스트 조회 (모바일)
     @Transactional(readOnly = true)

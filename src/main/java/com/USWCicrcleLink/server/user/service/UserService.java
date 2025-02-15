@@ -20,7 +20,6 @@ import com.USWCicrcleLink.server.profile.service.ProfileService;
 import com.USWCicrcleLink.server.user.domain.*;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.dto.*;
-import com.USWCicrcleLink.server.user.repository.ClubMemberAccountStatusRepository;
 import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
@@ -59,7 +58,6 @@ public class UserService {
     private final ClubMemberTempRepository clubMemberTempRepository;
     private final ClubRepository clubRepository;
     private final ClubMemberAccountStatusService clubMemberAccountStatusService;
-    private final ClubMemberAccountStatusRepository clubMemberAccountStatusRepository;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
@@ -200,10 +198,10 @@ public class UserService {
 
         // 동아리 정보 조회
         for (ClubDTO clubDto : request.getClubs()) {
-            log.debug("동아리 정보 조회 중 - Club ID: {}", clubDto.getClubId());
-            Club club = clubRepository.findById(clubDto.getClubId())
+            log.debug("동아리 정보 조회 중 - Club UUID: {}", clubDto.getClubUUID());
+            Club club = clubRepository.findByClubUUID(clubDto.getClubUUID())
                     .orElseThrow(() -> {
-                        log.error("동아리 조회 실패 - 존재하지 않는 동아리 ID: {}", clubDto.getClubId());
+                       log.error("존재하지않는 동아리 UUID:{}",clubDto.getClubUUID());
                         return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
                     });
             log.debug("동아리 조회 성공 - Club ID: {}, 동아리 이름: {}", club.getClubId(), club.getClubName());
@@ -356,7 +354,7 @@ public class UserService {
     @RateLimite(action = "EMAIL_VERIFICATION")
     public void sendSignUpMail(UserTemp userTemp,EmailToken emailToken)  {
         log.debug("회원 가입 인증 메일 요청 ");
-        MimeMessage message = emailService.createSingUpLink(userTemp,emailToken);
+        MimeMessage message = emailService.createSignUpLink(userTemp,emailToken);
         emailService.sendEmail(message);
         log.debug("회원가입 인증메일 전송 완료 emailToken_uuid= {} ",emailToken.getEmailTokenUUID());
     }
@@ -389,7 +387,7 @@ public class UserService {
 
     // 회원 가입 확인
     @Transactional(readOnly = true)
-    public String signUpFinish(String account) {
+    public void signUpFinish(String account) {
 
         log.debug("회원 가입 완료 처리 요청 ");
         // 계정이 존재하는지 확인
@@ -397,8 +395,8 @@ public class UserService {
                 .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
 
         log.debug("최종 회원 가입 완료");
-        return "true";
     }
+
 
     // 회원 탈퇴
     public void cancelMembership(HttpServletRequest request, HttpServletResponse response) {
