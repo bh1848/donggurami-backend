@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -15,7 +16,7 @@ import java.util.List;
 public class ClubSummaryResponse {
 
     // club
-    private long clubId;
+    private UUID clubUUID;
     private String clubName;
     private String leaderName;
     private String leaderHp;
@@ -38,7 +39,7 @@ public class ClubSummaryResponse {
     public ClubSummaryResponse(Club club, List<String> clubHashtag,
                                ClubIntro clubIntro, String mainPhotoUrl, List<String> introPhotoUrls) {
         // club
-        this.clubId = club.getClubId();
+        this.clubUUID = club.getClubUUID();
         this.clubName = club.getClubName();
         this.leaderName = club.getLeaderName();
         this.leaderHp = club.getLeaderHp();
