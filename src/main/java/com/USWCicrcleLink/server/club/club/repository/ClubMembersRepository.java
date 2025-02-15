@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface ClubMembersRepository extends JpaRepository<ClubMembers,Long>, ClubMembersRepositoryCustom {
 
@@ -26,4 +27,6 @@ public interface ClubMembersRepository extends JpaRepository<ClubMembers,Long>, 
     @Query("SELECT cm.profile FROM ClubMembers cm WHERE cm.club.clubId = :clubId")
     List<Profile> findProfilesByClubId(@Param("clubId") Long clubId);
 
+    @Query("SELECT cm.club.clubUUID FROM ClubMembers cm WHERE cm.profile.profileId = :profileId")
+    List<UUID> findClubUUIDsByProfileId(@Param("profileId") Long profileId);
 }

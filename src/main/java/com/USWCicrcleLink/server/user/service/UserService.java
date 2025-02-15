@@ -11,8 +11,8 @@ import com.USWCicrcleLink.server.global.exception.errortype.*;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
-import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
-import com.USWCicrcleLink.server.global.security.util.JwtProvider;
+import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
+import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
@@ -20,7 +20,6 @@ import com.USWCicrcleLink.server.profile.service.ProfileService;
 import com.USWCicrcleLink.server.user.domain.*;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.dto.*;
-import com.USWCicrcleLink.server.user.repository.ClubMemberAccountStatusRepository;
 import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import com.USWCicrcleLink.server.user.repository.UserTempRepository;
@@ -59,7 +58,6 @@ public class UserService {
     private final ClubMemberTempRepository clubMemberTempRepository;
     private final ClubRepository clubRepository;
     private final ClubMemberAccountStatusService clubMemberAccountStatusService;
-    private final ClubMemberAccountStatusRepository clubMemberAccountStatusRepository;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
@@ -200,10 +198,10 @@ public class UserService {
 
         // 동아리 정보 조회
         for (ClubDTO clubDto : request.getClubs()) {
-            log.debug("동아리 정보 조회 중 - Club ID: {}", clubDto.getClubId());
-            Club club = clubRepository.findById(clubDto.getClubId())
+            log.debug("동아리 정보 조회 중 - Club UUID: {}", clubDto.getClubUUID());
+            Club club = clubRepository.findByClubUUID(clubDto.getClubUUID())
                     .orElseThrow(() -> {
-                        log.error("동아리 조회 실패 - 존재하지 않는 동아리 ID: {}", clubDto.getClubId());
+                       log.error("존재하지않는 동아리 UUID:{}",clubDto.getClubUUID());
                         return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
                     });
             log.debug("동아리 조회 성공 - Club ID: {}, 동아리 이름: {}", club.getClubId(), club.getClubName());

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,7 +49,6 @@ public class ClubMemberAccountStatusService {
     }
 
     // 각 동아리에 대한 요청 전송이 제대로 되었는지 검증
-    // clubMemberTemp-accountStatus 테이블이 제대로 생성되었는지 확인
     public void checkRequest(ExistingMemberSignUpRequest request, ClubMemberTemp clubMemberTemp){
 
         log.debug("가입신청 검증 시작");
@@ -71,23 +71,22 @@ public class ClubMemberAccountStatusService {
         // 사용자가 선택한 동아리에 올바르게 전송 되었는지 확인
 
         // 사용자가 선택한 동아리 List
-        Set<Long> expected_clubId = request.getClubs().stream()
-                .map(ClubDTO::getClubId)
+        Set<UUID> expected_clubId = request.getClubs().stream()
+                .map(ClubDTO::getClubUUID)
                 .collect(Collectors.toSet());
 
         // 요청을 실제로 보낸 동아리 List
-        // 검증하고자 하는 값
-        Set<Long> saved_clubId = clubMemberAccountStatusRepository.findAllByClubMemberTemp_ClubMemberTempId(clubMemberTemp.getClubMemberTempId())
+        Set<UUID> saved_clubId = clubMemberAccountStatusRepository.findAllByClubMemberTemp_ClubMemberTempId(clubMemberTemp.getClubMemberTempId())
                 .stream()
-                .map(accountStatus -> accountStatus.getClub().getClubId())
+                .map(accountStatus -> accountStatus.getClub().getClubUUID())
                 .collect(Collectors.toSet());
 
         // clubId가 모두 일치하는지 확인하기
         if(expected_clubId.equals(saved_clubId)){
-            log.debug("사용자가 요청한 동아리Id 와 저장된 동아리Id 값이 모두 일치합니다");
+            log.debug("사용자가 요청한 동아리 UUID와 저장된 동아리 UUID 값이 모두 일치합니다");
         }
         else{
-            log.error("사용자가 요청한 동아리Id 와 저장된 동아리Id 값이 일치하지않습니다");
+            log.error("사용자가 요청한 동아리 UUID 와 저장된 동아리 UUID 값이 일치하지않습니다");
             throw new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_ACCOUNTSTATUS_REQEUST_NOT_MATCH);
         }
         log.debug("가입신청 검증 완료");
@@ -98,11 +97,6 @@ public class ClubMemberAccountStatusService {
     public void deleteAccountStatus(ClubMemberTemp expired) {
 
         List<ClubMemberAccountStatus> relatedStatuses = clubMemberAccountStatusRepository.findAllByClubMemberTemp_ClubMemberTempId(expired.getClubMemberTempId());
-
-       /* // 리스트로 조회된 accountStatus 객체들 출력해보기
-        for (ClubMemberAccountStatus relatedStatus : relatedStatuses) {
-            log.debug("clubMemberTempId= {} 로 찾은 AccountStatus 객체= {}",expired.getClubMemberTempId(),relatedStatus.getClubMember_AccountStatus_Id());
-        }*/
 
         try {
             if (!relatedStatuses.isEmpty()) {

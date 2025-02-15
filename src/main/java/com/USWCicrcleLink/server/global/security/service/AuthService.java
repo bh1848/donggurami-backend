@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.global.security.service;
 
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
-import com.USWCicrcleLink.server.global.security.util.JwtProvider;
+import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

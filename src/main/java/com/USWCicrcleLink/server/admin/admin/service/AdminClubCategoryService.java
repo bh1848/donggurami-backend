@@ -1,8 +1,8 @@
 package com.USWCicrcleLink.server.admin.admin.service;
 
-import com.USWCicrcleLink.server.admin.admin.dto.ClubCategoryCreationRequest;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminClubCategoryCreationRequest;
 import com.USWCicrcleLink.server.admin.admin.mapper.ClubCategoryMapper;
-import com.USWCicrcleLink.server.admin.admin.dto.ClubCategoryResponse;
+import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.club.club.domain.ClubCategory;
 import com.USWCicrcleLink.server.club.club.repository.ClubCategoryMappingRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubCategoryRepository;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -25,51 +26,49 @@ public class AdminClubCategoryService {
     private final ClubCategoryMappingRepository clubCategoryMappingRepository;
 
     // 동아리 카테고리 설정(웹) - 카테고리 조회
-    public List<ClubCategoryResponse> getAllCategories() {
-        List<ClubCategory> categories = clubCategoryRepository.findAll();
-        log.debug("동아리 카테고리 조회 성공 - {}개 카테고리 반환", categories.size());
+    @Transactional(readOnly = true)
+    public List<ClubCategoryResponse> getAllClubCategories() {
+        List<ClubCategory> clubCategories = clubCategoryRepository.findAll();
+        log.debug("동아리 카테고리 조회 성공 - {}개 카테고리 반환", clubCategories.size());
 
-        return ClubCategoryMapper.toDtoList(categories);
+        return ClubCategoryMapper.toDtoList(clubCategories);
     }
 
     // 동아리 카테고리 설정(웹) - 카테고리 추가
-    public ClubCategoryResponse addCategory(ClubCategoryCreationRequest request) {
-        // 중복 확인
+    public ClubCategoryResponse addClubCategory(AdminClubCategoryCreationRequest request) {
         clubCategoryRepository.findByClubCategoryName(request.getClubCategoryName())
                 .ifPresent(category -> {
                     log.warn("중복 카테고리 추가 시도 - Name: {}", request.getClubCategoryName());
                     throw new BaseException(ExceptionType.DUPLICATE_CATEGORY);
                 });
 
-        // 새 카테고리 생성 및 저장
-        ClubCategory category = ClubCategory.builder()
+        ClubCategory clubCategory = ClubCategory.builder()
                 .clubCategoryName(request.getClubCategoryName())
                 .build();
 
-        ClubCategory savedCategory = clubCategoryRepository.save(category);
-        log.info("동아리 카테고리 추가 성공 -  ID: {}, Name: {}", savedCategory.getClubCategoryId(), savedCategory.getClubCategoryName());
+        ClubCategory savedClubCategory = clubCategoryRepository.save(clubCategory);
+        log.info("동아리 카테고리 추가 성공 - ID: {}, Name: {}", savedClubCategory.getClubCategoryId(), savedClubCategory.getClubCategoryName());
 
-        return ClubCategoryMapper.toDto(savedCategory);
+        return ClubCategoryMapper.toDto(savedClubCategory);
     }
 
     // 동아리 카테고리 설정(웹) - 카테고리 삭제
-    public ClubCategoryResponse deleteCategory(Long categoryId) {
-        // 카테고리 존재 여부 확인
-        ClubCategory category = clubCategoryRepository.findById(categoryId)
+    public ClubCategoryResponse deleteClubCategory(UUID clubCategoryUUID) {
+        Long clubCategoryId = clubCategoryRepository.findClubCategoryIdByUUID(clubCategoryUUID)
                 .orElseThrow(() -> {
-                    log.error("동아리 카테고리 삭제 실패 - 존재하지 않음: ID: {}", categoryId);
+                    log.error("동아리 카테고리 삭제 실패 - 존재하지 않음: UUID: {}", clubCategoryUUID);
                     return new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
                 });
 
-        // 카테고리와 매핑된 ClubCategoryMapping 삭제
-        clubCategoryMappingRepository.deleteByClubCategory(category);
-        log.info("연결된 매핑 데이터 삭제 완료 - ID: {}", categoryId);
+        ClubCategory clubCategory = clubCategoryRepository.findById(clubCategoryId)
+                .orElseThrow(() -> new BaseException(ExceptionType.CATEGORY_NOT_FOUND));
 
-        // 카테고리 삭제
-        clubCategoryRepository.delete(category);
-        log.info("동아리 카테고리 삭제 성공 -  ID: {}", categoryId);
+        clubCategoryMappingRepository.deleteByClubCategory(clubCategory);
+        log.info("연결된 매핑 데이터 삭제 완료 - ID: {}", clubCategoryId);
 
-        // 삭제된 카테고리 정보를 응답으로 반환
-        return ClubCategoryMapper.toDto(category);
+        clubCategoryRepository.delete(clubCategory);
+        log.info("동아리 카테고리 삭제 성공 - ID: {}", clubCategoryId);
+
+        return ClubCategoryMapper.toDto(clubCategory);
     }
 }

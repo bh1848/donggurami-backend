@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -17,6 +18,9 @@ public class Notice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "notice_id")
     private Long noticeId;
+
+    @Column(name = "notice_uuid", unique = true, nullable = false, updatable = false)
+    private UUID noticeUUID;
 
     @Column(name = "notice_title", length = 100, nullable = false)
     private String noticeTitle;
@@ -34,6 +38,9 @@ public class Notice {
     // 자동 시간 설정
     @PrePersist
     public void prePersist() {
+        if (noticeUUID == null) {
+            this.noticeUUID = UUID.randomUUID();
+        }
         this.noticeCreatedAt = LocalDateTime.now();
     }
 

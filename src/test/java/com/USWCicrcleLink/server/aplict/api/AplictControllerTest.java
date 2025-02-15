@@ -2,7 +2,7 @@
 //
 //import com.USWCicrcleLink.server.aplict.dto.AplictRequest;
 //import com.USWCicrcleLink.server.aplict.service.AplictService;
-//import com.USWCicrcleLink.server.global.security.util.JwtProvider;
+//import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.DisplayName;
 //import org.junit.jupiter.api.Test;

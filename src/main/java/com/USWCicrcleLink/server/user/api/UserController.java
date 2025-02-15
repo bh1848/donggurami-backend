@@ -96,6 +96,17 @@ public class UserController {
         return modelAndView;
     }
 
+    // 이메일 재인증
+    @PostMapping("/email/resend-confirmation")
+    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader UUID emailToken_uuid) {
+
+        EmailToken emailToken = emailTokenService.updateCertificationTime(emailToken_uuid);
+        userService.sendSignUpMail(emailToken.getUserTemp(),emailToken);
+
+        ApiResponse<UUID> response = new ApiResponse<>("이메일 재인증을 해주세요", emailToken_uuid);
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
     // 로그인하러가기 - 회원가입 최종 확인
     @PostMapping("/finish-signup")
     public ResponseEntity<ApiResponse<Void>> signUpFinish(@RequestBody FinishSignupRequest request) {
@@ -112,19 +123,6 @@ public class UserController {
         userService.sendRequest(request, clubMemberTemp);
         return ResponseEntity.ok(new ApiResponse<>("가입 요청에 성공했습니다"));
     }
-
-    // 이메일 재인증
-    @PostMapping("/email/resend-confirmation")
-    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader UUID emailToken_uuid) {
-
-        EmailToken emailToken = emailTokenService.updateCertificationTime(emailToken_uuid);
-        userService.sendSignUpMail(emailToken.getUserTemp(),emailToken);
-
-        ApiResponse<UUID> response = new ApiResponse<>("이메일 재인증을 해주세요", emailToken_uuid);
-        return new ResponseEntity<>(response,HttpStatus.OK);
-    }
-
-
 
     // 로그인
     @PostMapping("/login")

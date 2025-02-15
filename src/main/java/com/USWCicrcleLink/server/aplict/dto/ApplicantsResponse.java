@@ -5,12 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApplicantsResponse {
 
-    private Long aplictId;
+    private UUID aplictUUID;
 
     private String userName;
 
@@ -20,8 +22,8 @@ public class ApplicantsResponse {
 
     private String userHp;
 
-    public ApplicantsResponse(Long aplictId, Profile profile) {
-        this.aplictId = aplictId;
+    public ApplicantsResponse(UUID aplictUUID, Profile profile) {
+        this.aplictUUID = aplictUUID;
         this.userName = profile.getUserName();
         this.major = profile.getMajor();
         this.studentNumber = profile.getStudentNumber();

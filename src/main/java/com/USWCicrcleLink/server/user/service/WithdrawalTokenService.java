@@ -1,9 +1,8 @@
 package com.USWCicrcleLink.server.user.service;
 
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.exception.errortype.WithdrawalTokenException;
-import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
+import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import com.USWCicrcleLink.server.user.dto.AuthCodeRequest;

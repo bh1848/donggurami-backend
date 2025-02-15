@@ -8,7 +8,7 @@
 //import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 //import com.USWCicrcleLink.server.global.exception.errortype.ClubIntroException;
 //import com.USWCicrcleLink.server.global.exception.errortype.UserException;
-//import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
+//import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
 //import com.USWCicrcleLink.server.profile.domain.Profile;
 //import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 //import com.USWCicrcleLink.server.user.domain.User;

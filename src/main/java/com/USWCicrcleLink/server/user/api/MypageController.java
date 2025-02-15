@@ -19,15 +19,15 @@ public class MypageController {
 
     //소속된 동아리 조회
     @GetMapping("/my-clubs")
-    public ApiResponse<List<MyClubResponse>>getMyClubByUUID(){
-        List<MyClubResponse> myclubs = mypageService.getMyClubByUUID();
+    public ApiResponse<List<MyClubResponse>>getMyClubById(){
+        List<MyClubResponse> myclubs = mypageService.getMyClubById();
         return new ApiResponse<>("소속된 동아리 목록 조회 성공", myclubs);
     }
 
     //지원한 동아리 조회
     @GetMapping("/aplict-clubs")
-    public ApiResponse<List<MyAplictResponse>> getAplictClubByUUID(){
-        List<MyAplictResponse> aplictClubs = mypageService.getAplictClubByUUID();
+    public ApiResponse<List<MyAplictResponse>> getAplictClubById(){
+        List<MyAplictResponse> aplictClubs = mypageService.getAplictClubById();
         return new ApiResponse<>("지원한 동아리 목록 조회 성공", aplictClubs);
     }
 

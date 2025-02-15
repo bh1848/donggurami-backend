@@ -9,14 +9,13 @@ import com.USWCicrcleLink.server.club.club.domain.FloorPhoto;
 import com.USWCicrcleLink.server.club.club.domain.FloorPhotoEnum;
 import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.club.repository.FloorPhotoRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
-import com.USWCicrcleLink.server.global.security.util.CustomUserDetails;
-import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
+import com.USWCicrcleLink.server.global.s3File.Service.S3FileUploadService;
+import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
@@ -42,7 +41,6 @@ public class MypageService {
     private final ClubMembersRepository clubMembersRepository;
     private final ProfileRepository profileRepository;
     private final AplictRepository aplictRepository;
-    private final ClubRepository clubRepository;
     private final S3FileUploadService s3FileUploadService;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
     private final FloorPhotoRepository floorPhotoRepository;
@@ -71,7 +69,7 @@ public class MypageService {
     }
 
     //소속된 동아리 조회
-    public List<MyClubResponse> getMyClubByUUID(){
+    public List<MyClubResponse> getMyClubById(){
         User user = getUserByAuth();
         Profile profile = getProfileByUserId((user.getUserId()));
         List<ClubMembers> clubMembers = getClubMembersByProfileId(profile.getProfileId());
@@ -79,18 +77,19 @@ public class MypageService {
         return getMyClubs(clubMembers);
     }
 
-    //지원한 동아리 조회
-    public List<MyAplictResponse> getAplictClubByUUID() {
+    // 지원한 동아리 조회
+    public List<MyAplictResponse> getAplictClubById() {
         User user = getUserByAuth();
         Profile profile = getProfileByUserId(user.getUserId());
 
+        // Profile ID를 기반으로 지원 내역 조회
         List<Aplict> aplicts = getAplictsByProfileId(profile.getProfileId());
-        log.info("지원 동아리 조회 완료 {}", user.getUserId());
+        log.info("지원 동아리 조회 완료 - User ID: {}", user.getUserId());
 
         return aplicts.stream()
                 .map(aplict -> {
-                    Club club = getClubByAplictId(aplict.getAplictId());
-                    AplictStatus aplictStatus = aplict.getAplictStatus(); // 어플릭트의 상태 가져오기
+                    Club club = getClubByAplictId(aplict.getAplictId());  // ID 기반 조회로 변경
+                    AplictStatus aplictStatus = aplict.getAplictStatus();
                     return myAplictResponse(club, aplictStatus);
                 })
                 .collect(Collectors.toList());
@@ -112,9 +111,8 @@ public class MypageService {
 
     // 어플리케이션 ID를 통해 클럽 조회
     private Club getClubByAplictId(Long aplictId) {
-        Aplict aplict = aplictRepository.findById(aplictId)
-                .orElseThrow(() -> new BaseException(ExceptionType.APLICT_NOT_EXISTS));
-        return clubRepository.findById(aplict.getClub().getClubId()).orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+        return aplictRepository.findClubByAplictId(aplictId)
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
     }
 
     //사진 조회 url

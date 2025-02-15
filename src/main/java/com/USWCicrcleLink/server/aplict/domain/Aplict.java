@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -27,6 +28,10 @@ public class Aplict {
     @JoinColumn(name = "profile_id", nullable = false)
     private Profile profile;
 
+    @Builder.Default
+    @Column(name = "aplict_uuid", nullable = false, unique = true, updatable = false)
+    private UUID aplictUUID = UUID.randomUUID();
+
     @Column(name = "aplict_google_form_url", nullable = false)
     private String aplictGoogleFormUrl;
 
@@ -43,6 +48,13 @@ public class Aplict {
 
     @Column(name = "aplict_delete_date")
     private LocalDateTime deleteDate;
+
+    @PrePersist
+    public void generateUUID() {
+        if (this.aplictUUID == null) {
+            this.aplictUUID = UUID.randomUUID();
+        }
+    }
 
     public void updateAplictStatus(AplictStatus newStatus, boolean checked, LocalDateTime deleteDate) {
         this.aplictStatus = newStatus;

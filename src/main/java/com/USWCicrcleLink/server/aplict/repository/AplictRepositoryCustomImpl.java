@@ -5,7 +5,6 @@ import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -14,15 +13,6 @@ public class AplictRepositoryCustomImpl implements AplictRepositoryCustom {
 
     @PersistenceContext
     private final EntityManager em;
-
-    @Override
-    @Transactional
-    public void deleteByClubClubId(Long clubId) {
-        String jpql = "DELETE FROM Aplict a WHERE a.club.clubId = :clubId";
-        em.createQuery(jpql)
-                .setParameter("clubId", clubId)
-                .executeUpdate();
-    }
 
     // 동아리 지원자 조회
     @Override

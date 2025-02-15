@@ -24,8 +24,9 @@ public class Admin {
     @Column(name = "admin_id")
     private Long adminId;
 
+    @Builder.Default
     @Column(name = "admin_UUID", nullable = false, unique = true, updatable = false)
-    private UUID adminUUID;
+    private UUID adminUUID = UUID.randomUUID();
 
     @Column(name = "admin_account", nullable = false, unique = true)
     private String adminAccount;
@@ -40,7 +41,6 @@ public class Admin {
     @Column(name = "role", nullable = false)
     private Role role;
 
-    // UUID 자동 생성
     @PrePersist
     public void generateUUID() {
         if (this.adminUUID == null) {

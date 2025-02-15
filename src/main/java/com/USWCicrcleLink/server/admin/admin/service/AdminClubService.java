@@ -16,8 +16,9 @@ import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
+import com.USWCicrcleLink.server.global.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.security.domain.Role;
-import com.USWCicrcleLink.server.global.security.util.CustomAdminDetails;
+import com.USWCicrcleLink.server.global.security.details.CustomAdminDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -44,8 +45,9 @@ public class AdminClubService {
     private final ClubMainPhotoRepository clubMainPhotoRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final S3FileUploadService s3FileUploadService;
     // 동아리 목록 조회(웹)
+    @Transactional(readOnly = true)
     public Page<AdminClubListResponse> getAllClubs(Pageable pageable) {
         log.debug("동아리 목록 조회 요청 - 페이지 정보: {}", pageable);
         try {
@@ -59,7 +61,7 @@ public class AdminClubService {
     }
 
     // 동아리 생성(웹) - 동아리 생성 완료하기
-    public void createClub(ClubCreationRequest request) {
+    public void createClub(AdminClubCreationRequest request) {
         // 인증된 관리자 정보 가져오기
         Admin admin = getAuthenticatedAdmin();
         log.debug("동아리 생성 요청 - 관리자 ID: {}, 동아리명: {}", admin.getAdminId(), request.getClubName());
@@ -152,22 +154,18 @@ public class AdminClubService {
     }
 
     // 동아리 삭제(웹) - 동아리 삭제 완료하기
-    public void deleteClub(Long clubId, AdminPwRequest request) {
-
-        // 인증된 관리자 정보 가져오기
+    public void deleteClub(UUID clubUUID, AdminPwRequest request) {
         Admin admin = getAuthenticatedAdmin();
-        log.info("동아리 삭제 요청 - 관리자 ID: {}, 동아리 ID: {}", admin.getAdminId(), clubId);
+        log.info("동아리 삭제 요청 - 관리자 ID: {}, 동아리 UUID: {}", admin.getAdminId(), clubUUID);
 
-        // 관리자 비밀번호 검증
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
             log.warn("동아리 삭제 실패 - 관리자 비밀번호 불일치, 관리자 ID: {}", admin.getAdminId());
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
 
-        // 동아리 존재 여부 확인
-        clubRepository.findById(clubId)
+        Long clubId = clubRepository.findClubIdByUUID(clubUUID)
                 .orElseThrow(() -> {
-                    log.error("동아리 삭제 실패 - 존재하지 않는 Club ID: {}", clubId);
+                    log.error("동아리 삭제 실패 - 존재하지 않는 Club UUID: {}", clubUUID);
                     return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
                 });
 
