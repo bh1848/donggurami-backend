@@ -44,7 +44,7 @@ public class ClubController {
         return ResponseEntity.ok(response);
     }
 
-    // 모든 동아리 출력
+    // 모바일 기존회원가입시 모든 동아리 출력
     @GetMapping("/list")
     public ResponseEntity<ApiResponse<List<ClubInfoListResponse>>> getAllClubs() {
         List<ClubInfoListResponse> clubs = clubService.getAllClubs();
