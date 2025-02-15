@@ -6,12 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClubMembersResponse {
 
-    private Long clubMemberId;
+    private UUID clubMemberUUID;
 
     private String userName;
 
@@ -23,8 +25,8 @@ public class ClubMembersResponse {
 
     private MemberType memberType;
 
-    public ClubMembersResponse(Long clubMemberId, Profile profile) {
-        this.clubMemberId = clubMemberId;
+    public ClubMembersResponse(UUID clubMemberUUID, Profile profile) {
+        this.clubMemberUUID = clubMemberUUID;
         this.userName = profile.getUserName();
         this.major = profile.getMajor();
         this.studentNumber = profile.getStudentNumber();

@@ -212,9 +212,9 @@ public class ClubLeaderController {
     }
 
     // 기존 동아리 회원 가입 요청 삭제(거절)
-    @DeleteMapping("/{clubUUID}/members/sign-up/{clubMemberAccountStatusId}")
-    public ResponseEntity<ApiResponse> deleteSignUpRequest(@PathVariable("clubUUID") UUID clubUUID, @PathVariable("clubMemberAccountStatusId") Long clubMemberAccountStatusId) {
-        return new ResponseEntity<>(clubLeaderService.deleteSignUpRequest(clubUUID, clubMemberAccountStatusId), HttpStatus.OK);
+    @DeleteMapping("/{clubUUID}/members/sign-up/{clubMemberAccountStatusUUID}")
+    public ResponseEntity<ApiResponse> deleteSignUpRequest(@PathVariable("clubUUID") UUID clubUUID, @PathVariable("clubMemberAccountStatusUUID") UUID clubMemberAccountStatusUUID) {
+        return new ResponseEntity<>(clubLeaderService.deleteSignUpRequest(clubUUID, clubMemberAccountStatusUUID), HttpStatus.OK);
     }
 
     // 기존 동아리 회원 가입 요청 수락
