@@ -128,7 +128,7 @@ public class MypageService {
         String mainPhotoUrl = getClubMainPhotoUrl(club);
 
         MyAplictResponse myAplictResponse = new MyAplictResponse(
-                club.getClubId(),
+                club.getClubUUID(),
                 mainPhotoUrl,
                 club.getClubName(),
                 club.getLeaderName(),
@@ -145,7 +145,7 @@ public class MypageService {
         String mainPhotoUrl = getClubMainPhotoUrl(club);
 
         MyClubResponse myClubResponse = new MyClubResponse(
-                club.getClubId(),
+                club.getClubUUID(),
                 mainPhotoUrl,
                 club.getClubName(),
                 club.getLeaderName(),

@@ -37,8 +37,8 @@ public class ClubController {
     }
 
     // 카테고리별 전체 동아리 조회 (모바일)
-    @GetMapping("filter")
-    public ResponseEntity<ApiResponse<List<ClubListByClubCategoryResponse>>> getAllClubsByClubCategories(@RequestParam(defaultValue = "") List<UUID> clubCategoryUUIDs) {
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponse<List<ClubListByClubCategoryResponse>>> getAllClubsByClubCategories(@RequestParam(name = "clubCategoryUUIDs", defaultValue = "") List<UUID> clubCategoryUUIDs) {
         List<ClubListByClubCategoryResponse> clubs = clubService.getAllClubsByClubCategories(clubCategoryUUIDs);
         return ResponseEntity.ok(new ApiResponse<>("카테고리별 전체 동아리 조회 완료", clubs));
     }
@@ -53,7 +53,7 @@ public class ClubController {
     // 카테고리별 모집 중인 동아리 조회
     @GetMapping("/open/filter")
     public ResponseEntity<ApiResponse<List<ClubListByClubCategoryResponse>>> getOpenClubsByCategories(
-            @RequestParam(defaultValue = "") List<UUID> clubCategoryUUIDs) {
+            @RequestParam(name = "clubCategoryUUIDs", defaultValue = "") List<UUID> clubCategoryUUIDs) {
         List<ClubListByClubCategoryResponse> clubs = clubService.getOpenClubsByClubCategories(clubCategoryUUIDs);
         return ResponseEntity.ok(new ApiResponse<>("카테고리별 모집 중인 동아리 조회 완료", clubs));
     }

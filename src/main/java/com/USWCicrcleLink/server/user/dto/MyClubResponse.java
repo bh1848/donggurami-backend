@@ -2,12 +2,14 @@ package com.USWCicrcleLink.server.user.dto;
 
 import lombok.*;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class MyClubResponse {
 
-    private Long clubId;
+    private UUID clubUUID;
 
     private String mainPhotoPath;
 
