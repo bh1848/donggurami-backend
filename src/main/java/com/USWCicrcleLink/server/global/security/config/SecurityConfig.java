@@ -69,7 +69,8 @@ public class SecurityConfig {
                             "/profiles/duplication-check", // 프로필 중복 조회
                             "/users/existing/register",// 기존 동아리회원의 회원가입
                             "/mypages/clubs/{floor}/photo", // 동아리방 층별 사진 조회
-                            "/clubs/filter/**" // 카테고리별 동아리 조회
+                            "/clubs/filter/**", // 카테고리별 동아리 조회
+                            "/images/**" // 이미지 파일
                     ).permitAll();
 
                     // photo

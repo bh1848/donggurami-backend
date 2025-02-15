@@ -72,7 +72,7 @@ public class EmailService {
             // HTML 이메일 본문으로 설정
             helper.setText(htmlContent, true);
 
-            //템플릿에 들어가는 이미지 cid로 삽입
+            //템플릿에 들어가는 이미지를 cid로 삽입
             helper.addInline("image", new ClassPathResource("static/images/logo.png"));
 
            return mimeMessage;
