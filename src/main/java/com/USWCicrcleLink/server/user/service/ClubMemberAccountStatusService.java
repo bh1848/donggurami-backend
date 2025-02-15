@@ -40,8 +40,8 @@ public class ClubMemberAccountStatusService {
 
         // 생성된 ClubMemberAccountStatus 저장
         try{
-            log.debug("clubMember_Account_Status 객체 저장 완료- Club ID: {}, 사용자 ID : {}", club.getClubId(), clubMemberTemp.getClubMemberTempId());
             clubMemberAccountStatusRepository.save(status);
+            log.debug("clubMember_Account_Status 객체 저장 완료- Club ID: {}, 사용자 ID : {}", club.getClubId(), clubMemberTemp.getClubMemberTempId());
         }catch (Exception e){
             log.error("clubMember_Account_Status 객체 저장 실패- Club ID: {}, 사용자 ID : {}", club.getClubId(), clubMemberTemp.getClubMemberTempId());
             throw new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_ACCOUNTSTATUS_CREATE_FAILED);
@@ -71,18 +71,18 @@ public class ClubMemberAccountStatusService {
         // 사용자가 선택한 동아리에 올바르게 전송 되었는지 확인
 
         // 사용자가 선택한 동아리 List
-        Set<UUID> expected_clubId = request.getClubs().stream()
+        Set<UUID> expected_clubUUID = request.getClubs().stream()
                 .map(ClubDTO::getClubUUID)
                 .collect(Collectors.toSet());
 
         // 요청을 실제로 보낸 동아리 List
-        Set<UUID> saved_clubId = clubMemberAccountStatusRepository.findAllByClubMemberTemp_ClubMemberTempId(clubMemberTemp.getClubMemberTempId())
+        Set<UUID> saved_clubUUID = clubMemberAccountStatusRepository.findAllByClubMemberTemp_ClubMemberTempId(clubMemberTemp.getClubMemberTempId())
                 .stream()
                 .map(accountStatus -> accountStatus.getClub().getClubUUID())
                 .collect(Collectors.toSet());
 
-        // clubId가 모두 일치하는지 확인하기
-        if(expected_clubId.equals(saved_clubId)){
+        // clubUUID가 모두 일치하는지 확인하기
+        if(expected_clubUUID.equals(saved_clubUUID)){
             log.debug("사용자가 요청한 동아리 UUID와 저장된 동아리 UUID 값이 모두 일치합니다");
         }
         else{

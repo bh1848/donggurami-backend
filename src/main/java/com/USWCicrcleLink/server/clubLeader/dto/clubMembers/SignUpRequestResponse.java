@@ -5,12 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class SignUpRequestResponse {
 
-    private Long clubMemberAccountStatusId;
+    private UUID clubMemberAccountStatusUUID;
 
     private String profileTempName;
 
@@ -20,8 +22,8 @@ public class SignUpRequestResponse {
 
     private String profileTempHp;
 
-    public SignUpRequestResponse(Long clubMemberAccountStatusId, ClubMemberTemp clubMemberTemp) {
-        this.clubMemberAccountStatusId = clubMemberAccountStatusId;
+    public SignUpRequestResponse(UUID clubMemberAccountStatusUUID, ClubMemberTemp clubMemberTemp) {
+        this.clubMemberAccountStatusUUID = clubMemberAccountStatusUUID;
         this.profileTempName = clubMemberTemp.getProfileTempName();
         this.profileTempStudentNumber = clubMemberTemp.getProfileTempStudentNumber();
         this.profileTempMajor = clubMemberTemp.getProfileTempMajor();

@@ -1087,7 +1087,7 @@ public class ClubLeaderService {
         List<ClubMemberAccountStatus> signUpClubMember = clubMemberAccountStatusRepository.findAllWithClubMemberTemp(club.getClubId());
         List<SignUpRequestResponse> signUpRequestResponse = signUpClubMember.stream().map(
                 cmt -> new SignUpRequestResponse(
-                        cmt.getClubMemberAccountStatusId(),
+                        cmt.getClubMemberAccountStatusUUID(),
                         cmt.getClubMemberTemp()
                 )
         ).toList();
@@ -1096,11 +1096,11 @@ public class ClubLeaderService {
     }
 
     // 기존 동아리 회원 가입 요청 삭제
-    public ApiResponse deleteSignUpRequest(UUID clubUUID, Long clubMemberAccountStatusId) {
+    public ApiResponse deleteSignUpRequest(UUID clubUUID, UUID clubMemberAccountStatusUUID) {
         Club club = validateLeaderAccess(clubUUID);
 
         // 동아리 + 기존 동아리 회원 가입 요청 확인
-        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByClubMemberAccountStatusIdAndClub_ClubId(clubMemberAccountStatusId, club.getClubId())
+        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByClubMemberAccountStatusUUIDAndClub_ClubUUID(clubMemberAccountStatusUUID, club.getClubUUID())
                 .orElseThrow(() -> new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS));
 
         clubMemberAccountStatusRepository.delete(clubMemberAccountStatus);

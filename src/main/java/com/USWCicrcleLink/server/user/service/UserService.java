@@ -441,7 +441,8 @@ public class UserService {
                 });
         log.debug("프로필 조회 성공 - 사용자 ID: {}, 회원 타입: {}", user.getUserId(), profile.getMemberType());
 
-        if (profile.getMemberType().equals(MemberType.NONMEMBER)) { // 비회원인 경우 로그인 불가
+        // 비회원인 경우 로그인 불가
+        if (profile.getMemberType().equals(MemberType.NONMEMBER)) {
             log.error("로그인 실패 - 비회원 사용자 - 사용자 ID: {}", user.getUserId());
             throw new UserException(ExceptionType.USER_LOGIN_FAILED);
         }
