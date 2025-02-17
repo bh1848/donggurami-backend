@@ -19,8 +19,9 @@ public class Notice {
     @Column(name = "notice_id")
     private Long noticeId;
 
+    @Builder.Default
     @Column(name = "notice_uuid", unique = true, nullable = false, updatable = false)
-    private UUID noticeUUID;
+    private UUID noticeUUID = UUID.randomUUID();
 
     @Column(name = "notice_title", length = 100, nullable = false)
     private String noticeTitle;

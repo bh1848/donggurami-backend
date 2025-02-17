@@ -25,8 +25,9 @@ public class Leader{
     @Column(name = "leader_account", nullable = false, unique = true)
     private String leaderAccount;
 
+    @Builder.Default
     @Column(name = "leader_uuid",nullable = false, updatable = false)
-    private UUID leaderUUID;
+    private UUID leaderUUID = UUID.randomUUID();
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id")

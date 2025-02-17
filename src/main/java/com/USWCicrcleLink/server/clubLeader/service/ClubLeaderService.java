@@ -211,9 +211,6 @@ public class ClubLeaderService {
         // 동아리 회장 유효성 검증
         Club club = validateLeaderAccess(clubUUID);
 
-        // 기존 동아리 회장 이름 저장 후 입력값 검증 (XSS 방지)
-        String oldLeaderName = club.getLeaderName();
-
         // 동아리 회장 이름 변경 시 약관 동의 갱신 필요
         updateLeaderAgreementIfNameChanged(club, clubInfoRequest.getLeaderName());
 
@@ -294,11 +291,11 @@ public class ClubLeaderService {
             s3FileUploadService.deleteFile(existingPhoto.getClubMainPhotoS3Key());
         }
 
-        return saveClubMainPhoto(clubId, mainPhoto, existingPhoto);
+        return saveClubMainPhoto(mainPhoto, existingPhoto);
     }
 
     // 사진 메타데이터 업데이트 및 S3 업로드
-    private String saveClubMainPhoto(Long clubId, MultipartFile mainPhoto, ClubMainPhoto existingPhoto) throws IOException {
+    private String saveClubMainPhoto(MultipartFile mainPhoto, ClubMainPhoto existingPhoto) throws IOException {
         S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(mainPhoto, S3_MAINPHOTO_DIR);
 
         if (existingPhoto == null) {
