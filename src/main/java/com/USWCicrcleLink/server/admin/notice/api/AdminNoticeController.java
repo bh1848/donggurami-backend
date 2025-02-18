@@ -1,14 +1,10 @@
 package com.USWCicrcleLink.server.admin.notice.api;
 
-import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeCreationRequest;
-import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
-import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeListResponse;
-import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeUpdateRequest;
+import com.USWCicrcleLink.server.admin.notice.dto.*;
 import com.USWCicrcleLink.server.admin.notice.service.AdminNoticeService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,16 +23,16 @@ public class AdminNoticeController {
 
     // 공지사항 리스트 조회 (웹, 페이징)
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<AdminNoticeListResponse>>> getNotices(
-            @RequestParam(name = "page",defaultValue = "0") int page,
-            @RequestParam(name = "size",defaultValue = "10") int size
+    public ResponseEntity<ApiResponse<AdminNoticePageListResponse>> getNotices(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("noticeCreatedAt").descending());
-        Page<AdminNoticeListResponse> pagedNotices = noticeService.getNotices(pageable);
+        AdminNoticePageListResponse pagedNotices = noticeService.getNotices(pageable);
         return ResponseEntity.ok(new ApiResponse<>("공지사항 리스트 조회 성공", pagedNotices));
     }
 
-    //공지사항 세부내용 조회(웹)
+    // 공지사항 세부내용 조회(웹)
     @GetMapping("/{noticeUUID}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNoticeByUUID(@PathVariable("noticeUUID") UUID noticeUUID) {
         NoticeDetailResponse notice = noticeService.getNoticeByUUID(noticeUUID);
@@ -65,7 +61,7 @@ public class AdminNoticeController {
         return ResponseEntity.ok(response);
     }
 
-    //공지사항 삭제(웹)
+    // 공지사항 삭제(웹)
     @DeleteMapping("/{noticeUUID}")
     public ResponseEntity<ApiResponse<UUID>> deleteNotice(@PathVariable("noticeUUID") UUID noticeUUID) {
         noticeService.deleteNotice(noticeUUID);

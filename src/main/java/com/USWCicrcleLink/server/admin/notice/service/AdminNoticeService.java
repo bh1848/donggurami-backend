@@ -3,10 +3,7 @@ package com.USWCicrcleLink.server.admin.notice.service;
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
 import com.USWCicrcleLink.server.admin.notice.domain.Notice;
 import com.USWCicrcleLink.server.admin.notice.domain.NoticePhoto;
-import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeCreationRequest;
-import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
-import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeListResponse;
-import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeUpdateRequest;
+import com.USWCicrcleLink.server.admin.notice.dto.*;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticePhotoRepository;
 import com.USWCicrcleLink.server.admin.notice.repository.NoticeRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
@@ -43,20 +40,31 @@ public class AdminNoticeService {
     private final NoticePhotoRepository noticePhotoRepository;
     private final S3FileUploadService s3FileUploadService;
 
-    // 공지사항 목록 조회 (페이징)
+    // 공지사항 리스트 조회 (페이징)
     @Transactional(readOnly = true)
-    public Page<AdminNoticeListResponse> getNotices(Pageable pageable) {
+    public AdminNoticePageListResponse getNotices(Pageable pageable) {
+        Page<Notice> notices = noticeRepository.findAll(pageable);
 
-        try {
-            Page<AdminNoticeListResponse> notices = noticeRepository.findAllNotices(pageable);
-            log.debug("공지사항 목록 조회 성공 - 총 {}개", notices.getTotalElements());
-            return notices;
-        } catch (Exception e) {
-            log.error("공지사항 목록 조회 실패", e);
-            throw new NoticeException(ExceptionType.NOTICE_CHECKING_ERROR);
-        }
+        log.debug("공지사항 목록 조회 성공 - 총 {}개", notices.getTotalElements());
+
+        List<AdminNoticeListResponse> content = notices.getContent().stream()
+                .map(notice -> AdminNoticeListResponse.builder()
+                        .noticeUUID(notice.getNoticeUUID())
+                        .noticeTitle(notice.getNoticeTitle())
+                        .adminName(notice.getAdmin().getAdminName())
+                        .noticeCreatedAt(notice.getNoticeCreatedAt())
+                        .build()
+                ).toList();
+
+        return AdminNoticePageListResponse.builder()
+                .content(content)
+                .totalPages(notices.getTotalPages())
+                .totalElements(notices.getTotalElements())
+                .currentPage(notices.getNumber())
+                .build();
     }
 
+    // 공지사항 조회
     @Transactional(readOnly = true)
     public NoticeDetailResponse getNoticeByUUID(UUID noticeUUID) {
 
@@ -66,7 +74,7 @@ public class AdminNoticeService {
                     return new NoticeException(ExceptionType.NOTICE_NOT_EXISTS);
                 });
 
-        List<String> noticePhotoUrls = noticePhotoRepository.findById(notice.getNoticeId()).stream()
+        List<String> noticePhotoUrls = noticePhotoRepository.findByNotice(notice).stream()
                 .sorted(Comparator.comparingInt(NoticePhoto::getOrder))
                 .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getNoticePhotoS3Key()))
                 .collect(Collectors.toList());
@@ -86,7 +94,6 @@ public class AdminNoticeService {
     // 공지사항 생성
     public List<String> createNotice(AdminNoticeCreationRequest request, List<MultipartFile> noticePhotos) {
         Admin admin = getAuthenticatedAdmin();
-        log.debug("공지사항 생성 요청 - 관리자 ID: {}", admin.getAdminId());
 
         Notice notice = Notice.builder()
                 .noticeTitle(request.getNoticeTitle())
@@ -106,16 +113,13 @@ public class AdminNoticeService {
         return presignedUrls;
     }
 
-
     // 공지사항 수정
     public List<String> updateNotice(UUID noticeUUID, AdminNoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
-        Admin admin = getAuthenticatedAdmin();
-        log.debug("공지사항 수정 요청 - 관리자 ID: {}", admin.getAdminId());
 
         // 공지사항 조회
         Notice notice = noticeRepository.findByNoticeUUID(noticeUUID)
                 .orElseThrow(() -> {
-                    log.warn("공지사항 수정 실패 - 존재하지 않는 ID: {}", noticeUUID);
+                    log.warn("공지사항 수정 실패 - 존재하지 않는 uuid: {}", noticeUUID);
                     return new NoticeException(ExceptionType.NOTICE_NOT_EXISTS);
                 });
 
@@ -135,15 +139,12 @@ public class AdminNoticeService {
         return presignedUrls;
     }
 
-
     // 공지사항 삭제
     public void deleteNotice(UUID noticeUUID) {
-        Admin admin = getAuthenticatedAdmin();
-        log.debug("공지사항 삭제 요청 - 관리자 ID: {}", admin.getAdminId());
 
         Notice notice = noticeRepository.findByNoticeUUID(noticeUUID)
                 .orElseThrow(() -> {
-                    log.warn("공지사항 삭제 실패 - 존재하지 않는 ID: {}", noticeUUID);
+                    log.warn("공지사항 삭제 실패 - 존재하지 않는 uuid: {}", noticeUUID);
                     return new NoticeException(ExceptionType.NOTICE_NOT_EXISTS);
                 });
 
@@ -153,7 +154,6 @@ public class AdminNoticeService {
         log.info("공지사항 삭제 완료 - ID: {}", notice.getNoticeId());
     }
 
-    // 인증된 관리자 정보 가져오기
     private Admin getAuthenticatedAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();

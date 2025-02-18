@@ -24,15 +24,15 @@ public class AdminClubController {
     private final AdminClubService adminClubService;
     private final ClubService clubService;
 
-    // 동아리 리스트 조회 (웹, 페이징)
+    // 메인 페이지(웹) - 동아리 목록 조회
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<AdminClubListResponse>>> getAllClubs(
+    public ResponseEntity<ApiResponse<AdminClubPageListResponse>> getAllClubs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("clubUUID").descending());
-        Page<AdminClubListResponse> pagedClubs = adminClubService.getAllClubs(pageable);
-        return ResponseEntity.ok(new ApiResponse<>("동아리 전체 리스트 조회 성공", pagedClubs));
+        Pageable pageable = PageRequest.of(page, size, Sort.by("clubId").descending());
+        AdminClubPageListResponse pagedClubs = adminClubService.getAllClubs(pageable);
+        return ResponseEntity.ok(new ApiResponse<>("동아리 리스트 조회 성공", pagedClubs));
     }
 
     // 동아리 소개/모집글 페이지 조회 (웹 - 운영팀)

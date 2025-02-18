@@ -46,8 +46,6 @@ public class AplictService {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.user();
 
-        log.debug("동아리 지원 가능 여부 확인 요청 - ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
-
         Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
                 .orElseThrow(() -> {
                     log.error("동아리 지원 가능 여부 확인 실패 - 프로필 없음, UserUUID: {}", user.getUserUUID());
@@ -86,7 +84,6 @@ public class AplictService {
     // 지원서 작성하기(구글 폼 반환)
     @Transactional(readOnly = true)
     public String getGoogleFormUrlByClubUUID(UUID clubUUID) {
-        log.debug("구글 폼 URL 조회 요청 - ClubUUID: {}", clubUUID);
 
         Long clubId = clubRepository.findClubIdByUUID(clubUUID)
                 .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
@@ -112,8 +109,6 @@ public class AplictService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.user();
-
-        log.debug("동아리 지원서 제출 요청 - ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
 
         Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
                 .orElseThrow(() -> {

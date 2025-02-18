@@ -29,7 +29,6 @@ public class AdminLoginService {
     // 운영팀 로그인
     @RateLimite(action = "WEB_LOGIN")
     public AdminLoginResponse adminLogin(AdminLoginRequest request, HttpServletResponse response) {
-        log.debug("운영팀 로그인 요청 - 계정: {}, 사용자 유형: {}", request.getAdminAccount(), request.getLoginType());
 
         Role role = getRoleFromLoginType(request.getLoginType());
         UserDetails userDetails;

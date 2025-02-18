@@ -1,7 +1,8 @@
 package com.USWCicrcleLink.server.club.club.dto;
 
-import com.USWCicrcleLink.server.club.club.domain.Club;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,13 +16,5 @@ public class ClubListResponse {
     private String mainPhoto;
     private String departmentName;
     private List<String> clubHashtags;
-
-    public ClubListResponse(Club club, String mainPhotoUrl, List<String> clubHashtags) {
-        this.clubName = club.getClubName();
-        this.mainPhoto = mainPhotoUrl;
-        this.departmentName = club.getDepartment().name();
-        this.clubUUID = club.getClubUUID();
-        this.clubHashtags = clubHashtags;
-    }
 }
 

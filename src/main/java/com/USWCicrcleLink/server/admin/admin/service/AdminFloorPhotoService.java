@@ -31,8 +31,6 @@ public class AdminFloorPhotoService {
             throw new BaseException(ExceptionType.PHOTO_FILE_IS_EMPTY);
         }
 
-        log.debug("층별 사진 업로드 요청 - Floor: {}", floor);
-
         FloorPhoto existingPhoto = floorPhotoRepository.findByFloor(floor).orElse(null);
 
         if (existingPhoto != null) {
@@ -59,7 +57,6 @@ public class AdminFloorPhotoService {
     // 동아리 위치 정보 수정(웹) - 특정 층 사진 조회
     @Transactional(readOnly = true)
     public AdminFloorPhotoCreationResponse getPhotoByFloor(FloorPhotoEnum floor) {
-        log.debug("층별 사진 조회 요청 - Floor: {}", floor);
 
         FloorPhoto floorPhoto = floorPhotoRepository.findByFloor(floor)
                 .orElseThrow(() -> {
@@ -75,7 +72,6 @@ public class AdminFloorPhotoService {
 
     // 동아리 위치 정보 수정(웹) - 특정 층 사진 삭제
     public void deletePhotoByFloor(FloorPhotoEnum floor) {
-        log.debug("층별 사진 삭제 요청 - Floor: {}", floor);
 
         FloorPhoto floorPhoto = floorPhotoRepository.findByFloor(floor)
                 .orElseThrow(() -> {

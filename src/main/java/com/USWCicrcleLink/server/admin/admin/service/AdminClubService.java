@@ -1,7 +1,10 @@
 package com.USWCicrcleLink.server.admin.admin.service;
 
 import com.USWCicrcleLink.server.admin.admin.domain.Admin;
-import com.USWCicrcleLink.server.admin.admin.dto.*;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminClubCreationRequest;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminClubListResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminClubPageListResponse;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminPwRequest;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
@@ -16,9 +19,8 @@ import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
-import com.USWCicrcleLink.server.global.s3File.Service.S3FileUploadService;
-import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.details.CustomAdminDetails;
+import com.USWCicrcleLink.server.global.security.domain.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -45,26 +47,26 @@ public class AdminClubService {
     private final ClubMainPhotoRepository clubMainPhotoRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final PasswordEncoder passwordEncoder;
-    private final S3FileUploadService s3FileUploadService;
-    // 동아리 목록 조회(웹)
+
+    // 메인 페이지(웹) - 동아리 목록 조회
     @Transactional(readOnly = true)
-    public Page<AdminClubListResponse> getAllClubs(Pageable pageable) {
-        log.debug("동아리 목록 조회 요청 - 페이지 정보: {}", pageable);
-        try {
-            Page<AdminClubListResponse> result = clubRepository.findAllWithMemberAndLeaderCount(pageable);
-            log.debug("동아리 목록 조회 성공 - 총 {}개", result.getTotalElements());
-            return result;
-        } catch (Exception e) {
-            log.error("동아리 목록 조회 실패", e);
-            throw new ClubException(ExceptionType.ClUB_CHECKING_ERROR);
-        }
+    public AdminClubPageListResponse getAllClubs(Pageable pageable) {
+        Page<AdminClubListResponse> clubs = clubRepository.findAllWithMemberAndLeaderCount(pageable);
+
+        log.debug("동아리 목록 조회 성공 - 총 {}개", clubs.getTotalElements());
+
+        return AdminClubPageListResponse.builder()
+                .content(clubs.getContent())
+                .totalPages(clubs.getTotalPages())
+                .totalElements(clubs.getTotalElements())
+                .currentPage(clubs.getNumber())
+                .build();
     }
 
     // 동아리 생성(웹) - 동아리 생성 완료하기
     public void createClub(AdminClubCreationRequest request) {
         // 인증된 관리자 정보 가져오기
         Admin admin = getAuthenticatedAdmin();
-        log.debug("동아리 생성 요청 - 관리자 ID: {}, 동아리명: {}", admin.getAdminId(), request.getClubName());
 
         // 동아리 회장 비밀번호 확인
         if (!request.getLeaderPw().equals(request.getLeaderPwConfirm())) {
@@ -156,7 +158,6 @@ public class AdminClubService {
     // 동아리 삭제(웹) - 동아리 삭제 완료하기
     public void deleteClub(UUID clubUUID, AdminPwRequest request) {
         Admin admin = getAuthenticatedAdmin();
-        log.info("동아리 삭제 요청 - 관리자 ID: {}, 동아리 UUID: {}", admin.getAdminId(), clubUUID);
 
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
             log.warn("동아리 삭제 실패 - 관리자 비밀번호 불일치, 관리자 ID: {}", admin.getAdminId());
