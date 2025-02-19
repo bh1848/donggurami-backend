@@ -1157,7 +1157,7 @@ public class ClubLeaderService {
 
     // 기존 회원 가입 요청 검증
     private ClubMemberAccountStatus validateSignUpProfile(ClubMemberProfileRequest signUpProfileRequest, Long clubId) {
-        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByClubMemberAccountStatusIdAndClub_ClubId(signUpProfileRequest.getId(), clubId)
+        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByClubMemberAccountStatusUUIDAndClub_ClubId(signUpProfileRequest.getUuid(), clubId)
                 .orElseThrow(() -> new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS));
 
         ClubMemberTemp clubMemberTemp = clubMemberAccountStatus.getClubMemberTemp();
@@ -1174,7 +1174,7 @@ public class ClubLeaderService {
 
     // 기존 비회원 프로필 검증
     private Profile validateClubNonMemberProfile(ClubMemberProfileRequest clubNonMemberProfileRequest, Long clubId) {
-        Profile clubNonMember = clubMembersRepository.findByClubClubIdAndClubMemberId(clubId, clubNonMemberProfileRequest.getId())
+        Profile clubNonMember = clubMembersRepository.findByClubClubIdAndClubMemberUUID(clubId, clubNonMemberProfileRequest.getUuid())
                 .map(ClubMembers::getProfile)
                 .orElseThrow(() -> new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS));
 
