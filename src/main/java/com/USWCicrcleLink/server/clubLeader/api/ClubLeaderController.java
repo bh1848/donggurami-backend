@@ -131,11 +131,11 @@ public class ClubLeaderController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-//    // 동아리 회원 퇴출
-//    @DeleteMapping("/{clubUUID}/members")
-//    public ResponseEntity<ApiResponse> deleteClubMembers(@PathVariable("clubUUID") UUID clubUUID, @RequestBody List<ClubMembersDeleteRequest> clubMemberIdList) {
-//        return new ResponseEntity<>(clubLeaderService.deleteClubMembers(clubUUID, clubMemberIdList), HttpStatus.OK);
-//    }
+    // 동아리 회원 퇴출
+    @DeleteMapping("/{clubUUID}/members")
+    public ResponseEntity<ApiResponse> deleteClubMembers(@PathVariable("clubUUID") UUID clubUUID, @RequestBody List<ClubMembersDeleteRequest> clubMemberUUIDList) {
+        return new ResponseEntity<>(clubLeaderService.deleteClubMembers(clubUUID, clubMemberUUIDList), HttpStatus.OK);
+    }
 
     // 동아리 회원 엑셀 파일 추출
     @GetMapping("/{clubUUID}/members/export")
@@ -198,11 +198,11 @@ public class ClubLeaderController {
     }
 
     // 비회원 프로필 업데이트
-    @PatchMapping("/{clubUUID}/members/{clubMemberId}/non-member")
+    @PatchMapping("/{clubUUID}/members/{clubMemberUUID}/non-member")
     public ResponseEntity<ApiResponse> updateNonMemberProfile(@PathVariable("clubUUID") UUID clubUUID,
-                                                              @PathVariable("clubMemberId") Long clubMemberId,
+                                                              @PathVariable("clubMemberUUID") UUID clubMemberUUID,
                                                               @RequestBody ClubNonMemberUpdateRequest clubNonMemberUpdateRequest) {
-        return new ResponseEntity<>(clubLeaderService.updateNonMemberProfile(clubUUID, clubMemberId, clubNonMemberUpdateRequest), HttpStatus.OK);
+        return new ResponseEntity<>(clubLeaderService.updateNonMemberProfile(clubUUID, clubMemberUUID, clubNonMemberUpdateRequest), HttpStatus.OK);
     }
 
     // 기존 동아리 회원 가입 요청 조회

@@ -277,7 +277,19 @@ public class DummyData {
                 .build();
         profileRepository.save(profile8);
 
-        // 엑셀로 들어간 비회원(FLAG, BADMINTON, FLAG)
+        // 다른 동아리의 비회원 프로필 수정
+        Profile profile11 = Profile.builder()
+                .userName("김엑삼")//
+                .studentNumber("00001011")
+                .userHp("01077778888")
+                .major("정보보호학과")
+                .profileCreatedAt(LocalDateTime.now())
+                .profileUpdatedAt(LocalDateTime.now())
+                .memberType(MemberType.NONMEMBER)
+                .build();
+        profileRepository.save(profile11);
+
+        // 엑셀로 들어간 비회원(FLAG, BADMINTON, FLAG, BADMINTON)
         Profile profile9 = Profile.builder()
                 .userName("김엑원")
                 .studentNumber("00001009")
@@ -605,6 +617,13 @@ public class DummyData {
                 .profile(profile1)
                 .build();
         clubMembersRepository.save(badmintonMember);
+
+        // 비회원
+        ClubMembers badmintonMember2 = ClubMembers.builder()
+                .club(badmintonClub)
+                .profile(profile11)
+                .build();
+        clubMembersRepository.save(badmintonMember2);
 
         Aplict badmintonAplict = Aplict.builder()
                 .profile(profile1)

@@ -6,10 +6,12 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class ClubMemberProfileRequest {
 
-    private Long id;
+    private UUID uuid;// clubMemberUUID, clubMemberAccountStatusUUID
 
     @NotBlank(message = "이름 필수 입력 값입니다.")
     @Pattern(regexp = "^[a-zA-Z가-힣]+$", message = "이름은 영어 또는 한글만 입력 가능합니다", groups = ValidationGroups.PatternGroup.class)
