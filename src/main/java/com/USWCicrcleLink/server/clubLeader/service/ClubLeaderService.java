@@ -567,42 +567,42 @@ public class ClubLeaderService {
         return new ApiResponse<>(message, memberProfiles);
     }
 
-//    // 소속 동아리원 삭제
-//    public ApiResponse deleteClubMembers(UUID clubUUID, List<ClubMembersDeleteRequest> clubMemberIdList) {
-//
-//        Club club = validateLeaderAccess(clubUUID);
-//
-//        List<Long> clubMemberIds = clubMemberIdList.stream()
-//                .map(ClubMembersDeleteRequest::getClubMemberId)
-//                .toList();
-//
-//        // 동아리 회원인지 확인
-//        List<ClubMembers> membersToDelete = clubMembersRepository.findByClubClubIdAndClubMemberIdIn(club.getClubId(), clubMemberIds);
-//
-//        // 조회된 수와 요청한 수와 같은지(다르면 다른 동아리 회원이 존재)
-//        if (membersToDelete.size() != clubMemberIdList.size()) {
-//            throw new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS);
-//        }
-//
-//        // 동아리 회원 삭제
-//        clubMembersRepository.deleteAll(membersToDelete);
-//
-//        // 삭제 후 비회원이면서 어떤 동아리에도 소속돼 있지 않을 경우, 프로필 삭제
-//        List<Long> profileIdsToDelete = membersToDelete.stream()
-//                .map(ClubMembers::getProfile)
-//                .filter(profile -> profile.getMemberType() == MemberType.NONMEMBER)
-//                .map(Profile::getProfileId)
-//                .toList();
-//
-//        List<Long> profileIdsWithoutClub = clubMembersRepository.findByProfileProfileIdsWithoutClub(profileIdsToDelete);
-//
-//        if (!profileIdsWithoutClub.isEmpty()) {// 삭제할 회원이 존재할 경우
-//            // 삭제할 id가 있는 경우
-//            profileRepository.deleteAllByIdInBatch(profileIdsWithoutClub);
-//        }
-//
-//        return new ApiResponse<>("동아리 회원 삭제 완료", clubMemberIdList);
-//    }
+    // 소속 동아리원 삭제
+    public ApiResponse deleteClubMembers(UUID clubUUID, List<ClubMembersDeleteRequest> clubMemberUUIDList) {
+
+        Club club = validateLeaderAccess(clubUUID);
+
+        List<UUID> clubMemberUUIDs = clubMemberUUIDList.stream()
+                .map(ClubMembersDeleteRequest::getClubMemberUUID)
+                .toList();
+
+        // 동아리 회원인지 확인
+        List<ClubMembers> membersToDelete = clubMembersRepository.findByClubClubIdAndClubMemberUUIDIn(club.getClubId(), clubMemberUUIDs);
+
+        // 조회된 수와 요청한 수와 같은지(다르면 다른 동아리 회원이 존재)
+        if (membersToDelete.size() != clubMemberUUIDList.size()) {
+            throw new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS);
+        }
+
+        // 동아리 회원 삭제
+        clubMembersRepository.deleteAll(membersToDelete);
+
+        // 삭제 후 비회원이면서 어떤 동아리에도 소속돼 있지 않을 경우, 프로필 삭제
+        List<Long> profileIdsToDelete = membersToDelete.stream()
+                .map(ClubMembers::getProfile)
+                .filter(profile -> profile.getMemberType() == MemberType.NONMEMBER)
+                .map(Profile::getProfileId)
+                .toList();
+
+        List<Long> profileIdsWithoutClub = clubMembersRepository.findByProfileProfileIdsWithoutClub(profileIdsToDelete);
+
+        if (!profileIdsWithoutClub.isEmpty()) {// 삭제할 회원이 존재할 경우
+            // 삭제할 id가 있는 경우
+            profileRepository.deleteAllByIdInBatch(profileIdsWithoutClub);
+        }
+
+        return new ApiResponse<>("동아리 회원 삭제 완료", clubMemberUUIDList);
+    }
 
     // 소속 동아리원 엑셀 다운
     @Transactional(readOnly = true)

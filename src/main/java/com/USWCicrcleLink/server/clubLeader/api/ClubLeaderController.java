@@ -131,11 +131,11 @@ public class ClubLeaderController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-//    // 동아리 회원 퇴출
-//    @DeleteMapping("/{clubUUID}/members")
-//    public ResponseEntity<ApiResponse> deleteClubMembers(@PathVariable("clubUUID") UUID clubUUID, @RequestBody List<ClubMembersDeleteRequest> clubMemberIdList) {
-//        return new ResponseEntity<>(clubLeaderService.deleteClubMembers(clubUUID, clubMemberIdList), HttpStatus.OK);
-//    }
+    // 동아리 회원 퇴출
+    @DeleteMapping("/{clubUUID}/members")
+    public ResponseEntity<ApiResponse> deleteClubMembers(@PathVariable("clubUUID") UUID clubUUID, @RequestBody List<ClubMembersDeleteRequest> clubMemberUUIDList) {
+        return new ResponseEntity<>(clubLeaderService.deleteClubMembers(clubUUID, clubMemberUUIDList), HttpStatus.OK);
+    }
 
     // 동아리 회원 엑셀 파일 추출
     @GetMapping("/{clubUUID}/members/export")
