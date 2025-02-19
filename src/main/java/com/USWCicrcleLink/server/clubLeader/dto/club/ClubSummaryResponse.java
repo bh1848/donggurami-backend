@@ -26,6 +26,9 @@ public class ClubSummaryResponse {
     // clubHashtag
     private List<String> clubHashtag;
 
+    // club
+    private List<String> clubCategories;
+
     // clubIntro
     private String clubIntro;
     private String clubRecruitment;
@@ -36,7 +39,7 @@ public class ClubSummaryResponse {
     private String mainPhoto;
     private List<String> introPhotos;
 
-    public ClubSummaryResponse(Club club, List<String> clubHashtag,
+    public ClubSummaryResponse(Club club, List<String> clubHashtag, List<String> clubCategories,
                                ClubIntro clubIntro, String mainPhotoUrl, List<String> introPhotoUrls) {
         // club
         this.clubUUID = club.getClubUUID();
@@ -47,6 +50,8 @@ public class ClubSummaryResponse {
         this.clubRoomNumber = club.getClubRoomNumber();
         // clubHashtag
         this.clubHashtag = clubHashtag;
+        // clubCategories
+        this.clubCategories = clubCategories;
         // clubIntro
         this.clubIntro = clubIntro.getClubIntro();
         this.clubRecruitment = clubIntro.getClubRecruitment();
