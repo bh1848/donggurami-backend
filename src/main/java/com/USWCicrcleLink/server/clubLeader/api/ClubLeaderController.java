@@ -198,11 +198,11 @@ public class ClubLeaderController {
     }
 
     // 비회원 프로필 업데이트
-    @PatchMapping("/{clubUUID}/members/{clubMemberId}/non-member")
+    @PatchMapping("/{clubUUID}/members/{clubMemberUUID}/non-member")
     public ResponseEntity<ApiResponse> updateNonMemberProfile(@PathVariable("clubUUID") UUID clubUUID,
-                                                              @PathVariable("clubMemberId") Long clubMemberId,
+                                                              @PathVariable("clubMemberUUID") UUID clubMemberUUID,
                                                               @RequestBody ClubNonMemberUpdateRequest clubNonMemberUpdateRequest) {
-        return new ResponseEntity<>(clubLeaderService.updateNonMemberProfile(clubUUID, clubMemberId, clubNonMemberUpdateRequest), HttpStatus.OK);
+        return new ResponseEntity<>(clubLeaderService.updateNonMemberProfile(clubUUID, clubMemberUUID, clubNonMemberUpdateRequest), HttpStatus.OK);
     }
 
     // 기존 동아리 회원 가입 요청 조회

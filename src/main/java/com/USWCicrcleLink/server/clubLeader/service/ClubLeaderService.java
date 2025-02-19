@@ -1055,12 +1055,12 @@ public class ClubLeaderService {
 
     // 비회원 프로필 업데이트
     public ApiResponse updateNonMemberProfile(UUID clubUUID,
-                                              Long clubMemberId,
+                                              UUID clubMemberUUID,
                                               ClubNonMemberUpdateRequest request) {
         Club club = validateLeaderAccess(clubUUID);
 
         // 동아리 회원 확인
-        ClubMembers clubMember = clubMembersRepository.findByClubClubIdAndClubMemberId(club.getClubId(), clubMemberId)
+        ClubMembers clubMember = clubMembersRepository.findByClubClubIdAndClubMemberUUID(club.getClubId(), clubMemberUUID)
                 .orElseThrow(() -> new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS));
 
         // 비회원 확인
