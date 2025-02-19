@@ -319,7 +319,11 @@ public class ClubLeaderService {
 
         // clubHashtag 조회
         List<String> clubHashtags = clubHashtagRepository.findByClubClubId(club.getClubId())
-                .stream().map(ClubHashtag::getClubHashtag).collect(toList());
+                .stream().map(ClubHashtag::getClubHashtag).toList();
+
+        // 동아리 카테고리 조회
+        List<String> clubCategories = clubCategoryMappingRepository.findByClubClubId(club.getClubId())
+                .stream().map(mapping -> mapping.getClubCategory().getClubCategoryName()).toList();
 
         // 동아리 메인 사진 조회
         ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
@@ -340,7 +344,7 @@ public class ClubLeaderService {
                 .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
                 .collect(Collectors.toList());
 
-        return new ClubSummaryResponse(club, clubHashtags, clubIntro, mainPhotoUrl, introPhotoUrls);
+        return new ClubSummaryResponse(club, clubHashtags, clubCategories, clubIntro, mainPhotoUrl, introPhotoUrls);
     }
 
     // 동아리 소개 조회
