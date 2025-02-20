@@ -250,7 +250,6 @@ public class ClubService {
         return ClubCategoryMapper.toDtoList(clubCategories);
     }
 
-
     // 동아리 소개/모집글 페이지 조회 (웹 - 운영팀, 모바일)
     @Transactional(readOnly = true)
     public AdminClubIntroResponse getClubIntro(UUID clubUUID) {
@@ -292,6 +291,7 @@ public class ClubService {
                 club.getClubInsta(),
                 clubIntro.getClubIntro(),
                 clubIntro.getRecruitmentStatus(),
+                clubIntro.getGoogleFormUrl(),
                 hashtags,
                 clubCategoryNames,
                 club.getClubRoomNumber(),

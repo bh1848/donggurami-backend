@@ -22,6 +22,7 @@ public class AdminClubIntroResponse {
     private String clubInsta;
     private String clubIntro;
     private RecruitmentStatus recruitmentStatus;
+    private String googleFormUrl;
     private List<String> clubHashtags;
     private List<String> clubCategoryNames;
     private String clubRoomNumber;
