@@ -23,10 +23,10 @@ public class ClubIntroPhoto {
     @JoinColumn(name = "club_intro_id", nullable = false)
     private ClubIntro clubIntro;
 
-    @Column(name = "club_intro_photo_name")
+    @Column(name = "club_intro_photo_name", nullable = false)
     private String clubIntroPhotoName;
 
-    @Column(name = "club_intro_photo_s3key")
+    @Column(name = "club_intro_photo_s3key", nullable = false)
     private String clubIntroPhotoS3Key;
 
     @Column(name = "photo_order", nullable = false)

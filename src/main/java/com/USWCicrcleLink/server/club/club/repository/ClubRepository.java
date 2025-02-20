@@ -19,8 +19,8 @@ public interface ClubRepository extends JpaRepository<Club, Long>, ClubRepositor
     boolean existsByClubName(String clubName);
     Optional<Club> findByClubUUID(UUID clubUUID);
 
-    @Query("SELECT c FROM Club c JOIN ClubIntro ci ON c.clubId = ci.club.clubId WHERE ci.recruitmentStatus = 'OPEN'")
-    List<Club> findOpenClubs();
+    @Query("SELECT c FROM Club c WHERE c.clubId IN :clubIds")
+    List<Club> findByClubIds(@Param("clubIds") List<Long> clubIds);
 
     @Query("SELECT c.clubId FROM Club c WHERE c.clubUUID = :clubUUID")
     Optional<Long> findClubIdByUUID(@Param("clubUUID") UUID clubUUID);

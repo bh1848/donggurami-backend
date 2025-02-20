@@ -13,7 +13,9 @@ import java.util.List;
 
 public interface ClubCategoryMappingRepository
         extends JpaRepository<ClubCategoryMapping,Long> {
-    List<ClubCategoryMapping> findByClubClubId(Long clubId);
+    @Query("SELECT cm FROM ClubCategoryMapping cm JOIN FETCH cm.clubCategory WHERE cm.club.clubId = :clubId")
+    List<ClubCategoryMapping> findByClubClubId(@Param("clubId") Long clubId);
+
     List<ClubCategoryMapping> findByClub_ClubId(Long clubId);
 
     @Modifying
@@ -22,4 +24,10 @@ public interface ClubCategoryMappingRepository
 
     @Query("SELECT cm.club FROM ClubCategoryMapping cm WHERE cm.clubCategory.clubCategoryId IN :clubCategoryIds")
     List<Club> findClubsByCategoryIds(@Param("clubCategoryIds") List<Long> clubCategoryIds);
+
+    @Query("SELECT DISTINCT cm.club FROM ClubCategoryMapping cm " +
+            "WHERE cm.clubCategory.clubCategoryId IN :clubCategoryIds " +
+            "AND cm.club.clubId IN :openClubIds")
+    List<Club> findOpenClubsByCategoryIds(@Param("clubCategoryIds") List<Long> clubCategoryIds,
+                                          @Param("openClubIds") List<Long> openClubIds);
 }

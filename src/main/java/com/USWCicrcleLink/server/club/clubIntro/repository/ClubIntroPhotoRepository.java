@@ -11,10 +11,9 @@ import java.util.Optional;
 
 public interface ClubIntroPhotoRepository extends JpaRepository<ClubIntroPhoto, Long> {
     Optional<ClubIntroPhoto> findByClubIntro_ClubIntroIdAndOrder(Long clubIntroId, int order);
-    List<ClubIntroPhoto> findAllByClubIntro_ClubIntroIdOrderByOrderAsc(Long clubIntroId);
 
     List<ClubIntroPhoto> findByClubIntro(ClubIntro clubIntro);
 
-    @Query("SELECT cip.clubIntroPhotoS3Key FROM ClubIntroPhoto cip WHERE cip.clubIntro.club.clubId = :clubId")
-    List<String> findS3KeysByClubId(@Param("clubId") Long clubId);
+    @Query("SELECT cip FROM ClubIntroPhoto cip WHERE cip.clubIntro.club.clubId = :clubId ORDER BY cip.order")
+    List<ClubIntroPhoto> findByClubIntroClubId(@Param("clubId") Long clubId);
 }

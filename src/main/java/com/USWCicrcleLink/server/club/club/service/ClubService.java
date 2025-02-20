@@ -43,10 +43,35 @@ public class ClubService {
     // 전체 동아리 리스트 조회 (모바일)
     @Transactional(readOnly = true)
     public List<ClubListResponse> getAllClubs() {
-        log.debug("전체 동아리 리스트 조회");
-        return clubRepository.findAll()
+
+        List<Club> clubs = clubRepository.findAll();
+
+        List<Long> clubIds = clubs.stream()
+                .map(Club::getClubId)
+                .toList();
+
+        Map<Long, String> mainPhotoUrls = clubMainPhotoRepository.findByClubIds(clubIds)
                 .stream()
-                .map(this::mapToClubListResponse)
+                .collect(Collectors.toMap(
+                        photo -> photo.getClub().getClubId(),
+                        photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubMainPhotoS3Key())
+                ));
+
+        Map<Long, List<String>> clubHashtags = clubHashtagRepository.findByClubIds(clubIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        tag -> tag.getClub().getClubId(),
+                        Collectors.mapping(ClubHashtag::getClubHashtag, Collectors.toList())
+                ));
+
+        return clubs.stream()
+                .map(club -> new ClubListResponse(
+                        club.getClubUUID(),
+                        club.getClubName(),
+                        mainPhotoUrls.getOrDefault(club.getClubId(), null),
+                        club.getDepartment().name(),
+                        clubHashtags.getOrDefault(club.getClubId(), Collections.emptyList())
+                ))
                 .collect(Collectors.toList());
     }
 
@@ -72,7 +97,6 @@ public class ClubService {
                 .collect(Collectors.toList());
     }
 
-
     // 관심 카테고리 필터 적용한 전체 동아리 리스트 조회 (모바일)
     @Transactional(readOnly = true)
     public List<ClubListByClubCategoryResponse> getAllClubsByClubCategories(List<UUID> clubCategoryUUIDs) {
@@ -85,10 +109,32 @@ public class ClubService {
 
         List<Club> clubs = clubCategoryMappingRepository.findClubsByCategoryIds(clubCategoryIds);
 
+        List<Long> clubIds = clubs.stream().map(Club::getClubId).toList();
+
+        Map<Long, String> mainPhotoUrls = clubMainPhotoRepository.findByClubIds(clubIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        photo -> photo.getClub().getClubId(),
+                        photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubMainPhotoS3Key())
+                ));
+
+        Map<Long, List<String>> clubHashtags = clubHashtagRepository.findByClubIds(clubIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        tag -> tag.getClub().getClubId(),
+                        Collectors.mapping(ClubHashtag::getClubHashtag, Collectors.toList())
+                ));
+
         return clubCategoryIds.stream()
                 .map(categoryId -> {
                     List<ClubListResponse> clubResponses = clubs.stream()
-                            .map(this::mapToClubListResponse)
+                            .map(club -> new ClubListResponse(
+                                    club.getClubUUID(),
+                                    club.getClubName(),
+                                    mainPhotoUrls.getOrDefault(club.getClubId(), null),
+                                    club.getDepartment().name(),
+                                    clubHashtags.getOrDefault(club.getClubId(), Collections.emptyList())
+                            ))
                             .collect(Collectors.toList());
 
                     ClubCategory category = clubCategoryRepository.findById(categoryId)
@@ -106,11 +152,33 @@ public class ClubService {
     // 모집 중 동아리 리스트 조회 (모바일)
     @Transactional(readOnly = true)
     public List<ClubListResponse> getOpenClubs() {
-        log.debug("모집 중인 동아리 리스트 조회");
 
-        return clubRepository.findOpenClubs()
+        List<Long> openClubIds = clubIntroRepository.findOpenClubIds();
+
+        List<Club> clubs = clubRepository.findByClubIds(openClubIds);
+
+        Map<Long, String> mainPhotoUrls = clubMainPhotoRepository.findByClubIds(openClubIds)
                 .stream()
-                .map(this::mapToClubListResponse)
+                .collect(Collectors.toMap(
+                        photo -> photo.getClub().getClubId(),
+                        photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubMainPhotoS3Key())
+                ));
+
+        Map<Long, List<String>> clubHashtags = clubHashtagRepository.findByClubIds(openClubIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        tag -> tag.getClub().getClubId(),
+                        Collectors.mapping(ClubHashtag::getClubHashtag, Collectors.toList())
+                ));
+
+        return clubs.stream()
+                .map(club -> new ClubListResponse(
+                        club.getClubUUID(),
+                        club.getClubName(),
+                        mainPhotoUrls.getOrDefault(club.getClubId(), null),
+                        club.getDepartment().name(),
+                        clubHashtags.getOrDefault(club.getClubId(), Collections.emptyList())
+                ))
                 .collect(Collectors.toList());
     }
 
@@ -124,20 +192,36 @@ public class ClubService {
             throw new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
         }
 
-        Set<Long> openClubIds = clubIntroRepository.findByRecruitmentStatus(RecruitmentStatus.OPEN)
-                .stream()
-                .map(clubIntro -> clubIntro.getClub().getClubId())
-                .collect(Collectors.toSet());
+        List<Long> openClubIds = clubIntroRepository.findOpenClubIds();
 
-        List<Club> clubs = clubCategoryMappingRepository.findClubsByCategoryIds(clubCategoryIds)
+        List<Club> clubs = clubCategoryMappingRepository.findOpenClubsByCategoryIds(clubCategoryIds, openClubIds);
+
+        List<Long> clubIds = clubs.stream().map(Club::getClubId).toList();
+
+        Map<Long, String> mainPhotoUrls = clubMainPhotoRepository.findByClubIds(clubIds)
                 .stream()
-                .filter(club -> openClubIds.contains(club.getClubId()))
-                .toList();
+                .collect(Collectors.toMap(
+                        photo -> photo.getClub().getClubId(),
+                        photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubMainPhotoS3Key())
+                ));
+
+        Map<Long, List<String>> clubHashtags = clubHashtagRepository.findByClubIds(clubIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        tag -> tag.getClub().getClubId(),
+                        Collectors.mapping(ClubHashtag::getClubHashtag, Collectors.toList())
+                ));
 
         return clubCategoryIds.stream()
                 .map(categoryId -> {
                     List<ClubListResponse> clubResponses = clubs.stream()
-                            .map(this::mapToClubListResponse)
+                            .map(club -> new ClubListResponse(
+                                    club.getClubUUID(),
+                                    club.getClubName(),
+                                    mainPhotoUrls.getOrDefault(club.getClubId(), null),
+                                    club.getDepartment().name(),
+                                    clubHashtags.getOrDefault(club.getClubId(), Collections.emptyList())
+                            ))
                             .collect(Collectors.toList());
 
                     ClubCategory category = clubCategoryRepository.findById(categoryId)
@@ -152,27 +236,6 @@ public class ClubService {
                 .collect(Collectors.toList());
     }
 
-    private ClubListResponse mapToClubListResponse(Club club) {
-        // 메인 사진 URL 조회
-        String mainPhotoUrl = clubMainPhotoRepository.findByClub(club)
-                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubMainPhotoS3Key()))
-                .orElse(null);
-
-        // 해시태그 리스트 조회
-        List<String> clubHashtags = clubHashtagRepository.findByClub(club)
-                .stream()
-                .map(ClubHashtag::getClubHashtag)
-                .collect(Collectors.toList());
-
-        return new ClubListResponse(
-                club.getClubUUID(),
-                club.getClubName(),
-                mainPhotoUrl,
-                club.getDepartment().name(),
-                clubHashtags
-        );
-    }
-
     // 카테고리 개수 검증 (최대 3개)
     private void validateCategoryLimit(List<UUID> clubCategoryUUIDs) {
         if (Optional.ofNullable(clubCategoryUUIDs).orElse(Collections.emptyList()).size() > 3) {
@@ -184,8 +247,6 @@ public class ClubService {
     @Transactional(readOnly = true)
     public List<ClubCategoryResponse> getAllClubCategories() {
         List<ClubCategory> clubCategories = clubCategoryRepository.findAll();
-        log.debug("동아리 카테고리 조회 성공 - {}개 카테고리 반환", clubCategories.size());
-
         return ClubCategoryMapper.toDtoList(clubCategories);
     }
 
@@ -193,30 +254,32 @@ public class ClubService {
     // 동아리 소개/모집글 페이지 조회 (웹 - 운영팀, 모바일)
     @Transactional(readOnly = true)
     public AdminClubIntroResponse getClubIntro(UUID clubUUID) {
-        Long clubId = clubRepository.findClubIdByUUID(clubUUID)
+        Club club = clubRepository.findByClubUUID(clubUUID)
                 .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
 
-        Club club = clubRepository.findById(clubId)
-                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+        Long clubId = club.getClubId();
 
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId)
                 .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
-        ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
-        List<ClubIntroPhoto> clubIntroPhotos = clubIntroPhotoRepository.findByClubIntro(clubIntro);
+        String mainPhotoUrl = clubMainPhotoRepository.findByClubClubId(clubId)
+                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubMainPhotoS3Key()))
+                .orElse(null);
 
-        String mainPhotoUrl = (clubMainPhoto != null)
-                ? s3FileUploadService.generatePresignedGetUrl(clubMainPhoto.getClubMainPhotoS3Key())
-                : null;
-
-        List<String> introPhotoUrls = clubIntroPhotos.stream()
+        List<String> introPhotoUrls = clubIntroPhotoRepository.findByClubIntroClubId(clubId)
+                .stream()
                 .sorted(Comparator.comparingInt(ClubIntroPhoto::getOrder))
                 .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
                 .collect(Collectors.toList());
 
-        List<String> hashtags = clubHashtagRepository.findByClub(club)
+        List<String> hashtags = clubHashtagRepository.findByClubClubId(clubId)
                 .stream()
                 .map(ClubHashtag::getClubHashtag)
+                .collect(Collectors.toList());
+
+        List<String> clubCategoryNames = clubCategoryMappingRepository.findByClubClubId(clubId)
+                .stream()
+                .map(mapping -> mapping.getClubCategory().getClubCategoryName())
                 .collect(Collectors.toList());
 
         return new AdminClubIntroResponse(
@@ -230,9 +293,9 @@ public class ClubService {
                 clubIntro.getClubIntro(),
                 clubIntro.getRecruitmentStatus(),
                 hashtags,
+                clubCategoryNames,
                 club.getClubRoomNumber(),
                 clubIntro.getClubRecruitment()
         );
     }
-
 }
