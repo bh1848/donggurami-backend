@@ -11,6 +11,7 @@ import com.USWCicrcleLink.server.user.domain.*;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
+import com.USWCicrcleLink.server.user.service.PasswordService;
 import com.USWCicrcleLink.server.user.service.UserService;
 
 import com.USWCicrcleLink.server.user.service.WithdrawalTokenService;
@@ -40,6 +41,7 @@ public class UserController {
     private final AuthTokenService authTokenService;
     private final EmailTokenService emailTokenService;
     private final WithdrawalTokenService withdrawalTokenService;
+    private final PasswordService passwordService;
 
     @PatchMapping("/userpw")
     public ApiResponse<String> updateUserPw(@Validated(ValidationSequence.class) @RequestBody UpdatePwRequest request) {
@@ -57,11 +59,10 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 비밀번호 일치 확인
+    // 비밀번호 유효성 확인
     @PostMapping("/validate-passwords-match")
     public ResponseEntity<ApiResponse<Void>> validatePassword(@Validated(ValidationSequence.class) @RequestBody PasswordRequest request) {
-
-        userService.validatePassword(request);
+        passwordService.validatePassword(request);
 
         return ResponseEntity.ok(new ApiResponse<>("비밀번호가 일치합니다"));
     }
@@ -192,7 +193,6 @@ public class UserController {
 
         return new ApiResponse<>("탈퇴를 위한 인증 메일이 전송 되었습니다");
     }
-
 
     // 회원 탈퇴 인증 번호 확인
     @DeleteMapping("/exit")
