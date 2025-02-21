@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ExistingMemberSignUpRequest {
 
     @NotBlank(message = "아이디는 필수 입력 값입니다.",groups = ValidationGroups.NotBlankGroup.class)
@@ -51,7 +53,6 @@ public class ExistingMemberSignUpRequest {
     // 가입하려는 동아리 리스트
     @NotEmpty
     private List<ClubDTO> clubs;
-
     public ClubMemberTemp toEntity(String encodedPassword,String telephone,int total) {
         return ClubMemberTemp.builder()
                 .profileTempAccount(account)

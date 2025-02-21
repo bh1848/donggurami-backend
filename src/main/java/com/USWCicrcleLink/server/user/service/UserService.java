@@ -260,10 +260,24 @@ public class UserService {
     // 아이디 중복 검증
     public void verifyAccountDuplicate(String account) {
         log.debug("계정 중복 체크 요청 시작 account = {}",account);
-            userRepository.findByUserAccount(account)
+
+        log.debug("user_table 계정 중복 체크 요청 시작 account = {}",account);
+
+        userRepository.findByUserAccount(account)
                     .ifPresent(user-> {
                         throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
                     });
+        log.debug("userTemp_table 계정 중복 체크 요청 시작 account = {}",account);
+        userTempRepository.findByTempAccount(account)
+                .ifPresent(usertemp-> {
+                    throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
+                });
+
+        log.debug("clubMemberTemp_table 계정 중복 체크 요청 시작 account = {}",account);
+       clubMemberTempRepository.findByProfileTempAccount(account)
+                .ifPresent(user-> {
+                    throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
+                });
         log.debug("계정 중복 확인 완료");
     }
 
