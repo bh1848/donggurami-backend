@@ -63,6 +63,7 @@ public class ClubMemberTemp {
     private int totalClubRequest; // 총 지원한 동아리 수
 
     @Column(nullable = false)
+    @Builder.Default
     private int clubRequestCount=0; // 동아리 회장이 수락한 횟수
 
     @Column(nullable = false)
