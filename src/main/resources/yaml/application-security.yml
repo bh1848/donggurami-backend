@@ -30,3 +30,20 @@ spring:
       - /mypages/clubs/{floor}/photo
       - /clubs/filter/**
       - /images/logo.png
+
+    logging-paths:
+      - /admin/clubs/category
+      - /admin/clubs
+      - /admin/clubs/{clubUUID}
+      - /admin/floor/photo/{floor}
+      - /notices/{noticeUUID}
+      - /apply/{clubUUID}
+      - /users/**
+      - /profiles/**
+      - /club-leader/**
+
+    methods:
+      - POST
+      - DELETE
+      - PUT
+      - PATCH

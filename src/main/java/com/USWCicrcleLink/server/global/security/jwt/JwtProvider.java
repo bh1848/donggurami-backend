@@ -85,8 +85,6 @@ public class JwtProvider {
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
 
-        log.debug("엑세스 토큰 생성: {}", accessToken);
-
         response.setHeader(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken);
         return accessToken;
     }
@@ -148,9 +146,7 @@ public class JwtProvider {
     public String resolveAccessToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            String token = bearerToken.substring(BEARER_PREFIX.length());
-            log.debug("요청 헤더에서 추출한 액세스 토큰: {}", token);
-            return token;
+            return bearerToken.substring(BEARER_PREFIX.length());
         }
         return null;
     }

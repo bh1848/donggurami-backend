@@ -58,28 +58,16 @@ public class JwtFilter extends OncePerRequestFilter {
                 if (auth.getPrincipal() instanceof CustomAdminDetails adminDetails) {
                     MDC.put("userType", "Admin");
                     MDC.put("userUUID", adminDetails.getAdminUUID().toString());
-
-                    log.info("[Admin: {}, UUID: {}] SecurityContextHolder 설정 완료 - 요청 경로: {}",
-                            adminDetails.getUsername(),
-                            adminDetails.getAdminUUID(),
-                            requestPath);
                 } else if (auth.getPrincipal() instanceof CustomUserDetails userDetails) {
                     MDC.put("userType", "User");
                     MDC.put("userUUID", userDetails.getUserUUID().toString());
-
-                    log.info("[User: {}, UUID: {}] SecurityContextHolder 설정 완료 - 요청 경로: {}",
-                            userDetails.getUsername(),
-                            userDetails.getUserUUID(),
-                            requestPath);
                 } else if (auth.getPrincipal() instanceof CustomLeaderDetails leaderDetails) {
                     MDC.put("userType", "Leader");
                     MDC.put("userUUID", leaderDetails.getLeaderUUID().toString());
-
-                    log.info("[Leader: {}, UUID: {}] SecurityContextHolder 설정 완료 - 요청 경로: {}",
-                            leaderDetails.getUsername(),
-                            leaderDetails.getLeaderUUID(),
-                            requestPath);
                 }
+
+                log.info("[{}: {}] SecurityContextHolder 설정 완료 - 요청 경로: {}",
+                        MDC.get("userType"), MDC.get("userUUID"), requestPath);
 
             } else {
                 log.warn("유효하지 않은 액세스 토큰 감지 - 요청 경로: {}", requestPath);

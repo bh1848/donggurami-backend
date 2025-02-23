@@ -13,4 +13,6 @@ import java.util.List;
 @ConfigurationProperties(prefix = "spring.security")
 public class SecurityProperties {
     private List<String> permitAllPaths;
+    private List<String> loggingPaths;
+    private List<String> methods;
 }

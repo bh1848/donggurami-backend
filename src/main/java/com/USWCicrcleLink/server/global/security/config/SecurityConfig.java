@@ -2,6 +2,7 @@ package com.USWCicrcleLink.server.global.security.config;
 
 import com.USWCicrcleLink.server.global.security.exception.CustomAuthenticationEntryPoint;
 import com.USWCicrcleLink.server.global.security.filter.JwtFilter;
+import com.USWCicrcleLink.server.global.security.filter.LoggingFilter;
 import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import com.USWCicrcleLink.server.global.security.jwt.SecurityProperties;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final SecurityProperties securityProperties;
 
-    @Value("${cors.allowed-origins}") // YML 파일에서 allowed-origins 값을 가져옴
+    @Value("${cors.allowed-origins}")
     private String allowedOrigin;
 
     @Bean
@@ -37,23 +38,24 @@ public class SecurityConfig {
     }
 
     @Bean
+    public LoggingFilter loggingFilter() {
+        return new LoggingFilter(securityProperties.getLoggingPaths(), securityProperties.getMethods());
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptionHandling -> {
-                    // 인증 실패에 대한 처리
-                    exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint);
-                })
+                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint))
                 // 공개
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(securityProperties.getPermitAllPaths().toArray(new String[0])).permitAll();
 
                     // photo
-                    auth.requestMatchers(HttpMethod.GET, "/mainPhoto/**", "/introPhoto/**", "/noticePhoto/**")
-//                            .hasAnyRole("USER", "ADMIN", "LEADER");
-                            .permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/mainPhoto/**", "/introPhoto/**", "/noticePhoto/**").permitAll();
+
                     // ADMIN - FloorPhoto
                     auth.requestMatchers(HttpMethod.POST, "/admin/floor/photo/**").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/floor/photo/**").hasRole("ADMIN");
@@ -95,7 +97,8 @@ public class SecurityConfig {
                     // 기타 모든 요청 인증 필요
                     auth.anyRequest().authenticated();
                 })
-                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(loggingFilter(), JwtFilter.class);
         return http.build();
     }
 
