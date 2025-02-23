@@ -19,4 +19,7 @@ public interface ClubMainPhotoRepository extends JpaRepository<ClubMainPhoto, Lo
 
     @Query("SELECT cmp FROM ClubMainPhoto cmp WHERE cmp.club.clubId IN :clubIds")
     List<ClubMainPhoto> findByClubIds(@Param("clubIds") List<Long> clubIds);
+
+    @Query("SELECT c.clubMainPhotoS3Key FROM ClubMainPhoto c WHERE c.club.clubId = :clubId")
+    Optional<String> findS3KeyByClubId(@Param("clubId") Long clubId);
 }

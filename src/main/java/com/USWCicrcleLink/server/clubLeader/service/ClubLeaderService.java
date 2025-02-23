@@ -207,8 +207,9 @@ public class ClubLeaderService {
                 new ClubInfoResponse(mainPhotoUrl, club, clubHashtags, clubCategories));
     }
 
-
-    // 동아리 기본 정보 변경
+    /**
+     * 동아리 기본 정보 변경
+     */
     public ApiResponse<UpdateClubInfoResponse> updateClubInfo(UUID clubUUID, ClubInfoRequest clubInfoRequest, MultipartFile mainPhoto) throws IOException {
         // 동아리 회장 유효성 검증
         Club club = validateLeaderAccess(clubUUID);
@@ -238,18 +239,16 @@ public class ClubLeaderService {
         Set<String> newHashtagsSet = new HashSet<>(newHashtags);
         List<String> existingHashtags = clubHashtagRepository.findHashtagsByClubId(club.getClubId());
 
-        // 삭제할 해시태그 찾기
-        existingHashtags.stream()
-                .filter(existing -> !newHashtagsSet.contains(existing))
-                .forEach(existing -> {
-                    clubHashtagRepository.deleteByClub_ClubIdAndClubHashtag(club.getClubId(), existing);
-                });
+        // 기존 해시태그 중 제거할 항목 일괄 삭제
+        clubHashtagRepository.deleteAllByClub_ClubIdAndClubHashtagNotIn(club.getClubId(), newHashtagsSet);
 
-        // 추가할 해시태그 찾기
-        newHashtagsSet.stream()
+        // 새 해시태그 중 추가할 항목만 필터링하여 일괄 삽입
+        List<ClubHashtag> newHashtagsToInsert = newHashtagsSet.stream()
                 .filter(newHashtag -> !existingHashtags.contains(newHashtag))
                 .map(newHashtag -> ClubHashtag.builder().club(club).clubHashtag(newHashtag).build())
-                .forEach(clubHashtagRepository::save);
+                .toList();
+
+        clubHashtagRepository.saveAll(newHashtagsToInsert);
     }
 
     // 동아리 카테고리 업데이트
@@ -262,24 +261,26 @@ public class ClubLeaderService {
                 .map(mapping -> mapping.getClubCategory().getClubCategoryName())
                 .collect(Collectors.toSet());
 
-        // 삭제할 카테고리 찾기
-        existingMappings.stream()
-                .filter(mapping -> !newCategoriesSet.contains(mapping.getClubCategory().getClubCategoryName()))
-                .forEach(clubCategoryMappingRepository::delete);
+        // 기존 카테고리 중 제거할 항목 일괄 삭제
+        clubCategoryMappingRepository.deleteAllByClub_ClubIdAndClubCategory_ClubCategoryNameNotIn(club.getClubId(), newCategoriesSet);
 
-        // 추가할 카테고리 찾기
-        newCategoriesSet.stream()
+        // 새 카테고리 중 추가할 항목만 필터링하여 일괄 삽입
+        List<ClubCategoryMapping> newMappings = newCategoriesSet.stream()
                 .filter(categoryName -> !existingCategoryNames.contains(categoryName))
-                .map(categoryName -> clubCategoryRepository.findByClubCategoryName(categoryName)
-                        .orElseThrow(() -> new ClubException(ExceptionType.CATEGORY_NOT_FOUND)))
-                .map(clubCategory -> ClubCategoryMapping.builder().club(club).clubCategory(clubCategory).build())
-                .forEach(clubCategoryMappingRepository::save);
+                .map(categoryName -> {
+                    ClubCategory clubCategory = clubCategoryRepository.findByClubCategoryName(categoryName)
+                            .orElseThrow(() -> new ClubException(ExceptionType.CATEGORY_NOT_FOUND));
+                    return ClubCategoryMapping.builder().club(club).clubCategory(clubCategory).build();
+                })
+                .toList();
+
+        clubCategoryMappingRepository.saveAll(newMappings);
     }
 
     // 동아리 메인 사진 업데이트
     private String updateClubMainPhoto(Long clubId, MultipartFile mainPhoto) throws IOException {
         if (mainPhoto == null || mainPhoto.isEmpty()) {
-            return "";
+            return clubMainPhotoRepository.findS3KeyByClubId(clubId).orElse("");
         }
 
         return processClubMainPhoto(clubId, mainPhoto);
@@ -287,24 +288,22 @@ public class ClubLeaderService {
 
     // 기존 대표 사진 삭제 및 새로운 파일 업로드
     private String processClubMainPhoto(Long clubId, MultipartFile mainPhoto) throws IOException {
-        ClubMainPhoto existingPhoto = clubMainPhotoRepository.findByClub_ClubId(clubId);
+        clubMainPhotoRepository.findS3KeyByClubId(clubId).ifPresent(s3FileUploadService::deleteFile);
 
-        if (existingPhoto != null && existingPhoto.getClubMainPhotoS3Key() != null) {
-            s3FileUploadService.deleteFile(existingPhoto.getClubMainPhotoS3Key());
-        }
-
-        return saveClubMainPhoto(mainPhoto, existingPhoto);
+        return saveClubMainPhoto(mainPhoto, clubId);
     }
 
     // 사진 메타데이터 업데이트 및 S3 업로드
-    private String saveClubMainPhoto(MultipartFile mainPhoto, ClubMainPhoto existingPhoto) throws IOException {
+    private String saveClubMainPhoto(MultipartFile mainPhoto, Long clubId) throws IOException {
         S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(mainPhoto, S3_MAINPHOTO_DIR);
 
-        if (existingPhoto == null) {
-            existingPhoto = new ClubMainPhoto();
-        }
+        // 기존 사진이 있는지 확인
+        ClubMainPhoto existingPhoto = clubMainPhotoRepository.findById(clubId).orElse(new ClubMainPhoto());
 
+        // 기존 엔티티 업데이트
         existingPhoto.updateClubMainPhoto(mainPhoto.getOriginalFilename(), s3FileResponse.getS3FileName());
+
+        // Upsert 적용 (기존 데이터 있으면 update, 없으면 insert)
         clubMainPhotoRepository.save(existingPhoto);
 
         return s3FileResponse.getPresignedUrl();

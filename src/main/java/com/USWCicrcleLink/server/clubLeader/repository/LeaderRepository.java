@@ -14,7 +14,6 @@ public interface LeaderRepository extends JpaRepository<Leader,Long> {
 
     Optional<Leader> findByLeaderAccount(String account);
 
-    // 추가: Leader 계정 중복 확인 메서드
     boolean existsByLeaderAccount(String account);
 
     @Query("SELECT l.club.clubUUID FROM Leader l WHERE l.leaderUUID = :leaderUUID")
