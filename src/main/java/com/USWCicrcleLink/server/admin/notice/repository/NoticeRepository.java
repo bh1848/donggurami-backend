@@ -11,8 +11,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface NoticeRepository extends JpaRepository<Notice, Long> {
-    @Query("SELECT new com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeListResponse(n.noticeUUID, n.noticeTitle, n.admin.adminName, n.noticeCreatedAt) " +
-            "FROM Notice n")
-    Page<AdminNoticeListResponse> findAllNotices(Pageable pageable);
     Optional<Notice> findByNoticeUUID(UUID noticeUUID);
 }

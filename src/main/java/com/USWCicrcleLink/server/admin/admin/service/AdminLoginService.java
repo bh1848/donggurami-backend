@@ -53,7 +53,7 @@ public class AdminLoginService {
     // Admin UUID 추출 (CustomAdminDetails에서 가져옴)
     private UUID extractAdminUUID(UserDetails userDetails) {
         if (userDetails instanceof CustomAdminDetails customAdminDetails) {
-            return customAdminDetails.admin().getAdminUUID(); // ✅ Admin UUID 가져오기
+            return customAdminDetails.admin().getAdminUUID();
         }
         throw new UserException(ExceptionType.USER_NOT_EXISTS);
     }
