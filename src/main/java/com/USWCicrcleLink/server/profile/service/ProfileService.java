@@ -12,6 +12,7 @@ import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
 import com.USWCicrcleLink.server.profile.dto.ProfileResponse;
 import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.service.PasswordService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class ProfileService {
     private final AplictRepository aplictRepository;
     private final ClubMembersRepository clubMembersRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordService passwordService;
 
 
     //프로필 업데이트
@@ -129,6 +131,11 @@ public class ProfileService {
                     throw new ProfileException(ExceptionType.PROFILE_ALREADY_EXISTS);
                 });
         log.debug("프로필 중복 확인 완료- 중복없음");
+
+        // 비밀번호 유효성 확인
+        passwordService.checkPasswordFieldBlank(request.getPassword(),request.getConfirmPassword());
+        passwordService.checkPasswordCondition(request.getPassword());
+        passwordService.checkPasswordMatch(request.getPassword(), request.getConfirmPassword());
     }
 
 }

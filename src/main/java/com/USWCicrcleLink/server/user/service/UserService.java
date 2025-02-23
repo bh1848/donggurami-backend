@@ -60,13 +60,9 @@ public class UserService {
     private final ClubMemberTempRepository clubMemberTempRepository;
     private final ClubRepository clubRepository;
     private final ClubMemberAccountStatusService clubMemberAccountStatusService;
+    private final PasswordService passwordService;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
-
-    // 비밀번호 조건
-    private static final Pattern letterPattern = Pattern.compile("[a-zA-Z]");
-    private static final Pattern numberPattern = Pattern.compile("[0-9]");
-    private static final Pattern specialCharPattern = Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?~`]");
 
 
     // 어세스토큰에서 유저정보 가져오기
@@ -89,11 +85,11 @@ public class UserService {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
         // 비밀번호 칸이 빈칸인지 확인
-        checkPasswordFieldBlank(updatePwRequest.getNewPw(), updatePwRequest.getNewPw());
+        passwordService.checkPasswordFieldBlank(updatePwRequest.getNewPw(), updatePwRequest.getNewPw());
         // 새로운 비밀번호의 유효성 검사
-        checkPasswordCondition(updatePwRequest.getNewPw());
+        passwordService.checkPasswordCondition(updatePwRequest.getNewPw());
         // 비밀번호가 일치하는지 확인
-        checkPasswordMatch(updatePwRequest.getNewPw(), updatePwRequest.getConfirmNewPw());
+        passwordService.checkPasswordMatch(updatePwRequest.getNewPw(), updatePwRequest.getConfirmNewPw());
 
         User user = getUserByAuth();
         String encryptedNewPw = passwordEncoder.encode(updatePwRequest.getNewPw());
@@ -106,27 +102,6 @@ public class UserService {
             throw new UserException(ExceptionType.PROFILE_UPDATE_FAIL);
         }
         log.info("비밀번호 변경 완료: {}", user.getUserId());
-    }
-
-    // 비밀번호 칸이 빈칸인지 확인
-    private void checkPasswordFieldBlank(String password, String comfimPw) {
-        if (password.trim().isEmpty() || comfimPw.trim().isEmpty()) {
-            throw new UserException(ExceptionType.USER_PASSWORD_NOT_INPUT);
-        }
-    }
-
-    // 비밀번호 일치 확인
-    private void checkPasswordMatch(String password, String confirmPw) {
-        if (!password.equals(confirmPw)) {
-            throw new UserException(ExceptionType.USER_NEW_PASSWORD_NOT_MATCH);
-        }
-    }
-
-    // 비밀번호 조건이 충족되는지 확인
-    private void checkPasswordCondition(String password) {
-        if (!letterPattern.matcher(password).find() || !numberPattern.matcher(password).find() || !specialCharPattern.matcher(password).find()) {
-            throw new UserException(ExceptionType.USER_PASSWORD_CONDITION_FAILED);
-        }
     }
 
     // 전화번호 - 제거하는 메서드
@@ -262,10 +237,24 @@ public class UserService {
     // 아이디 중복 검증
     public void verifyAccountDuplicate(String account) {
         log.debug("계정 중복 체크 요청 시작 account = {}",account);
-            userRepository.findByUserAccount(account)
+
+        log.debug("user_table 계정 중복 체크 요청 시작 account = {}",account);
+
+        userRepository.findByUserAccount(account)
                     .ifPresent(user-> {
                         throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
                     });
+        log.debug("userTemp_table 계정 중복 체크 요청 시작 account = {}",account);
+        userTempRepository.findByTempAccount(account)
+                .ifPresent(usertemp-> {
+                    throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
+                });
+
+        log.debug("clubMemberTemp_table 계정 중복 체크 요청 시작 account = {}",account);
+       clubMemberTempRepository.findByProfileTempAccount(account)
+                .ifPresent(user-> {
+                    throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
+                });
         log.debug("계정 중복 확인 완료");
     }
 
@@ -306,23 +295,6 @@ public class UserService {
         throw new UserException(ExceptionType.USER_NOT_EXISTS);
     }
 
-
-    // 비밀번호 유효성 검사
-   @Transactional(readOnly = true)
-    public void validatePassword(PasswordRequest request) {
-
-       log.debug("비밀번호 유효성 확인 요청 시작");
-
-       // 비밀번호 칸이 공백인지 확인
-       checkPasswordFieldBlank(request.getPassword(), request.getConfirmPassword());
-       // 비밀번호 조건이 충족되는지 확인
-       checkPasswordCondition(request.getPassword());
-       // 두 비밀번호 일치 확인
-       checkPasswordMatch(request.getPassword(),request.getConfirmPassword());
-
-       log.debug("비밀번호 유효성 검증 완료");
-    }
-
     @Transactional(readOnly = true)
     public User findUser(String email) {
         log.debug("계정 찾기 요청  email= {}",email);
@@ -344,7 +316,7 @@ public class UserService {
         User user = userRepository.findByUserUUID(uuid).orElseThrow(() -> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
 
         // 새로운 비밀번호의 유효성 검사
-        validatePassword(request);
+        passwordService.validatePassword(request);
 
         log.debug("비밀번호 유효성 검증 완료");
 

@@ -22,4 +22,13 @@ public class DuplicationProfileRequest {
     @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다", groups = ValidationGroups.PatternGroup.class)
     @Size(min = 11, max = 11, message = "전화번호는 11자리 숫자여야 합니다.",groups = ValidationGroups.SizeGroup.class)
     private String userHp;
+
+    // 비밀번호
+    @NotBlank(message = "비밀번호는 필수 입력 값입니다.",groups = ValidationGroups.NotBlankGroup.class)
+    @Size(min = 8, max = 20, message = "비밀번호는 8~20자 이내여야 합니다.",groups = ValidationGroups.SizeGroup.class)
+    @Pattern(regexp = "^[a-zA-Z0-9!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?~`]+$", message = "비밀번호는 영문 대소문자, 숫자, 특수문자만 포함할 수 있습니다.",groups = ValidationGroups.PatternGroup.class)
+    private String password;
+
+    private String confirmPassword;
+
 }
