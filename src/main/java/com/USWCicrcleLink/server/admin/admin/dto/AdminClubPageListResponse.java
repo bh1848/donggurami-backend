@@ -1,14 +1,18 @@
 package com.USWCicrcleLink.server.admin.admin.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class AdminClubPageListResponse {
-    private final List<AdminClubListResponse> content;
-    private final int totalPages;
-    private final long totalElements;
-    private final int currentPage;
+    private List<AdminClubListResponse> content;
+    private int totalPages;
+    private long totalElements;
+    private int currentPage;
 }
