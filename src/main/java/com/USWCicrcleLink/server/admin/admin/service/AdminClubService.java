@@ -80,6 +80,7 @@ public class AdminClubService {
 
         validateLeaderAccount(normalizedLeaderAccount);
         validateClubName(normalizedClubName);
+        validateClubRoomNumber(request.getClubRoomNumber());
 
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
             log.warn("[Admin: {}] 동아리 생성 실패 - 관리자 비밀번호 불일치", admin.getAdminAccount());
@@ -170,6 +171,14 @@ public class AdminClubService {
         if (clubRepository.existsByClubName(clubName)) {
             log.warn("동아리명 중복 - ClubName: {}", clubName);
             throw new ClubException(ExceptionType.CLUB_NAME_ALREADY_EXISTS);
+        }
+    }
+
+    // 동아리 생성(웹) - 동아리방 중복 확인
+    public void validateClubRoomNumber(String clubRoomNumber) {
+        if (clubRepository.existsByClubRoomNumber(clubRoomNumber)) {
+            log.warn("동아리방 호수 중복 - ClubRoomNumber: {}", clubRoomNumber);
+            throw new ClubException(ExceptionType.CLUB_ROOM_ALREADY_EXISTS);
         }
     }
 

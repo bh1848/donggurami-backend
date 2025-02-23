@@ -75,6 +75,7 @@ public enum ExceptionType {
     ClUB_CHECKING_ERROR("CLUB-202", "동아리 조회 중 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
     CLUB_NAME_ALREADY_EXISTS("CLUB-203", "이미 존재하는 동아리 이름입니다.", CONFLICT),
     CLUB_MAINPHOTO_NOT_EXISTS("CLUB-204", "동아리 사진이 존재하지 않습니다", NOT_FOUND),
+    CLUB_ROOM_ALREADY_EXISTS("CLUB-205", "이미 지정된 동아리방입니다." , CONFLICT),
 
 
     /**
