@@ -22,10 +22,11 @@ public interface ClubMembersRepository extends JpaRepository<ClubMembers,Long>, 
 
     void deleteAllByProfile(Profile profile);
 
-    boolean existsByProfileAndClub_ClubId(Profile profile, Long clubId);
+    @Query("SELECT COUNT(cm) > 0 FROM ClubMembers cm WHERE cm.profile = :profile AND cm.club.clubUUID = :clubUUID")
+    boolean existsByProfileAndClubUUID(Profile profile, UUID clubUUID);
 
-    @Query("SELECT cm.profile FROM ClubMembers cm WHERE cm.club.clubId = :clubId")
-    List<Profile> findProfilesByClubId(@Param("clubId") Long clubId);
+    @Query("SELECT cm.profile FROM ClubMembers cm WHERE cm.club.clubUUID = :clubUUID")
+    List<Profile> findProfilesByClubUUID(UUID clubUUID);
 
     @Query("SELECT cm.club.clubUUID FROM ClubMembers cm WHERE cm.profile.profileId = :profileId")
     List<UUID> findClubUUIDsByProfileId(@Param("profileId") Long profileId);

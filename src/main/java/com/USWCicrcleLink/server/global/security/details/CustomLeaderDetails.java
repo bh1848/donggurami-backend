@@ -14,6 +14,10 @@ public record CustomLeaderDetails(Leader leader, UUID clubUUID) implements UserD
         return clubUUID;
     }
 
+    public UUID getLeaderUUID(){
+        return leader.getLeaderUUID();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(() -> "ROLE_" + leader.getRole().name());

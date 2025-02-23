@@ -40,55 +40,51 @@ public class AplictService {
     private final ClubIntroRepository clubIntroRepository;
     private final ClubMembersRepository clubMembersRepository;
 
-    // 동아리 지원 가능 여부 확인
+    /**
+     *  동아리 지원 가능 여부 확인
+     */
+    @Transactional(readOnly = true)
     public void checkIfCanApply(UUID clubUUID) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        User user = userDetails.user();
+        Profile profile = getAuthenticatedProfile();
 
-        Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
-                .orElseThrow(() -> {
-                    log.error("동아리 지원 가능 여부 확인 실패 - 프로필 없음, UserUUID: {}", user.getUserUUID());
-                    return new UserException(ExceptionType.USER_NOT_EXISTS);
-                });
-
-        // UUID를 이용해 clubId 조회
-        Long clubId = clubRepository.findClubIdByUUID(clubUUID)
-                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
-
-        if (aplictRepository.existsByProfileAndClub_ClubId(profile, clubId)) {
-            log.warn("동아리 지원 실패 - 이미 지원한 사용자, ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
-            throw new BaseException(ExceptionType.ALREADY_APPLIED);
+        // 이미 지원한 경우 예외 처리
+        if (aplictRepository.existsByProfileAndClubUUID(profile, clubUUID)) {
+            log.warn("동아리 지원 실패 - 이미 지원한 사용자, ClubUUID: {}", clubUUID);
+            throw new ClubException(ExceptionType.ALREADY_APPLIED);
         }
 
-        if (clubMembersRepository.existsByProfileAndClub_ClubId(profile, clubId)) {
-            log.warn("동아리 지원 실패 - 이미 동아리 멤버, ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
+        // 이미 동아리 멤버인 경우 예외 처리
+        if (clubMembersRepository.existsByProfileAndClubUUID(profile, clubUUID)) {
+            log.warn("동아리 지원 실패 - 이미 동아리 멤버, ClubUUID: {}", clubUUID);
             throw new ClubException(ExceptionType.ALREADY_MEMBER);
         }
 
-        List<Profile> clubMembers = clubMembersRepository.findProfilesByClubId(clubId);
+        List<Profile> clubMembers = clubMembersRepository.findProfilesByClubUUID(clubUUID);
+
         for (Profile member : clubMembers) {
             if (profile.getUserHp().equals(member.getUserHp())) {
-                log.warn("동아리 지원 실패 - 중복된 전화번호, ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
+                log.warn("동아리 지원 실패 - 중복된 전화번호, ClubUUID: {}", clubUUID);
                 throw new BaseException(ExceptionType.PHONE_NUMBER_ALREADY_REGISTERED);
             }
+        }
+
+        for (Profile member : clubMembers) {
             if (profile.getStudentNumber().equals(member.getStudentNumber())) {
-                log.warn("동아리 지원 실패 - 중복된 학번, ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
+                log.warn("동아리 지원 실패 - 중복된 학번, ClubUUID: {}", clubUUID);
                 throw new BaseException(ExceptionType.STUDENT_NUMBER_ALREADY_REGISTERED);
             }
         }
 
-        log.debug("동아리 지원 가능 - ClubUUID: {}, UserUUID: {}", clubUUID, user.getUserUUID());
+
+        log.debug("동아리 지원 가능 - ClubUUID: {}", clubUUID);
     }
 
-    // 지원서 작성하기(구글 폼 반환)
+    /**
+     * 지원서 작성하기 버튼
+     */
     @Transactional(readOnly = true)
     public String getGoogleFormUrlByClubUUID(UUID clubUUID) {
-
-        Long clubId = clubRepository.findClubIdByUUID(clubUUID)
-                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
-
-        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(clubId)
+        ClubIntro clubIntro = clubIntroRepository.findByClubUUID(clubUUID)
                 .orElseThrow(() -> {
                     log.warn("구글 폼 URL 조회 실패 - 클럽 소개 없음, ClubUUID: {}", clubUUID);
                     return new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS);
@@ -96,7 +92,7 @@ public class AplictService {
 
         String googleFormUrl = clubIntro.getGoogleFormUrl();
         if (googleFormUrl == null || googleFormUrl.isEmpty()) {
-            log.warn("구글 폼 URL 조회 실패 - 구글 폼 없음, ClubUUID: {}", clubUUID);
+            log.warn("구글 폼 URL 조회 실패 - URL 없음, ClubUUID: {}", clubUUID);
             throw new ClubIntroException(ExceptionType.GOOGLE_FORM_URL_NOT_EXISTS);
         }
 
@@ -104,23 +100,17 @@ public class AplictService {
         return googleFormUrl;
     }
 
-    // 동아리 지원서 제출
+    /**
+     * 동아리 지원서 제출
+     */
     public void submitAplict(UUID clubUUID, AplictRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        User user = userDetails.user();
+        Profile profile = getAuthenticatedProfile();
 
-        Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
+        Club club = clubRepository.findByClubUUID(clubUUID)
                 .orElseThrow(() -> {
-                    log.error("동아리 지원서 제출 실패 - 프로필 없음, UserUUID: {}", user.getUserUUID());
-                    return new UserException(ExceptionType.USER_NOT_EXISTS);
+                    log.warn("동아리 지원서 제출 실패 - 존재하지 않는 동아리, ClubUUID: {}", clubUUID);
+                    return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
                 });
-
-        Long clubId = clubRepository.findClubIdByUUID(clubUUID)
-                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
-
-        Club club = clubRepository.findById(clubId)
-                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
 
         Aplict aplict = Aplict.builder()
                 .profile(profile)
@@ -131,6 +121,21 @@ public class AplictService {
                 .build();
 
         aplictRepository.save(aplict);
-        log.info("동아리 지원서 제출 성공 - ClubUUID: {}, UserUUID: {}, Status: {}", clubUUID, user.getUserUUID(), AplictStatus.WAIT);
+        log.info("동아리 지원서 제출 성공 - ClubUUID: {}, Status: {}", clubUUID, AplictStatus.WAIT);
+    }
+
+    /**
+     * 인증된 사용자 프로필 가져오기
+     */
+    private Profile getAuthenticatedProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        User user = userDetails.user();
+
+        return profileRepository.findByUser_UserUUID(user.getUserUUID())
+                .orElseThrow(() -> {
+                    log.error("사용자 프로필 조회 실패");
+                    return new UserException(ExceptionType.USER_NOT_EXISTS);
+                });
     }
 }

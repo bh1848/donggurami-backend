@@ -114,7 +114,7 @@ public class AdminNoticeService {
         // 사진 처리
         List<String> presignedUrls = handleNoticePhotos(savedNotice, noticePhotos, request.getPhotoOrders());
 
-        log.info("공지사항 생성 완료 - ID: {}, 첨부된 사진 수: {}", savedNotice.getNoticeId(), noticePhotos == null ? 0 : noticePhotos.size());
+        log.info("공지사항 생성 완료 - NoticeID: {}, 첨부된 사진 수: {}", savedNotice.getNoticeId(), noticePhotos == null ? 0 : noticePhotos.size());
         return presignedUrls;
     }
 
@@ -163,6 +163,9 @@ public class AdminNoticeService {
         log.info("공지사항 삭제 완료 - ID: {}", notice.getNoticeId());
     }
 
+    /**
+     * 인증된 관리자 정보 가져오기
+     */
     private Admin getAuthenticatedAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();

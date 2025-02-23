@@ -26,8 +26,8 @@ public interface AplictRepository extends JpaRepository<Aplict, Long> ,AplictRep
 
     void deleteAllByProfile(Profile profile);
 
-    // AplictRepository에서 지원 여부 확인
-    boolean existsByProfileAndClub_ClubId(Profile profile, Long clubId);
+    @Query("SELECT COUNT(a) > 0 FROM Aplict a WHERE a.profile = :profile AND a.club.clubUUID = :clubUUID")
+    boolean existsByProfileAndClubUUID(Profile profile, UUID clubUUID);
 
     @Query("SELECT a.club FROM Aplict a WHERE a.aplictId = :aplictId")
     Optional<Club> findClubByAplictId(@Param("aplictId") Long aplictId);

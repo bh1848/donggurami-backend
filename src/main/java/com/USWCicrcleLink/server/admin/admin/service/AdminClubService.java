@@ -71,7 +71,7 @@ public class AdminClubService {
         Admin admin = getAuthenticatedAdmin();
 
         if (!request.getLeaderPw().equals(request.getLeaderPwConfirm())) {
-            log.warn("[Admin: {}] 동아리 생성 실패 - 회장 비밀번호 불일치", admin.getAdminAccount());
+            log.warn("동아리 생성 실패 - 회장 비밀번호 불일치, AdminUUID: {}", admin.getAdminUUID());
             throw new ClubException(ExceptionType.ClUB_LEADER_PASSWORD_NOT_MATCH);
         }
 
@@ -83,7 +83,7 @@ public class AdminClubService {
         validateClubRoomNumber(request.getClubRoomNumber());
 
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
-            log.warn("[Admin: {}] 동아리 생성 실패 - 관리자 비밀번호 불일치", admin.getAdminAccount());
+            log.warn("동아리 생성 실패 - 관리자 비밀번호 불일치");
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
 
@@ -93,7 +93,7 @@ public class AdminClubService {
                 .clubRoomNumber(request.getClubRoomNumber())
                 .build();
         clubRepository.save(club);
-        log.info("[Admin: {}] 동아리 생성 성공 - Club ID: {}", admin.getAdminAccount(), club.getClubId());
+        log.info("동아리 생성 성공 - Club ID: {}", club.getClubId());
 
         createLeaderAccount(normalizedLeaderAccount, request.getLeaderPw(), club);
         createClubDefaultData(club);
@@ -190,22 +190,22 @@ public class AdminClubService {
         Admin admin = getAuthenticatedAdmin();
 
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
-            log.warn("[Admin: {}] 동아리 삭제 실패 - 관리자 비밀번호 불일치", admin.getAdminAccount());
+            log.warn("동아리 삭제 실패 - 관리자 비밀번호 불일치");
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
 
         Long clubId = clubRepository.findClubIdByUUID(clubUUID)
                 .orElseThrow(() -> {
-                    log.error("[Admin: {}] 동아리 삭제 실패 - 존재하지 않는 Club UUID: {}", admin.getAdminAccount(), clubUUID);
+                    log.error("동아리 삭제 실패 - 존재하지 않는 Club UUID: {}", clubUUID);
                     return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
                 });
 
         try {
             clubRepository.deleteClubAndDependencies(clubId);
-            log.info("[Admin: {}] 동아리 삭제 성공 - Club ID: {}", admin.getAdminAccount(), clubId);
+            log.info("동아리 삭제 성공 - Club ID: {}, AdminUUID: {}", clubId, admin.getAdminUUID());
         } catch (Exception e) {
-            log.error("[Admin: {}] 동아리 삭제 중 오류 발생 - Club ID: {}, 오류: {}", admin.getAdminAccount(), clubId, e.getMessage());
-            throw new BaseException(ExceptionType.SERVER_ERROR, e); // 원본 예외 포함하여 다시 던지기
+            log.error("동아리 삭제 중 오류 발생 - Club ID: {}, 오류: {}", clubId, e.getMessage());
+            throw new BaseException(ExceptionType.SERVER_ERROR, e);
         }
     }
 
@@ -214,16 +214,7 @@ public class AdminClubService {
      */
     private Admin getAuthenticatedAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new AdminException(ExceptionType.ADMIN_NOT_EXISTS);
-        }
-
-        if (authentication.getPrincipal() instanceof CustomAdminDetails adminDetails) {
-            return adminDetails.admin();
-        }
-
-        throw new AdminException(ExceptionType.ADMIN_NOT_EXISTS);
+        CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
+        return adminDetails.admin();
     }
-
 }
