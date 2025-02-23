@@ -43,7 +43,7 @@ public class ClubLeaderController {
     //동아리 회장 로그인
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LeaderLoginResponse>> LeaderLogin(@RequestBody LeaderLoginRequest request, HttpServletResponse response){
-        LeaderLoginResponse leaderLoginResponse = clubLeaderService.LeaderLogin(request,response);
+        LeaderLoginResponse leaderLoginResponse = clubLeaderService.leaderLogin(request,response);
         ApiResponse<LeaderLoginResponse> apiResponse = new ApiResponse<>("동아리 회장 로그인 성공", leaderLoginResponse);
         return ResponseEntity.ok(apiResponse);
     }

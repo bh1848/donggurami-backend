@@ -36,14 +36,16 @@ public class AdminClubCategoryService {
 
     // 동아리 카테고리 설정(웹) - 카테고리 추가
     public ClubCategoryResponse addClubCategory(AdminClubCategoryCreationRequest request) {
-        clubCategoryRepository.findByClubCategoryName(request.getClubCategoryName())
+        String normalizedCategoryName = request.getClubCategoryName().toLowerCase();
+
+        clubCategoryRepository.findByClubCategoryName(normalizedCategoryName)
                 .ifPresent(category -> {
-                    log.warn("중복 카테고리 추가 시도 - Name: {}", request.getClubCategoryName());
+                    log.warn("중복 카테고리 추가 시도 - Name: {}", normalizedCategoryName);
                     throw new BaseException(ExceptionType.DUPLICATE_CATEGORY);
                 });
 
         ClubCategory clubCategory = ClubCategory.builder()
-                .clubCategoryName(request.getClubCategoryName())
+                .clubCategoryName(normalizedCategoryName)
                 .build();
 
         ClubCategory savedClubCategory = clubCategoryRepository.save(clubCategory);
@@ -63,10 +65,8 @@ public class AdminClubCategoryService {
         ClubCategory clubCategory = clubCategoryRepository.findById(clubCategoryId)
                 .orElseThrow(() -> new BaseException(ExceptionType.CATEGORY_NOT_FOUND));
 
-        clubCategoryMappingRepository.deleteByClubCategory(clubCategory);
-        log.info("연결된 매핑 데이터 삭제 완료 - ID: {}", clubCategoryId);
-
-        clubCategoryRepository.delete(clubCategory);
+        clubCategoryMappingRepository.deleteByClubCategoryId(clubCategoryId);
+        clubCategoryRepository.deleteById(clubCategoryId);
         log.info("동아리 카테고리 삭제 성공 - ID: {}", clubCategoryId);
 
         return ClubCategoryMapper.toDto(clubCategory);

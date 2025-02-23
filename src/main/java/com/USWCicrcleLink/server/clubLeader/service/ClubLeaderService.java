@@ -122,59 +122,61 @@ public class ClubLeaderService {
         }
     }
 
+    /**
+     * 동아리 회장 로그인
+     */
+    public LeaderLoginResponse leaderLogin(LeaderLoginRequest request, HttpServletResponse response) {
+        UserDetails userDetails = loadLeaderDetails(request.getLeaderAccount());
 
-    //동아리 회장 로그인
-    public LeaderLoginResponse LeaderLogin(LeaderLoginRequest request, HttpServletResponse response) {
-        log.debug("로그인 요청: {}, 사용자 유형: {}", request.getLeaderAccount(), request.getLoginType());
-
-        Role role = getRoleFromLoginType(request.getLoginType());
-        UserDetails userDetails;
-
-        try {
-            userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getLeaderAccount(), role);
-        } catch (UserException e) {
-            // 아이디가 존재하지 않는 경우
-            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
-        }
-
-        log.debug("입력된 비밀번호: {}", request.getLeaderPw());
-        log.debug("저장된 비밀번호: {}", userDetails.getPassword());
-
-        // 비밀번호 검증
         if (!passwordEncoder.matches(request.getLeaderPw(), userDetails.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
-        // 클럽 ID, 동의 여부 설정
+        // Leader UUID 및 동의 여부 추출
+        UUID leaderUUID = extractLeaderUUID(userDetails);
         UUID clubUUID = null;
         Boolean isAgreedTerms = false;
+
         if (userDetails instanceof CustomLeaderDetails leaderDetails) {
             clubUUID = leaderDetails.getClubUUID();
             isAgreedTerms = leaderDetails.getIsAgreedTerms();
         }
 
-        // 토큰 생성
-        String accessToken = jwtProvider.createAccessToken(userDetails.getUsername(), response);
-        String refreshToken = jwtProvider.createRefreshToken(userDetails.getUsername(), response);
+        // UUID 기반 JWT 생성
+        String accessToken = jwtProvider.createAccessToken(leaderUUID, response);
+        String refreshToken = jwtProvider.createRefreshToken(leaderUUID, response);
 
-        log.debug("로그인 성공, uuid: {}", userDetails.getUsername());
-        return new LeaderLoginResponse(accessToken, refreshToken, role, clubUUID, isAgreedTerms);
+        log.debug("로그인 성공, uuid: {}", leaderUUID);
+        return new LeaderLoginResponse(accessToken, refreshToken, Role.LEADER, clubUUID, isAgreedTerms);
     }
 
-    // 로그인 타입
-    private Role getRoleFromLoginType(LoginType loginType) {
-        return switch (loginType) {
-            case LEADER -> Role.LEADER;
-            case ADMIN -> Role.ADMIN;
-        };
+    // Leader UUID 추출 (CustomLeaderDetails에서 가져옴)
+    private UUID extractLeaderUUID(UserDetails userDetails) {
+        if (userDetails instanceof CustomLeaderDetails customLeaderDetails) {
+            return customLeaderDetails.leader().getLeaderUUID();
+        }
+        throw new UserException(ExceptionType.USER_NOT_EXISTS);
     }
 
-    //약관 동의 여부 완료 업데이트
+    // account 및 role 확인
+    private UserDetails loadLeaderDetails(String account) {
+        try {
+            return customUserDetailsService.loadUserByAccountAndRole(account, Role.LEADER);
+        } catch (UserException e) {
+            log.warn("동아리 회장 로그인 실패 - 존재하지 않는 계정: {}", account);
+            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
+        }
+    }
+
+    // 약관 동의 여부 업데이트
     public void updateAgreedTermsTrue() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomLeaderDetails leaderDetails = (CustomLeaderDetails) authentication.getPrincipal();
-        Leader leader = leaderDetails.leader();
 
+        if (!(authentication.getPrincipal() instanceof CustomLeaderDetails leaderDetails)) {
+            throw new UserException(ExceptionType.USER_NOT_EXISTS);
+        }
+
+        Leader leader = leaderDetails.leader();
         leader.setAgreeTerms(true);
         leaderRepository.save(leader);
     }

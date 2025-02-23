@@ -130,7 +130,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<TokenDto>> logIn(@RequestBody @Validated(ValidationSequence.class) LogInRequest request, HttpServletResponse response) {
 
         userService.verifyLogin(request);
-        TokenDto tokenDto = userService.logIn(request, response);
+        TokenDto tokenDto = userService.userLogin(request, response);
         ApiResponse<TokenDto> apiResponse = new ApiResponse<>("로그인 성공", tokenDto);
 
         return ResponseEntity.ok(apiResponse);

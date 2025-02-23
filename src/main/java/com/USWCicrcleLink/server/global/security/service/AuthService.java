@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -15,8 +17,10 @@ public class AuthService {
 
     private final JwtProvider jwtProvider;
 
+    /**
+     * 토큰 재발급
+     */
     public TokenDto refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        // 쿠키에서 리프레시 토큰 추출
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
         if (refreshToken == null) {
@@ -31,9 +35,11 @@ public class AuthService {
             return null;
         }
 
-        // 유효한 리프레시 토큰 → UUID 추출
-        String uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
+        UUID uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
         log.debug("리프레시 토큰 검증 완료 - UUID: {}", uuid);
+
+        // 기존 리프레시 토큰 삭제 (보안 강화)
+        jwtProvider.deleteRefreshTokensByUuid(uuid);
 
         // 새로운 액세스 토큰 및 리프레시 토큰 생성
         String newAccessToken = jwtProvider.createAccessToken(uuid, response);

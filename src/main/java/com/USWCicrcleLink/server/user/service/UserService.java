@@ -8,6 +8,8 @@ import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.*;
+import com.USWCicrcleLink.server.global.security.details.CustomAdminDetails;
+import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.security.domain.Role;
 import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
@@ -268,42 +270,44 @@ public class UserService {
     }
 
     // 로그인
-    public TokenDto logIn(LogInRequest request, HttpServletResponse response) {
+    public TokenDto userLogin(LogInRequest request, HttpServletResponse response) {
 
-        // 사용자 정보 조회 (UserDetails 사용)
         UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), Role.USER);
 
-        // UserDetails에서 User 객체 추출
-        User user;
-        if (userDetails instanceof CustomUserDetails) {
-            user = ((CustomUserDetails) userDetails).user();
-        } else {
-            throw new UserException(ExceptionType.USER_NOT_EXISTS);
-        }
+        UUID userUUID = extractUserUUID(userDetails);
 
-        // 아이디와 비밀번호 검증
-        if (!user.getUserAccount().equals(request.getAccount()) || !passwordEncoder.matches(request.getPassword(), user.getUserPw()) ) {
+        User user = userRepository.findByUserUUID(userUUID)
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+
+        if (!user.getUserAccount().equals(request.getAccount()) || !passwordEncoder.matches(request.getPassword(), user.getUserPw())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
-        // 로그인 성공 시 토큰 발급
-        String accessToken = jwtProvider.createAccessToken(userDetails.getUsername(), response);
-        String refreshToken = jwtProvider.createRefreshToken(userDetails.getUsername(), response);
+        String accessToken = jwtProvider.createAccessToken(userUUID, response);
+        String refreshToken = jwtProvider.createRefreshToken(userUUID, response);
 
-        log.debug("로그인 성공, uuid: {}", userDetails.getUsername());
+        log.debug("로그인 성공, uuid: {}", userUUID);
 
-        // fcm 토큰 저장
-        Profile profile = profileRepository.findById(user.getUserId())
-                    .orElseThrow(() -> new UserException(ExceptionType.USER_PROFILE_NOT_FOUND));
-
-        profile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
-        profileRepository.save(profile);
-        log.debug("fcmToken 업데이트 완료: {}", user.getUserAccount());
+        // FCM 토큰 저장
+        profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
+            profile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
+            profileRepository.save(profile);
+            log.debug("FCM 토큰 업데이트 완료: {}", user.getUserAccount());
+        });
 
         return new TokenDto(accessToken, refreshToken);
     }
 
-   // 비밀번호 유효성 검사
+    // UserDetails에서 UUID 추출
+    private UUID extractUserUUID(UserDetails userDetails) {
+        if (userDetails instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.user().getUserUUID();
+        }
+        throw new UserException(ExceptionType.USER_NOT_EXISTS);
+    }
+
+
+    // 비밀번호 유효성 검사
    @Transactional(readOnly = true)
     public void validatePassword(PasswordRequest request) {
 
@@ -397,28 +401,50 @@ public class UserService {
         log.debug("최종 회원 가입 완료");
     }
 
-
     // 회원 탈퇴
     public void cancelMembership(HttpServletRequest request, HttpServletResponse response) {
-
         // 리프레시 토큰 추출
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
         if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken)) {
-            // 유효한 리프레시 토큰인 경우, 리프레시 토큰 삭제
-            String uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
+            // 유효한 리프레시 토큰인 경우, UUID 추출 및 삭제
+            UUID uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
             jwtProvider.deleteRefreshTokenCookie(response);
             jwtProvider.deleteRefreshTokensByUuid(uuid);
-            log.debug("리프레시 토큰 삭제 : 사용자 {}의 모든 리프레시 토큰 삭제 완료", uuid);
+            log.debug("리프레시 토큰 삭제: 사용자 {}의 모든 리프레시 토큰 삭제 완료", uuid);
         } else {
             log.debug("리프레시 토큰이 존재하지 않거나 유효하지 않음. 회원 탈퇴 계속 진행.");
         }
 
+        // 현재 로그인한 사용자 UUID 가져오기
+        UUID userUUID = getUserUUIDByAuth();
+
         // 회원과 관련된 정보 모두 삭제
-        profileService.deleteAll();
-        userRepository.delete(getUserByAuth());
+        profileService.deleteProfileByUserUUID(userUUID);
+        userRepository.deleteByUserUUID(userUUID);
 
         log.debug("회원 탈퇴 성공");
+    }
+
+    /**
+     * 현재 인증된 사용자 uuid 가져오기
+     */
+    private UUID getUserUUIDByAuth() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+            throw new UserException(ExceptionType.USER_NOT_EXISTS);
+        }
+
+        if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            return userDetails.user().getUserUUID();
+        } else if (authentication.getPrincipal() instanceof CustomLeaderDetails leaderDetails) {
+            return leaderDetails.leader().getLeaderUUID();
+        } else if (authentication.getPrincipal() instanceof CustomAdminDetails adminDetails) {
+            return adminDetails.admin().getAdminUUID();
+        }
+
+        throw new UserException(ExceptionType.USER_NOT_EXISTS);
     }
 
     // 로그인 가능 여부 판단

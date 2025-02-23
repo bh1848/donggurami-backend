@@ -63,7 +63,7 @@ public enum ExceptionType {
     /**
      * Domain: Jwt
      */
-    UNABLE_GENERATE_ROLE_TOKEN("TOK-201", "해당 역할 토큰 생성 불가능합니다.", BAD_REQUEST),
+    INVALID_ROLE("TOK-201", "유효하지 않은 role입니다.", BAD_REQUEST),
     INVALID_REFRESH_TOKEN("TOK-202", "유효하지 않은 리프레시 토큰입니다.", UNAUTHORIZED),
     INVALID_ACCESS_TOKEN("TOK-203", "유효하지 않은 엑세스 토큰입니다.", UNAUTHORIZED),
     UNAUTHENTICATED_USER("TOK-204", "인증되지 않은 사용자입니다.", UNAUTHORIZED),

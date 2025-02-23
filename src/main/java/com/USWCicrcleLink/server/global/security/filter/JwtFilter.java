@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * JWT의 유효성을 검증하는 필터 클래스
+ * JWT 유효성 검증 필터
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -43,7 +43,6 @@ public class JwtFilter extends OncePerRequestFilter {
             if (jwtProvider.validateAccessToken(accessToken)) {
                 log.debug("유효한 액세스 토큰 - 요청 경로: {}", requestPath);
 
-                // 토큰으로부터 인증 정보 생성
                 Authentication auth = jwtProvider.getAuthentication(accessToken);
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
