@@ -98,9 +98,9 @@ public class AdminClubService {
         Club club = Club.builder()
                 .clubName(request.getClubName())
                 .department(request.getDepartment())
-                .leaderName(null)
-                .leaderHp(null)
-                .clubInsta(null)
+                .leaderName("")
+                .leaderHp("")
+                .clubInsta("")
                 .clubRoomNumber(request.getClubRoomNumber())
                 .build();
 
@@ -131,8 +131,8 @@ public class AdminClubService {
         clubMainPhotoRepository.save(
                 ClubMainPhoto.builder()
                         .club(club)
-                        .clubMainPhotoName(null)
-                        .clubMainPhotoS3Key(null)
+                        .clubMainPhotoName("")
+                        .clubMainPhotoS3Key("")
                         .build()
         );
     }
@@ -141,8 +141,8 @@ public class AdminClubService {
         return clubIntroRepository.save(
                 ClubIntro.builder()
                         .club(club)
-                        .clubIntro(null)
-                        .googleFormUrl(null)
+                        .clubIntro("")
+                        .googleFormUrl("")
                         .recruitmentStatus(RecruitmentStatus.CLOSE)
                         .build()
         );
@@ -154,8 +154,8 @@ public class AdminClubService {
         for (int i = 1; i <= 5; i++) {
             introPhotos.add(ClubIntroPhoto.builder()
                     .clubIntro(clubIntro)
-                    .clubIntroPhotoName(null)
-                    .clubIntroPhotoS3Key(null)
+                    .clubIntroPhotoName("")
+                    .clubIntroPhotoS3Key("")
                     .order(i)
                     .build());
         }
