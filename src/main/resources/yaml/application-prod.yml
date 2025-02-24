@@ -4,11 +4,14 @@ server:
 # log setting
 logging:
   level:
-    root: warn
+    root: info  # 기본 로그
     com:
       USWCicrcleLink:
-        server: warn
-    p6spy: OFF
+        server: info  # 프로젝트 로그
+    org.springframework: warn  # 스프링 내부 로그
+    org.hibernate.SQL: off  # Hibernate SQL 쿼리 로그
+    org.hibernate.type.descriptor.sql: off  # Hibernate SQL 바인딩 로그
+    p6spy: off  # p6spy (SQL 로깅 라이브러리) 로그
 
 #email url
 email:

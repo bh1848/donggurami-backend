@@ -4,10 +4,14 @@ server:
 # log setting
 logging:
   level:
-    root: WARN
+    root: INFO  # 기본 로그
     com:
       USWCicrcleLink:
-        server: debug
+        server: DEBUG  # 프로젝트 로그
+    org.springframework: INFO  # 스프링 내부 로그
+    org.hibernate.SQL: DEBUG  # Hibernate의 SQL 쿼리 로그
+    org.hibernate.type.descriptor.sql: TRACE  # Hibernate SQL 바인딩 로그
+    p6spy: DEBUG  #  p6spy (SQL 로깅 라이브러리) 로그
 
 # email url
 email:
