@@ -17,10 +17,10 @@ spring:
       - /users/reset-password
       - /users/email/resend-confirmation
       - /users/login
-      - /users/refresh
       - /club-leader/login
       - /admin/login
-      - /auth/refresh
+      - /auth/refresh-token
+      - /users/refresh-token
       - /mainPhoto/**
       - /introPhoto/**
       - /notice/Photo/**

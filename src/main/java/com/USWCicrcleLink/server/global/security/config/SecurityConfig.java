@@ -53,28 +53,20 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(securityProperties.getPermitAllPaths().toArray(new String[0])).permitAll();
 
-                    // ADMIN - FloorPhoto
-                    auth.requestMatchers(HttpMethod.POST, "/admin/floor/photo/**").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/admin/floor/photo/**").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.DELETE, "/admin/floor/photo/**").hasRole("ADMIN");
-
-                    // ADMIN - Category
-                    auth.requestMatchers(HttpMethod.POST, "/admin/clubs/category/**").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/admin/clubs/category/**").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs/category/**").hasRole("ADMIN");
-
-                    // ADMIN - Club
-                    auth.requestMatchers(HttpMethod.POST, "/admin/clubs").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/clubs/{clubUUID}").hasAnyRole("ADMIN", "LEADER");
-                    auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET,"/admin/clubs/leader/check").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET,"/admin/clubs/name/check").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/notices/{noticeUUID}", "/notices").hasAnyRole("ADMIN", "LEADER");
+                    auth.requestMatchers(HttpMethod.POST,"/auth/**").hasAnyRole("ADMIN", "LEADER");
+
+                    // ADMIN
+                    auth.requestMatchers(HttpMethod.GET,"/admin/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.POST, "/admin/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.PATCH, "/admin/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/admin/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.PUT, "/admin/**").hasRole("ADMIN");
 
                     // ADMIN - Notice
-                    auth.requestMatchers(HttpMethod.POST, "/notices").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/notices/{noticeUUID}", "/notices").hasAnyRole("ADMIN", "LEADER");
-                    auth.requestMatchers(HttpMethod.DELETE, "/notices/{noticeUUID}").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.PATCH, "/notices/{noticeUUID}").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.POST, "/notices/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/notices/**").hasRole("ADMIN");
 
                     // USER
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw","/club-leader/fcmtoken").hasRole("USER");
@@ -83,15 +75,14 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.POST, "/exit/send-code").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/apply/**").hasRole("USER");
                     auth.requestMatchers(HttpMethod.GET, "/apply/**").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.POST,"/users/logout").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.POST,"/users/**").hasRole("USER");
 
                     // LEADER
-                    auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubUUID}/**").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.GET, "/club-leader/{clubUUID}/**").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.PATCH, "/club-leader/{clubUUID}/**").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.DELETE, "/club-leader/{clubUUID}/members").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.POST, "/club-leader/category").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.POST, "/club-leader/logout").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.POST, "/club-leader/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.GET, "/club-leader/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.PATCH, "/club-leader/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/club-leader/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.PUT, "/club-leader/**").hasRole("LEADER");
 
                     // 기타 모든 요청 인증 필요
                     auth.anyRequest().authenticated();

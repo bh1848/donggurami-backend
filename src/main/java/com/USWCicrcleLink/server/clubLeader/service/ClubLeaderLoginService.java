@@ -1,14 +1,15 @@
 package com.USWCicrcleLink.server.clubLeader.service;
 
+
 import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginResponse;
+import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
-import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
-import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import com.USWCicrcleLink.server.global.security.details.service.CustomUserDetailsService;
-import jakarta.servlet.http.HttpServletRequest;
+import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
+import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,15 +24,16 @@ import java.util.UUID;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class ClubLeaderAuthService {
+public class ClubLeaderLoginService {
 
     private final PasswordEncoder passwordEncoder;
-    private final JwtProvider jwtProvider;
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtProvider jwtProvider;
 
     /**
-     * 로그인 (Leader)
+     * 동아리 회장 로그인
      */
+    @RateLimite(action = "WEB_LOGIN")
     public LeaderLoginResponse leaderLogin(LeaderLoginRequest request, HttpServletResponse response) {
         UserDetails userDetails = loadLeaderDetails(request.getLeaderAccount());
 
@@ -51,7 +53,7 @@ public class ClubLeaderAuthService {
 
         // UUID 기반 JWT 생성
         String accessToken = jwtProvider.createAccessToken(leaderUUID, response);
-        String refreshToken = jwtProvider.createRefreshToken(leaderUUID, response, Role.LEADER);
+        String refreshToken = jwtProvider.createRefreshToken(leaderUUID, response, false);
 
         log.debug("로그인 성공, uuid: {}", leaderUUID);
         return new LeaderLoginResponse(accessToken, refreshToken, Role.LEADER, clubUUID, isAgreedTerms);
@@ -73,27 +75,5 @@ public class ClubLeaderAuthService {
             log.warn("동아리 회장 로그인 실패 - 존재하지 않는 계정: {}", account);
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
-    }
-
-    /**
-     * 로그아웃 (Leader)
-     */
-    public void leaderLogout(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = jwtProvider.resolveRefreshToken(request);
-
-        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken, Role.LEADER)) {
-            UUID uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken, Role.LEADER);
-
-            // 로그아웃 시 리프레시 토큰 블랙리스트 적용 후 삭제
-            jwtProvider.blacklistRefreshToken(refreshToken, Role.LEADER);
-            jwtProvider.deleteRefreshTokensByUuid(uuid);
-            log.debug("LEADER 로그아웃 - UUID: {}", uuid);
-        } else {
-            log.debug("유효하지 않은 리프레시 토큰 - 로그아웃 계속 진행");
-        }
-
-        // 클라이언트 쿠키에서 리프레시 토큰 삭제
-        jwtProvider.deleteRefreshTokenCookie(response);
-        log.info("LEADER 로그아웃 성공");
     }
 }

@@ -55,7 +55,7 @@ public class UserAuthService {
         }
 
         String accessToken = jwtProvider.createAccessToken(userUUID, response);
-        String refreshToken = jwtProvider.createRefreshToken(userUUID, response, Role.USER);
+        String refreshToken = jwtProvider.createRefreshToken(userUUID, response, true);
 
         log.debug("로그인 성공, uuid: {}", userUUID);
 
@@ -112,11 +112,11 @@ public class UserAuthService {
     public void userLogout(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken, Role.USER)) {
-            UUID userUUID = jwtProvider.getUUIDFromRefreshToken(refreshToken, Role.USER);
+        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken, true)) {
+            UUID userUUID = jwtProvider.getUUIDFromRefreshToken(refreshToken, true);
 
             // 블랙리스트에 추가하여 사용 불가능하게 만듦
-            jwtProvider.blacklistRefreshToken(refreshToken, Role.USER);
+            jwtProvider.blacklistRefreshToken(refreshToken, true);
             log.debug("USER 로그아웃 - UUID: {}", userUUID);
         } else {
             log.warn("USER 로그아웃 - 리프레시 토큰 없음 또는 유효하지 않음");
@@ -125,5 +125,39 @@ public class UserAuthService {
         // 클라이언트 쿠키에서 리프레시 토큰 삭제
         jwtProvider.deleteRefreshTokenCookie(response);
         log.info("USER 로그아웃 성공");
+    }
+
+    /**
+     * User 토큰 재발급 (JWT 기반)
+     */
+    public TokenDto refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = jwtProvider.resolveRefreshToken(request);
+
+        if (refreshToken == null) {
+            log.warn("리프레시 토큰 없음 - 로그아웃 처리 진행");
+            forceLogout(response);
+            return null;
+        }
+
+        if (!jwtProvider.validateRefreshToken(refreshToken, true)) {
+            log.warn("유효하지 않은 리프레시 토큰 감지 - 로그아웃 처리 진행");
+            forceLogout(response);
+            return null;
+        }
+
+        UUID uuid = UUID.fromString(jwtProvider.getClaims(refreshToken).getSubject());
+        log.debug("리프레시 토큰 검증 완료 - UUID: {}", uuid);
+
+        String newAccessToken = jwtProvider.createAccessToken(uuid, response);
+        String newRefreshToken = jwtProvider.createRefreshToken(uuid, response, true);
+
+        log.info("토큰 갱신 성공 - UUID: {}", uuid);
+        return new TokenDto(newAccessToken, newRefreshToken);
+    }
+
+    // 로그아웃 처리 (쿠키 삭제)
+    private void forceLogout(HttpServletResponse response) {
+        jwtProvider.deleteRefreshTokenCookie(response);
+        log.debug("리프레시 토큰 무효화 - 로그아웃 처리 완료");
     }
 }

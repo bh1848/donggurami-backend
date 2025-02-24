@@ -2,7 +2,6 @@ package com.USWCicrcleLink.server.global.security.jwt;
 
 import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
-import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
 import com.USWCicrcleLink.server.global.security.details.service.CustomUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -118,8 +117,11 @@ public class JwtProvider {
         return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken);
     }
 
-    public Claims getClaims(String accessToken) {
-        return getClaimsJws(accessToken).getBody();
+    /**
+     * JWT Claims 파싱
+     */
+    public Claims getClaims(String token) {
+        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
     }
 
     /**
@@ -148,143 +150,104 @@ public class JwtProvider {
     }
 
     /**
-     * 리프레시 토큰 생성 및 저장 (ADMIN, LEADER → UUID, USER → JWT)
+     * 리프레시 토큰 생성 (Admin & Leader는 Redis, User는 JWT)
      */
-    public String createRefreshToken(UUID uuid, HttpServletResponse response, Role role) {
-        deleteRefreshTokensByUuid(uuid);
-
+    public String createRefreshToken(UUID uuid, HttpServletResponse response, boolean isUser) {
         String refreshToken;
-        if (role == Role.ADMIN || role == Role.LEADER) {
-            // ADMIN, LEADER UUID 기반 토큰 사용
-            refreshToken = UUID.randomUUID().toString();
-            redisTemplate.opsForValue().set(
-                    "refreshToken:" + refreshToken,
-                    uuid.toString(),
-                    REFRESH_TOKEN_EXPIRATION_TIME,
-                    TimeUnit.MILLISECONDS
-            );
-        } else {
-            // USER JWT 기반 리프레시 토큰 사용
-            Date now = new Date();
+        if (isUser) {
             refreshToken = Jwts.builder()
                     .setSubject(uuid.toString())
-                    .setIssuedAt(now)
-                    .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRATION_TIME))
+                    .setIssuedAt(new Date())
+                    .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION_TIME))
                     .signWith(secretKey, SignatureAlgorithm.HS256)
                     .compact();
+        } else {
+            refreshToken = UUID.randomUUID().toString();
+            redisTemplate.opsForValue().set("refreshToken:" + refreshToken, uuid.toString(),
+                    REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
         }
 
-        // 리프레시 토큰을 HttpOnly 쿠키에 저장
         setRefreshTokenCookie(response, refreshToken);
         return refreshToken;
     }
 
     /**
-     * 리프레시 토큰 유효성 검증
+     * 리프레시 토큰 검증 (Admin & Leader는 Redis, User는 JWT)
      */
-    public boolean validateRefreshToken(String refreshToken, Role role) {
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            log.debug("리프레시 토큰 없음 - 검증 건너뜀");
+    public boolean validateRefreshToken(String refreshToken, boolean isUser) {
+        if (refreshToken == null || refreshToken.isEmpty() || isTokenBlacklisted(refreshToken)) {
+            log.debug("리프레시 토큰 없음 또는 블랙리스트 등록 - 검증 실패");
             return false;
         }
 
-        // 블랙리스트 체크
-        if (Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + refreshToken))) {
-            log.warn("리프레시 토큰 검증 실패 - 블랙리스트 등록된 토큰: {}", refreshToken);
-            return false;
-        }
-
-        return isAdminOrLeader(role) ? validateUuidRefreshToken(refreshToken) : validateJwtRefreshToken(refreshToken);
-    }
-
-    // UUID 기반 리프레시 토큰 검증 (Redis에서 존재 확인) (Admin, Leader)
-    private boolean validateUuidRefreshToken(String refreshToken) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey("refreshToken:" + refreshToken));
-    }
-
-    // JWT 기반 리프레시 토큰 검증 (User)
-    private boolean validateJwtRefreshToken(String refreshToken) {
-        try {
-            getClaims(refreshToken);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
+        if (isUser) {
+            try {
+                getClaims(refreshToken);
+                return true;
+            } catch (JwtException e) {
+                log.warn("JWT 파싱 오류 - 리프레시 토큰 검증 실패: {}", e.getMessage());
+                return false;
+            }
+        } else {
+            return Boolean.TRUE.equals(redisTemplate.hasKey("refreshToken:" + refreshToken));
         }
     }
 
     /**
-     * 리프레시 토큰 기반으로 UUID 조회
+     * 리프레시 토큰에서 UUID 추출 (Admin & Leader는 Redis, User는 JWT)
      */
-    public UUID getUUIDFromRefreshToken(String refreshToken, Role role) {
-        if (isAdminOrLeader(role)) {
-            return getUuidFromUuidRefreshToken(refreshToken);
-        } else {
-            return getUuidFromJwtRefreshToken(refreshToken);
+    public UUID getUUIDFromRefreshToken(String refreshToken, boolean isUser) {
+        if (isUser) {
+            return UUID.fromString(getClaims(refreshToken).getSubject());
         }
-    }
-
-    // Redis에서 UUID 조회 (Admin, Leader)
-    private UUID getUuidFromUuidRefreshToken(String refreshToken) {
         String uuidStr = redisTemplate.opsForValue().get("refreshToken:" + refreshToken);
         return uuidStr != null ? UUID.fromString(uuidStr) : null;
     }
 
-    // JWT에서 UUID 추출 (User)
-    private UUID getUuidFromJwtRefreshToken(String refreshToken) {
-        return UUID.fromString(getClaims(refreshToken).getSubject());
-    }
-
     /**
-     * UUID 기반으로 Redis에서 기존 리프레시 토큰 삭제 (ADMIN, LEADER)
+     * 리프레시 토큰 삭제 (Admin & Leader는 Redis)
      */
-    public void deleteRefreshTokensByUuid(UUID uuid) {
-        Objects.requireNonNull(redisTemplate.keys("refreshToken:*")).stream()
-                .filter(key -> uuid.toString().equals(redisTemplate.opsForValue().get(key)))
-                .findFirst()
-                .ifPresent(refreshTokenKey -> {
-                    String refreshToken = refreshTokenKey.replace("refreshToken:", "");
-                    blacklistRefreshToken(refreshToken, Role.ADMIN);
-                    redisTemplate.delete(refreshTokenKey);
-                    log.debug("기존 리프레시 토큰 삭제 및 블랙리스트 추가 완료: {}", refreshToken);
-                });
+    public void deleteRefreshToken(UUID uuid) {
+        log.debug("리프레시 토큰 삭제 - UUID: {}", uuid);
+        Set<String> keys = redisTemplate.keys("refreshToken:*");
+        if (keys != null) {
+            keys.stream()
+                    .filter(key -> uuid.toString().equals(redisTemplate.opsForValue().get(key)))
+                    .findFirst()
+                    .ifPresent(redisTemplate::delete);
+        }
     }
 
     /**
      * 리프레시 토큰 블랙리스트 등록
      */
-    public void blacklistRefreshToken(String refreshToken, Role role) {
-        Long remainingTime = isAdminOrLeader(role) ? getRemainingTimeForUuidToken(refreshToken)
-                : getRemainingTimeForJwtToken(refreshToken);
+    public void blacklistRefreshToken(String refreshToken, boolean isUser) {
+        long remainingTime = REFRESH_TOKEN_EXPIRATION_TIME;
 
-        if (remainingTime == null || remainingTime <= 0) {
+        if (!isUser) {
+            remainingTime = redisTemplate.getExpire("refreshToken:" + refreshToken, TimeUnit.MILLISECONDS);
+        } else {
+            try {
+                remainingTime = getClaims(refreshToken).getExpiration().getTime() - System.currentTimeMillis();
+            } catch (JwtException e) {
+                log.warn("블랙리스트 등록 실패 - 잘못된 JWT: {}", refreshToken);
+                return;
+            }
+        }
+
+        if (remainingTime > 0) {
+            redisTemplate.opsForValue().set("blacklist:" + refreshToken, "invalid", remainingTime, TimeUnit.MILLISECONDS);
+            log.debug("리프레시 토큰 블랙리스트 등록 완료: {}", refreshToken);
+        } else {
             log.warn("블랙리스트 등록 실패 - 해당 토큰이 존재하지 않거나 이미 만료됨: {}", refreshToken);
-            return;
-        }
-
-        redisTemplate.opsForValue().set("blacklist:" + refreshToken, "invalid", remainingTime, TimeUnit.MILLISECONDS);
-        log.debug("리프레시 토큰 블랙리스트 등록 완료: {}", refreshToken);
-    }
-
-
-    // UUID 기반 리프레시 토큰의 만료 시간 조회 (Admin, Leader)
-    private Long getRemainingTimeForUuidToken(String refreshToken) {
-        return redisTemplate.getExpire("refreshToken:" + refreshToken, TimeUnit.MILLISECONDS);
-    }
-
-
-    // JWT 기반 리프레시 토큰의 만료 시간 조회 (User)
-    private Long getRemainingTimeForJwtToken(String refreshToken) {
-        try {
-            Date expiration = getClaims(refreshToken).getExpiration();
-            return expiration.getTime() - System.currentTimeMillis();
-        } catch (JwtException e) {
-            log.warn("블랙리스트 등록 실패 - 잘못된 JWT: {}", refreshToken);
-            return null;
         }
     }
 
-    private boolean isAdminOrLeader(Role role) {
-        return role == Role.ADMIN || role == Role.LEADER;
+    /**
+     * 블랙리스트 여부 확인
+     */
+    private boolean isTokenBlacklisted(String refreshToken) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + refreshToken));
     }
 
     /**

@@ -11,7 +11,6 @@ import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubMemberTempException;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
-import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
 import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
@@ -337,9 +336,9 @@ public class UserService {
         // 리프레시 토큰 추출
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken, Role.USER)) {
+        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken, true)) {
             // 블랙리스트 등록 후 삭제 (JWT 기반)
-            jwtProvider.blacklistRefreshToken(refreshToken, Role.USER);
+            jwtProvider.blacklistRefreshToken(refreshToken, true);
             log.debug("리프레시 토큰 블랙리스트 등록 완료");
 
         } else {
