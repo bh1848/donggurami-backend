@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.global.security.dto;
+package com.USWCicrcleLink.server.global.security.jwt.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

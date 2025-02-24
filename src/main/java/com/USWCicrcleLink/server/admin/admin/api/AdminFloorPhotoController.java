@@ -16,7 +16,7 @@ public class AdminFloorPhotoController {
 
     private final AdminFloorPhotoService adminFloorPhotoService;
 
-    // 동아리 위치 정보 수정 (웹) - 층별 사진 업로드
+    // 동아리 위치 정보 수정 - 층별 사진 업로드 (ADMIN)
     @PutMapping("/{floor}")
     public ResponseEntity<ApiResponse<AdminFloorPhotoCreationResponse>> uploadFloorPhoto(
             @PathVariable("floor") FloorPhotoEnum floor,
@@ -25,7 +25,7 @@ public class AdminFloorPhotoController {
         return ResponseEntity.ok(new ApiResponse<>("해당 층 사진 업로드 성공", photoResponse));
     }
 
-    // 동아리 위치 정보 수정 (웹) - 특정 층의 사진 조회
+    // 동아리 위치 정보 수정 - 특정 층의 사진 조회 (ADMIN)
     @GetMapping("/{floor}")
     public ResponseEntity<ApiResponse<AdminFloorPhotoCreationResponse>> getPhotoByFloor(
             @PathVariable("floor") FloorPhotoEnum floor) {
@@ -33,7 +33,7 @@ public class AdminFloorPhotoController {
         return ResponseEntity.ok(new ApiResponse<>("해당 층 사진 조회 성공", photoResponse));
     }
 
-    // 동아리 위치 정보 수정 (웹) - 특정 층 사진 삭제
+    // 동아리 위치 정보 수정 - 특정 층 사진 삭제 (ADMIN)
     @DeleteMapping("/{floor}")
     public ResponseEntity<ApiResponse<String>> deletePhotoByFloor(
             @PathVariable("floor") FloorPhotoEnum floor) {

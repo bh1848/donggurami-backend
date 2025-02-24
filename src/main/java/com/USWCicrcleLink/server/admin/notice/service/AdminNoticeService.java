@@ -41,7 +41,7 @@ public class AdminNoticeService {
     private final S3FileUploadService s3FileUploadService;
 
     /**
-     * 공지사항 리스트 조회 (페이징)
+     * 공지사항 리스트 조회 (ADMIN)
      */
     @Transactional(readOnly = true)
     public AdminNoticePageListResponse getNotices(Pageable pageable) {
@@ -67,7 +67,7 @@ public class AdminNoticeService {
     }
 
     /**
-     * 공지사항 조회
+     * 공지사항 조회 (ADMIN, USER)
      */
     @Transactional(readOnly = true)
     public NoticeDetailResponse getNoticeByUUID(UUID noticeUUID) {
@@ -95,7 +95,7 @@ public class AdminNoticeService {
     }
 
     /**
-     * 공지사항 생성
+     * 공지사항 생성 (ADMIN)
      */
     public List<String> createNotice(AdminNoticeCreationRequest request, List<MultipartFile> noticePhotos) {
         Admin admin = getAuthenticatedAdmin();
@@ -119,7 +119,7 @@ public class AdminNoticeService {
     }
 
     /**
-     * 공지사항 수정
+     * 공지사항 수정 (ADMIN)
      */
     public List<String> updateNotice(UUID noticeUUID, AdminNoticeUpdateRequest request, List<MultipartFile> noticePhotos) {
 
@@ -147,7 +147,7 @@ public class AdminNoticeService {
     }
 
     /**
-     * 공지사항 삭제
+     * 공지사항 삭제 (ADMIN)
      */
     public void deleteNotice(UUID noticeUUID) {
 
@@ -164,7 +164,7 @@ public class AdminNoticeService {
     }
 
     /**
-     * 인증된 관리자 정보 가져오기
+     * 인증된 ADMIN 정보 가져오기
      */
     private Admin getAuthenticatedAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

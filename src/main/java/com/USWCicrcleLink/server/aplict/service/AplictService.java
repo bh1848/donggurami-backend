@@ -41,7 +41,7 @@ public class AplictService {
     private final ClubMembersRepository clubMembersRepository;
 
     /**
-     *  동아리 지원 가능 여부 확인
+     *  동아리 지원 가능 여부 확인 (ANYONE)
      */
     @Transactional(readOnly = true)
     public void checkIfCanApply(UUID clubUUID) {
@@ -80,7 +80,7 @@ public class AplictService {
     }
 
     /**
-     * 지원서 작성하기 버튼
+     * 지원서 작성하기 버튼 (USER)
      */
     @Transactional(readOnly = true)
     public String getGoogleFormUrlByClubUUID(UUID clubUUID) {
@@ -101,7 +101,7 @@ public class AplictService {
     }
 
     /**
-     * 동아리 지원서 제출
+     * 동아리 지원서 제출 (USER)
      */
     public void submitAplict(UUID clubUUID, AplictRequest request) {
         Profile profile = getAuthenticatedProfile();
@@ -125,7 +125,7 @@ public class AplictService {
     }
 
     /**
-     * 인증된 사용자 프로필 가져오기
+     * 인증된 USER 프로필 가져오기
      */
     private Profile getAuthenticatedProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

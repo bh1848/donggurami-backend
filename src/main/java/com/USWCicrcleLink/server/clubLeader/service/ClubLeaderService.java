@@ -12,22 +12,17 @@ import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
-import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginResponse;
 import com.USWCicrcleLink.server.clubLeader.dto.club.*;
 import com.USWCicrcleLink.server.clubLeader.dto.clubMembers.*;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.clubLeader.util.ClubMemberExcelDataDto;
-import com.USWCicrcleLink.server.global.Integration.domain.LoginType;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.*;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.s3File.dto.S3FileResponse;
 import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
-import com.USWCicrcleLink.server.global.security.domain.Role;
-import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
-import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
+import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
 import com.USWCicrcleLink.server.global.validation.FileSignatureValidator;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
@@ -50,8 +45,6 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -85,9 +78,6 @@ public class ClubLeaderService {
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
     private final LeaderRepository leaderRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtProvider jwtProvider;
-    private final CustomUserDetailsService customUserDetailsService;
     private final ClubMemberAccountStatusRepository clubMemberAccountStatusRepository;
     private final ClubMemberTempRepository clubMemberTempRepository;
     private final UserRepository userRepository;
@@ -108,52 +98,6 @@ public class ClubLeaderService {
 
         return clubRepository.findByClubUUID(clubUUID)
                 .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
-    }
-
-    /**
-     * 동아리 회장 로그인
-     */
-    public LeaderLoginResponse leaderLogin(LeaderLoginRequest request, HttpServletResponse response) {
-        UserDetails userDetails = loadLeaderDetails(request.getLeaderAccount());
-
-        if (!passwordEncoder.matches(request.getLeaderPw(), userDetails.getPassword())) {
-            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
-        }
-
-        // Leader UUID 및 동의 여부 추출
-        UUID leaderUUID = extractLeaderUUID(userDetails);
-        UUID clubUUID = null;
-        Boolean isAgreedTerms = false;
-
-        if (userDetails instanceof CustomLeaderDetails leaderDetails) {
-            clubUUID = leaderDetails.getClubUUID();
-            isAgreedTerms = leaderDetails.getIsAgreedTerms();
-        }
-
-        // UUID 기반 JWT 생성
-        String accessToken = jwtProvider.createAccessToken(leaderUUID, response);
-        String refreshToken = jwtProvider.createRefreshToken(leaderUUID, response);
-
-        log.debug("로그인 성공, uuid: {}", leaderUUID);
-        return new LeaderLoginResponse(accessToken, refreshToken, Role.LEADER, clubUUID, isAgreedTerms);
-    }
-
-    // Leader UUID 추출 (CustomLeaderDetails에서 가져옴)
-    private UUID extractLeaderUUID(UserDetails userDetails) {
-        if (userDetails instanceof CustomLeaderDetails customLeaderDetails) {
-            return customLeaderDetails.leader().getLeaderUUID();
-        }
-        throw new UserException(ExceptionType.USER_NOT_EXISTS);
-    }
-
-    // account 및 role 확인
-    private UserDetails loadLeaderDetails(String account) {
-        try {
-            return customUserDetailsService.loadUserByAccountAndRole(account, Role.LEADER);
-        } catch (UserException e) {
-            log.warn("동아리 회장 로그인 실패 - 존재하지 않는 계정: {}", account);
-            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
-        }
     }
 
     // 약관 동의 여부 업데이트

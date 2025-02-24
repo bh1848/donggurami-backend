@@ -26,7 +26,7 @@ public class AdminClubCategoryService {
     private final ClubCategoryMappingRepository clubCategoryMappingRepository;
 
     /**
-     * 동아리 카테고리 설정(웹) - 카테고리 조회
+     * 동아리 카테고리 설정(ADMIN, LEADER) - 카테고리 조회
      */
     @Transactional(readOnly = true)
     public List<ClubCategoryResponse> getAllClubCategories() {
@@ -37,7 +37,7 @@ public class AdminClubCategoryService {
     }
 
     /**
-     * 동아리 카테고리 설정(웹) - 카테고리 추가 (쿼리 최적화)
+     * 동아리 카테고리 설정(ADMIN) - 카테고리 추가 (쿼리 최적화)
      */
     public ClubCategoryResponse addClubCategory(AdminClubCategoryCreationRequest request) {
         String normalizedCategoryName = request.getClubCategoryName().toLowerCase();
@@ -58,7 +58,7 @@ public class AdminClubCategoryService {
     }
 
     /**
-     * 동아리 카테고리 설정(웹) - 카테고리 삭제
+     * 동아리 카테고리 설정(ADMIN) - 카테고리 삭제
      */
     public ClubCategoryResponse deleteClubCategory(UUID clubCategoryUUID) {
         ClubCategory clubCategory = clubCategoryRepository.findByClubCategoryUUID(clubCategoryUUID)

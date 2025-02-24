@@ -25,7 +25,7 @@ public class AdminFloorPhotoService {
     private final S3FileUploadService s3FileUploadService;
 
     /**
-     * 동아리 위치 정보 수정(웹) - 층별 사진 업로드
+     * 동아리 위치 정보 수정(ADMIN) - 층별 사진 업로드
      */
     public AdminFloorPhotoCreationResponse uploadPhoto(FloorPhotoEnum floor, MultipartFile photo) {
         if (photo == null || photo.isEmpty()) {
@@ -58,7 +58,7 @@ public class AdminFloorPhotoService {
     }
 
     /**
-     * 동아리 위치 정보 수정(웹) - 특정 층 사진 조회
+     * 동아리 위치 정보 수정(ADMIN) - 특정 층 사진 조회
      */
     @Transactional(readOnly = true)
     public AdminFloorPhotoCreationResponse getPhotoByFloor(FloorPhotoEnum floor) {
@@ -75,7 +75,7 @@ public class AdminFloorPhotoService {
     }
 
     /**
-     * 동아리 위치 정보 수정(웹) - 특정 층 사진 삭제
+     * 동아리 위치 정보 수정(ADMIN) - 특정 층 사진 삭제
      */
     public void deletePhotoByFloor(FloorPhotoEnum floor) {
         FloorPhoto floorPhoto = floorPhotoRepository.findByFloor(floor)

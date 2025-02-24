@@ -5,26 +5,24 @@ import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.errortype.EmailException;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import com.USWCicrcleLink.server.global.security.dto.TokenDto;
 import com.USWCicrcleLink.server.global.validation.ValidationSequence;
-import com.USWCicrcleLink.server.user.domain.*;
+import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
+import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
 import com.USWCicrcleLink.server.user.service.PasswordService;
 import com.USWCicrcleLink.server.user.service.UserService;
-
 import com.USWCicrcleLink.server.user.service.WithdrawalTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -123,18 +121,6 @@ public class UserController {
         // 입력받은 동아리의 회장들에게 가입신청서 보내기
         userService.sendRequest(request, clubMemberTemp);
         return ResponseEntity.ok(new ApiResponse<>("가입 요청에 성공했습니다"));
-    }
-
-    // 로그인
-    @PostMapping("/login")
-    @RateLimite(action = "APP_LOGIN")
-    public ResponseEntity<ApiResponse<TokenDto>> logIn(@RequestBody @Validated(ValidationSequence.class) LogInRequest request, HttpServletResponse response) {
-
-        userService.verifyLogin(request);
-        TokenDto tokenDto = userService.userLogin(request, response);
-        ApiResponse<TokenDto> apiResponse = new ApiResponse<>("로그인 성공", tokenDto);
-
-        return ResponseEntity.ok(apiResponse);
     }
 
     // 아이디 찾기

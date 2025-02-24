@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.user.domain;
 
 import com.USWCicrcleLink.server.global.bucket4j.ClientIdentifier;
-import com.USWCicrcleLink.server.global.security.domain.Role;
+import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

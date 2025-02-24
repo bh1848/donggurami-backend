@@ -7,20 +7,20 @@ import com.USWCicrcleLink.server.email.service.EmailService;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.*;
-import com.USWCicrcleLink.server.global.security.details.CustomAdminDetails;
-import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
-import com.USWCicrcleLink.server.global.security.domain.Role;
-import com.USWCicrcleLink.server.global.security.dto.TokenDto;
-import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubMemberTempException;
+import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
+import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
 import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
-import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.profile.service.ProfileService;
-import com.USWCicrcleLink.server.user.domain.*;
+import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
+import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
@@ -30,17 +30,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 @Service
 @Transactional
@@ -54,7 +50,6 @@ public class UserService {
     private final EmailTokenService emailTokenService;
     private final ProfileRepository profileRepository;
     private final JwtProvider jwtProvider;
-    private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final ProfileService profileService;
     private final ClubMemberTempRepository clubMemberTempRepository;
@@ -62,7 +57,6 @@ public class UserService {
     private final ClubMemberAccountStatusService clubMemberAccountStatusService;
     private final PasswordService passwordService;
 
-    private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
 
     // 어세스토큰에서 유저정보 가져오기
@@ -258,43 +252,6 @@ public class UserService {
         log.debug("계정 중복 확인 완료");
     }
 
-    // 로그인
-    public TokenDto userLogin(LogInRequest request, HttpServletResponse response) {
-
-        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), Role.USER);
-
-        UUID userUUID = extractUserUUID(userDetails);
-
-        User user = userRepository.findByUserUUID(userUUID)
-                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
-
-        if (!user.getUserAccount().equals(request.getAccount()) || !passwordEncoder.matches(request.getPassword(), user.getUserPw())) {
-            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
-        }
-
-        String accessToken = jwtProvider.createAccessToken(userUUID, response);
-        String refreshToken = jwtProvider.createRefreshToken(userUUID, response);
-
-        log.debug("로그인 성공, uuid: {}", userUUID);
-
-        // FCM 토큰 저장
-        profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
-            profile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
-            profileRepository.save(profile);
-            log.debug("FCM 토큰 업데이트 완료: {}", user.getUserAccount());
-        });
-
-        return new TokenDto(accessToken, refreshToken);
-    }
-
-    // UserDetails에서 UUID 추출
-    private UUID extractUserUUID(UserDetails userDetails) {
-        if (userDetails instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.user().getUserUUID();
-        }
-        throw new UserException(ExceptionType.USER_NOT_EXISTS);
-    }
-
     @Transactional(readOnly = true)
     public User findUser(String email) {
         log.debug("계정 찾기 요청  email= {}",email);
@@ -373,79 +330,50 @@ public class UserService {
         log.debug("최종 회원 가입 완료");
     }
 
-    // 회원 탈퇴
+    /**
+     * 회원 탈퇴 (User)
+     */
     public void cancelMembership(HttpServletRequest request, HttpServletResponse response) {
         // 리프레시 토큰 추출
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken)) {
-            // 유효한 리프레시 토큰인 경우, UUID 추출 및 삭제
-            UUID uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
-            jwtProvider.deleteRefreshTokenCookie(response);
-            jwtProvider.deleteRefreshTokensByUuid(uuid);
-            log.debug("리프레시 토큰 삭제: 사용자 {}의 모든 리프레시 토큰 삭제 완료", uuid);
+        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken, Role.USER)) {
+            // 블랙리스트 등록 후 삭제 (JWT 기반)
+            jwtProvider.blacklistRefreshToken(refreshToken, Role.USER);
+            log.debug("리프레시 토큰 블랙리스트 등록 완료");
+
         } else {
             log.debug("리프레시 토큰이 존재하지 않거나 유효하지 않음. 회원 탈퇴 계속 진행.");
         }
 
+        // 쿠키에서 리프레시 토큰 삭제 (로그아웃 강제)
+        jwtProvider.deleteRefreshTokenCookie(response);
+
         // 현재 로그인한 사용자 UUID 가져오기
         UUID userUUID = getUserUUIDByAuth();
+
+        // FCM 토큰 삭제 (모바일 푸시 알림 무효화)
+        profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
+            if (profile.getFcmToken() != null) {
+                profile.updateFcmToken(null);
+                profileRepository.save(profile);
+                log.debug("회원 탈퇴: 사용자 {}의 FCM 토큰 삭제 완료", userUUID);
+            }
+        });
 
         // 회원과 관련된 정보 모두 삭제
         profileService.deleteProfileByUserUUID(userUUID);
         userRepository.deleteByUserUUID(userUUID);
 
-        log.debug("회원 탈퇴 성공");
+        log.info("회원 탈퇴 성공 - UUID: {}", userUUID);
     }
 
-    /**
-     * 현재 인증된 사용자 uuid 가져오기
-     */
+    // 현재 로그인한 사용자의 UUID 가져오기
     private UUID getUserUUIDByAuth() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
-            throw new UserException(ExceptionType.USER_NOT_EXISTS);
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            return ((CustomUserDetails) authentication.getPrincipal()).user().getUserUUID();
         }
-
-        if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
-            return userDetails.user().getUserUUID();
-        } else if (authentication.getPrincipal() instanceof CustomLeaderDetails leaderDetails) {
-            return leaderDetails.leader().getLeaderUUID();
-        } else if (authentication.getPrincipal() instanceof CustomAdminDetails adminDetails) {
-            return adminDetails.admin().getAdminUUID();
-        }
-
         throw new UserException(ExceptionType.USER_NOT_EXISTS);
     }
-
-    // 로그인 가능 여부 판단
-    public void verifyLogin(LogInRequest request) {
-        log.debug("로그인 검증 시작 - 요청 계정: {}", request.getAccount());
-
-        // account로 user 조회
-        User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> {
-                    log.error("로그인 실패 - 존재하지 않는 계정: {}", request.getAccount());
-                    return new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS);
-                });
-        log.debug("사용자 조회 성공 - 계정: {}, 사용자 ID: {}", user.getUserAccount(), user.getUserId());
-
-        // user로 프로필 조회하여 로그인 가능 여부 판단
-        Profile profile = profileRepository.findByUserUserId(user.getUserId())
-                .orElseThrow(() -> {
-                    log.error("로그인 실패 - 프로필 없음 - 사용자 ID: {}", user.getUserId());
-                    return new ProfileException(ExceptionType.PROFILE_NOT_EXISTS);
-                });
-        log.debug("프로필 조회 성공 - 사용자 ID: {}, 회원 타입: {}", user.getUserId(), profile.getMemberType());
-
-        // 비회원인 경우 로그인 불가
-        if (profile.getMemberType().equals(MemberType.NONMEMBER)) {
-            log.error("로그인 실패 - 비회원 사용자 - 사용자 ID: {}", user.getUserId());
-            throw new UserException(ExceptionType.USER_LOGIN_FAILED);
-        }
-
-        log.debug("로그인 검증 완료 - 로그인 가능 사용자 ID: {}", user.getUserId());
-    }
-
 }

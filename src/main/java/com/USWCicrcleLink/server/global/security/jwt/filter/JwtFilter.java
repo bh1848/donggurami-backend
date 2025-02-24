@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.global.security.filter;
+package com.USWCicrcleLink.server.global.security.jwt.filter;
 
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.JwtException;

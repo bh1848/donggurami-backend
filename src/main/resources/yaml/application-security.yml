@@ -6,7 +6,6 @@ spring:
 
   security:
     permit-all-paths:
-      - /users/login
       - /users/temporary/register
       - /users/email/verify-token
       - /users/finish-signup
@@ -17,12 +16,14 @@ spring:
       - /users/auth/verify-token
       - /users/reset-password
       - /users/email/resend-confirmation
-      - /auth/refresh-token
+      - /users/login
+      - /users/refresh
       - /club-leader/login
       - /admin/login
-      - /integration/logout
+      - /auth/refresh
       - /mainPhoto/**
       - /introPhoto/**
+      - /notice/Photo/**
       - /my-notices/**
       - /clubs/**
       - /profiles/duplication-check

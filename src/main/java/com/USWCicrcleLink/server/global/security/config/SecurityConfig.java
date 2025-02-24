@@ -1,8 +1,8 @@
 package com.USWCicrcleLink.server.global.security.config;
 
 import com.USWCicrcleLink.server.global.security.exception.CustomAuthenticationEntryPoint;
-import com.USWCicrcleLink.server.global.security.filter.JwtFilter;
-import com.USWCicrcleLink.server.global.security.filter.LoggingFilter;
+import com.USWCicrcleLink.server.global.security.jwt.filter.JwtFilter;
+import com.USWCicrcleLink.server.global.security.jwt.filter.LoggingFilter;
 import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import com.USWCicrcleLink.server.global.security.jwt.SecurityProperties;
 import lombok.RequiredArgsConstructor;
@@ -53,9 +53,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(securityProperties.getPermitAllPaths().toArray(new String[0])).permitAll();
 
-                    // photo
-                    auth.requestMatchers(HttpMethod.GET, "/mainPhoto/**", "/introPhoto/**", "/noticePhoto/**").permitAll();
-
                     // ADMIN - FloorPhoto
                     auth.requestMatchers(HttpMethod.POST, "/admin/floor/photo/**").hasRole("ADMIN");
                     auth.requestMatchers(HttpMethod.GET, "/admin/floor/photo/**").hasRole("ADMIN");
@@ -86,6 +83,7 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.POST, "/exit/send-code").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/apply/**").hasRole("USER");
                     auth.requestMatchers(HttpMethod.GET, "/apply/**").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.POST,"/users/logout").hasRole("USER");
 
                     // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubUUID}/**").hasRole("LEADER");
@@ -93,6 +91,7 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.PATCH, "/club-leader/{clubUUID}/**").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.DELETE, "/club-leader/{clubUUID}/members").hasRole("LEADER");
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/category").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.POST, "/club-leader/logout").hasRole("LEADER");
 
                     // 기타 모든 요청 인증 필요
                     auth.anyRequest().authenticated();

@@ -4,11 +4,6 @@ import com.USWCicrcleLink.server.admin.admin.service.AdminClubCategoryService;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
 import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.clubLeader.dto.FcmTokenRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginResponse;
-import com.USWCicrcleLink.server.clubLeader.dto.club.ClubInfoRequest;
-import com.USWCicrcleLink.server.clubLeader.dto.club.ClubInfoResponse;
-import com.USWCicrcleLink.server.clubLeader.dto.club.ClubIntroRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.club.*;
 import com.USWCicrcleLink.server.clubLeader.dto.clubMembers.*;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderService;
@@ -39,14 +34,6 @@ public class ClubLeaderController {
     private final ClubLeaderService clubLeaderService;
     private final AdminClubCategoryService adminClubCategoryService;
     private final FcmServiceImpl fcmService;
-
-    //동아리 회장 로그인
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LeaderLoginResponse>> LeaderLogin(@RequestBody LeaderLoginRequest request, HttpServletResponse response){
-        LeaderLoginResponse leaderLoginResponse = clubLeaderService.leaderLogin(request,response);
-        ApiResponse<LeaderLoginResponse> apiResponse = new ApiResponse<>("동아리 회장 로그인 성공", leaderLoginResponse);
-        return ResponseEntity.ok(apiResponse);
-    }
 
     // 약관 동의 완료 업데이트
     @PatchMapping("/terms/agreement")
