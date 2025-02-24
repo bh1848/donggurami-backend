@@ -32,6 +32,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -148,21 +149,19 @@ public class AdminClubService {
     }
 
     private void createClubIntroPhotos(ClubIntro clubIntro) {
-        List<ClubIntroPhoto> introPhotos = List.of(
-                ClubIntroPhoto.builder()
-                        .clubIntro(clubIntro)
-                        .clubIntroPhotoName(null)
-                        .clubIntroPhotoS3Key(null)
-                        .order(1)
-                        .build(),
-                ClubIntroPhoto.builder()
-                        .clubIntro(clubIntro)
-                        .clubIntroPhotoName(null)
-                        .clubIntroPhotoS3Key(null)
-                        .order(2)
-                        .build()
-        );
+        List<ClubIntroPhoto> introPhotos = new ArrayList<>();
+
+        for (int i = 1; i <= 5; i++) {
+            introPhotos.add(ClubIntroPhoto.builder()
+                    .clubIntro(clubIntro)
+                    .clubIntroPhotoName(null)
+                    .clubIntroPhotoS3Key(null)
+                    .order(i)
+                    .build());
+        }
+
         clubIntroPhotoRepository.saveAll(introPhotos);
+        log.info("기본 동아리 소개 사진 5개 생성 완료 - Club ID: {}", clubIntro.getClub().getClubId());
     }
 
     // 동아리 생성(웹) - 동아리 회장 아이디 중복 확인
