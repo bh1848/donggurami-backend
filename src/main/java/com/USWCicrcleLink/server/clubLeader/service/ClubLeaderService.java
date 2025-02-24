@@ -463,7 +463,9 @@ public class ClubLeaderService {
                 S3FileResponse s3FileResponse;
 
                 // N번째 동아리 소개 사진 존재할 경우
-                if (!existingPhoto.getClubIntroPhotoName().isEmpty() && !existingPhoto.getClubIntroPhotoS3Key().isEmpty()) {
+                if (!Optional.ofNullable(existingPhoto.getClubIntroPhotoName()).orElse("").isEmpty() &&
+                        !Optional.ofNullable(existingPhoto.getClubIntroPhotoS3Key()).orElse("").isEmpty()) {
+
                     // 기존 S3 파일 삭제
                     s3FileUploadService.deleteFile(existingPhoto.getClubIntroPhotoS3Key());
                     log.debug("기존 소개 사진 삭제 완료: {}", existingPhoto.getClubIntroPhotoS3Key());
@@ -503,8 +505,12 @@ public class ClubLeaderService {
         // 새로운 파일 업로드
         S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(introPhoto, S3_INTROPHOTO_DIR);
 
+        // null 체크 후 값 설정
+        String newPhotoName = introPhoto.getOriginalFilename() != null ? introPhoto.getOriginalFilename() : "";
+        String newS3Key = s3FileResponse.getS3FileName() != null ? s3FileResponse.getS3FileName() : "";
+
         // s3key 및 photoname 업데이트
-        existingPhoto.updateClubIntroPhoto(introPhoto.getOriginalFilename(), s3FileResponse.getS3FileName(), order);
+        existingPhoto.updateClubIntroPhoto(newPhotoName, newS3Key, order);
         clubIntroPhotoRepository.save(existingPhoto);
         log.debug("사진 정보 저장 및 업데이트 완료: {}", s3FileResponse.getS3FileName());
 

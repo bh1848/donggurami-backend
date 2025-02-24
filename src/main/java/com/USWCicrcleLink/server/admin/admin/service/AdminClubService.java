@@ -209,7 +209,7 @@ public class AdminClubService {
 
         try {
             clubRepository.deleteClubAndDependencies(clubId);
-            log.info("동아리 삭제 성공 - Club ID: {}, AdminUUID: {}", clubId, admin.getAdminUUID());
+            log.info("동아리 삭제 성공 - Club ID: {}", clubId);
         } catch (Exception e) {
             log.error("동아리 삭제 중 오류 발생 - Club ID: {}, 오류: {}", clubId, e.getMessage());
             throw new BaseException(ExceptionType.SERVER_ERROR, e);
