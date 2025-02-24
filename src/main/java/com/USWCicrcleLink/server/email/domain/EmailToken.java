@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Slf4j
 @Table(name = "EMAIL_TOKEN_TABLE")
 public class EmailToken {
 
@@ -39,25 +41,13 @@ public class EmailToken {
     // 이메일 토큰 만료시간
     private LocalDateTime certificationTime;
 
-    // 이메일 토큰 만료 여부
-    private boolean isEmailTokenExpired;
-
-    @PrePersist
-    public void prePersist() {
-        this.emailTokenUUID = UUID.randomUUID();
-    }
-
     // 이메일 인증 토큰 생성
     public static EmailToken createEmailToken(UserTemp userTemp) {
         return EmailToken.builder()
-                .certificationTime(LocalDateTime.now().plusMinutes(EMAIL_TOKEN_CERTIFICATION_TIME_VALUE))
-                .isEmailTokenExpired(false)
+                .emailTokenUUID(UUID.randomUUID())
                 .userTemp(userTemp)
+                .certificationTime(LocalDateTime.now().plusMinutes(EMAIL_TOKEN_CERTIFICATION_TIME_VALUE))
                 .build();
-    }
-
-    public void usedToken(){
-        isEmailTokenExpired=true;
     }
 
     // 토큰 만료 시간 검증
@@ -68,17 +58,14 @@ public class EmailToken {
     // 토큰이 만료되었는지 검증 및 처리
     public void verifyExpiredTime() {
         if (!isValidTime()) { // 만료시간이 지난 토큰인 경우
-            usedToken();
+            log.error("해당 이메일 토큰의 만료시간이 지났습니다");
             throw new EmailException(ExceptionType.EMAIL_TOKEN_IS_EXPIRED);
         }
-        // 사용된 토큰 처리
-        usedToken();
     }
 
-    //필드 갱신
+    // 이메일 재인증시 필드값 업데이트
     public void updateExpiredToken() {
         this.certificationTime = LocalDateTime.now().plusMinutes(EMAIL_TOKEN_CERTIFICATION_TIME_VALUE);
-        this.isEmailTokenExpired=false;
     }
 
 }

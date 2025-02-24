@@ -49,7 +49,7 @@ public class UserController {
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
 
-    // 회원가입시 계정 중복 체크
+    // 아이디 중복 체크
     @GetMapping("/verify-duplicate/{account}")
     public ResponseEntity<ApiResponse<String>> verifyAccountDuplicate(@PathVariable("account") String account) {
 
@@ -63,7 +63,6 @@ public class UserController {
     @PostMapping("/validate-passwords-match")
     public ResponseEntity<ApiResponse<Void>> validatePassword(@Validated(ValidationSequence.class) @RequestBody PasswordRequest request) {
         passwordService.validatePassword(request);
-
         return ResponseEntity.ok(new ApiResponse<>("비밀번호가 일치합니다"));
     }
 
@@ -99,7 +98,7 @@ public class UserController {
 
     // 이메일 재인증
     @PostMapping("/email/resend-confirmation")
-    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader UUID emailToken_uuid) {
+    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader("emailToken_uuid") UUID emailToken_uuid) {
 
         EmailToken emailToken = emailTokenService.updateCertificationTime(emailToken_uuid);
         userService.sendSignUpMail(emailToken.getUserTemp(),emailToken);
@@ -164,7 +163,7 @@ public class UserController {
     // 인증 코드 검증
     @PostMapping("/auth/verify-token")
     @RateLimite(action = "VALIDATE_CODE")
-    public ApiResponse<String> verifyAuthToken(@RequestHeader UUID uuid,@Valid @RequestBody AuthCodeRequest request) {
+    public ApiResponse<String> verifyAuthToken(@RequestHeader("uuid") UUID uuid,@Valid @RequestBody AuthCodeRequest request) {
 
         authTokenService.verifyAuthToken(uuid, request);
         authTokenService.deleteAuthToken(uuid);
@@ -174,7 +173,7 @@ public class UserController {
 
     // 비밀번호 재설정
     @PatchMapping("/reset-password")
-    public ApiResponse<String> resetUserPw(@RequestHeader UUID uuid, @RequestBody PasswordRequest request) {
+    public ApiResponse<String> resetUserPw(@RequestHeader("uuid") UUID uuid, @RequestBody PasswordRequest request) {
 
         userService.resetPW(uuid,request);
 

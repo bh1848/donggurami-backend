@@ -120,7 +120,7 @@ public class UserService {
         userTempRepository.findByTempEmail(request.getEmail())
                 .ifPresent(userTemp -> {
                     emailTokenService.deleteEmailToken(userTemp);
-                    log.debug("중복된 임시 회원 데이터 삭제: userTemp_email= {}", request.getEmail());
+                    log.debug("중복된 임시 회원 데이터 삭제: 이름={},아이디={},이메일= {}",request.getUserName(), request.getAccount(),request.getEmail());
                 });
 
         // 회원 테이블 이메일 중복 검증
@@ -200,24 +200,35 @@ public class UserService {
 
     public UserTemp verifyEmailToken(UUID emailToken_uuid) {
 
-        log.debug("이메일 토큰 검증 시작");
         // 토큰 검증
-        emailTokenService.verifyEmailToken(emailToken_uuid);
-
-        // 검증된 임시 회원 가져오기
-        EmailToken token = emailTokenService.getEmailToken(emailToken_uuid);
+        log.debug("이메일 토큰 검증 시작: {}", emailToken_uuid);
+        EmailToken emailToken= emailTokenService.verifyEmailToken(emailToken_uuid);
         log.debug("이메일 토큰 검증 완료: {}", emailToken_uuid);
-        return token.getUserTemp();
+
+        return emailToken.getUserTemp();
     }
 
     // userTemp -> user,profile 객체 생성
+    @Transactional
     public void createUserAndProfile(UserTemp userTemp){
-        User user = User.createUser(userTemp);
-        Profile profile = Profile.createProfile(userTemp, user);
 
+        User user = User.createUser(userTemp);
+        if(user==null){
+            log.error("신규회원가입시, user 객체 생성중 오류 발생함");
+            throw new UserException(ExceptionType.USER_CREATION_FAILED);
+        }
+
+        Profile profile = Profile.createProfile(userTemp, user);
+        if(profile==null){
+            log.error("신규회원가입시, profile 객체 생성중 오류 발생함");
+            throw new ProfileException(ExceptionType.PROFILE_CREATION_FAILED);
+        }
+        // 생성된 객체 저장하기
         userRepository.save(user);
         profileRepository.save(profile);
     }
+
+
 
     // 회원가입
     public void signUp(UserTemp userTemp) {
@@ -232,29 +243,28 @@ public class UserService {
     }
 
 
-    // 아이디 중복 검증
+
     public void verifyAccountDuplicate(String account) {
-        log.debug("계정 중복 체크 요청 시작 account = {}",account);
+        log.debug("계정 중복 체크 요청 시작 account = {}", account);
 
-        log.debug("user_table 계정 중복 체크 요청 시작 account = {}",account);
+        if (userRepository.findByUserAccount(account).isPresent()) {
+            log.debug("중복된 계정이 user_table에서 발견됨. account = {}", account);
+            throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
+        }
 
-        userRepository.findByUserAccount(account)
-                    .ifPresent(user-> {
-                        throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
-                    });
-        log.debug("userTemp_table 계정 중복 체크 요청 시작 account = {}",account);
-        userTempRepository.findByTempAccount(account)
-                .ifPresent(usertemp-> {
-                    throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
-                });
+        if (userTempRepository.findByTempAccount(account).isPresent()) {
+            log.debug("중복된 계정이 userTemp_table에서 발견됨. account = {}", account);
+            throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
+        }
 
-        log.debug("clubMemberTemp_table 계정 중복 체크 요청 시작 account = {}",account);
-       clubMemberTempRepository.findByProfileTempAccount(account)
-                .ifPresent(user-> {
-                    throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
-                });
-        log.debug("계정 중복 확인 완료");
+        if (clubMemberTempRepository.findByProfileTempAccount(account).isPresent()) {
+            log.debug("중복된 계정이 clubMemberTemp_table에서 발견됨. account = {}", account);
+            throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
+        }
+
+        log.debug("계정 중복 체크 완료. account = {}", account);
     }
+
 
     // 로그인
     public TokenDto logIn(LogInRequest request, HttpServletResponse response) {
@@ -283,7 +293,7 @@ public class UserService {
 
         // fcm 토큰 저장
         Profile profile = profileRepository.findById(user.getUserId())
-                    .orElseThrow(() -> new UserException(ExceptionType.USER_PROFILE_NOT_FOUND));
+                    .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
 
         profile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
         profileRepository.save(profile);

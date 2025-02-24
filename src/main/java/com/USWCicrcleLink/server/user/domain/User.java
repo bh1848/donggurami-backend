@@ -52,13 +52,10 @@ public class User implements ClientIdentifier {
     @Column(name = "role")
     private Role role;
 
-    @PrePersist
-    public void prePersist() {
-        this.userUUID = UUID.randomUUID();
-    }
 
     public static User createUser(UserTemp userTemp){
         return User.builder()
+                .userUUID(UUID.randomUUID()) // user 객체 생성시 userUUID 생성하기
                 .userAccount(userTemp.getTempAccount())
                 .userPw(userTemp.getTempPw())
                 .email(userTemp.getTempEmail())

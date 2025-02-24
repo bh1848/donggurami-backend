@@ -43,9 +43,9 @@ public enum ExceptionType {
     USER_INVALID_ACCOUNT_AND_EMAIL("USR-209", "올바르지 않은 이메일 혹은 아이디입니다.", BAD_REQUEST),
     USER_UUID_NOT_FOUND("USR-210","회원의 uuid를 찾을 수 없습니다.", BAD_REQUEST),
     USER_AUTHENTICATION_FAILED("USR-211","아이디 혹은 비밀번호가 일치하지 않습니다",UNAUTHORIZED),
-    USER_PROFILE_NOT_FOUND("USR-213","프로필 정보를 찾을 수 없습니다", NOT_FOUND),
     USER_PASSWORD_CONDITION_FAILED("USR-214","영문자,숫자,특수문자는 적어도 1개 이상씩 포함되어야합니다",BAD_REQUEST),
     USER_LOGIN_FAILED("USR-216","비회원 사용자입니다.인증을 완료해주세요",BAD_REQUEST),
+    USER_CREATION_FAILED("USR-217","회원 생성중 오류 발생",INTERNAL_SERVER_ERROR),
 
     /**
      * Domain: ClubMemberTemp
@@ -118,6 +118,8 @@ public enum ExceptionType {
     PROFILE_ALREADY_EXISTS("PFL-207","프로필이 이미 존재합니다",BAD_REQUEST),
     INVALID_MEMBER_TYPE("PFL-208","유효하지 않은 회원 종류입니다.",BAD_REQUEST),
     PROFILE_VALUE_MISMATCH("PFL-209","프로필 값이 일치하지 않습니다.",BAD_REQUEST),
+    PROFILE_CREATION_FAILED("PFL-210","프로필 생성중 오류 발생",INTERNAL_SERVER_ERROR),
+
 
 
     /**
