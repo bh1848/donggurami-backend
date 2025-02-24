@@ -47,7 +47,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUserAccount(account)
                 .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
 
-        // UUID` 기반으로 다시 조회
         return loadUserByUuidAndRole(user.getUserUUID(), Role.USER);
     }
 
