@@ -110,18 +110,6 @@ public class ClubLeaderService {
                 .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
     }
 
-    // 동아리 회장 이름 변경 시 약관 동의 갱신
-    private void updateLeaderAgreementIfNameChanged(Club club, String newLeaderName) {
-        if (!club.getLeaderName().equals(newLeaderName)) {
-            Leader leader = leaderRepository.findByClubUUID(club.getClubUUID())
-                    .orElseThrow(() -> new ClubLeaderException(ExceptionType.CLUB_LEADER_NOT_EXISTS));
-
-            leader.setAgreeTerms(false);
-            leaderRepository.save(leader);
-            log.info("회장 이름 변경으로 약관 동의 상태 초기화 - Leader ID: {}", leader.getLeaderId());
-        }
-    }
-
     /**
      * 동아리 회장 로그인
      */
@@ -232,6 +220,19 @@ public class ClubLeaderService {
         return new ApiResponse<>("동아리 기본 정보 변경 완료", new UpdateClubInfoResponse(mainPhotoUrl));
     }
 
+    // 동아리 회장 이름 변경 시 약관 동의 갱신
+    private void updateLeaderAgreementIfNameChanged(Club club, String newLeaderName) {
+
+        if (!Objects.equals(club.getLeaderName(), newLeaderName)) {
+            Leader leader = leaderRepository.findByClubUUID(club.getClubUUID())
+                    .orElseThrow(() -> new ClubLeaderException(ExceptionType.CLUB_LEADER_NOT_EXISTS));
+
+            leader.setAgreeTerms(false);
+            leaderRepository.save(leader);
+            log.info("회장 이름 변경으로 약관 동의 상태 초기화 - Leader ID: {}", leader.getLeaderId());
+        }
+    }
+
     // 동아리 해시태그 업데이트
     private void updateClubHashtags(Club club, List<String> newHashtags) {
         if (newHashtags == null || newHashtags.isEmpty()) return;
@@ -239,7 +240,6 @@ public class ClubLeaderService {
         Set<String> newHashtagsSet = new HashSet<>(newHashtags);
         List<String> existingHashtags = clubHashtagRepository.findHashtagsByClubId(club.getClubId());
 
-        // 기존 해시태그 중 제거할 항목 일괄 삭제
         clubHashtagRepository.deleteAllByClub_ClubIdAndClubHashtagNotIn(club.getClubId(), newHashtagsSet);
 
         // 새 해시태그 중 추가할 항목만 필터링하여 일괄 삽입
@@ -261,7 +261,6 @@ public class ClubLeaderService {
                 .map(mapping -> mapping.getClubCategory().getClubCategoryName())
                 .collect(Collectors.toSet());
 
-        // 기존 카테고리 중 제거할 항목 일괄 삭제
         clubCategoryMappingRepository.deleteAllByClub_ClubIdAndClubCategory_ClubCategoryNameNotIn(club.getClubId(), newCategoriesSet);
 
         // 새 카테고리 중 추가할 항목만 필터링하여 일괄 삽입
@@ -279,8 +278,12 @@ public class ClubLeaderService {
 
     // 동아리 메인 사진 업데이트
     private String updateClubMainPhoto(Long clubId, MultipartFile mainPhoto) throws IOException {
+        if (clubId == null) {
+            throw new ClubPhotoException(ExceptionType.CLUB_ID_NOT_EXISTS);
+        }
+
         if (mainPhoto == null || mainPhoto.isEmpty()) {
-            return clubMainPhotoRepository.findS3KeyByClubId(clubId).orElse("");
+            return clubMainPhotoRepository.findS3KeyByClubId(clubId).orElse(null);
         }
 
         return processClubMainPhoto(clubId, mainPhoto);
@@ -295,16 +298,33 @@ public class ClubLeaderService {
 
     // 사진 메타데이터 업데이트 및 S3 업로드
     private String saveClubMainPhoto(MultipartFile mainPhoto, Long clubId) throws IOException {
+        if (clubId == null) {
+            throw new ClubPhotoException(ExceptionType.CLUB_ID_NOT_EXISTS);
+        }
+
+        if (mainPhoto == null || mainPhoto.isEmpty()) {
+            throw new ClubPhotoException(ExceptionType.CLUB_MAINPHOTO_NOT_EXISTS);
+        }
+
         S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(mainPhoto, S3_MAINPHOTO_DIR);
 
-        // 기존 사진이 있는지 확인
-        ClubMainPhoto existingPhoto = clubMainPhotoRepository.findById(clubId).orElse(new ClubMainPhoto());
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
 
-        // 기존 엔티티 업데이트
-        existingPhoto.updateClubMainPhoto(mainPhoto.getOriginalFilename(), s3FileResponse.getS3FileName());
+        Optional<ClubMainPhoto> existingPhoto = clubMainPhotoRepository.findByClub(club);
 
-        // Upsert 적용 (기존 데이터 있으면 update, 없으면 insert)
-        clubMainPhotoRepository.save(existingPhoto);
+        existingPhoto.ifPresent(photo -> {
+            clubMainPhotoRepository.delete(photo);
+            clubMainPhotoRepository.flush();
+        });
+
+        ClubMainPhoto clubMainPhoto = ClubMainPhoto.builder()
+                .club(club)
+                .clubMainPhotoName(mainPhoto.getOriginalFilename())
+                .clubMainPhotoS3Key(s3FileResponse.getS3FileName())
+                .build();
+
+        clubMainPhotoRepository.save(clubMainPhoto);
 
         return s3FileResponse.getPresignedUrl();
     }

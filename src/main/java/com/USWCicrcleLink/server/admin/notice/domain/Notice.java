@@ -29,20 +29,21 @@ public class Notice {
     @Column(name = "notice_content", length=3000, nullable = false)
     private String noticeContent;
 
-    @Column(name = "notice_created_at", updatable = false)
+    @Column(name = "notice_created_at", nullable = false, updatable = false)
     private LocalDateTime noticeCreatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id", nullable = false)
     private Admin admin;
 
-    // 자동 시간 설정
     @PrePersist
     public void prePersist() {
         if (noticeUUID == null) {
             this.noticeUUID = UUID.randomUUID();
         }
-        this.noticeCreatedAt = LocalDateTime.now();
+        if (this.noticeCreatedAt == null) {
+            this.noticeCreatedAt = LocalDateTime.now();
+        }
     }
 
     public void updateTitle(String noticeTitle) {

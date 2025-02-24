@@ -125,6 +125,7 @@ public enum ExceptionType {
      * Domain: ClubIntroPhoto, Club(MainPhoto)
      */
     PHOTO_ORDER_MISS_MATCH("CLP-201", "범위를 벗어난 사진 순서 값입니다.", BAD_REQUEST),
+    CLUB_ID_NOT_EXISTS("CLP-202", "동아리 ID가 존재하지 않습니다.", INTERNAL_SERVER_ERROR),
 
     /**
      * Domain: ClubLeader

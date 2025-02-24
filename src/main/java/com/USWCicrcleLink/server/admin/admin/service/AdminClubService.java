@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -75,11 +76,8 @@ public class AdminClubService {
             throw new ClubException(ExceptionType.ClUB_LEADER_PASSWORD_NOT_MATCH);
         }
 
-        String normalizedLeaderAccount = request.getLeaderAccount().toLowerCase();
-        String normalizedClubName = request.getClubName();
-
-        validateLeaderAccount(normalizedLeaderAccount);
-        validateClubName(normalizedClubName);
+        validateLeaderAccount(request.getLeaderAccount());
+        validateClubName(request.getClubName());
         validateClubRoomNumber(request.getClubRoomNumber());
 
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
@@ -87,16 +85,25 @@ public class AdminClubService {
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
 
+        Club club = createClubEntity(request);
+        log.info("동아리 생성 성공 - Club ID: {}, Name: {}", club.getClubId(), club.getClubName());
+
+        createLeaderAccount(request.getLeaderAccount(), request.getLeaderPw(), club);
+        createClubDefaultData(club);
+    }
+
+    // 동아리 생성(웹) - 동아리 생성
+    private Club createClubEntity(AdminClubCreationRequest request) {
         Club club = Club.builder()
-                .clubName(normalizedClubName)
+                .clubName(request.getClubName())
                 .department(request.getDepartment())
+                .leaderName(null)
+                .leaderHp(null)
+                .clubInsta(null)
                 .clubRoomNumber(request.getClubRoomNumber())
                 .build();
-        clubRepository.save(club);
-        log.info("동아리 생성 성공 - Club ID: {}", club.getClubId());
 
-        createLeaderAccount(normalizedLeaderAccount, request.getLeaderPw(), club);
-        createClubDefaultData(club);
+        return clubRepository.save(club);
     }
 
     // 동아리 생성(웹) - 회장 계정 생성
@@ -123,8 +130,8 @@ public class AdminClubService {
         clubMainPhotoRepository.save(
                 ClubMainPhoto.builder()
                         .club(club)
-                        .clubMainPhotoName("")
-                        .clubMainPhotoS3Key("")
+                        .clubMainPhotoName(null)
+                        .clubMainPhotoS3Key(null)
                         .build()
         );
     }
@@ -133,8 +140,8 @@ public class AdminClubService {
         return clubIntroRepository.save(
                 ClubIntro.builder()
                         .club(club)
-                        .clubIntro("")
-                        .googleFormUrl("")
+                        .clubIntro(null)
+                        .googleFormUrl(null)
                         .recruitmentStatus(RecruitmentStatus.CLOSE)
                         .build()
         );
@@ -144,14 +151,14 @@ public class AdminClubService {
         List<ClubIntroPhoto> introPhotos = List.of(
                 ClubIntroPhoto.builder()
                         .clubIntro(clubIntro)
-                        .clubIntroPhotoName("")
-                        .clubIntroPhotoS3Key("")
+                        .clubIntroPhotoName(null)
+                        .clubIntroPhotoS3Key(null)
                         .order(1)
                         .build(),
                 ClubIntroPhoto.builder()
                         .clubIntro(clubIntro)
-                        .clubIntroPhotoName("")
-                        .clubIntroPhotoS3Key("")
+                        .clubIntroPhotoName(null)
+                        .clubIntroPhotoS3Key(null)
                         .order(2)
                         .build()
         );

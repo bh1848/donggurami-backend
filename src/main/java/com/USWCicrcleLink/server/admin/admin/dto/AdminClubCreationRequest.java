@@ -25,7 +25,7 @@ public class AdminClubCreationRequest {
     private String leaderAccount;
 
     @NotBlank(message = "비밀번호는 필수 입력 값입니다.")
-    @Size(min = 5, max = 20, message = "비밀번호는 5~20자 이내여야 합니다.")
+    @Size(min = 8, max = 20, message = "비밀번호는 8~20자 이내여야 합니다.")
     @Pattern(regexp = "^(?!.*\\s)[a-zA-Z0-9!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]+$",
             message = "비밀번호는 영문 대소문자, 숫자, 특수문자만 포함할 수 있으며 공백을 포함할 수 없습니다.")
     @Sanitize
