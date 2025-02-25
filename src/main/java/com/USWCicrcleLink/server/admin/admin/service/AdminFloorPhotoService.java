@@ -1,13 +1,13 @@
 package com.USWCicrcleLink.server.admin.admin.service;
 
+import com.USWCicrcleLink.server.admin.admin.dto.AdminFloorPhotoCreationResponse;
 import com.USWCicrcleLink.server.club.club.domain.FloorPhoto;
 import com.USWCicrcleLink.server.club.club.domain.FloorPhotoEnum;
 import com.USWCicrcleLink.server.club.club.repository.FloorPhotoRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
+import com.USWCicrcleLink.server.global.exception.errortype.PhotoException;
 import com.USWCicrcleLink.server.global.s3File.Service.S3FileUploadService;
 import com.USWCicrcleLink.server.global.s3File.dto.S3FileResponse;
-import com.USWCicrcleLink.server.admin.admin.dto.AdminFloorPhotoCreationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,8 +29,7 @@ public class AdminFloorPhotoService {
      */
     public AdminFloorPhotoCreationResponse uploadPhoto(FloorPhotoEnum floor, MultipartFile photo) {
         if (photo == null || photo.isEmpty()) {
-            log.debug("층별 사진 업로드 실패 - 파일이 비어 있음: Floor: {}", floor);
-            throw new BaseException(ExceptionType.PHOTO_FILE_IS_EMPTY);
+            throw new PhotoException(ExceptionType.PHOTO_FILE_IS_EMPTY);
         }
 
         // 기존 사진이 있다면 삭제
@@ -63,10 +62,7 @@ public class AdminFloorPhotoService {
     @Transactional(readOnly = true)
     public AdminFloorPhotoCreationResponse getPhotoByFloor(FloorPhotoEnum floor) {
         FloorPhoto floorPhoto = floorPhotoRepository.findByFloor(floor)
-                .orElseThrow(() -> {
-                    log.debug("층별 사진 조회 실패 - 존재하지 않는 Floor: {}", floor);
-                    return new BaseException(ExceptionType.PHOTO_NOT_FOUND);
-                });
+                .orElseThrow(() -> new PhotoException(ExceptionType.PHOTO_NOT_FOUND));
 
         String presignedUrl = s3FileUploadService.generatePresignedGetUrl(floorPhoto.getFloorPhotoS3key());
 
@@ -79,10 +75,7 @@ public class AdminFloorPhotoService {
      */
     public void deletePhotoByFloor(FloorPhotoEnum floor) {
         FloorPhoto floorPhoto = floorPhotoRepository.findByFloor(floor)
-                .orElseThrow(() -> {
-                    log.debug("층별 사진 삭제 실패 - 존재하지 않는 Floor: {}", floor);
-                    return new BaseException(ExceptionType.PHOTO_NOT_FOUND);
-                });
+                .orElseThrow(() -> new PhotoException(ExceptionType.PHOTO_NOT_FOUND));
 
         s3FileUploadService.deleteFile(floorPhoto.getFloorPhotoS3key());
         floorPhotoRepository.delete(floorPhoto);

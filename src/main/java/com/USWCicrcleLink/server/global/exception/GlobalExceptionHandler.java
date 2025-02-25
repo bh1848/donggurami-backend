@@ -2,8 +2,10 @@ package com.USWCicrcleLink.server.global.exception;
 
 import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.response.ErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.NestedExceptionUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,8 +24,15 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 공통 ErrorResponse 생성
-    private ErrorResponse buildErrorResponse(String exception, String code, String message, HttpStatus status, Object additionalData) {
+    /**
+     * 공통 ErrorResponse 생성 메서드
+     */
+    private ErrorResponse buildErrorResponse(String exception,
+                                             String code,
+                                             String message,
+                                             HttpStatus status,
+                                             Object additionalData) {
+
         return ErrorResponse.builder()
                 .exception(exception)
                 .code(code)
@@ -33,129 +43,222 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
-    // 공통 로그 처리
-    private void logErrorResponse(ErrorResponse errorResponse) {
-        log.error("code : {}, message : {}, additionalData : {}",
-                errorResponse.getCode(),
-                errorResponse.getMessage(),
-                errorResponse.getAdditionalData());
+    /**
+     * 요청 정보를 포함하여 4xx 에러는 warn, 5xx 에러는 error 로깅
+     */
+    private void logByHttpStatus(HttpStatus status, String logMessage, Throwable e, HttpServletRequest request) {
+        String requestInfo = String.format("Request: %s %s", request.getMethod(), request.getRequestURI());
+        if (status.is4xxClientError()) {
+            log.warn("[Client Error] {} | {}", logMessage, requestInfo);
+        } else if (status.is5xxServerError()) {
+            log.error("[Server Error] {} | {}", logMessage, requestInfo, e);
+        }
     }
 
+    /**
+     * 처리되지 않은 모든 예외 핸들러 (기본적으로 500 에러 처리)
+     */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+    public ResponseEntity<ErrorResponse> handleException(Exception e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         ErrorResponse errorResponse = buildErrorResponse(
                 e.getClass().getSimpleName(),
                 "NO_CATCH_ERROR",
                 e.getMessage(),
-                HttpStatus.INTERNAL_SERVER_ERROR,
+                status,
                 null
         );
 
-        logErrorResponse(errorResponse);
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        logByHttpStatus(status, e.getMessage(), e, request);
+        return new ResponseEntity<>(errorResponse, status);
     }
 
+    /**
+     * 프로젝트에서 사용하는 BaseException 처리
+     * ExceptionType에 따라 4xx/5xx를 구분하여 로깅 및 응답 설정
+     */
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ErrorResponse> handleBaseException(BaseException e) {
+    public ResponseEntity<ErrorResponse> handleBaseException(BaseException e, HttpServletRequest request) {
         ExceptionType exceptionType = e.getExceptionType();
+        HttpStatus status = exceptionType.getStatus();
+
+        logByHttpStatus(status, exceptionType.getMessage(), e, request);
+
         ErrorResponse errorResponse = buildErrorResponse(
                 e.getClass().getSimpleName(),
                 exceptionType.getCode(),
                 exceptionType.getMessage(),
-                exceptionType.getStatus(),
+                status,
                 e.getAdditionalData()
         );
 
-        return new ResponseEntity<>(errorResponse, exceptionType.getStatus());
+        return new ResponseEntity<>(errorResponse, status);
     }
 
-    // NotBlank 예외 처리
+
+    /**
+     * @Valid 검증 실패 (예: @NotBlank) 처리 - 400 에러
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        Map<String, String> fieldErrors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
+            fieldErrors.put(fieldName, errorMessage);
         });
 
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        String message = "입력 값 검증에 실패했습니다.";
+
+        logByHttpStatus(status, "Validation failed: " + fieldErrors, ex, request);
+
+        ErrorResponse errorResponse = buildErrorResponse(
+                ex.getClass().getSimpleName(),
+                "INVALID_ARGUMENT",
+                message,
+                status,
+                fieldErrors
+        );
+
+        return new ResponseEntity<>(errorResponse, status);
     }
 
-    // UUID 변환 예외 처리
+    /**
+     * UUID 변환 예외 처리 - 잘못된 UUID 형식일 경우 400 반환
+     */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleUUIDTypeMismatch(MethodArgumentTypeMismatchException ex) {
-
+    public ResponseEntity<ErrorResponse> handleUUIDTypeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         Throwable rootCause = NestedExceptionUtils.getRootCause(ex);
         String errorMessage = (rootCause instanceof IllegalArgumentException)
                 ? "유효하지 않은 UUID 형식입니다. 올바른 UUID를 입력하세요."
                 : "잘못된 요청입니다.";
 
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+
+        logByHttpStatus(status, errorMessage, ex, request);
+
         ErrorResponse errorResponse = buildErrorResponse(
                 ex.getClass().getSimpleName(),
                 "INVALID_UUID_FORMAT",
                 errorMessage,
-                HttpStatus.BAD_REQUEST,
+                status,
                 null
         );
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, status);
     }
 
     /**
-     * JsonCreator 예외 처리 때문에 기본 spring 예외 던짐.
+     * 잘못된 JSON 형식 / ENUM 파싱 실패 등 처리 - 400 에러
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
-
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e, HttpServletRequest request) {
         Throwable rootCause = NestedExceptionUtils.getRootCause(e);
         String errorMessage = (rootCause instanceof IllegalArgumentException)
                 ? rootCause.getMessage()
-                : "유효하지 않은 ENUM 값입니다. 올바른 값을 입력하세요.";
+                : "유효하지 않은 JSON 혹은 ENUM 값입니다. 올바른 값을 입력하세요.";
+
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+
+        logByHttpStatus(status, errorMessage, e, request);
 
         ErrorResponse errorResponse = buildErrorResponse(
                 e.getClass().getSimpleName(),
-                "INVALID_ENUM_FORMAT",
+                "INVALID_REQUEST_BODY",
                 errorMessage,
-                HttpStatus.BAD_REQUEST,
+                status,
                 null
         );
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, status);
     }
 
-    // NPE 처리
+    /**
+     * NullPointerException 처리 - 서버 오류로 간주 (500)
+     */
     @ExceptionHandler(NullPointerException.class)
-    public ResponseEntity<ErrorResponse> handleNullPointerException(NullPointerException e) {
-
+    public ResponseEntity<ErrorResponse> handleNullPointerException(NullPointerException e, HttpServletRequest request) {
         Throwable rootCause = NestedExceptionUtils.getRootCause(e);
         String errorMessage = (rootCause != null)
                 ? "NullPointerException 발생: " + rootCause.getMessage()
-                : "잘못된 요청입니다. 필수 값을 확인하세요.";
+                : "서버 로직 처리 중 NPE가 발생했습니다.";
+
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        logByHttpStatus(status, errorMessage, e, request);
 
         ErrorResponse errorResponse = buildErrorResponse(
                 e.getClass().getSimpleName(),
                 "NULL_POINTER_EXCEPTION",
                 errorMessage,
-                HttpStatus.BAD_REQUEST,
+                status,
                 null
         );
 
-        logErrorResponse(errorResponse);
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, status);
     }
 
-    // 잘못된 경로로 요청시 반환
+    /**
+     * 잘못된 경로 요청 처리 - 404 에러
+     */
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException e) {
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        String message = "요청하신 경로를 찾을 수 없습니다.";
+
+        logByHttpStatus(status, message, e, request);
+
         ErrorResponse errorResponse = buildErrorResponse(
                 "NoResourceFoundException",
                 "RESOURCE_NOT_FOUND",
-                "요청하신 경로를 찾을 수 없습니다.",
-                HttpStatus.NOT_FOUND,
+                message,
+                status,
                 null
         );
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+    /**
+     * 데이터 무결성 위반 예외 처리 (예: 중복 데이터 삽입) - 409 에러
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        String errorMessage = "데이터 무결성 위반 오류가 발생했습니다.";
+
+        logByHttpStatus(status, errorMessage, e, request);
+
+        ErrorResponse errorResponse = buildErrorResponse(
+                e.getClass().getSimpleName(),
+                "DATA_INTEGRITY_VIOLATION",
+                errorMessage,
+                status,
+                null
+        );
+
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+    /**
+     * SQL 예외 처리 - 500 에러
+     */
+    @ExceptionHandler(SQLException.class)
+    public ResponseEntity<ErrorResponse> handleSQLException(SQLException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        String errorMessage = "데이터베이스 오류가 발생했습니다.";
+
+        logByHttpStatus(status, errorMessage, e, request);
+
+        ErrorResponse errorResponse = buildErrorResponse(
+                e.getClass().getSimpleName(),
+                "SQL_EXCEPTION",
+                errorMessage,
+                status,
+                null
+        );
+
+        return new ResponseEntity<>(errorResponse, status);
     }
 }

@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminNoticeService {
 
-    private static final int FILE_LIMIT = 5; // 최대 업로드 가능한 파일 수
+    private static final int FILE_LIMIT = 5;
     private static final String S3_NOTICE_PHOTO_DIR = "noticePhoto/";
     private final NoticeRepository noticeRepository;
     private final NoticePhotoRepository noticePhotoRepository;
@@ -72,10 +72,7 @@ public class AdminNoticeService {
     @Transactional(readOnly = true)
     public NoticeDetailResponse getNoticeByUUID(UUID noticeUUID) {
         Notice notice = noticeRepository.findByNoticeUUID(noticeUUID)
-                .orElseThrow(() -> {
-                    log.warn("공지사항 조회 실패 - 존재하지 않는 UUID: {}", noticeUUID);
-                    return new NoticeException(ExceptionType.NOTICE_NOT_EXISTS);
-                });
+                .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
         List<String> noticePhotoUrls = noticePhotoRepository.findByNotice(notice).stream()
                 .sorted(Comparator.comparingInt(NoticePhoto::getOrder))
@@ -125,10 +122,7 @@ public class AdminNoticeService {
 
         // 공지사항 조회
         Notice notice = noticeRepository.findByNoticeUUID(noticeUUID)
-                .orElseThrow(() -> {
-                    log.warn("공지사항 수정 실패 - 존재하지 않는 uuid: {}", noticeUUID);
-                    return new NoticeException(ExceptionType.NOTICE_NOT_EXISTS);
-                });
+                .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
         notice.updateTitle(request.getNoticeTitle());
         notice.updateContent(request.getNoticeContent());
@@ -152,10 +146,7 @@ public class AdminNoticeService {
     public void deleteNotice(UUID noticeUUID) {
 
         Notice notice = noticeRepository.findByNoticeUUID(noticeUUID)
-                .orElseThrow(() -> {
-                    log.warn("공지사항 삭제 실패 - 존재하지 않는 uuid: {}", noticeUUID);
-                    return new NoticeException(ExceptionType.NOTICE_NOT_EXISTS);
-                });
+                .orElseThrow(() -> new NoticeException(ExceptionType.NOTICE_NOT_EXISTS));
 
         deleteExistingPhotos(notice);
 
@@ -177,13 +168,11 @@ public class AdminNoticeService {
         if (noticePhotos != null && !noticePhotos.isEmpty()) {
             // 사진과 사진 순서의 개수 일치 확인
             if (photoOrders == null || noticePhotos.size() != photoOrders.size()) {
-                log.warn("공지사항 사진 업로드 실패 - 사진 개수와 순서 개수 불일치");
                 throw new NoticeException(ExceptionType.PHOTO_ORDER_MISMATCH);
             }
 
             // 사진 개수 제한 확인
             if (noticePhotos.size() > FILE_LIMIT) {
-                log.warn("공지사항 사진 업로드 실패 - 최대 개수 초과 (제한: {}개, 업로드: {}개)", FILE_LIMIT, noticePhotos.size());
                 throw new NoticeException(ExceptionType.UP_TO_5_PHOTOS_CAN_BE_UPLOADED);
             }
         }

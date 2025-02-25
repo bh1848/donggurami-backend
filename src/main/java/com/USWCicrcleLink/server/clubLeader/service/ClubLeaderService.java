@@ -159,7 +159,7 @@ public class ClubLeaderService {
         String mainPhotoUrl = updateClubMainPhoto(club.getClubId(), mainPhoto);
 
         club.updateClubInfo(clubInfoRequest.getLeaderName(), clubInfoRequest.getLeaderHp(), clubInfoRequest.getClubInsta(), clubInfoRequest.getClubRoomNumber());
-        log.info("동아리 기본 정보 변경 완료 - Club ID: {}, Club Name: {}", club.getClubId(), club.getClubName());
+        log.info("동아리 기본 정보 변경 완료 - Club UUID: {}, Club Name: {}", club.getClubUUID(), club.getClubName());
 
         return new ApiResponse<>("동아리 기본 정보 변경 완료", new UpdateClubInfoResponse(mainPhotoUrl));
     }
@@ -280,7 +280,7 @@ public class ClubLeaderService {
 
         // 동아리 소개 조회
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
-                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         // clubHashtag 조회
         List<String> clubHashtags = clubHashtagRepository.findByClubClubId(club.getClubId())
@@ -319,7 +319,7 @@ public class ClubLeaderService {
 
         // 동아리 소개 조회
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
-                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         // 동아리 소개 사진 조회
         List<ClubIntroPhoto> clubIntroPhotos = clubIntroPhotoRepository.findByClubIntro(clubIntro);
@@ -341,11 +341,11 @@ public class ClubLeaderService {
         Club club = validateLeaderAccess(clubUUID);
 
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
-                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         // 모집 상태가 null일 때 예외 처리
         if (clubIntroRequest.getRecruitmentStatus() == null) {
-            throw new ClubIntroException(ExceptionType.INVALID_RECRUITMENT_STATUS);
+            throw new ClubException(ExceptionType.INVALID_RECRUITMENT_STATUS);
         }
 
         // 입력값 검증 (XSS 공격 방지)
@@ -467,7 +467,7 @@ public class ClubLeaderService {
         Club club = validateLeaderAccess(clubUUID);
 
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
-                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
         log.debug("동아리 소개 조회 결과: {}", clubIntro);
 
         // 모집 상태 현재와 반전

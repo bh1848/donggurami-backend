@@ -10,10 +10,7 @@ import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
-import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
-import com.USWCicrcleLink.server.global.exception.errortype.ClubIntroException;
-import com.USWCicrcleLink.server.global.exception.errortype.UserException;
+import com.USWCicrcleLink.server.global.exception.errortype.*;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
@@ -49,32 +46,29 @@ public class AplictService {
 
         // 이미 지원한 경우 예외 처리
         if (aplictRepository.existsByProfileAndClubUUID(profile, clubUUID)) {
-            log.debug("동아리 지원 실패 - 이미 지원한 사용자, ClubUUID: {}", clubUUID);
-            throw new ClubException(ExceptionType.ALREADY_APPLIED);
+            throw new AplictException(ExceptionType.ALREADY_APPLIED);
         }
 
         // 이미 동아리 멤버인 경우 예외 처리
         if (clubMembersRepository.existsByProfileAndClubUUID(profile, clubUUID)) {
-            log.debug("동아리 지원 실패 - 이미 동아리 멤버, ClubUUID: {}", clubUUID);
-            throw new ClubException(ExceptionType.ALREADY_MEMBER);
+            throw new AplictException(ExceptionType.ALREADY_MEMBER);
         }
 
         List<Profile> clubMembers = clubMembersRepository.findProfilesByClubUUID(clubUUID);
 
+        // 등록된 전화번호
         for (Profile member : clubMembers) {
             if (profile.getUserHp().equals(member.getUserHp())) {
-                log.debug("동아리 지원 실패 - 중복된 전화번호, ClubUUID: {}", clubUUID);
-                throw new BaseException(ExceptionType.PHONE_NUMBER_ALREADY_REGISTERED);
+                throw new AplictException(ExceptionType.PHONE_NUMBER_ALREADY_REGISTERED);
             }
         }
 
+        // 등록된 학번
         for (Profile member : clubMembers) {
             if (profile.getStudentNumber().equals(member.getStudentNumber())) {
-                log.debug("동아리 지원 실패 - 중복된 학번, ClubUUID: {}", clubUUID);
-                throw new BaseException(ExceptionType.STUDENT_NUMBER_ALREADY_REGISTERED);
+                throw new AplictException(ExceptionType.STUDENT_NUMBER_ALREADY_REGISTERED);
             }
         }
-
 
         log.debug("동아리 지원 가능 - ClubUUID: {}", clubUUID);
     }
@@ -85,15 +79,11 @@ public class AplictService {
     @Transactional(readOnly = true)
     public String getGoogleFormUrlByClubUUID(UUID clubUUID) {
         ClubIntro clubIntro = clubIntroRepository.findByClubUUID(clubUUID)
-                .orElseThrow(() -> {
-                    log.debug("구글 폼 URL 조회 실패 - 클럽 소개 없음, ClubUUID: {}", clubUUID);
-                    return new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS);
-                });
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
         String googleFormUrl = clubIntro.getGoogleFormUrl();
         if (googleFormUrl == null || googleFormUrl.isEmpty()) {
-            log.debug("구글 폼 URL 조회 실패 - URL 없음, ClubUUID: {}", clubUUID);
-            throw new ClubIntroException(ExceptionType.GOOGLE_FORM_URL_NOT_EXISTS);
+            throw new ClubException(ExceptionType.GOOGLE_FORM_URL_NOT_EXISTS);
         }
 
         log.debug("구글 폼 URL 조회 성공 - ClubUUID: {}", clubUUID);
@@ -107,10 +97,7 @@ public class AplictService {
         Profile profile = getAuthenticatedProfile();
 
         Club club = clubRepository.findByClubUUID(clubUUID)
-                .orElseThrow(() -> {
-                    log.debug("동아리 지원서 제출 실패 - 존재하지 않는 동아리, ClubUUID: {}", clubUUID);
-                    return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
-                });
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
 
         Aplict aplict = Aplict.builder()
                 .profile(profile)
@@ -133,9 +120,6 @@ public class AplictService {
         User user = userDetails.user();
 
         return profileRepository.findByUser_UserUUID(user.getUserUUID())
-                .orElseThrow(() -> {
-                    log.debug("사용자 프로필 조회 실패");
-                    return new UserException(ExceptionType.USER_NOT_EXISTS);
-                });
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
     }
 }

@@ -72,16 +72,13 @@ public class AdminClubService {
         Admin admin = getAuthenticatedAdmin();
 
         if (!request.getLeaderPw().equals(request.getLeaderPwConfirm())) {
-            log.debug("동아리 생성 실패 - 회장 비밀번호 불일치, AdminUUID: {}", admin.getAdminUUID());
             throw new ClubException(ExceptionType.ClUB_LEADER_PASSWORD_NOT_MATCH);
         }
 
         validateLeaderAccount(request.getLeaderAccount());
         validateClubName(request.getClubName());
-        validateClubRoomNumber(request.getClubRoomNumber());
 
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
-            log.debug("동아리 생성 실패 - 관리자 비밀번호 불일치");
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
 
@@ -92,7 +89,7 @@ public class AdminClubService {
         createClubDefaultData(club);
     }
 
-    // 동아리 생성(ADMIN) - 동아리 생성
+    // 동아리 생성 - 동아리 생성
     private Club createClubEntity(AdminClubCreationRequest request) {
         Club club = Club.builder()
                 .clubName(request.getClubName())
@@ -106,7 +103,7 @@ public class AdminClubService {
         return clubRepository.save(club);
     }
 
-    // 동아리 생성(ADMIN) - 회장 계정 생성
+    // 동아리 생성 - 회장 계정 생성
     private void createLeaderAccount(String leaderAccount, String leaderPw, Club club) {
         Leader leader = Leader.builder()
                 .leaderAccount(leaderAccount)
@@ -119,7 +116,7 @@ public class AdminClubService {
         log.info("회장 계정 생성 성공 - Leader ID: {}", leader.getLeaderId());
     }
 
-    // 동아리 생성(ADMIN) - 기본 동아리 데이터 생성
+    // 동아리 생성 - 기본 동아리 데이터 생성
     private void createClubDefaultData(Club club) {
         createClubMainPhoto(club);
         ClubIntro clubIntro = createClubIntro(club);
@@ -163,27 +160,19 @@ public class AdminClubService {
         log.info("기본 동아리 소개 사진 5개 생성 완료 - Club ID: {}", clubIntro.getClub().getClubId());
     }
 
-    // 동아리 생성(ADMIN) - 동아리 회장 아이디 중복 확인
+    // 동아리 생성 - 동아리 회장 아이디 중복 확인
     public void validateLeaderAccount(String leaderAccount) {
         if (leaderRepository.existsByLeaderAccount(leaderAccount)) {
-            log.debug("동아리 회장 계정 중복 - LeaderAccount: {}", leaderAccount);
+            log.warn("동아리 회장 계정 중복 - LeaderAccount: {}", leaderAccount);
             throw new ClubException(ExceptionType.LEADER_ACCOUNT_ALREADY_EXISTS);
         }
     }
 
-    // 동아리 생성(ADMIN) - 동아리 이름 중복 확인
+    // 동아리 생성 - 동아리 이름 중복 확인
     public void validateClubName(String clubName) {
         if (clubRepository.existsByClubName(clubName)) {
-            log.debug("동아리명 중복 - ClubName: {}", clubName);
+            log.warn("동아리명 중복 - ClubName: {}", clubName);
             throw new ClubException(ExceptionType.CLUB_NAME_ALREADY_EXISTS);
-        }
-    }
-
-    // 동아리 생성(ADMIN) - 동아리방 중복 확인
-    public void validateClubRoomNumber(String clubRoomNumber) {
-        if (clubRepository.existsByClubRoomNumber(clubRoomNumber)) {
-            log.debug("동아리방 호수 중복 - ClubRoomNumber: {}", clubRoomNumber);
-            throw new ClubException(ExceptionType.CLUB_ROOM_ALREADY_EXISTS);
         }
     }
 
@@ -195,13 +184,12 @@ public class AdminClubService {
         Admin admin = getAuthenticatedAdmin();
 
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
-            log.debug("동아리 삭제 실패 - 관리자 비밀번호 불일치");
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
 
         Long clubId = clubRepository.findClubIdByUUID(clubUUID)
                 .orElseThrow(() -> {
-                    log.debug("동아리 삭제 실패 - 존재하지 않는 Club UUID: {}", clubUUID);
+                    log.error("동아리 삭제 실패 - 존재하지 않는 Club UUID: {}", clubUUID);
                     return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
                 });
 

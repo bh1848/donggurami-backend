@@ -8,6 +8,7 @@ import com.USWCicrcleLink.server.club.club.repository.ClubCategoryMappingReposit
 import com.USWCicrcleLink.server.club.club.repository.ClubCategoryRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubCategoryException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,13 +38,13 @@ public class AdminClubCategoryService {
     }
 
     /**
-     * 동아리 카테고리 설정(ADMIN) - 카테고리 추가 (쿼리 최적화)
+     * 동아리 카테고리 설정(ADMIN) - 카테고리 추가
      */
     public ClubCategoryResponse addClubCategory(AdminClubCategoryCreationRequest request) {
         String normalizedCategoryName = request.getClubCategoryName().toLowerCase();
 
         if (clubCategoryRepository.existsByClubCategoryName(normalizedCategoryName)) {
-            throw new BaseException(ExceptionType.DUPLICATE_CATEGORY);
+            throw new ClubCategoryException(ExceptionType.DUPLICATE_CATEGORY);
         }
 
         ClubCategory clubCategory = ClubCategory.builder()
@@ -61,10 +62,7 @@ public class AdminClubCategoryService {
      */
     public ClubCategoryResponse deleteClubCategory(UUID clubCategoryUUID) {
         ClubCategory clubCategory = clubCategoryRepository.findByClubCategoryUUID(clubCategoryUUID)
-                .orElseThrow(() -> {
-                    log.error("동아리 카테고리 삭제 실패 - 존재하지 않음: UUID: {}", clubCategoryUUID);
-                    return new BaseException(ExceptionType.CATEGORY_NOT_FOUND);
-                });
+                .orElseThrow(() -> new ClubCategoryException(ExceptionType.CATEGORY_NOT_FOUND));
 
         try {
             clubCategoryMappingRepository.deleteByClubCategoryId(clubCategory.getClubCategoryId());
