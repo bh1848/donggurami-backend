@@ -3,16 +3,22 @@ server:
   base:
     url: "http://localhost:8080"
 
+  error:
+    include-exception: true
+    include-stacktrace: always
+    include-message: always
+
 logging:
   level:
-    root: info  # 기본 로그
-    com:
-      USWCicrcleLink:
-        server: debug  # Local 환경
-    org.springframework: debug  # 스프링 내부 로그
-    org.hibernate.SQL: debug  # Hibernate SQL 로그
-    org.hibernate.type.descriptor.sql: trace  # Hibernate SQL 바인딩 로그
-    p6spy: debug  # p6spy (SQL 로깅 라이브러리) 로그
+    root: debug
+    com.USWCicrcleLink.server: debug
+    org.springframework.security: debug
+    org.springframework.web: debug
+    org.apache.catalina.core: debug
+    org.springframework: debug
+    org.hibernate.SQL: debug
+    org.hibernate.type: debug
+    p6spy: debug
 
 email:
   config:

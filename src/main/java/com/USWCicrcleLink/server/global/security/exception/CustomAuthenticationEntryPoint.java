@@ -26,8 +26,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setCharacterEncoding("UTF-8");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        log.warn("인증 실패: [{}] {} - {}", request.getMethod(), request.getRequestURI(), authException.getMessage());
-
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("status", HttpServletResponse.SC_UNAUTHORIZED);
         responseBody.put("message", "인증이 필요합니다.");

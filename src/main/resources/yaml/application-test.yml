@@ -1,17 +1,22 @@
 server:
   port: ${BASIC_PORT}
 
-# log setting
+  error:
+    include-exception: true
+    include-stacktrace: always
+    include-message: always
+
 logging:
   level:
-    root: INFO  # 기본 로그
-    com:
-      USWCicrcleLink:
-        server: DEBUG  # 프로젝트 로그
-    org.springframework: INFO  # 스프링 내부 로그
-    org.hibernate.SQL: DEBUG  # Hibernate의 SQL 쿼리 로그
-    org.hibernate.type.descriptor.sql: TRACE  # Hibernate SQL 바인딩 로그
-    p6spy: DEBUG  #  p6spy (SQL 로깅 라이브러리) 로그
+    root: info
+    com.USWCicrcleLink.server: debug
+    org.springframework.security: off
+    org.springframework.web: warn
+    org.apache.catalina.core: off
+    org.springframework: error
+    org.hibernate.SQL: debug
+    org.hibernate.type: debug
+    p6spy: info
 
 # email url
 email:
