@@ -35,7 +35,7 @@ public class ClubLeaderLoginService {
      */
     @RateLimite(action = "WEB_LOGIN")
     public LeaderLoginResponse leaderLogin(LeaderLoginRequest request, HttpServletResponse response) {
-        UserDetails userDetails = loadLeaderDetails(request.getLeaderAccount());
+        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getLeaderAccount(), Role.LEADER);
 
         if (!passwordEncoder.matches(request.getLeaderPw(), userDetails.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
@@ -54,7 +54,7 @@ public class ClubLeaderLoginService {
         log.debug("Leader 로그인 성공 - 계정: {}", request.getLeaderAccount());
 
         String accessToken = jwtProvider.createAccessToken(leaderUUID, response);
-        String refreshToken = jwtProvider.createRefreshToken(leaderUUID, response, false);
+        String refreshToken = jwtProvider.createRefreshToken(leaderUUID, response);
 
         return new LeaderLoginResponse(accessToken, refreshToken, Role.LEADER, clubUUID, isAgreedTerms);
     }
@@ -65,15 +65,5 @@ public class ClubLeaderLoginService {
             return customLeaderDetails.leader().getLeaderUUID();
         }
         throw new UserException(ExceptionType.USER_NOT_EXISTS);
-    }
-
-    // account 및 role 확인
-    private UserDetails loadLeaderDetails(String account) {
-        try {
-            return customUserDetailsService.loadUserByAccountAndRole(account, Role.LEADER);
-        } catch (UserException e) {
-            log.debug("동아리 회장 로그인 실패 - 존재하지 않는 계정: {}", account);
-            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
-        }
     }
 }

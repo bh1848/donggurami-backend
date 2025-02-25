@@ -17,8 +17,6 @@ spring:
       - /users/reset-password
       - /users/email/resend-confirmation
       - /users/login
-      - /users/logout
-      - /users/refresh-token
       - /club-leader/login
       - /admin/login
       - /integration/**

@@ -12,10 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,9 +23,9 @@ import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -159,98 +156,67 @@ public class JwtProvider {
     }
 
     /**
-     * 리프레시 토큰 생성 (Admin & Leader는 Redis, User는 JWT)
+     * 리프레시 토큰 생성
      */
-    public String createRefreshToken(UUID uuid, HttpServletResponse response, boolean isUser) {
-        String refreshToken;
-        if (isUser) {
-            refreshToken = Jwts.builder()
-                    .setSubject(uuid.toString())
-                    .setIssuedAt(new Date())
-                    .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION_TIME))
-                    .signWith(secretKey, SignatureAlgorithm.HS256)
-                    .compact();
-        } else {
-            deleteRefreshToken(uuid);
+    public String createRefreshToken(UUID uuid, HttpServletResponse response) {
+        // 기존 Refresh Token 삭제 (Refresh Token Rotation 적용)
+        deleteRefreshToken(uuid);
 
-            refreshToken = UUID.randomUUID().toString();
-            String redisKey = "refreshToken:" + refreshToken;
-            redisTemplate.opsForValue().set(redisKey, uuid.toString(), REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
-        }
-        setRefreshTokenCookie(response, refreshToken);
-        return refreshToken;
+        String newRefreshToken = UUID.randomUUID().toString();
+        String redisKey = "refreshToken:" + newRefreshToken;
+
+        redisTemplate.opsForValue().set(redisKey, uuid.toString(), REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
+
+        // 클라이언트에 쿠키로 전달
+        setRefreshTokenCookie(response, newRefreshToken);
+
+        log.debug("새로운 Refresh Token 발급 - UUID: {}", uuid);
+        return newRefreshToken;
     }
 
     /**
-     * 리프레시 토큰 검증 (Admin & Leader는 Redis, User는 JWT)
+     * 리프레시 토큰 검증 (Redis 조회 방식)
      */
-    public boolean validateRefreshToken(String refreshToken, boolean isUser) {
+    public boolean validateRefreshToken(String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
-            return true;
-        }
-
-        if (isUser) {
-            try {
-                getClaims(refreshToken);
-                log.debug("User 리프레시 토큰 검증 성공");
-                return false;
-            } catch (JwtException e) {
-                log.warn("User 리프레시 토큰 검증 실패 - 공격 가능성 있음: {}", e.getMessage());
-                return true;
-            }
+            return false;
         }
 
         boolean existsInRedis = redisTemplate.opsForValue().get("refreshToken:" + refreshToken) != null;
-        if (!existsInRedis) {
-            log.warn("Admin/Leader 리프레시 토큰 검증 실패 - 공격 가능성 있음");
+        if (existsInRedis) {
+            log.debug("Refresh Token 검증 성공");
+        } else {
+            log.warn("Refresh Token 검증 실패 - 공격 가능성 있음");
         }
-        return !existsInRedis;
+        return existsInRedis;
     }
 
     /**
-     * 리프레시 토큰에서 UUID 추출 (Admin & Leader는 Redis, User는 JWT)
+     * 리프레시 토큰에서 UUID 추출 (Redis에서 조회)
      */
-    public UUID getUUIDFromRefreshToken(String refreshToken, boolean isUser) {
-        if (isUser) {
-            return UUID.fromString(getClaims(refreshToken).getSubject());
-        }
-
+    public UUID getUUIDFromRefreshToken(String refreshToken) {
         String storedUuid = redisTemplate.opsForValue().get("refreshToken:" + refreshToken);
         return (storedUuid != null) ? UUID.fromString(storedUuid) : null;
     }
 
     /**
-     * 리프레시 토큰 삭제 (Admin & Leader)
+     * 리프레시 토큰 삭제
      */
     public void deleteRefreshToken(UUID uuid) {
         log.debug("리프레시 토큰 삭제 진행 - UUID: {}", uuid);
-        ScanOptions scanOptions = ScanOptions.scanOptions().match("refreshToken:*").count(100).build();
-        List<byte[]> keysToDelete = new ArrayList<>();
-        RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
 
-        redisTemplate.executeWithStickyConnection(connection -> {
-            try (Cursor<byte[]> cursor = connection.keyCommands().scan(scanOptions)) {
-                while (cursor.hasNext()) {
-                    byte[] key = cursor.next();
-                    byte[] storedValueBytes = connection.stringCommands().get(key);
-                    if (storedValueBytes != null) {
-                        String storedUuid = serializer.deserialize(storedValueBytes);
-                        if (uuid.toString().equals(storedUuid)) {
-                            keysToDelete.add(key);
-                        }
-                    }
+        // 기존 Refresh Token 조회
+        Set<String> keys = redisTemplate.keys("refreshToken:*");
+        if (keys != null) {
+            for (String key : keys) {
+                String storedUuid = redisTemplate.opsForValue().get(key);
+                if (uuid.toString().equals(storedUuid)) {
+                    redisTemplate.delete(key);
+                    log.debug("기존 Refresh Token 삭제 완료 - Key: {}", key);
+                    break;
                 }
             }
-            if (!keysToDelete.isEmpty()) {
-                for (byte[] key : keysToDelete) {
-                    connection.keyCommands().del(key);
-                }
-                log.debug("삭제된 리프레시 토큰 개수: {}", keysToDelete.size());
-            } else {
-                log.debug("삭제할 리프레시 토큰이 없음 - UUID: {}", uuid);
-            }
-            return null;
-        });
+        }
     }
 
     /**
@@ -273,8 +239,7 @@ public class JwtProvider {
      */
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         int maxAge = (int) (REFRESH_TOKEN_EXPIRATION_TIME / 1000);
-        // secureCookie 값이 true면 "; Secure" 옵션을 추가합니다.
-        String secureFlag = secureCookie ? "; Secure" : "";
+        String secureFlag = "; Secure";
         String cookieValue = String.format("refreshToken=%s; Path=/; HttpOnly; Max-Age=%d; SameSite=Strict%s",
                 refreshToken, maxAge, secureFlag);
         response.setHeader("Set-Cookie", cookieValue);

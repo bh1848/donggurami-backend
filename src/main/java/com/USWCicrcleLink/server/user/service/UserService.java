@@ -353,7 +353,7 @@ public class UserService {
         }
 
         String accessToken = jwtProvider.createAccessToken(userUUID, response);
-        String refreshToken = jwtProvider.createRefreshToken(userUUID, response, true);
+        String refreshToken = jwtProvider.createRefreshToken(userUUID, response);
 
         // FCM 토큰 저장
         profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
@@ -405,60 +405,13 @@ public class UserService {
     }
 
     /**
-     * User 토큰 재발급 (JWT 기반)
-     */
-    public TokenDto refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = jwtProvider.resolveRefreshToken(request);
-
-        if (refreshToken == null || jwtProvider.validateRefreshToken(refreshToken, true)) {
-            forceLogout(response);
-            return null;
-        }
-
-        UUID uuid = UUID.fromString(jwtProvider.getClaims(refreshToken).getSubject());
-
-        String newAccessToken = jwtProvider.createAccessToken(uuid, response);
-        String newRefreshToken = jwtProvider.createRefreshToken(uuid, response, true);
-
-        log.debug("토큰 갱신 성공 - UUID: {}", uuid);
-        return new TokenDto(newAccessToken, newRefreshToken);
-    }
-
-    /**
-     * User 로그아웃 (JWT 기반)
-     */
-    public void userLogout(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = jwtProvider.resolveRefreshToken(request);
-
-        if (refreshToken == null || jwtProvider.validateRefreshToken(refreshToken, true)) {
-            forceLogout(response);
-            return;
-        }
-
-        UUID userUUID = UUID.fromString(jwtProvider.getClaims(refreshToken).getSubject());
-
-        // FCM 토큰 삭제 (모바일 푸시 알림 무효화)
-        profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
-            profile.updateFcmToken(null);
-            profileRepository.save(profile);
-            log.debug("User 로그아웃 - FCM 토큰 삭제 완료 - UUID: {}", userUUID);
-        });
-
-        SecurityContextHolder.clearContext();
-        forceLogout(response);
-
-        log.debug("User 로그아웃 완료 - UUID: {}", userUUID);
-    }
-
-    /**
      * 회원 탈퇴 (User)
      */
     public void cancelMembership(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken == null || jwtProvider.validateRefreshToken(refreshToken, true)) {
-            log.warn("회원 탈퇴 실패 - 리프레시 토큰 없음 또는 검증 실패");
-            forceLogout(response);
+        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken)) {
+            jwtProvider.deleteRefreshTokenCookie(response);
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
@@ -476,13 +429,7 @@ public class UserService {
         userRepository.deleteByUserUUID(userUUID);
 
         SecurityContextHolder.clearContext();
-        forceLogout(response);
-
-        log.info("회원 탈퇴 성공 - UUID: {}", userUUID);
-    }
-
-    // 로그아웃 처리 (쿠키 삭제)
-    private void forceLogout(HttpServletResponse response) {
         jwtProvider.deleteRefreshTokenCookie(response);
+        log.info("회원 탈퇴 성공 - UUID: {}", userUUID);
     }
 }

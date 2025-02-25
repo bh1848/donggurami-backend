@@ -1,7 +1,7 @@
 package com.USWCicrcleLink.server.global.security.Integration.api;
 
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import com.USWCicrcleLink.server.global.security.Integration.service.AdminLeaderAuthService;
+import com.USWCicrcleLink.server.global.security.Integration.service.IntegrationAuthService;
 import com.USWCicrcleLink.server.global.security.jwt.dto.TokenDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,24 +16,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/integration")
 @RequiredArgsConstructor
 @Slf4j
-public class AdminLeaderAuthController {
-    private final AdminLeaderAuthService adminLeaderAuthService;
+public class IntegrationAuthController {
+    private final IntegrationAuthService integrationAuthService;
 
     /**
-     * Admin & Leader 로그아웃
+     * 로그아웃
      */
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request, HttpServletResponse response) {
-        adminLeaderAuthService.adminLeaderLogout(request, response);
+        integrationAuthService.logout(request, response);
         return ResponseEntity.ok(new ApiResponse<>("로그아웃 성공"));
     }
 
     /**
-     * Admin & Leader 토큰 갱신
+     * 토큰 갱신
      */
     @PostMapping("/refresh-token")
     public ResponseEntity<ApiResponse<TokenDto>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        TokenDto tokenDto = adminLeaderAuthService.refreshToken(request, response);
+        TokenDto tokenDto = integrationAuthService.refreshToken(request, response);
 
         if (tokenDto == null) {
             return ResponseEntity.status(401).body(new ApiResponse<>("리프레시 토큰이 유효하지 않습니다. 로그아웃됐습니다.", null));
