@@ -1,10 +1,9 @@
 package com.USWCicrcleLink.server.global.security.jwt.filter;
 
-import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.JwtException;
 import com.USWCicrcleLink.server.global.security.details.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
+import com.USWCicrcleLink.server.global.security.exception.CustomAuthenticationException;
 import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -34,7 +33,6 @@ public class JwtFilter extends OncePerRequestFilter {
     private final List<String> permitAllPaths;
     private final PathMatcher pathMatcher = new AntPathMatcher();
 
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
@@ -51,28 +49,17 @@ public class JwtFilter extends OncePerRequestFilter {
         String accessToken = jwtProvider.resolveAccessToken(request);
 
         try {
-            if (accessToken != null && jwtProvider.validateAccessToken(accessToken)) {
-                Authentication auth = jwtProvider.getAuthentication(accessToken);
-                SecurityContextHolder.getContext().setAuthentication(auth);
-
-                if (auth.getPrincipal() instanceof CustomAdminDetails adminDetails) {
-                    MDC.put("userType", "Admin");
-                    MDC.put("userUUID", adminDetails.getAdminUUID().toString());
-                } else if (auth.getPrincipal() instanceof CustomUserDetails userDetails) {
-                    MDC.put("userType", "User");
-                    MDC.put("userUUID", userDetails.getUserUUID().toString());
-                } else if (auth.getPrincipal() instanceof CustomLeaderDetails leaderDetails) {
-                    MDC.put("userType", "Leader");
-                    MDC.put("userUUID", leaderDetails.getLeaderUUID().toString());
+            if (accessToken == null || !jwtProvider.validateAccessToken(accessToken)) {
+                if (accessToken != null) {
+                    log.warn("JWT 공격 시도 감지: 잘못된 서명 또는 변조된 토큰 - IP: {} | 요청 경로: {}",
+                            request.getRemoteAddr(), request.getRequestURI());
                 }
-
-                log.info("[{}: {}] 요청 경로: {}",
-                        MDC.get("userType"), MDC.get("userUUID"), requestPath);
-
-            } else {
-                log.warn("유효하지 않은 액세스 토큰 감지 - 요청 경로: {}", requestPath);
-                throw new JwtException(ExceptionType.INVALID_ACCESS_TOKEN);
+                throw new CustomAuthenticationException("유효하지 않은 액세스 토큰");
             }
+
+            Authentication auth = jwtProvider.getAuthentication(accessToken);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            setMDCUserDetails(auth, request.getMethod(), request.getRequestURI());
 
             filterChain.doFilter(request, response);
         } finally {
@@ -80,6 +67,29 @@ public class JwtFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * MDC(User Type, UUID) 설정
+     */
+    private void setMDCUserDetails(Authentication auth, String method, String path) {
+        if (auth.getPrincipal() instanceof CustomAdminDetails adminDetails) {
+            MDC.put("userType", "Admin");
+            MDC.put("userUUID", adminDetails.getAdminUUID().toString());
+        } else if (auth.getPrincipal() instanceof CustomUserDetails userDetails) {
+            MDC.put("userType", "User");
+            MDC.put("userUUID", userDetails.getUserUUID().toString());
+        } else if (auth.getPrincipal() instanceof CustomLeaderDetails leaderDetails) {
+            MDC.put("userType", "Leader");
+            MDC.put("userUUID", leaderDetails.getLeaderUUID().toString());
+        }
+
+        if (log.isDebugEnabled()) {
+            log.info("[{}: {}] {} 요청 경로: {}", MDC.get("userType"), MDC.get("userUUID"), method, path);
+        }
+    }
+
+    /**
+     * 인증이 필요 없는 경로인지 확인
+     */
     private boolean isPermitAllPath(String requestPath) {
         return permitAllPaths.stream().anyMatch(permitPath -> pathMatcher.match(permitPath, requestPath));
     }

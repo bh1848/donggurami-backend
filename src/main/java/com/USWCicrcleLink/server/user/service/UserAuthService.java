@@ -84,7 +84,7 @@ public class UserAuthService {
         // account로 user 조회
         User user = userRepository.findByUserAccount(request.getAccount())
                 .orElseThrow(() -> {
-                    log.error("로그인 실패 - 존재하지 않는 계정: {}", request.getAccount());
+                    log.debug("로그인 실패 - 존재하지 않는 계정: {}", request.getAccount());
                     return new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS);
                 });
         log.debug("사용자 조회 성공 - 계정: {}, 사용자 ID: {}", user.getUserAccount(), user.getUserId());
@@ -92,14 +92,14 @@ public class UserAuthService {
         // user로 프로필 조회하여 로그인 가능 여부 판단
         Profile profile = profileRepository.findByUserUserId(user.getUserId())
                 .orElseThrow(() -> {
-                    log.error("로그인 실패 - 프로필 없음 - 사용자 ID: {}", user.getUserId());
+                    log.debug("로그인 실패 - 프로필 없음 - 사용자 ID: {}", user.getUserId());
                     return new ProfileException(ExceptionType.PROFILE_NOT_EXISTS);
                 });
         log.debug("프로필 조회 성공 - 사용자 ID: {}, 회원 타입: {}", user.getUserId(), profile.getMemberType());
 
         // 비회원인 경우 로그인 불가
         if (profile.getMemberType().equals(MemberType.NONMEMBER)) {
-            log.error("로그인 실패 - 비회원 사용자 - 사용자 ID: {}", user.getUserId());
+            log.debug("로그인 실패 - 비회원 사용자 - 사용자 ID: {}", user.getUserId());
             throw new UserException(ExceptionType.USER_LOGIN_FAILED);
         }
 
@@ -146,7 +146,7 @@ public class UserAuthService {
         String newAccessToken = jwtProvider.createAccessToken(uuid, response);
         String newRefreshToken = jwtProvider.createRefreshToken(uuid, response, true);
 
-        log.info("토큰 갱신 성공 - UUID: {}", uuid);
+        log.debug("토큰 갱신 성공 - UUID: {}", uuid);
         return new TokenDto(newAccessToken, newRefreshToken);
     }
 

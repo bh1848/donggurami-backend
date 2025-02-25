@@ -34,12 +34,13 @@ spring:
       - /images/logo.png
 
     logging-paths:
-      - /admin/clubs/category
-      - /admin/clubs
-      - /admin/clubs/{clubUUID}
-      - /admin/floor/photo/{floor}
-      - /notices/{noticeUUID}
-      - /apply/{clubUUID}
+      - /admin/**
+      - /notices/**
+      - /apply/**
+      - /integration/**
+      - /clubs/**
+      - /my-notices/**
+      - /profiles/**
       - /users/**
       - /profiles/**
       - /club-leader/**

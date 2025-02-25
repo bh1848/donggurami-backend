@@ -66,7 +66,6 @@ public class GlobalExceptionHandler {
                 e.getAdditionalData()
         );
 
-        logErrorResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, exceptionType.getStatus());
     }
 
@@ -100,14 +99,11 @@ public class GlobalExceptionHandler {
                 null
         );
 
-        logErrorResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     /**
-     *
      * JsonCreator 예외 처리 때문에 기본 spring 예외 던짐.
-     *
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
@@ -125,7 +121,6 @@ public class GlobalExceptionHandler {
                 null
         );
 
-        logErrorResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -161,7 +156,6 @@ public class GlobalExceptionHandler {
                 null
         );
 
-        logErrorResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 }

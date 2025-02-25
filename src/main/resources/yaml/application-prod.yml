@@ -1,17 +1,23 @@
 server:
   port: ${BASIC_PORT}
 
+  error:
+    include-exception: false
+    include-stacktrace: never
+    include-message: always
+
 # log setting
 logging:
   level:
-    root: info  # 기본 로그
-    com:
-      USWCicrcleLink:
-        server: info  # 프로젝트 로그
-    org.springframework: warn  # 스프링 내부 로그
-    org.hibernate.SQL: off  # Hibernate SQL 쿼리 로그
-    org.hibernate.type.descriptor.sql: off  # Hibernate SQL 바인딩 로그
-    p6spy: off  # p6spy (SQL 로깅 라이브러리) 로그
+    root: info  # 기본 로그 레벨
+    com.USWCicrcleLink.server: info  # 우리 프로젝트 관련 로그
+    org.springframework.security: off  # Spring Security 내부 로그 숨김
+    org.springframework.web: off  # 서블릿 관련 예외 로그 숨김
+    org.apache.catalina.core: off  # Tomcat 관련 에러 로그 숨김
+    org.springframework: warn  # Spring 내부 로그 최소화
+    org.hibernate.SQL: off  # Hibernate SQL 쿼리 로그 비활성화 (배포 환경에서는 사용 안 함)
+    org.hibernate.type.descriptor.sql: off  # Hibernate 바인딩 로그 비활성화
+    p6spy: off  # SQL 로깅 라이브러리 로그 비활성화
 
 #email url
 email:
