@@ -85,9 +85,16 @@ public class UserService {
     //비밀번호 변경
     public void updateNewPW(UpdatePwRequest updatePwRequest) {
 
+        User user = getUserByAuth();
+
         if (!confirmPW(updatePwRequest.getUserPw())) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
+
+        if (passwordEncoder.matches(updatePwRequest.getNewPw(), user.getUserPw())) {
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_REUSE);
+        }
+
         // 비밀번호 칸이 빈칸인지 확인
         passwordService.checkPasswordFieldBlank(updatePwRequest.getNewPw(), updatePwRequest.getNewPw());
         // 새로운 비밀번호의 유효성 검사
@@ -95,7 +102,6 @@ public class UserService {
         // 비밀번호가 일치하는지 확인
         passwordService.checkPasswordMatch(updatePwRequest.getNewPw(), updatePwRequest.getConfirmNewPw());
 
-        User user = getUserByAuth();
         String encryptedNewPw = passwordEncoder.encode(updatePwRequest.getNewPw());
         user.updateUserPw(encryptedNewPw);
 
