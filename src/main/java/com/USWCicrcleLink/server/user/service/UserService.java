@@ -335,16 +335,7 @@ public class UserService {
     public void cancelMembership(HttpServletRequest request, HttpServletResponse response) {
         // 리프레시 토큰 추출
         String refreshToken = jwtProvider.resolveRefreshToken(request);
-
-        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken, true)) {
-            // 블랙리스트 등록 후 삭제 (JWT 기반)
-            jwtProvider.blacklistRefreshToken(refreshToken, true);
-            log.debug("리프레시 토큰 블랙리스트 등록 완료");
-
-        } else {
-            log.debug("리프레시 토큰이 존재하지 않거나 유효하지 않음. 회원 탈퇴 계속 진행.");
-        }
-
+        jwtProvider.validateRefreshToken(refreshToken, true);
         // 쿠키에서 리프레시 토큰 삭제 (로그아웃 강제)
         jwtProvider.deleteRefreshTokenCookie(response);
 

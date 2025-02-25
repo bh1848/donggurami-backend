@@ -12,7 +12,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,7 +27,10 @@ import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -117,11 +124,14 @@ public class JwtProvider {
         return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken);
     }
 
-    /**
-     * JWT Claims 파싱
-     */
-    public Claims getClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
+
+    // JWT Claims 파싱
+    public Claims getClaims(String jwtToken) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(jwtToken)
+                .getBody();
     }
 
     /**
@@ -163,10 +173,9 @@ public class JwtProvider {
                     .compact();
         } else {
             refreshToken = UUID.randomUUID().toString();
-            redisTemplate.opsForValue().set("refreshToken:" + refreshToken, uuid.toString(),
-                    REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
+            String redisKey = "refreshToken:" + refreshToken;
+            redisTemplate.opsForValue().set(redisKey, uuid.toString(), REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
         }
-
         setRefreshTokenCookie(response, refreshToken);
         return refreshToken;
     }
@@ -175,22 +184,45 @@ public class JwtProvider {
      * 리프레시 토큰 검증 (Admin & Leader는 Redis, User는 JWT)
      */
     public boolean validateRefreshToken(String refreshToken, boolean isUser) {
-        if (refreshToken == null || refreshToken.isEmpty() || isTokenBlacklisted(refreshToken)) {
-            log.debug("리프레시 토큰 없음 또는 블랙리스트 등록 - 검증 실패");
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            log.debug("리프레시 토큰이 존재하지 않음 - 검증 실패");
             return false;
         }
 
         if (isUser) {
+            // 일반 사용자는 JWT 기반 검증
             try {
                 getClaims(refreshToken);
                 return true;
             } catch (JwtException e) {
-                log.warn("JWT 파싱 오류 - 리프레시 토큰 검증 실패: {}", e.getMessage());
+                log.warn("JWT 검증 실패: {}", e.getMessage());
                 return false;
             }
-        } else {
-            return Boolean.TRUE.equals(redisTemplate.hasKey("refreshToken:" + refreshToken));
         }
+
+        // Admin 및 Leader는 Redis 기반 검증 (파이프라인 사용)
+        List<Object> results = redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
+            byte[] blacklistKey = serializer.serialize("blacklist:" + refreshToken);
+            byte[] refreshTokenKey = serializer.serialize("refreshToken:" + refreshToken);
+
+            // 블랙리스트 여부 조회
+            assert blacklistKey != null;
+            connection.stringCommands().get(blacklistKey);
+            // 토큰 존재 여부 조회
+            assert refreshTokenKey != null;
+            connection.stringCommands().get(refreshTokenKey);
+            return null;
+        });
+
+        boolean isBlacklisted = results.get(0) != null;
+        boolean existsInRedis = results.get(1) != null;
+
+        if (isBlacklisted) {
+            log.warn("리프레시 토큰 검증 실패 - 블랙리스트에 등록된 토큰: {}", refreshToken);
+            return false;
+        }
+        return existsInRedis;
     }
 
     /**
@@ -200,54 +232,65 @@ public class JwtProvider {
         if (isUser) {
             return UUID.fromString(getClaims(refreshToken).getSubject());
         }
-        String uuidStr = redisTemplate.opsForValue().get("refreshToken:" + refreshToken);
-        return uuidStr != null ? UUID.fromString(uuidStr) : null;
+        String redisKey = "refreshToken:" + refreshToken;
+        String uuidStr = redisTemplate.opsForValue().get(redisKey);
+        return (uuidStr != null) ? UUID.fromString(uuidStr) : null;
     }
 
     /**
-     * 리프레시 토큰 삭제 (Admin & Leader는 Redis)
+     * 리프레시 토큰 삭제 (Admin & Leader)
      */
     public void deleteRefreshToken(UUID uuid) {
-        log.debug("리프레시 토큰 삭제 - UUID: {}", uuid);
-        Set<String> keys = redisTemplate.keys("refreshToken:*");
-        if (keys != null) {
-            keys.stream()
-                    .filter(key -> uuid.toString().equals(redisTemplate.opsForValue().get(key)))
-                    .findFirst()
-                    .ifPresent(redisTemplate::delete);
-        }
-    }
+        log.debug("UUID {} 기반으로 리프레시 토큰 삭제 실행", uuid);
+        ScanOptions scanOptions = ScanOptions.scanOptions().match("refreshToken:*").count(100).build();
+        List<byte[]> keysToDelete = new ArrayList<>();
+        RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
 
-    /**
-     * 리프레시 토큰 블랙리스트 등록
-     */
-    public void blacklistRefreshToken(String refreshToken, boolean isUser) {
-        long remainingTime = REFRESH_TOKEN_EXPIRATION_TIME;
-
-        if (!isUser) {
-            remainingTime = redisTemplate.getExpire("refreshToken:" + refreshToken, TimeUnit.MILLISECONDS);
-        } else {
-            try {
-                remainingTime = getClaims(refreshToken).getExpiration().getTime() - System.currentTimeMillis();
-            } catch (JwtException e) {
-                log.warn("블랙리스트 등록 실패 - 잘못된 JWT: {}", refreshToken);
-                return;
+        redisTemplate.executeWithStickyConnection(connection -> {
+            try (Cursor<byte[]> cursor = connection.keyCommands().scan(scanOptions)) {
+                while (cursor.hasNext()) {
+                    byte[] key = cursor.next();
+                    byte[] storedValueBytes = connection.stringCommands().get(key);
+                    if (storedValueBytes != null) {
+                        String storedUuid = serializer.deserialize(storedValueBytes);
+                        if (uuid.toString().equals(storedUuid)) {
+                            keysToDelete.add(key);
+                        }
+                    }
+                }
             }
-        }
-
-        if (remainingTime > 0) {
-            redisTemplate.opsForValue().set("blacklist:" + refreshToken, "invalid", remainingTime, TimeUnit.MILLISECONDS);
-            log.debug("리프레시 토큰 블랙리스트 등록 완료: {}", refreshToken);
-        } else {
-            log.warn("블랙리스트 등록 실패 - 해당 토큰이 존재하지 않거나 이미 만료됨: {}", refreshToken);
-        }
+            if (!keysToDelete.isEmpty()) {
+                for (byte[] key : keysToDelete) {
+                    connection.keyCommands().del(key);
+                }
+                log.debug("삭제된 리프레시 토큰 개수: {}", keysToDelete.size());
+            } else {
+                log.debug("삭제할 리프레시 토큰이 없음 - UUID: {}", uuid);
+            }
+            return null;
+        });
     }
 
     /**
-     * 블랙리스트 여부 확인
+     * 리프레시 토큰 블랙리스트 등록 (Admin & Leader)
      */
-    private boolean isTokenBlacklisted(String refreshToken) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + refreshToken));
+    public void blacklistRefreshToken(String refreshToken) {
+        String tokenKey = "refreshToken:" + refreshToken;
+        Long remainingTime = redisTemplate.getExpire(tokenKey, TimeUnit.MILLISECONDS);
+        if (remainingTime == null || remainingTime <= 0) {
+            log.warn("블랙리스트 등록 실패 - 토큰 만료됨: {}", refreshToken);
+            return;
+        }
+        redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
+            RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
+            byte[] blacklistKey = serializer.serialize("blacklist:" + refreshToken);
+            byte[] value = serializer.serialize("invalid");
+            assert blacklistKey != null;
+            assert value != null;
+            connection.stringCommands().setEx(blacklistKey, remainingTime / 1000, value);
+            return null;
+        });
+        log.debug("리프레시 토큰 블랙리스트 등록 완료: {}", refreshToken);
     }
 
     /**
@@ -266,21 +309,23 @@ public class JwtProvider {
     }
 
     /**
-     * 리프레시 토큰을 HttpOnly 쿠키로 설정
+     * 리프레시 토큰을 HttpOnly 쿠키로 설정 (SameSite=Strict 적용)
      */
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-        response.setHeader("Set-Cookie",
-                String.format("refreshToken=%s; Path=/; HttpOnly; Max-Age=%d; %s; SameSite=Strict",
-                        refreshToken, (REFRESH_TOKEN_EXPIRATION_TIME / 1000),
-                        secureCookie ? "Secure" : ""));
+        int maxAge = (int) (REFRESH_TOKEN_EXPIRATION_TIME / 1000);
+        // secureCookie 값이 true면 "; Secure" 옵션을 추가합니다.
+        String secureFlag = secureCookie ? "; Secure" : "";
+        String cookieValue = String.format("refreshToken=%s; Path=/; HttpOnly; Max-Age=%d; SameSite=Strict%s",
+                refreshToken, maxAge, secureFlag);
+        response.setHeader("Set-Cookie", cookieValue);
     }
 
     /**
-     * 쿠키에서 리프레시 토큰 삭제
+     * 쿠키에서 리프레시 토큰 삭제 (SameSite=Strict 적용)
      */
     public void deleteRefreshTokenCookie(HttpServletResponse response) {
-        response.setHeader("Set-Cookie",
-                "refreshToken=; Path=/; HttpOnly; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict");
-        log.debug("클라이언트의 쿠키에서 리프레시 토큰 삭제 완료");
+        String cookieValue = "refreshToken=; Path=/; HttpOnly; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict";
+        response.setHeader("Set-Cookie", cookieValue);
+        log.debug("클라이언트 쿠키에서 리프레시 토큰 삭제 완료");
     }
 }

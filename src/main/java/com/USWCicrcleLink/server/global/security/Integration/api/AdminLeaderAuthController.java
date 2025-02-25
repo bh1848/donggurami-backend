@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/integration")
 @RequiredArgsConstructor
 @Slf4j
 public class AdminLeaderAuthController {
@@ -36,8 +36,8 @@ public class AdminLeaderAuthController {
         TokenDto tokenDto = adminLeaderAuthService.refreshToken(request, response);
 
         if (tokenDto == null) {
-            return ResponseEntity.status(401).body(new ApiResponse<>("토큰 갱신 실패", null));
+            return ResponseEntity.status(401).body(new ApiResponse<>("리프레시 토큰이 유효하지 않습니다. 로그아웃됐습니다.", null));
         }
-        return ResponseEntity.ok(new ApiResponse<>("토큰 갱신 성공", tokenDto));
+        return ResponseEntity.ok(new ApiResponse<>("새로운 엑세스 토큰과 리프레시 토큰이 발급됐습니다.", tokenDto));
     }
 }

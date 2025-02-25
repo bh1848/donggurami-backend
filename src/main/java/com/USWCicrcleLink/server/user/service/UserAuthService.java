@@ -113,11 +113,7 @@ public class UserAuthService {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
         if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken, true)) {
-            UUID userUUID = jwtProvider.getUUIDFromRefreshToken(refreshToken, true);
-
-            // 블랙리스트에 추가하여 사용 불가능하게 만듦
-            jwtProvider.blacklistRefreshToken(refreshToken, true);
-            log.debug("USER 로그아웃 - UUID: {}", userUUID);
+            jwtProvider.getUUIDFromRefreshToken(refreshToken, true);
         } else {
             log.warn("USER 로그아웃 - 리프레시 토큰 없음 또는 유효하지 않음");
         }

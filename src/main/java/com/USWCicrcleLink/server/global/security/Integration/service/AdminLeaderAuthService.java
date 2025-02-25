@@ -19,7 +19,7 @@ public class AdminLeaderAuthService {
     private final JwtProvider jwtProvider;
 
     /**
-     * Admin & Leader 토큰 재발급 (UUID 기반)
+     * 토큰 재발급 (Admin & Leader)
      */
     public TokenDto refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
@@ -43,7 +43,7 @@ public class AdminLeaderAuthService {
     }
 
     /**
-     * Admin & Leader 로그아웃
+     * 로그아웃 (Admin & Leader)
      */
     public void adminLeaderLogout(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
@@ -60,15 +60,14 @@ public class AdminLeaderAuthService {
         UUID uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken, false);
         log.debug("로그아웃 진행 - UUID: {}", uuid);
 
-        jwtProvider.blacklistRefreshToken(refreshToken, false);
+        jwtProvider.blacklistRefreshToken(refreshToken);
         jwtProvider.deleteRefreshToken(uuid);
 
         forceLogout(response, "로그아웃 성공 - UUID: " + uuid);
     }
 
-    /**
-     * 로그아웃 처리 (쿠키 삭제 및 로그)
-     */
+
+    // 로그아웃 처리 (쿠키 삭제 및 로그)
     private TokenDto forceLogout(HttpServletResponse response, String logMessage) {
         log.warn(logMessage);
         jwtProvider.deleteRefreshTokenCookie(response);
