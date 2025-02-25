@@ -172,6 +172,8 @@ public class JwtProvider {
                     .signWith(secretKey, SignatureAlgorithm.HS256)
                     .compact();
         } else {
+            deleteRefreshToken(uuid);
+
             refreshToken = UUID.randomUUID().toString();
             String redisKey = "refreshToken:" + refreshToken;
             redisTemplate.opsForValue().set(redisKey, uuid.toString(), REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
@@ -195,7 +197,7 @@ public class JwtProvider {
                 getClaims(refreshToken);
                 return true;
             } catch (JwtException e) {
-                log.warn("JWT 검증 실패: {}", e.getMessage());
+                log.debug("JWT 검증 실패: {}", e.getMessage());
                 return false;
             }
         }
@@ -219,7 +221,7 @@ public class JwtProvider {
         boolean existsInRedis = results.get(1) != null;
 
         if (isBlacklisted) {
-            log.warn("리프레시 토큰 검증 실패 - 블랙리스트에 등록된 토큰: {}", refreshToken);
+            log.debug("리프레시 토큰 검증 실패 - 블랙리스트에 등록된 토큰: {}", refreshToken);
             return false;
         }
         return existsInRedis;
@@ -278,7 +280,7 @@ public class JwtProvider {
         String tokenKey = "refreshToken:" + refreshToken;
         Long remainingTime = redisTemplate.getExpire(tokenKey, TimeUnit.MILLISECONDS);
         if (remainingTime == null || remainingTime <= 0) {
-            log.warn("블랙리스트 등록 실패 - 토큰 만료됨: {}", refreshToken);
+            log.debug("블랙리스트 등록 실패 - 토큰 만료됨: {}", refreshToken);
             return;
         }
         redisTemplate.executePipelined((RedisCallback<Void>) connection -> {

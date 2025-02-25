@@ -29,17 +29,16 @@ public class AdminLoginService {
     private final JwtProvider jwtProvider;
 
     /**
-     * 운영팀 로그인
+     * 로그인 (Admin)
      */
     @RateLimite(action = "WEB_LOGIN")
     public TokenDto adminLogin(AdminLoginRequest request, HttpServletResponse response) {
         UserDetails userDetails = loadAdminDetails(request.getAdminAccount());
 
         if (!passwordEncoder.matches(request.getAdminPw(), userDetails.getPassword())) {
-            log.warn("운영팀 로그인 실패 - 비밀번호 불일치, 계정: {}", request.getAdminAccount());
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
-        log.debug("운영팀 로그인 성공 - 계정: {}", request.getAdminAccount());
+        log.debug("Admin 로그인 성공 - 계정: {}", request.getAdminAccount());
 
         UUID adminUUID = extractAdminUUID(userDetails);
 

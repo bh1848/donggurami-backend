@@ -29,20 +29,20 @@ public class AdminFloorPhotoService {
      */
     public AdminFloorPhotoCreationResponse uploadPhoto(FloorPhotoEnum floor, MultipartFile photo) {
         if (photo == null || photo.isEmpty()) {
-            log.warn("층별 사진 업로드 실패 - 파일이 비어 있음: Floor: {}", floor);
+            log.debug("층별 사진 업로드 실패 - 파일이 비어 있음: Floor: {}", floor);
             throw new BaseException(ExceptionType.PHOTO_FILE_IS_EMPTY);
         }
 
         // 기존 사진이 있다면 삭제
         floorPhotoRepository.findByFloor(floor).ifPresent(existingPhoto -> {
-            log.info("기존 층별 사진 삭제 진행 - Floor: {}, 기존 S3Key: {}", floor, existingPhoto.getFloorPhotoS3key());
+            log.debug("기존 층별 사진 삭제 진행 - Floor: {}, 기존 S3Key: {}", floor, existingPhoto.getFloorPhotoS3key());
             s3FileUploadService.deleteFile(existingPhoto.getFloorPhotoS3key());
             floorPhotoRepository.delete(existingPhoto);
         });
 
         // 새로운 사진 업로드
         S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(photo, S3_FLOOR_PHOTO_DIR);
-        log.info("새로운 층별 사진 S3 업로드 완료 - Floor: {}, 새 S3Key: {}", floor, s3FileResponse.getS3FileName());
+        log.debug("새로운 층별 사진 S3 업로드 완료 - Floor: {}, 새 S3Key: {}", floor, s3FileResponse.getS3FileName());
 
         // DB 저장
         FloorPhoto newPhoto = FloorPhoto.builder()
@@ -64,7 +64,7 @@ public class AdminFloorPhotoService {
     public AdminFloorPhotoCreationResponse getPhotoByFloor(FloorPhotoEnum floor) {
         FloorPhoto floorPhoto = floorPhotoRepository.findByFloor(floor)
                 .orElseThrow(() -> {
-                    log.warn("층별 사진 조회 실패 - 존재하지 않는 Floor: {}", floor);
+                    log.debug("층별 사진 조회 실패 - 존재하지 않는 Floor: {}", floor);
                     return new BaseException(ExceptionType.PHOTO_NOT_FOUND);
                 });
 
@@ -80,7 +80,7 @@ public class AdminFloorPhotoService {
     public void deletePhotoByFloor(FloorPhotoEnum floor) {
         FloorPhoto floorPhoto = floorPhotoRepository.findByFloor(floor)
                 .orElseThrow(() -> {
-                    log.warn("층별 사진 삭제 실패 - 존재하지 않는 Floor: {}", floor);
+                    log.debug("층별 사진 삭제 실패 - 존재하지 않는 Floor: {}", floor);
                     return new BaseException(ExceptionType.PHOTO_NOT_FOUND);
                 });
 

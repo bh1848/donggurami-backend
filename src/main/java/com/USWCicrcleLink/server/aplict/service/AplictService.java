@@ -49,13 +49,13 @@ public class AplictService {
 
         // 이미 지원한 경우 예외 처리
         if (aplictRepository.existsByProfileAndClubUUID(profile, clubUUID)) {
-            log.warn("동아리 지원 실패 - 이미 지원한 사용자, ClubUUID: {}", clubUUID);
+            log.debug("동아리 지원 실패 - 이미 지원한 사용자, ClubUUID: {}", clubUUID);
             throw new ClubException(ExceptionType.ALREADY_APPLIED);
         }
 
         // 이미 동아리 멤버인 경우 예외 처리
         if (clubMembersRepository.existsByProfileAndClubUUID(profile, clubUUID)) {
-            log.warn("동아리 지원 실패 - 이미 동아리 멤버, ClubUUID: {}", clubUUID);
+            log.debug("동아리 지원 실패 - 이미 동아리 멤버, ClubUUID: {}", clubUUID);
             throw new ClubException(ExceptionType.ALREADY_MEMBER);
         }
 
@@ -63,14 +63,14 @@ public class AplictService {
 
         for (Profile member : clubMembers) {
             if (profile.getUserHp().equals(member.getUserHp())) {
-                log.warn("동아리 지원 실패 - 중복된 전화번호, ClubUUID: {}", clubUUID);
+                log.debug("동아리 지원 실패 - 중복된 전화번호, ClubUUID: {}", clubUUID);
                 throw new BaseException(ExceptionType.PHONE_NUMBER_ALREADY_REGISTERED);
             }
         }
 
         for (Profile member : clubMembers) {
             if (profile.getStudentNumber().equals(member.getStudentNumber())) {
-                log.warn("동아리 지원 실패 - 중복된 학번, ClubUUID: {}", clubUUID);
+                log.debug("동아리 지원 실패 - 중복된 학번, ClubUUID: {}", clubUUID);
                 throw new BaseException(ExceptionType.STUDENT_NUMBER_ALREADY_REGISTERED);
             }
         }
@@ -86,13 +86,13 @@ public class AplictService {
     public String getGoogleFormUrlByClubUUID(UUID clubUUID) {
         ClubIntro clubIntro = clubIntroRepository.findByClubUUID(clubUUID)
                 .orElseThrow(() -> {
-                    log.warn("구글 폼 URL 조회 실패 - 클럽 소개 없음, ClubUUID: {}", clubUUID);
+                    log.debug("구글 폼 URL 조회 실패 - 클럽 소개 없음, ClubUUID: {}", clubUUID);
                     return new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS);
                 });
 
         String googleFormUrl = clubIntro.getGoogleFormUrl();
         if (googleFormUrl == null || googleFormUrl.isEmpty()) {
-            log.warn("구글 폼 URL 조회 실패 - URL 없음, ClubUUID: {}", clubUUID);
+            log.debug("구글 폼 URL 조회 실패 - URL 없음, ClubUUID: {}", clubUUID);
             throw new ClubIntroException(ExceptionType.GOOGLE_FORM_URL_NOT_EXISTS);
         }
 
@@ -108,7 +108,7 @@ public class AplictService {
 
         Club club = clubRepository.findByClubUUID(clubUUID)
                 .orElseThrow(() -> {
-                    log.warn("동아리 지원서 제출 실패 - 존재하지 않는 동아리, ClubUUID: {}", clubUUID);
+                    log.debug("동아리 지원서 제출 실패 - 존재하지 않는 동아리, ClubUUID: {}", clubUUID);
                     return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
                 });
 
@@ -134,7 +134,7 @@ public class AplictService {
 
         return profileRepository.findByUser_UserUUID(user.getUserUUID())
                 .orElseThrow(() -> {
-                    log.error("사용자 프로필 조회 실패");
+                    log.debug("사용자 프로필 조회 실패");
                     return new UserException(ExceptionType.USER_NOT_EXISTS);
                 });
     }

@@ -43,7 +43,6 @@ public class AdminClubCategoryService {
         String normalizedCategoryName = request.getClubCategoryName().toLowerCase();
 
         if (clubCategoryRepository.existsByClubCategoryName(normalizedCategoryName)) {
-            log.warn("중복 카테고리 추가 시도 - Name: {}", normalizedCategoryName);
             throw new BaseException(ExceptionType.DUPLICATE_CATEGORY);
         }
 

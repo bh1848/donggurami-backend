@@ -173,7 +173,7 @@ public class ClubLeaderService {
 
             leader.setAgreeTerms(false);
             leaderRepository.save(leader);
-            log.info("회장 이름 변경으로 약관 동의 상태 초기화 - Leader ID: {}", leader.getLeaderId());
+            log.debug("회장 이름 변경으로 약관 동의 상태 초기화 - Leader ID: {}", leader.getLeaderId());
         }
     }
 

@@ -115,12 +115,11 @@ public class UserAuthService {
         if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken, true)) {
             jwtProvider.getUUIDFromRefreshToken(refreshToken, true);
         } else {
-            log.warn("USER 로그아웃 - 리프레시 토큰 없음 또는 유효하지 않음");
+            log.debug("USER 로그아웃 - 리프레시 토큰 없음 또는 유효하지 않음");
         }
 
         // 클라이언트 쿠키에서 리프레시 토큰 삭제
         jwtProvider.deleteRefreshTokenCookie(response);
-        log.info("USER 로그아웃 성공");
     }
 
     /**
@@ -130,13 +129,13 @@ public class UserAuthService {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
         if (refreshToken == null) {
-            log.warn("리프레시 토큰 없음 - 로그아웃 처리 진행");
+            log.debug("리프레시 토큰 없음 - 로그아웃 처리 진행");
             forceLogout(response);
             return null;
         }
 
         if (!jwtProvider.validateRefreshToken(refreshToken, true)) {
-            log.warn("유효하지 않은 리프레시 토큰 감지 - 로그아웃 처리 진행");
+            log.debug("유효하지 않은 리프레시 토큰 감지 - 로그아웃 처리 진행");
             forceLogout(response);
             return null;
         }

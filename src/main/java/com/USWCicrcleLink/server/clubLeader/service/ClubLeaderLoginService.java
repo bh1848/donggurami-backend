@@ -31,7 +31,7 @@ public class ClubLeaderLoginService {
     private final JwtProvider jwtProvider;
 
     /**
-     * 동아리 회장 로그인
+     * 로그인 (Leader)
      */
     @RateLimite(action = "WEB_LOGIN")
     public LeaderLoginResponse leaderLogin(LeaderLoginRequest request, HttpServletResponse response) {
@@ -51,12 +51,12 @@ public class ClubLeaderLoginService {
             isAgreedTerms = leaderDetails.getIsAgreedTerms();
         }
 
-        // UUID 기반 JWT 생성
+        log.debug("Leader 로그인 성공 - 계정: {}", request.getLeaderAccount());
+
         String accessToken = jwtProvider.createAccessToken(leaderUUID, response);
         String refreshToken = jwtProvider.createRefreshToken(leaderUUID, response, false);
 
-        log.debug("로그인 성공, uuid: {}", leaderUUID);
-        return new LeaderLoginResponse(accessToken, refreshToken, Role.LEADER, clubUUID, isAgreedTerms);
+        return new LeaderLoginResponse(accessToken, refreshToken, clubUUID, isAgreedTerms);
     }
 
     // Leader UUID 추출 (CustomLeaderDetails에서 가져옴)
@@ -72,7 +72,7 @@ public class ClubLeaderLoginService {
         try {
             return customUserDetailsService.loadUserByAccountAndRole(account, Role.LEADER);
         } catch (UserException e) {
-            log.warn("동아리 회장 로그인 실패 - 존재하지 않는 계정: {}", account);
+            log.debug("동아리 회장 로그인 실패 - 존재하지 않는 계정: {}", account);
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
     }
