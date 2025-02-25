@@ -14,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.sql.SQLException;
@@ -260,5 +261,20 @@ public class GlobalExceptionHandler {
         );
 
         return new ResponseEntity<>(errorResponse, status);
+    }
+
+    // 파일 크기 10MB 초과시
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
+        ErrorResponse errorResponse = buildErrorResponse(
+                e.getClass().getSimpleName(),
+                "MAX_UPLOAD_SIZE_EXCEEDED",
+                "업로드 가능한 최대 파일 크기를 초과했습니다. (개별 파일 10MB, 총 파일 크기 50MB)",
+                HttpStatus.BAD_REQUEST,
+                null
+        );
+
+        logErrorResponse(errorResponse);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 }
