@@ -6,8 +6,8 @@ import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
+import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
 import com.USWCicrcleLink.server.global.security.details.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
@@ -17,16 +17,19 @@ import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -35,9 +38,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final ClubMembersRepository clubMembersRepository;
     private final ProfileRepository profileRepository;
 
-    /**
-     * 사용자 로그인: User는 Role을 받지 않고 자동 판별, Admin/Leader는 Role을 요청값에서 받음.
-     */
     @Override
     public UserDetails loadUserByUsername(String account) throws UsernameNotFoundException {
         return loadUserByAccount(account);
@@ -46,106 +46,90 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UserDetails loadUserByAccount(String account) {
         User user = userRepository.findByUserAccount(account)
                 .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
-
         return loadUserByUuidAndRole(user.getUserUUID(), Role.USER);
     }
 
     /**
-     * Admin/Leader는 요청된 Role을 기준으로 검색, User는 자동 판별 (UUID 기반)
+     * Role 기반으로 UUID로 계정을 조회
+     * Admin/Leader는 요청받은 Role을 기준으로, User는 자동 판별
      */
     public UserDetails loadUserByUuidAndRole(UUID uuid, Role role) throws UsernameNotFoundException {
         if (role == null) {
             throw new UserException(ExceptionType.INVALID_ROLE);
         }
-
-        // Admin 계정인지 확인
-        if (role == Role.ADMIN) {
-            return adminRepository.findByAdminUUID(uuid)
-                    .map(CustomAdminDetails::new)
-                    .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+        switch (role) {
+            case ADMIN:
+                return adminRepository.findByAdminUUID(uuid)
+                        .map(CustomAdminDetails::new)
+                        .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+            case LEADER:
+                Leader leader = leaderRepository.findByLeaderUUID(uuid)
+                        .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+                UUID clubUUID = leaderRepository.findClubUUIDByLeaderUUID(leader.getLeaderUUID())
+                        .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+                return new CustomLeaderDetails(leader, clubUUID);
+            case USER:
+                return loadUserByUuid(uuid);
+            default:
+                throw new UserException(ExceptionType.INVALID_ROLE);
         }
-
-        // Leader 계정인지 확인
-        if (role == Role.LEADER) {
-            Leader leader = leaderRepository.findByLeaderUUID(uuid)
-                    .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
-
-            UUID clubUUID = leaderRepository.findClubUUIDByLeaderUUID(leader.getLeaderUUID())
-                    .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
-
-            return new CustomLeaderDetails(leader, clubUUID);
-        }
-
-        // User 계정인지 확인
-        if (role == Role.USER) {
-            return loadUserByUuid(uuid);
-        }
-
-        throw new UserException(ExceptionType.INVALID_ROLE);
     }
 
     /**
-     * User는 Role 없이 자동 판별하여 로그인 수행 (UUID 기반)
+     * UUID 기반으로 User를 조회
+     * Admin 또는 Leader일 경우에도 해당 계정이 있으면 CustomDetails를 반환
      */
     public UserDetails loadUserByUuid(UUID uuid) throws UsernameNotFoundException {
-        // Admin 계정인지 확인
-        Admin admin = adminRepository.findByAdminUUID(uuid).orElse(null);
-        if (admin != null) {
-            return new CustomAdminDetails(admin);
+        // Admin 계정 확인
+        Optional<Admin> adminOptional = adminRepository.findByAdminUUID(uuid);
+        if (adminOptional.isPresent()) {
+            return new CustomAdminDetails(adminOptional.get());
         }
-
-        // Leader 계정인지 확인
-        Leader leader = leaderRepository.findByLeaderUUID(uuid).orElse(null);
-        if (leader != null) {
-            UUID clubUUID = leaderRepository.findClubUUIDByLeaderUUID(leader.getLeaderUUID())
+        // Leader 계정 확인
+        Optional<Leader> leaderOptional = leaderRepository.findByLeaderUUID(uuid);
+        if (leaderOptional.isPresent()) {
+            UUID clubUUID = leaderRepository.findClubUUIDByLeaderUUID(leaderOptional.get().getLeaderUUID())
                     .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
-            return new CustomLeaderDetails(leader, clubUUID);
+            return new CustomLeaderDetails(leaderOptional.get(), clubUUID);
         }
-
-        // User 계정인지 확인
+        // User 계정 확인
         User user = userRepository.findByUserUUID(uuid)
                 .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
-
         Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
                 .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
-
         List<UUID> clubUUIDs = getUserClubUUIDs(profile.getProfileId());
         return new CustomUserDetails(user, clubUUIDs);
     }
 
-
     /**
-     *  account 기반 조회, 로그인 시에만 사용
+     * account 기반으로, Role에 따라 계정 조회
+     * 로그인 과정
      */
     public UserDetails loadUserByAccountAndRole(String account, Role role) throws UsernameNotFoundException {
         if (role == null) {
-            throw new UserException(ExceptionType.INVALID_ROLE);
+            log.error("인증 실패: role이 비어있습니다. account: {}", account);
+            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
-
-        if (role == Role.ADMIN) {
-            return adminRepository.findByAdminAccount(account)
-                    .map(CustomAdminDetails::new)
-                    .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+        switch (role) {
+            case ADMIN:
+                return adminRepository.findByAdminAccount(account)
+                        .map(CustomAdminDetails::new)
+                        .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
+            case LEADER:
+                Leader leader = leaderRepository.findByLeaderAccount(account)
+                        .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
+                UUID clubUUID = leaderRepository.findClubUUIDByLeaderUUID(leader.getLeaderUUID())
+                        .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
+                return new CustomLeaderDetails(leader, clubUUID);
+            case USER:
+                return loadUserByAccount(account);
+            default:
+                log.error("인증 실패: 유효하지 않은 role {}, account: {}", role, account);
+                throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
-
-        if (role == Role.LEADER) {
-            Leader leader = leaderRepository.findByLeaderAccount(account)
-                    .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
-
-            UUID clubUUID = leaderRepository.findClubUUIDByLeaderUUID(leader.getLeaderUUID())
-                    .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
-
-            return new CustomLeaderDetails(leader, clubUUID);
-        }
-
-        if (role == Role.USER) {
-            return loadUserByAccount(account);
-        }
-
-        throw new UserException(ExceptionType.INVALID_ROLE);
     }
 
-    // User가 가입한 Club UUID 목록 가져오기
+
     private List<UUID> getUserClubUUIDs(Long profileId) {
         return clubMembersRepository.findClubUUIDsByProfileId(profileId);
     }

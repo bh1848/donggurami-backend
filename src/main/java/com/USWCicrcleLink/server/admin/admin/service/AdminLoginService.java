@@ -53,6 +53,6 @@ public class AdminLoginService {
         if (userDetails instanceof CustomAdminDetails customAdminDetails) {
             return customAdminDetails.admin().getAdminUUID();
         }
-        throw new UserException(ExceptionType.USER_NOT_EXISTS);
+        throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
     }
 }

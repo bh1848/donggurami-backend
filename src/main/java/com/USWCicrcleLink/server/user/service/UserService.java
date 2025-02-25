@@ -378,7 +378,7 @@ public class UserService {
         if (userDetails instanceof CustomUserDetails customUserDetails) {
             return customUserDetails.user().getUserUUID();
         }
-        throw new UserException(ExceptionType.USER_NOT_EXISTS);
+        throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
     }
 
     // 로그인 가능 여부 판단

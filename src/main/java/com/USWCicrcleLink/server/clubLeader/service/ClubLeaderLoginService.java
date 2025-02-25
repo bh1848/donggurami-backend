@@ -64,6 +64,6 @@ public class ClubLeaderLoginService {
         if (userDetails instanceof CustomLeaderDetails customLeaderDetails) {
             return customLeaderDetails.leader().getLeaderUUID();
         }
-        throw new UserException(ExceptionType.USER_NOT_EXISTS);
+        throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
     }
 }
