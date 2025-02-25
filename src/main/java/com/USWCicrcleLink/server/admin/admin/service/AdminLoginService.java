@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.admin.admin.service;
 
 import com.USWCicrcleLink.server.admin.admin.dto.AdminLoginRequest;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminLoginResponse;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.UserException;
@@ -32,7 +33,7 @@ public class AdminLoginService {
      * 로그인 (Admin)
      */
     @RateLimite(action = "WEB_LOGIN")
-    public TokenDto adminLogin(AdminLoginRequest request, HttpServletResponse response) {
+    public AdminLoginResponse adminLogin(AdminLoginRequest request, HttpServletResponse response) {
         UserDetails userDetails = loadAdminDetails(request.getAdminAccount());
 
         if (!passwordEncoder.matches(request.getAdminPw(), userDetails.getPassword())) {
@@ -45,7 +46,7 @@ public class AdminLoginService {
         String accessToken = jwtProvider.createAccessToken(adminUUID, response);
         String refreshToken = jwtProvider.createRefreshToken(adminUUID, response, false);
 
-        return new TokenDto(accessToken, refreshToken);
+        return new AdminLoginResponse(accessToken, refreshToken, Role.ADMIN);
     }
 
     // Admin UUID 추출 (CustomAdminDetails에서 가져옴)

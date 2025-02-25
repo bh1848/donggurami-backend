@@ -56,7 +56,7 @@ public class ClubLeaderLoginService {
         String accessToken = jwtProvider.createAccessToken(leaderUUID, response);
         String refreshToken = jwtProvider.createRefreshToken(leaderUUID, response, false);
 
-        return new LeaderLoginResponse(accessToken, refreshToken, clubUUID, isAgreedTerms);
+        return new LeaderLoginResponse(accessToken, refreshToken, Role.LEADER, clubUUID, isAgreedTerms);
     }
 
     // Leader UUID 추출 (CustomLeaderDetails에서 가져옴)
