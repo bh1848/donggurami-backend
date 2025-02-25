@@ -10,9 +10,9 @@ logging:
   level:
     root: info
     com.USWCicrcleLink.server: debug
-    org.springframework.security: off
+    org.springframework.security: warn
     org.springframework.web: warn
-    org.apache.catalina.core: off
+    org.apache.catalina.core: warn
     org.springframework: error
     org.hibernate.SQL: debug
     org.hibernate.type: debug

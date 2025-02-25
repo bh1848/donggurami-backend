@@ -409,7 +409,7 @@ public class UserService {
     public void cancelMembership(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken)) {
+        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken, request)) {
             jwtProvider.deleteRefreshTokenCookie(response);
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }

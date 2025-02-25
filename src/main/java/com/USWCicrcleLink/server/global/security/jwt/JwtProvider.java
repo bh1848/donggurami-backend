@@ -177,7 +177,7 @@ public class JwtProvider {
     /**
      * 리프레시 토큰 검증 (Redis 조회 방식)
      */
-    public boolean validateRefreshToken(String refreshToken) {
+    public boolean validateRefreshToken(String refreshToken, HttpServletRequest request) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             return false;
         }
@@ -186,7 +186,9 @@ public class JwtProvider {
         if (existsInRedis) {
             log.debug("Refresh Token 검증 성공");
         } else {
-            log.warn("Refresh Token 검증 실패 - 공격 가능성 있음");
+            String clientIp = request.getRemoteAddr();
+            String requestUri = request.getRequestURI();
+            log.warn("Refresh Token 검증 실패 - | IP: {} | 요청 경로: {}", clientIp, requestUri);
         }
         return existsInRedis;
     }

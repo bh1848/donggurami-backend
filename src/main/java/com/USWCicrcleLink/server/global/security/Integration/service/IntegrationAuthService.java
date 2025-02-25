@@ -27,7 +27,7 @@ public class IntegrationAuthService {
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken)) {
+        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken, request)) {
             UUID userUUID = jwtProvider.getUUIDFromRefreshToken(refreshToken);
 
             // 유저라면 FCM 토큰 삭제 (푸시 알림 무효화)
@@ -52,7 +52,7 @@ public class IntegrationAuthService {
     public TokenDto refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken)) {
+        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken, request)) {
             jwtProvider.deleteRefreshTokenCookie(response);
             return null;
         }

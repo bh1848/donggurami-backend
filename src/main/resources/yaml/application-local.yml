@@ -12,7 +12,7 @@ logging:
   level:
     root: debug
     com.USWCicrcleLink.server: debug
-    org.springframework.security: debug
+    org.springframework.security: info
     org.springframework.web: debug
     org.apache.catalina.core: debug
     org.springframework: debug
