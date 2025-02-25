@@ -38,6 +38,6 @@ public class AdminLeaderAuthController {
         if (tokenDto == null) {
             return ResponseEntity.status(401).body(new ApiResponse<>("리프레시 토큰이 유효하지 않습니다. 로그아웃됐습니다.", null));
         }
-        return ResponseEntity.ok(new ApiResponse<>("새로운 엑세스 토큰과 리프레시 토큰이 발급됐습니다.", tokenDto));
+        return ResponseEntity.ok(new ApiResponse<>("새로운 엑세스 토큰과 리프레시 토큰이 발급됐습니다. 로그인됐습니다.", tokenDto));
     }
 }
