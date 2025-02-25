@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -187,17 +186,17 @@ public class JwtProvider {
      */
     public boolean validateRefreshToken(String refreshToken, boolean isUser) {
         if (refreshToken == null || refreshToken.isEmpty()) {
-            return false;
+            return true;
         }
 
         if (isUser) {
             try {
                 getClaims(refreshToken);
                 log.debug("User 리프레시 토큰 검증 성공");
-                return true;
+                return false;
             } catch (JwtException e) {
                 log.warn("User 리프레시 토큰 검증 실패 - 공격 가능성 있음: {}", e.getMessage());
-                return false;
+                return true;
             }
         }
 
@@ -205,7 +204,7 @@ public class JwtProvider {
         if (!existsInRedis) {
             log.warn("Admin/Leader 리프레시 토큰 검증 실패 - 공격 가능성 있음");
         }
-        return existsInRedis;
+        return !existsInRedis;
     }
 
     /**

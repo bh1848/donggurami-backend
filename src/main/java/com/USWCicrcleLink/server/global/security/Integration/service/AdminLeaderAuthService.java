@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,7 @@ public class AdminLeaderAuthService {
      */
     public TokenDto refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
-        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken, false)) {
+        if (refreshToken == null || jwtProvider.validateRefreshToken(refreshToken, false)) {
             forceLogout(response);
             return null;
         }
@@ -45,7 +46,7 @@ public class AdminLeaderAuthService {
     public void adminLeaderLogout(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken, false)) {
+        if (refreshToken == null || jwtProvider.validateRefreshToken(refreshToken, false)) {
             log.debug("Admin/Leader 로그아웃 - 리프레시 토큰 없음 또는 검증 실패");
             forceLogout(response);
             return;
@@ -53,9 +54,11 @@ public class AdminLeaderAuthService {
 
         UUID uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken, false);
         jwtProvider.deleteRefreshToken(uuid);
-        log.debug("Admin/Leader 로그아웃 성공 - UUID: {}", uuid);
 
+        SecurityContextHolder.clearContext();
         forceLogout(response);
+
+        log.debug("Admin/Leader 로그아웃 성공 - UUID: {}", uuid);
     }
 
     /**
