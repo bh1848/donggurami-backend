@@ -46,6 +46,7 @@ public enum ExceptionType {
     USER_PROFILE_NOT_FOUND("USR-213","프로필 정보를 찾을 수 없습니다", NOT_FOUND),
     USER_PASSWORD_CONDITION_FAILED("USR-214","영문자,숫자,특수문자는 적어도 1개 이상씩 포함되어야합니다",BAD_REQUEST),
     USER_LOGIN_FAILED("USR-216","비회원 사용자입니다.인증을 완료해주세요",BAD_REQUEST),
+    USER_PASSWORD_NOT_REUSE("USR-217", "현재 비밀번호와 같은 비밀번호로 변경할 수 없습니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubMemberTemp
@@ -137,8 +138,8 @@ public enum ExceptionType {
     /**
      * Domain: ClubMember
      */
-    CLUB_MEMBER_NOT_EXISTS("CMEM-201","클럽멤버가 존재하지 않습니다.", NOT_FOUND),
-    CLUB_MEMBER_ALREADY_EXISTS("CMEM-202","클럽멤버가 이미 존재합니다. 관리자에게 문의하세요.", BAD_REQUEST),
+    CLUB_MEMBER_NOT_EXISTS("CMEM-201","동아리 회원이 존재하지 않습니다.", NOT_FOUND),
+    CLUB_MEMBER_ALREADY_EXISTS("CMEM-202","동아리 회원이 이미 존재합니다. 관리자에게 문의하세요.", BAD_REQUEST),
 
     /**
      * Domain: ClubMemberAccountStatus
