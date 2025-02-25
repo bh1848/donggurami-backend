@@ -274,7 +274,6 @@ public class GlobalExceptionHandler {
                 null
         );
 
-        logErrorResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 }
