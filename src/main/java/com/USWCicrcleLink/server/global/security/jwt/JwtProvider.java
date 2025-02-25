@@ -187,42 +187,23 @@ public class JwtProvider {
      */
     public boolean validateRefreshToken(String refreshToken, boolean isUser) {
         if (refreshToken == null || refreshToken.isEmpty()) {
-            log.debug("리프레시 토큰이 존재하지 않음 - 검증 실패");
             return false;
         }
 
         if (isUser) {
-            // 일반 사용자는 JWT 기반 검증
             try {
                 getClaims(refreshToken);
+                log.debug("User 리프레시 토큰 검증 성공");
                 return true;
             } catch (JwtException e) {
-                log.debug("JWT 검증 실패: {}", e.getMessage());
+                log.warn("User 리프레시 토큰 검증 실패 - 공격 가능성 있음: {}", e.getMessage());
                 return false;
             }
         }
 
-        // Admin 및 Leader는 Redis 기반 검증 (파이프라인 사용)
-        List<Object> results = redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-            RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
-            byte[] blacklistKey = serializer.serialize("blacklist:" + refreshToken);
-            byte[] refreshTokenKey = serializer.serialize("refreshToken:" + refreshToken);
-
-            // 블랙리스트 여부 조회
-            assert blacklistKey != null;
-            connection.stringCommands().get(blacklistKey);
-            // 토큰 존재 여부 조회
-            assert refreshTokenKey != null;
-            connection.stringCommands().get(refreshTokenKey);
-            return null;
-        });
-
-        boolean isBlacklisted = results.get(0) != null;
-        boolean existsInRedis = results.get(1) != null;
-
-        if (isBlacklisted) {
-            log.debug("리프레시 토큰 검증 실패 - 블랙리스트에 등록된 토큰: {}", refreshToken);
-            return false;
+        boolean existsInRedis = redisTemplate.opsForValue().get("refreshToken:" + refreshToken) != null;
+        if (!existsInRedis) {
+            log.warn("Admin/Leader 리프레시 토큰 검증 실패 - 공격 가능성 있음");
         }
         return existsInRedis;
     }
@@ -234,16 +215,16 @@ public class JwtProvider {
         if (isUser) {
             return UUID.fromString(getClaims(refreshToken).getSubject());
         }
-        String redisKey = "refreshToken:" + refreshToken;
-        String uuidStr = redisTemplate.opsForValue().get(redisKey);
-        return (uuidStr != null) ? UUID.fromString(uuidStr) : null;
+
+        String storedUuid = redisTemplate.opsForValue().get("refreshToken:" + refreshToken);
+        return (storedUuid != null) ? UUID.fromString(storedUuid) : null;
     }
 
     /**
      * 리프레시 토큰 삭제 (Admin & Leader)
      */
     public void deleteRefreshToken(UUID uuid) {
-        log.debug("UUID {} 기반으로 리프레시 토큰 삭제 실행", uuid);
+        log.debug("리프레시 토큰 삭제 진행 - UUID: {}", uuid);
         ScanOptions scanOptions = ScanOptions.scanOptions().match("refreshToken:*").count(100).build();
         List<byte[]> keysToDelete = new ArrayList<>();
         RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
@@ -271,28 +252,6 @@ public class JwtProvider {
             }
             return null;
         });
-    }
-
-    /**
-     * 리프레시 토큰 블랙리스트 등록 (Admin & Leader)
-     */
-    public void blacklistRefreshToken(String refreshToken) {
-        String tokenKey = "refreshToken:" + refreshToken;
-        Long remainingTime = redisTemplate.getExpire(tokenKey, TimeUnit.MILLISECONDS);
-        if (remainingTime == null || remainingTime <= 0) {
-            log.debug("블랙리스트 등록 실패 - 토큰 만료됨: {}", refreshToken);
-            return;
-        }
-        redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
-            RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
-            byte[] blacklistKey = serializer.serialize("blacklist:" + refreshToken);
-            byte[] value = serializer.serialize("invalid");
-            assert blacklistKey != null;
-            assert value != null;
-            connection.stringCommands().setEx(blacklistKey, remainingTime / 1000, value);
-            return null;
-        });
-        log.debug("리프레시 토큰 블랙리스트 등록 완료: {}", refreshToken);
     }
 
     /**

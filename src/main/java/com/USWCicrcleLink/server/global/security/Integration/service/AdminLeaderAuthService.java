@@ -23,18 +23,15 @@ public class AdminLeaderAuthService {
      */
     public TokenDto refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
-        if (refreshToken == null) {
-            return forceLogout(response, "리프레시 토큰 없음 - 로그아웃 처리 진행");
-        }
-
-        if (!jwtProvider.validateRefreshToken(refreshToken, false)) {
-            return forceLogout(response, "유효하지 않은 리프레시 토큰 감지 - 로그아웃 처리 진행");
+        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken, false)) {
+            forceLogout(response);
+            return null;
         }
 
         UUID uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken, false);
-        log.debug("리프레시 토큰 검증 완료 - UUID: {}", uuid);
 
         jwtProvider.deleteRefreshToken(uuid);
+
         String newAccessToken = jwtProvider.createAccessToken(uuid, response);
         String newRefreshToken = jwtProvider.createRefreshToken(uuid, response, false);
 
@@ -47,31 +44,24 @@ public class AdminLeaderAuthService {
      */
     public void adminLeaderLogout(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
-        if (refreshToken == null) {
-            forceLogout(response, "로그아웃 실패 - 리프레시 토큰 없음");
-            return;
-        }
 
-        if (!jwtProvider.validateRefreshToken(refreshToken, false)) {
-            forceLogout(response, "유효하지 않은 리프레시 토큰 - 로그아웃 계속 진행");
+        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken, false)) {
+            log.debug("Admin/Leader 로그아웃 - 리프레시 토큰 없음 또는 검증 실패");
+            forceLogout(response);
             return;
         }
 
         UUID uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken, false);
-        log.debug("로그아웃 진행 - UUID: {}", uuid);
-
-        jwtProvider.blacklistRefreshToken(refreshToken);
         jwtProvider.deleteRefreshToken(uuid);
+        log.debug("Admin/Leader 로그아웃 성공 - UUID: {}", uuid);
 
-        forceLogout(response, "로그아웃 성공 - UUID: " + uuid);
+        forceLogout(response);
     }
 
-
-    // 로그아웃 처리 (쿠키 삭제 및 로그)
-    private TokenDto forceLogout(HttpServletResponse response, String logMessage) {
-        log.warn(logMessage);
+    /**
+     * 로그아웃 처리 (쿠키 삭제 및 로그)
+     */
+    private void forceLogout(HttpServletResponse response) {
         jwtProvider.deleteRefreshTokenCookie(response);
-        log.debug("리프레시 토큰 무효화 - 로그아웃 처리 완료");
-        return null;
     }
 }
