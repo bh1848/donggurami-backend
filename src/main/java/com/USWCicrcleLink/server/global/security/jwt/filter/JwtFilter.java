@@ -66,7 +66,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     MDC.put("userUUID", leaderDetails.getLeaderUUID().toString());
                 }
 
-                log.info("[{}: {}] SecurityContextHolder 설정 완료 - 요청 경로: {}",
+                log.info("[{}: {}] 요청 경로: {}",
                         MDC.get("userType"), MDC.get("userUUID"), requestPath);
 
             } else {
