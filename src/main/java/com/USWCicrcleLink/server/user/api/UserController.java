@@ -4,6 +4,7 @@ import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.errortype.EmailException;
+import com.USWCicrcleLink.server.global.exception.errortype.EmailTokenException;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.security.jwt.dto.TokenDto;
 import com.USWCicrcleLink.server.global.validation.ValidationSequence;
@@ -14,7 +15,6 @@ import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
-import com.USWCicrcleLink.server.user.service.PasswordService;
 import com.USWCicrcleLink.server.user.service.UserService;
 import com.USWCicrcleLink.server.user.service.WithdrawalTokenService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,9 +38,8 @@ public class UserController {
 
     private final UserService userService;
     private final AuthTokenService authTokenService;
-    private final EmailTokenService emailTokenService;
     private final WithdrawalTokenService withdrawalTokenService;
-    private final PasswordService passwordService;
+    private final EmailTokenService emailTokenService;
 
     @PatchMapping("/userpw")
     public ApiResponse<String> updateUserPw(@Validated(ValidationSequence.class) @RequestBody UpdatePwRequest request) {
@@ -48,7 +47,7 @@ public class UserController {
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
 
-    // 회원가입시 계정 중복 체크
+    // 아이디 중복 체크
     @GetMapping("/verify-duplicate/{account}")
     public ResponseEntity<ApiResponse<String>> verifyAccountDuplicate(@PathVariable("account") String account) {
 
@@ -58,59 +57,56 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 비밀번호 유효성 확인
-    @PostMapping("/validate-passwords-match")
-    public ResponseEntity<ApiResponse<Void>> validatePassword(@Validated(ValidationSequence.class) @RequestBody PasswordRequest request) {
-        passwordService.validatePassword(request);
-
-        return ResponseEntity.ok(new ApiResponse<>("비밀번호가 일치합니다"));
-    }
-
-    // 신규회원가입
+    // 신규회원가입 - 인증 메일 전송
     @PostMapping("/temporary/register")
-    public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated(ValidationSequence.class) @RequestBody SignUpRequest request)  {
+    public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated @RequestBody EmailDTO request)  {
 
-        UserTemp userTemp = userService.registerUserTemp(request);
-        EmailToken emailToken = emailTokenService.createEmailToken(userTemp);
-        userService.sendSignUpMail(userTemp,emailToken);
+        // 이메일 중복 검증
+        EmailToken emailToken = userService.checkEmailDuplication(request.getEmail());
+
+        // 신규회원가입을 위한 이메일 전송
+        userService.sendSignUpMail(emailToken);
 
         ApiResponse<VerifyEmailResponse> verifyEmailResponse = new ApiResponse<>("인증 메일 전송 완료",
-                new VerifyEmailResponse(emailToken.getEmailTokenUUID(), userTemp.getTempAccount()));
+                new VerifyEmailResponse(emailToken.getEmailTokenUUID(), emailToken.getEmail()));
 
         return new ResponseEntity<>(verifyEmailResponse, HttpStatus.OK);
     }
 
-    // 신규회원 - 이메일 인증 후 회원가입
+    // 이메일 인증 여부 검증하기
     @GetMapping("/email/verify-token")
     public ModelAndView verifySignUpMail (@RequestParam("emailToken_uuid") UUID emailToken_uuid) {
 
         ModelAndView modelAndView = new ModelAndView();
 
         try {
-            UserTemp userTemp = userService.verifyEmailToken(emailToken_uuid);
-            userService.signUp(userTemp);
+            // 제한시간 안에 인증에 성공
+            userService.verifyEmailToken(emailToken_uuid);
             modelAndView.setViewName("success");
-        } catch (EmailException e) {
+        } catch (EmailTokenException e) {
+            // 이메일 만료 시간이 지난경우
+            modelAndView.setViewName("expired");
+        } catch (Exception e){
+            // 예상치 못한 다른 예외
             modelAndView.setViewName("failure");
         }
         return modelAndView;
     }
 
-    // 이메일 재인증
-    @PostMapping("/email/resend-confirmation")
-    public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader UUID emailToken_uuid) {
-
-        EmailToken emailToken = emailTokenService.updateCertificationTime(emailToken_uuid);
-        userService.sendSignUpMail(emailToken.getUserTemp(),emailToken);
-
-        ApiResponse<UUID> response = new ApiResponse<>("이메일 재인증을 해주세요", emailToken_uuid);
-        return new ResponseEntity<>(response,HttpStatus.OK);
+    // 인증 확인 버튼
+    @GetMapping("/email/verification")
+    public ResponseEntity<Boolean> emailVerification(@Validated @RequestBody EmailDTO request){
+        boolean response = emailTokenService.checkEmailIsVerified(request.getEmail());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 로그인하러가기 - 회원가입 최종 확인
-    @PostMapping("/finish-signup")
-    public ResponseEntity<ApiResponse<Void>> signUpFinish(@RequestBody FinishSignupRequest request) {
-        userService.signUpFinish(request.getAccount());
+    // 회원 가입 정보 등록하기
+    @PostMapping("/signup")
+    public ResponseEntity<ApiResponse<Void>> signUp(@Validated(ValidationSequence.class) @RequestBody SignUpRequest request,@RequestHeader("emailToken_uuid") UUID emailToken_uuid,@RequestHeader("user_email") String email) {
+        // 이메일 인증 여부 확인
+        UUID singupUUID = userService.isEmailVerified(emailToken_uuid);
+        // 회원가입 진행
+        userService.signUpUser(singupUUID,request,email);
         return ResponseEntity.ok(new ApiResponse<>("회원가입이 정상적으로 완료되어 로그인이 가능합니다."));
     }
 
@@ -151,7 +147,7 @@ public class UserController {
     // 인증 코드 검증
     @PostMapping("/auth/verify-token")
     @RateLimite(action = "VALIDATE_CODE")
-    public ApiResponse<String> verifyAuthToken(@RequestHeader UUID uuid,@Valid @RequestBody AuthCodeRequest request) {
+    public ApiResponse<String> verifyAuthToken(@RequestHeader("uuid") UUID uuid,@Valid @RequestBody AuthCodeRequest request) {
 
         authTokenService.verifyAuthToken(uuid, request);
         authTokenService.deleteAuthToken(uuid);
@@ -161,7 +157,7 @@ public class UserController {
 
     // 비밀번호 재설정
     @PatchMapping("/reset-password")
-    public ApiResponse<String> resetUserPw(@RequestHeader UUID uuid, @RequestBody PasswordRequest request) {
+    public ApiResponse<String> resetUserPw(@RequestHeader("uuid") UUID uuid, @RequestBody PasswordRequest request) {
 
         userService.resetPW(uuid,request);
 

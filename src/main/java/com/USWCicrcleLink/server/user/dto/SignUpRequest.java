@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.user.dto;
 
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
+import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import  com.USWCicrcleLink.server.global.validation.ValidationGroups.*;
 
@@ -27,6 +28,11 @@ public class SignUpRequest {
     @Pattern(regexp = "^[a-zA-Z0-9!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?~`]+$", message = "비밀번호는 영문 대소문자, 숫자, 특수문자만 포함할 수 있습니다.",groups = ValidationGroups.PatternGroup.class)
     private String password;
 
+    @NotBlank(message = "비밀번호는 필수 입력 값입니다.",groups = NotBlankGroup.class)
+    @Size(min = 8, max = 20, message = "비밀번호는 8~20자 이내여야 합니다.",groups = SizeGroup.class)
+    @Pattern(regexp = "^[a-zA-Z0-9!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?~`]+$", message = "비밀번호는 영문 대소문자, 숫자, 특수문자만 포함할 수 있습니다.",groups = ValidationGroups.PatternGroup.class)
+    private String confirmPassword;
+
     @NotBlank(message = "이름 필수 입력 값입니다.")
     @Pattern(regexp = "^[a-zA-Z가-힣]+$", message = "이름은 영어 또는 한글만 입력 가능합니다", groups = ValidationGroups.PatternGroup.class)
     private String userName;
@@ -44,21 +50,4 @@ public class SignUpRequest {
     @NotBlank(message = "학과 필수 입력 값입니다.")
     private String major;
 
-    @NotBlank(message = "이메일 필수 입력 값입니다.")
-    private String email;
-
-    private Boolean isEmailVerified = false;
-
-    public UserTemp toEntity(String encodedPassword,String telephone) {
-        return UserTemp.builder()
-                .tempAccount(account)
-                .tempPw(encodedPassword)
-                .tempName(userName)
-                .tempHp(telephone)
-                .tempStudentNumber(studentNumber)
-                .tempMajor(major)
-                .tempEmail(email)
-                .isEmailVerified(isEmailVerified)
-                .build();
-    }
 }
