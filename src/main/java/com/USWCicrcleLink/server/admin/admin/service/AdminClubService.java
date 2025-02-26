@@ -83,7 +83,7 @@ public class AdminClubService {
         }
 
         Club club = createClubEntity(request);
-        log.info("동아리 생성 성공 - Club ID: {}, Name: {}", club.getClubId(), club.getClubName());
+        log.info("동아리 생성 성공 - Name: {}", club.getClubName());
 
         createLeaderAccount(request.getLeaderAccount(), request.getLeaderPw(), club);
         createClubDefaultData(club);
@@ -113,7 +113,7 @@ public class AdminClubService {
                 .club(club)
                 .build();
         leaderRepository.save(leader);
-        log.info("회장 계정 생성 성공 - Leader ID: {}", leader.getLeaderId());
+        log.info("회장 계정 생성 성공 - uuid: {}", leader.getLeaderUUID());
     }
 
     // 동아리 생성 - 기본 동아리 데이터 생성
@@ -157,7 +157,7 @@ public class AdminClubService {
         }
 
         clubIntroPhotoRepository.saveAll(introPhotos);
-        log.info("기본 동아리 소개 사진 5개 생성 완료 - Club ID: {}", clubIntro.getClub().getClubId());
+        log.debug("기본 동아리 소개 사진 5개 생성 완료 - Club ID: {}", clubIntro.getClub().getClubId());
     }
 
     // 동아리 생성 - 동아리 회장 아이디 중복 확인
@@ -189,15 +189,15 @@ public class AdminClubService {
 
         Long clubId = clubRepository.findClubIdByUUID(clubUUID)
                 .orElseThrow(() -> {
-                    log.error("동아리 삭제 실패 - 존재하지 않는 Club UUID: {}", clubUUID);
+                    log.warn("동아리 삭제 실패 - 존재하지 않는 Club UUID: {}", clubUUID);
                     return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
                 });
 
         try {
             clubRepository.deleteClubAndDependencies(clubId);
-            log.info("동아리 삭제 성공 - Club ID: {}", clubId);
+            log.info("동아리 삭제 성공 - Club uuid: {}", clubUUID);
         } catch (Exception e) {
-            log.error("동아리 삭제 중 오류 발생 - Club ID: {}, 오류: {}", clubId, e.getMessage());
+            log.error("동아리 삭제 중 오류 발생 - Club uuid: {}, 오류: {}", clubUUID, e.getMessage());
             throw new BaseException(ExceptionType.SERVER_ERROR, e);
         }
     }

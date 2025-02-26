@@ -34,13 +34,6 @@ spring:
     logging-paths:
       - /admin/**
       - /notices/**
-      - /apply/**
-      - /integration/**
-      - /clubs/**
-      - /my-notices/**
-      - /profiles/**
-      - /users/**
-      - /profiles/**
       - /club-leader/**
 
     methods:

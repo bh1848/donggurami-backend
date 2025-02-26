@@ -14,8 +14,8 @@ logging:
     org.springframework.web: warn
     org.apache.catalina.core: warn
     org.springframework: error
-    org.hibernate.SQL: debug
-    org.hibernate.type: debug
+    org.hibernate.SQL: info
+    org.hibernate.type: info
     p6spy: info
 
 # email url

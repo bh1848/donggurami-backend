@@ -1,6 +1,5 @@
 package com.USWCicrcleLink.server.clubLeader.service;
 
-
 import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginRequest;
 import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginResponse;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
