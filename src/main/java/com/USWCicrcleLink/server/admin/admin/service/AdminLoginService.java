@@ -33,8 +33,8 @@ public class AdminLoginService {
      */
     @RateLimite(action = "WEB_LOGIN")
     public AdminLoginResponse adminLogin(AdminLoginRequest request, HttpServletResponse response) {
-        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAdminAccount(), Role.ADMIN);
-        CustomAdminDetails adminDetails = (CustomAdminDetails) userDetails;
+        CustomAdminDetails adminDetails = (CustomAdminDetails)
+                customUserDetailsService.loadUserByAccountAndRole(request.getAdminAccount(), Role.ADMIN);
 
         if (!passwordEncoder.matches(request.getAdminPw(), adminDetails.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
@@ -42,7 +42,6 @@ public class AdminLoginService {
 
         UUID adminUUID = adminDetails.admin().getAdminUUID();
 
-        // 토큰 생성
         String accessToken = jwtProvider.createAccessToken(adminUUID, response);
         String refreshToken = jwtProvider.createRefreshToken(adminUUID, response);
 

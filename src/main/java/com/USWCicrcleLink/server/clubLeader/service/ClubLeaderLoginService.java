@@ -35,8 +35,8 @@ public class ClubLeaderLoginService {
      */
     @RateLimite(action = "WEB_LOGIN")
     public LeaderLoginResponse leaderLogin(LeaderLoginRequest request, HttpServletResponse response) {
-        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getLeaderAccount(), Role.LEADER);
-        CustomLeaderDetails leaderDetails = (CustomLeaderDetails) userDetails;
+        CustomLeaderDetails leaderDetails = (CustomLeaderDetails)
+                customUserDetailsService.loadUserByAccountAndRole(request.getLeaderAccount(), Role.LEADER);
 
         if (!passwordEncoder.matches(request.getLeaderPw(), leaderDetails.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);

@@ -350,20 +350,20 @@ public class UserService {
      * User 로그인
      */
     public TokenDto userLogin(LogInRequest request, HttpServletResponse response) {
-        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), Role.USER);
-        UUID userUUID = ((CustomUserDetails) userDetails).user().getUserUUID();
+        CustomUserDetails customUserDetails = (CustomUserDetails)
+                customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), Role.USER);
 
-        if (!passwordEncoder.matches(request.getPassword(), userDetails.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), customUserDetails.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
-        // userUUID로 프로필 조회하여 로그인 가능 여부 판단
+        UUID userUUID = customUserDetails.user().getUserUUID();
+
         Profile profile = profileRepository.findByUser_UserUUID(userUUID)
                 .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
-
         log.debug("프로필 조회 성공 - 사용자 UUID: {}, 회원 타입: {}", userUUID, profile.getMemberType());
 
-        // 비회원(NONMEMBER)인 경우 로그인 불가
+        // 비회원(NONMEMBER)인 경우 로그인 거부
         if (profile.getMemberType().equals(MemberType.NONMEMBER)) {
             throw new UserException(ExceptionType.USER_LOGIN_FAILED);
         }
@@ -371,15 +371,13 @@ public class UserService {
         String accessToken = jwtProvider.createAccessToken(userUUID, response);
         String refreshToken = jwtProvider.createRefreshToken(userUUID, response);
 
-        // FCM 토큰 저장
-        profileRepository.findByUser_UserUUID(userUUID).ifPresent(userProfile -> {
-            userProfile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
-            profileRepository.save(userProfile);
-            log.debug("FCM 토큰 업데이트 완료: {}", userDetails.getUsername());
-        });
+        if (request.getFcmToken() != null && !request.getFcmToken().isEmpty()) {
+            profile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
+            profileRepository.save(profile);
+            log.debug("FCM 토큰 업데이트 완료: {}", customUserDetails.getUsername());
+        }
 
         log.debug("로그인 성공, UUID: {}", userUUID);
-
         return new TokenDto(accessToken, refreshToken);
     }
 
