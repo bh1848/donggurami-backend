@@ -23,15 +23,15 @@ public class PasswordService {
 
     // 비밀번호 유효성 검사
     @Transactional(readOnly = true)
-    public void validatePassword(PasswordRequest request) {
+    public void validatePassword(String password,String confirmPassword) {
         log.debug("비밀번호 유효성 확인 요청 시작");
 
         // 비밀번호 칸이 공백인지 확인
-       checkPasswordFieldBlank(request.getPassword(), request.getConfirmPassword());
-        // 비밀번호 조건이 충족되는지 확인
-       checkPasswordCondition(request.getPassword());
+       checkPasswordFieldBlank(password,confirmPassword);
+        // 비밀번호에 특수문자,숫자,영문자가 1개 이상 포함되어있는지 확인
+       checkPasswordCondition(password);
         // 두 비밀번호 일치 확인
-        checkPasswordMatch(request.getPassword(),request.getConfirmPassword());
+        checkPasswordMatch(password,confirmPassword);
 
         log.debug("비밀번호 유효성 검증 완료");
     }
