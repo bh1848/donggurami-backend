@@ -14,7 +14,6 @@ import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
 import com.USWCicrcleLink.server.global.security.details.service.CustomUserDetailsService;
 import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
-import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
 import com.USWCicrcleLink.server.global.security.jwt.dto.TokenDto;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
@@ -36,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,7 +60,6 @@ public class UserService {
     private final ClubRepository clubRepository;
     private final ClubMemberAccountStatusService clubMemberAccountStatusService;
     private final PasswordService passwordService;
-    private final CustomUserDetailsService customUserDetailsService;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
@@ -349,21 +346,22 @@ public class UserService {
     /**
      * User 로그인
      */
+    @RateLimite(action = "WEB_LOGIN")
     public TokenDto userLogin(LogInRequest request, HttpServletResponse response) {
-        CustomUserDetails customUserDetails = (CustomUserDetails)
-                customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), Role.USER);
+        User user = userRepository.findByUserAccount(request.getAccount())
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
 
-        if (!passwordEncoder.matches(request.getPassword(), customUserDetails.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getUserPw())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
-        UUID userUUID = customUserDetails.user().getUserUUID();
-
+        UUID userUUID = user.getUserUUID();
         Profile profile = profileRepository.findByUser_UserUUID(userUUID)
                 .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
+
         log.debug("프로필 조회 성공 - 사용자 UUID: {}, 회원 타입: {}", userUUID, profile.getMemberType());
 
-        // 비회원(NONMEMBER)인 경우 로그인 거부
+        // 비회원(NONMEMBER) 로그인 차단
         if (profile.getMemberType().equals(MemberType.NONMEMBER)) {
             throw new UserException(ExceptionType.USER_LOGIN_FAILED);
         }
@@ -371,10 +369,11 @@ public class UserService {
         String accessToken = jwtProvider.createAccessToken(userUUID, response);
         String refreshToken = jwtProvider.createRefreshToken(userUUID, response);
 
+        // FCM 토큰 업데이트
         if (request.getFcmToken() != null && !request.getFcmToken().isEmpty()) {
             profile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
             profileRepository.save(profile);
-            log.debug("FCM 토큰 업데이트 완료: {}", customUserDetails.getUsername());
+            log.debug("FCM 토큰 업데이트 완료: {}", user.getUserAccount());
         }
 
         log.debug("로그인 성공, UUID: {}", userUUID);

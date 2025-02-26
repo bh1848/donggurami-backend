@@ -2,7 +2,7 @@ package com.USWCicrcleLink.server.global.security.jwt;
 
 import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
-import com.USWCicrcleLink.server.global.security.details.service.CustomUserDetailsService;
+import com.USWCicrcleLink.server.global.security.details.service.UserDetailsServiceManager;
 import com.USWCicrcleLink.server.global.security.jwt.domain.TokenValidationResult;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -42,8 +42,7 @@ public class JwtProvider {
     public static final String BEARER_PREFIX = "Bearer ";
     private static final long ACCESS_TOKEN_EXPIRATION_TIME = 1800000L; // 30분
     private static final long REFRESH_TOKEN_EXPIRATION_TIME = 604800000L; // 7일
-
-    private final CustomUserDetailsService customUserDetailsService;
+    private final UserDetailsServiceManager userDetailsServiceManager;
     private final RedisTemplate<String, String> redisTemplate;
 
     @Value("${jwt.secret.key}")
@@ -59,7 +58,7 @@ public class JwtProvider {
      * 엑세스 토큰 생성 및 응답 헤더에 추가
      */
     public String createAccessToken(UUID uuid, HttpServletResponse response) {
-        UserDetails userDetails = customUserDetailsService.loadUserByUuid(uuid);
+        UserDetails userDetails = userDetailsServiceManager.loadUserByUuid(uuid);
 
         Claims claims = Jwts.claims().setSubject(uuid.toString());
 
@@ -91,7 +90,7 @@ public class JwtProvider {
      */
     public UserDetails getUserDetails(String accessToken) {
         UUID uuid = getUUIDFromAccessToken(accessToken);
-        return customUserDetailsService.loadUserByUuid(uuid);
+        return userDetailsServiceManager.loadUserByUuid(uuid);
     }
 
     /**
