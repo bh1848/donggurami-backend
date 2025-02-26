@@ -45,7 +45,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private UserDetails loadUserByAccount(String account) {
         User user = userRepository.findByUserAccount(account)
-                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
         return loadUserByUuidAndRole(user.getUserUUID(), Role.USER);
     }
 

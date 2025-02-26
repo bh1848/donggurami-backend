@@ -47,9 +47,6 @@ public class JwtProvider {
 
     @Value("${jwt.secret.key}")
     private String secretKeyString;
-
-    @Value("${security.cookie.secure}")
-    private boolean secureCookie; // prod 환경에서는 true
     private Key secretKey;
 
     @PostConstruct
@@ -89,14 +86,6 @@ public class JwtProvider {
     }
 
     /**
-     * 엑세스 토큰에서 UUID 추출
-     */
-    public UUID getUUIDFromAccessToken(String accessToken) {
-        String uuidStr = getClaims(accessToken).getSubject();
-        return UUID.fromString(uuidStr);
-    }
-
-    /**
      * 엑세스 토큰에서 사용자 정보 추출
      */
     public UserDetails getUserDetails(String accessToken) {
@@ -109,20 +98,23 @@ public class JwtProvider {
      */
     public boolean validateAccessToken(String accessToken) {
         try {
-            Jws<Claims> claims = getClaimsJws(accessToken);
-            return !claims.getBody().getExpiration().before(new Date());
+            Claims claims = getClaims(accessToken);
+            return !claims.getExpiration().before(new Date());
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    private Jws<Claims> getClaimsJws(String accessToken) {
-        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken);
+    /**
+     * 엑세스 토큰에서 UUID 추출
+     */
+    private UUID getUUIDFromAccessToken(String accessToken) {
+        String uuidStr = getClaims(accessToken).getSubject();
+        return UUID.fromString(uuidStr);
     }
 
-
-    // JWT Claims 파싱
-    public Claims getClaims(String jwtToken) {
+    // JWT Claims 파싱 및 반환
+    private Claims getClaims(String jwtToken) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
@@ -147,7 +139,6 @@ public class JwtProvider {
     public Authentication getAuthentication(String accessToken) {
         UserDetails userDetails = getUserDetails(accessToken);
 
-        // userDetails.getAuthorities()` 활용하여 역할 정보 가져오기
         List<GrantedAuthority> authorities = userDetails.getAuthorities().stream()
                 .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
                 .collect(Collectors.toList());
