@@ -700,9 +700,9 @@ public class ClubLeaderService {
                             club.getClubId(),
                             result.getAplictUUID(),
                             false)
-                    .orElseThrow(() -> new BaseException(ExceptionType.APPLICANT_NOT_EXISTS));
+                    .orElseThrow(() -> new AplictException(ExceptionType.APPLICANT_NOT_EXISTS));
 
-            // 동아리 회원 중복 검사
+            // 중복 가입 체크
             checkDuplicateClubMember(applicant.getProfile().getProfileId(), club.getClubId());
 
             // 합격 불합격 상태 업데이트
@@ -748,7 +748,7 @@ public class ClubLeaderService {
                 .collect(Collectors.toSet());
 
         if (!requestedApplicantUUIDs.equals(applicantUUIDs)) {
-            throw new BaseException(ExceptionType.APPLICANT_COUNT_MISMATCH);
+            throw new AplictException(ExceptionType.APPLICANT_COUNT_MISMATCH);
         }
     }
 
@@ -781,9 +781,9 @@ public class ClubLeaderService {
                             true,
                             AplictStatus.FAIL
                     )
-                    .orElseThrow(() -> new BaseException(ExceptionType.ADDITIONAL_APPLICANT_NOT_EXISTS));
+                    .orElseThrow(() -> new AplictException(ExceptionType.ADDITIONAL_APPLICANT_NOT_EXISTS));
 
-            // 동아리 회원 중복 검사
+            // 중복 가입 체크
             checkDuplicateClubMember(applicant.getProfile().getProfileId(), club.getClubId());
 
             // 합격 불합격 상태 업데이트
