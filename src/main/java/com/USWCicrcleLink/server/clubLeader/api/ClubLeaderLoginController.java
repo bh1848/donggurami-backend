@@ -5,6 +5,7 @@ import com.USWCicrcleLink.server.clubLeader.dto.LeaderLoginResponse;
 import com.USWCicrcleLink.server.clubLeader.service.ClubLeaderLoginService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class ClubLeaderLoginController {
      * 로그인 (Leader)
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LeaderLoginResponse>> LeaderLogin(@RequestBody LeaderLoginRequest request, HttpServletResponse response){
+    public ResponseEntity<ApiResponse<LeaderLoginResponse>> LeaderLogin(@RequestBody @Valid LeaderLoginRequest request, HttpServletResponse response){
         LeaderLoginResponse leaderLoginResponse = clubLeaderLoginService.leaderLogin(request,response);
         ApiResponse<LeaderLoginResponse> apiResponse = new ApiResponse<>("동아리 회장 로그인 성공", leaderLoginResponse);
         return ResponseEntity.ok(apiResponse);

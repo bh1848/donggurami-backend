@@ -34,25 +34,19 @@ public class AdminLoginService {
     @RateLimite(action = "WEB_LOGIN")
     public AdminLoginResponse adminLogin(AdminLoginRequest request, HttpServletResponse response) {
         UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAdminAccount(), Role.ADMIN);
+        CustomAdminDetails adminDetails = (CustomAdminDetails) userDetails;
 
-        if (!passwordEncoder.matches(request.getAdminPw(), userDetails.getPassword())) {
+        if (!passwordEncoder.matches(request.getAdminPw(), adminDetails.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
-        log.debug("Admin 로그인 성공 - 계정: {}", request.getAdminAccount());
 
-        UUID adminUUID = extractAdminUUID(userDetails);
+        UUID adminUUID = adminDetails.admin().getAdminUUID();
 
+        // 토큰 생성
         String accessToken = jwtProvider.createAccessToken(adminUUID, response);
         String refreshToken = jwtProvider.createRefreshToken(adminUUID, response);
 
+        log.debug("Admin 로그인 성공 - uuid: {}", adminUUID);
         return new AdminLoginResponse(accessToken, refreshToken, Role.ADMIN);
-    }
-
-    // Admin UUID 추출 (CustomAdminDetails에서 가져옴)
-    private UUID extractAdminUUID(UserDetails userDetails) {
-        if (userDetails instanceof CustomAdminDetails customAdminDetails) {
-            return customAdminDetails.admin().getAdminUUID();
-        }
-        throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
     }
 }

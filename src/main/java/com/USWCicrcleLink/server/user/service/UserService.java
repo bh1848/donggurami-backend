@@ -350,57 +350,37 @@ public class UserService {
      * User 로그인
      */
     public TokenDto userLogin(LogInRequest request, HttpServletResponse response) {
-
         UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), Role.USER);
-        UUID userUUID = extractUserUUID(userDetails);
+        UUID userUUID = ((CustomUserDetails) userDetails).user().getUserUUID();
 
         if (!passwordEncoder.matches(request.getPassword(), userDetails.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
+        }
+
+        // userUUID로 프로필 조회하여 로그인 가능 여부 판단
+        Profile profile = profileRepository.findByUser_UserUUID(userUUID)
+                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
+
+        log.debug("프로필 조회 성공 - 사용자 UUID: {}, 회원 타입: {}", userUUID, profile.getMemberType());
+
+        // 비회원(NONMEMBER)인 경우 로그인 불가
+        if (profile.getMemberType().equals(MemberType.NONMEMBER)) {
+            throw new UserException(ExceptionType.USER_LOGIN_FAILED);
         }
 
         String accessToken = jwtProvider.createAccessToken(userUUID, response);
         String refreshToken = jwtProvider.createRefreshToken(userUUID, response);
 
         // FCM 토큰 저장
-        profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
-            profile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
-            profileRepository.save(profile);
+        profileRepository.findByUser_UserUUID(userUUID).ifPresent(userProfile -> {
+            userProfile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
+            profileRepository.save(userProfile);
             log.debug("FCM 토큰 업데이트 완료: {}", userDetails.getUsername());
         });
 
-        log.debug("로그인 성공, uuid: {}", userUUID);
+        log.debug("로그인 성공, UUID: {}", userUUID);
 
         return new TokenDto(accessToken, refreshToken);
-    }
-
-    // UserDetails에서 UUID 추출
-    private UUID extractUserUUID(UserDetails userDetails) {
-        if (userDetails instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.user().getUserUUID();
-        }
-        throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
-    }
-
-    // 로그인 가능 여부 판단
-    public void verifyLogin(LogInRequest request) {
-        log.debug("로그인 검증 시작 - 요청 계정: {}", request.getAccount());
-
-        // account로 user 조회
-        User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
-        log.debug("사용자 조회 성공 - 계정: {}, 사용자 ID: {}", user.getUserAccount(), user.getUserId());
-
-        // user로 프로필 조회하여 로그인 가능 여부 판단
-        Profile profile = profileRepository.findByUserUserId(user.getUserId())
-                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
-        log.debug("프로필 조회 성공 - 사용자 ID: {}, 회원 타입: {}", user.getUserId(), profile.getMemberType());
-
-        // 비회원인 경우 로그인 불가
-        if (profile.getMemberType().equals(MemberType.NONMEMBER)) {
-            throw new UserException(ExceptionType.USER_LOGIN_FAILED);
-        }
-
-        log.debug("로그인 검증 완료 - 로그인 가능 사용자 ID: {}", user.getUserId());
     }
 
     /**

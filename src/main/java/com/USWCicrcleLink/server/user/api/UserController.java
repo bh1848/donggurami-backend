@@ -174,7 +174,6 @@ public class UserController {
     @PostMapping("/login")
     @RateLimite(action = "APP_LOGIN")
     public ResponseEntity<ApiResponse<TokenDto>> userLogin(@RequestBody @Validated(ValidationSequence.class) LogInRequest request, HttpServletResponse response) {
-        userService.verifyLogin(request);
         TokenDto tokenDto = userService.userLogin(request, response);
         return ResponseEntity.ok(new ApiResponse<>("로그인 성공", tokenDto));
     }

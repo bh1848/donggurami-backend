@@ -36,34 +36,20 @@ public class ClubLeaderLoginService {
     @RateLimite(action = "WEB_LOGIN")
     public LeaderLoginResponse leaderLogin(LeaderLoginRequest request, HttpServletResponse response) {
         UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getLeaderAccount(), Role.LEADER);
+        CustomLeaderDetails leaderDetails = (CustomLeaderDetails) userDetails;
 
-        if (!passwordEncoder.matches(request.getLeaderPw(), userDetails.getPassword())) {
+        if (!passwordEncoder.matches(request.getLeaderPw(), leaderDetails.getPassword())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
-        // Leader UUID 및 동의 여부 추출
-        UUID leaderUUID = extractLeaderUUID(userDetails);
-        UUID clubUUID = null;
-        Boolean isAgreedTerms = false;
-
-        if (userDetails instanceof CustomLeaderDetails leaderDetails) {
-            clubUUID = leaderDetails.getClubUUID();
-            isAgreedTerms = leaderDetails.getIsAgreedTerms();
-        }
-
-        log.debug("Leader 로그인 성공 - 계정: {}", request.getLeaderAccount());
+        UUID leaderUUID = leaderDetails.leader().getLeaderUUID();
+        UUID clubUUID = leaderDetails.getClubUUID();
+        Boolean isAgreedTerms = leaderDetails.getIsAgreedTerms();
 
         String accessToken = jwtProvider.createAccessToken(leaderUUID, response);
         String refreshToken = jwtProvider.createRefreshToken(leaderUUID, response);
 
+        log.debug("Leader 로그인 성공 - uuid: {}, 클럽 UUID: {}", leaderUUID, clubUUID);
         return new LeaderLoginResponse(accessToken, refreshToken, Role.LEADER, clubUUID, isAgreedTerms);
-    }
-
-    // Leader UUID 추출 (CustomLeaderDetails에서 가져옴)
-    private UUID extractLeaderUUID(UserDetails userDetails) {
-        if (userDetails instanceof CustomLeaderDetails customLeaderDetails) {
-            return customLeaderDetails.leader().getLeaderUUID();
-        }
-        throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
     }
 }

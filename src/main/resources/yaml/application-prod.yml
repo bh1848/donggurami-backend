@@ -11,6 +11,7 @@ logging:
     root: warn
     com.USWCicrcleLink.server: info  # 프로젝트 관련 로그
     com.USWCicrcleLink.server.global.security.jwt.filter.LoggingFilter: info
+    com.USWCicrcleLink.server.global.security.jwt.filter.JwtFilter: error
     org.springframework.security: error  # Spring Security 로그
     org.springframework.web: error  # 서블릿 로그
     org.apache.catalina.core: error  # Tomcat 로그
