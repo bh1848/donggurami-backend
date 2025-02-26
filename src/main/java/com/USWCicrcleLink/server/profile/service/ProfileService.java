@@ -21,6 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -105,18 +107,20 @@ public class ProfileService {
     }
 
     @Transactional
-    public void deleteAll() {
+    public void deleteProfileByUserUUID(UUID userUUID) {
+        Profile profile = profileRepository.findByUser_UserUUID(userUUID)
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
 
-        // 프로필 객체 조회
-        Profile profile = getProfileByAuth();
-
-        // 프로필과 연관된 테이블 데이터 전부 삭제
+        // 프로필과 연관된 테이블 데이터 삭제
         aplictRepository.deleteAllByProfile(profile);
         clubMembersRepository.deleteAllByProfile(profile);
 
         // 프로필 삭제
         profileRepository.delete(profile);
+
+        log.debug("프로필 및 연관 데이터 삭제 완료: {}", userUUID);
     }
+
 
     // 프로필 중복 확인
     public void checkProfileDuplicated(DuplicationProfileRequest request) {

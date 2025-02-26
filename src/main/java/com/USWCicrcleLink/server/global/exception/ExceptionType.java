@@ -49,8 +49,9 @@ public enum ExceptionType {
     USER_AUTHENTICATION_FAILED("USR-211","아이디 혹은 비밀번호가 일치하지 않습니다",UNAUTHORIZED),
     USER_PASSWORD_CONDITION_FAILED("USR-214","영문자,숫자,특수문자는 적어도 1개 이상씩 포함되어야합니다",BAD_REQUEST),
     USER_LOGIN_FAILED("USR-216","비회원 사용자입니다.인증을 완료해주세요",BAD_REQUEST),
-    USER_CREATION_FAILED("USR-217","회원 생성중 오류 발생",INTERNAL_SERVER_ERROR),
-    USER_PASSWORD_NOT_CHANGED ("USR-218", "새로운 비밀번호는 이전 비밀번호와 달라야 합니다.", BAD_REQUEST),
+    USER_PASSWORD_NOT_REUSE("USR-217", "현재 비밀번호와 같은 비밀번호로 변경할 수 없습니다.", BAD_REQUEST),
+    USER_CREATION_FAILED("USR-218","회원 생성중 오류 발생",INTERNAL_SERVER_ERROR),
+
 
     /**
      * Domain: ClubMemberTemp
@@ -68,9 +69,7 @@ public enum ExceptionType {
     /**
      * Domain: Jwt
      */
-    UNABLE_GENERATE_ROLE_TOKEN("TOK-201", "해당 역할 토큰 생성 불가능합니다.", BAD_REQUEST),
-    INVALID_REFRESH_TOKEN("TOK-202", "유효하지 않은 리프레시 토큰입니다.", UNAUTHORIZED),
-    INVALID_ACCESS_TOKEN("TOK-203", "유효하지 않은 엑세스 토큰입니다.", UNAUTHORIZED),
+    INVALID_ROLE("TOK-201", "유효하지 않은 role입니다.", BAD_REQUEST),
     UNAUTHENTICATED_USER("TOK-204", "인증되지 않은 사용자입니다.", UNAUTHORIZED),
 
     /**
@@ -80,6 +79,7 @@ public enum ExceptionType {
     ClUB_CHECKING_ERROR("CLUB-202", "동아리 조회 중 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
     CLUB_NAME_ALREADY_EXISTS("CLUB-203", "이미 존재하는 동아리 이름입니다.", CONFLICT),
     CLUB_MAINPHOTO_NOT_EXISTS("CLUB-204", "동아리 사진이 존재하지 않습니다", NOT_FOUND),
+    CLUB_ROOM_ALREADY_EXISTS("CLUB-205", "이미 지정된 동아리방입니다." , CONFLICT),
 
 
     /**
@@ -131,6 +131,7 @@ public enum ExceptionType {
      * Domain: ClubIntroPhoto, Club(MainPhoto)
      */
     PHOTO_ORDER_MISS_MATCH("CLP-201", "범위를 벗어난 사진 순서 값입니다.", BAD_REQUEST),
+    CLUB_ID_NOT_EXISTS("CLP-202", "동아리 ID가 존재하지 않습니다.", INTERNAL_SERVER_ERROR),
 
     /**
      * Domain: ClubLeader
@@ -144,8 +145,8 @@ public enum ExceptionType {
     /**
      * Domain: ClubMember
      */
-    CLUB_MEMBER_NOT_EXISTS("CMEM-201","클럽멤버가 존재하지 않습니다.", NOT_FOUND),
-    CLUB_MEMBER_ALREADY_EXISTS("CMEM-202","클럽멤버가 이미 존재합니다. 관리자에게 문의하세요.", BAD_REQUEST),
+    CLUB_MEMBER_NOT_EXISTS("CMEM-201","동아리 회원이 존재하지 않습니다.", NOT_FOUND),
+    CLUB_MEMBER_ALREADY_EXISTS("CMEM-202","동아리 회원이 이미 존재합니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubMemberAccountStatus
@@ -181,7 +182,7 @@ public enum ExceptionType {
      */
     SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR),
     INVALID_UUID_FORMAT("UUID-502", "유효하지 않은 UUID 형식입니다." , BAD_REQUEST),
-    TOO_MANY_ATTEMPT("ATTEMPT-503", "최대 시도 횟수를 초과했습니다. 1분 후  다시 시도 하세요", BAD_REQUEST),
+    TOO_MANY_ATTEMPT("ATTEMPT-503", "최대 시도 횟수를 초과했습니다. 5분 후  다시 시도 하세요", BAD_REQUEST),
     PHOTO_FILE_IS_EMPTY("PHOTO-504","사진 파일이 비어있습니다." ,BAD_REQUEST),
     PHOTO_NOT_FOUND("PHOTO-505", "해당 사진이 존재하지 않습니다.", NOT_FOUND),
     INVALID_ENUM_VALUE("ENUM-401", "유효하지 않은 Enum 값입니다.", BAD_REQUEST),

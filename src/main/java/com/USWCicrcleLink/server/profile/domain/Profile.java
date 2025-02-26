@@ -29,15 +29,15 @@ public class Profile {
     private User user;
 
     @Column(name = "user_name", nullable = false)
-    @Pattern(regexp = "^[a-zA-Z가-힣]+$", message = "이름은 한글만 입력 가능합니다", groups = ValidationGroups.PatternGroup.class)
+    @Pattern(regexp = "^[a-zA-Z가-힣]+$", message = "이름은 영어 또는 한글만 입력 가능합니다.", groups = ValidationGroups.PatternGroup.class)
     private String userName;
 
     @Column(name = "student_number", nullable = false)
-    @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다", groups = ValidationGroups.PatternGroup.class)
+    @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다.", groups = ValidationGroups.PatternGroup.class)
     private String studentNumber;
 
     @Column(name = "user_hp", nullable = false)
-    @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다", groups = ValidationGroups.PatternGroup.class)
+    @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다.", groups = ValidationGroups.PatternGroup.class)
     private String userHp;
 
     @Column(name = "major", nullable = false)

@@ -9,17 +9,20 @@ import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.*;
-import com.USWCicrcleLink.server.global.security.domain.Role;
-import com.USWCicrcleLink.server.global.security.dto.TokenDto;
-import com.USWCicrcleLink.server.global.security.service.CustomUserDetailsService;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
+import com.USWCicrcleLink.server.global.security.details.service.CustomUserDetailsService;
 import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
+import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
+import com.USWCicrcleLink.server.global.security.jwt.dto.TokenDto;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
 import com.USWCicrcleLink.server.profile.service.ProfileService;
-import com.USWCicrcleLink.server.user.domain.*;
+import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
+import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
@@ -29,7 +32,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -48,15 +50,15 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final JwtProvider jwtProvider;
+    private final PasswordEncoder passwordEncoder;
+    private final ProfileService profileService;
     private final ClubMemberTempRepository clubMemberTempRepository;
     private final ClubRepository clubRepository;
     private final EmailTokenRepository emailTokenRepository;
-    private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final EmailTokenService emailTokenService;
-    private final JwtProvider jwtProvider;
     private final CustomUserDetailsService customUserDetailsService;
-    private final ProfileService profileService;
     private final ClubMemberAccountStatusService clubMemberAccountStatusService;
     private final PasswordService passwordService;
 
@@ -79,9 +81,16 @@ public class UserService {
     //비밀번호 변경
     public void updateNewPW(UpdatePwRequest updatePwRequest) {
 
+        User user = getUserByAuth();
+
         if (!confirmPW(updatePwRequest.getUserPw())) {
             throw new UserException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
+
+        if (passwordEncoder.matches(updatePwRequest.getNewPw(), user.getUserPw())) {
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_REUSE);
+        }
+
         // 비밀번호 칸이 빈칸인지 확인
         passwordService.checkPasswordFieldBlank(updatePwRequest.getNewPw(), updatePwRequest.getNewPw());
         // 새로운 비밀번호의 유효성 검사
@@ -89,7 +98,6 @@ public class UserService {
         // 비밀번호가 일치하는지 확인
         passwordService.checkPasswordMatch(updatePwRequest.getNewPw(), updatePwRequest.getConfirmNewPw());
 
-        User user = getUserByAuth();
         String encryptedNewPw = passwordEncoder.encode(updatePwRequest.getNewPw());
         user.updateUserPw(encryptedNewPw);
 
@@ -114,8 +122,13 @@ public class UserService {
     public void signUpUser(UUID signupUUID, SignUpRequest request,String email) {
         // user 객체 생성
         User user = createUser(signupUUID, request,email);
+        userRepository.save(user);
+        log.debug("user 객체 생성: user_uuid={}",user.getUserUUID());
         // profile 객체 생성
-        createProfile(user, request);
+        Profile profile = createProfile(user, request);
+        profileRepository.save(profile);
+        log.debug("profile 객체 생성: profile_id={}",profile.getProfileId());
+
 
         // emailToken 테이블 삭제
         emailTokenService.deleteEmailToken(email);
@@ -246,43 +259,6 @@ public class UserService {
         log.debug("계정 중복 체크 완료. account = {}", account);
     }
 
-
-    // 로그인
-    public TokenDto logIn(LogInRequest request, HttpServletResponse response) {
-
-        // 사용자 정보 조회 (UserDetails 사용)
-        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), Role.USER);
-
-        // UserDetails에서 User 객체 추출
-        User user;
-        if (userDetails instanceof CustomUserDetails) {
-            user = ((CustomUserDetails) userDetails).user();
-        } else {
-            throw new UserException(ExceptionType.USER_NOT_EXISTS);
-        }
-
-        // 아이디와 비밀번호 검증
-        if (!user.getUserAccount().equals(request.getAccount()) || !passwordEncoder.matches(request.getPassword(), user.getUserPw())) {
-            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
-        }
-
-        // 로그인 성공 시 토큰 발급
-        String accessToken = jwtProvider.createAccessToken(userDetails.getUsername(), response);
-        String refreshToken = jwtProvider.createRefreshToken(userDetails.getUsername(), response);
-
-        log.debug("로그인 성공, uuid: {}", userDetails.getUsername());
-
-        // fcm 토큰 저장
-        Profile profile = profileRepository.findById(user.getUserId())
-                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
-
-        profile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
-        profileRepository.save(profile);
-        log.debug("fcmToken 업데이트 완료: {}", user.getUserAccount());
-
-        return new TokenDto(accessToken, refreshToken);
-    }
-
     @Transactional(readOnly = true)
     public User findUser(String email) {
         log.debug("계정 찾기 요청  email= {}", email);
@@ -306,7 +282,7 @@ public class UserService {
         // 이전 비밀번호와 새로 설정할 비밀번호가 일치하는 경우
         if(passwordEncoder.matches(request.getPassword(), user.getUserPw())){
             log.debug("이전 비밀번호와 새롭게 설정한 비밀번호가 일치함");
-            throw new UserException(ExceptionType.USER_PASSWORD_NOT_CHANGED);
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_REUSE);
         }
 
         // 새로운 비밀번호의 유효성 검사
@@ -367,64 +343,48 @@ public class UserService {
         log.debug("최종 회원 가입 완료");
     }
 
+    /**
+     * User 로그인
+     */
+    public TokenDto userLogin(LogInRequest request, HttpServletResponse response) {
+        UserDetails userDetails = customUserDetailsService.loadUserByAccountAndRole(request.getAccount(), Role.USER);
+        UUID userUUID = ((CustomUserDetails) userDetails).user().getUserUUID();
 
-    // 회원 탈퇴
-    public void cancelMembership(HttpServletRequest request, HttpServletResponse response) {
-
-        // 리프레시 토큰 추출
-        String refreshToken = jwtProvider.resolveRefreshToken(request);
-
-        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken)) {
-            // 유효한 리프레시 토큰인 경우, 리프레시 토큰 삭제
-            String uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
-            jwtProvider.deleteRefreshTokenCookie(response);
-            jwtProvider.deleteRefreshTokensByUuid(uuid);
-            log.debug("리프레시 토큰 삭제 : 사용자 {}의 모든 리프레시 토큰 삭제 완료", uuid);
-        } else {
-            log.debug("리프레시 토큰이 존재하지 않거나 유효하지 않음. 회원 탈퇴 계속 진행.");
+        if (!passwordEncoder.matches(request.getPassword(), userDetails.getPassword())) {
+            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
-        // 회원과 관련된 정보 모두 삭제
-        profileService.deleteAll();
-        userRepository.delete(getUserByAuth());
+        // userUUID로 프로필 조회하여 로그인 가능 여부 판단
+        Profile profile = profileRepository.findByUser_UserUUID(userUUID)
+                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
 
-        log.debug("회원 탈퇴 성공");
-    }
+        log.debug("프로필 조회 성공 - 사용자 UUID: {}, 회원 타입: {}", userUUID, profile.getMemberType());
 
-    // 로그인 가능 여부 판단
-    public void verifyLogin(LogInRequest request) {
-        log.debug("로그인 검증 시작 - 요청 계정: {}", request.getAccount());
-
-        // account로 user 조회
-        User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> {
-                    log.error("로그인 실패 - 존재하지 않는 계정: {}", request.getAccount());
-                    return new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS);
-                });
-        log.debug("사용자 조회 성공 - 계정: {}, 사용자 ID: {}", user.getUserAccount(), user.getUserId());
-
-        // user로 프로필 조회하여 로그인 가능 여부 판단
-        Profile profile = profileRepository.findByUserUserId(user.getUserId())
-                .orElseThrow(() -> {
-                    log.error("로그인 실패 - 프로필 없음 - 사용자 ID: {}", user.getUserId());
-                    return new ProfileException(ExceptionType.PROFILE_NOT_EXISTS);
-                });
-        log.debug("프로필 조회 성공 - 사용자 ID: {}, 회원 타입: {}", user.getUserId(), profile.getMemberType());
-
-        // 비회원인 경우 로그인 불가
+        // 비회원(NONMEMBER)인 경우 로그인 불가
         if (profile.getMemberType().equals(MemberType.NONMEMBER)) {
-            log.error("로그인 실패 - 비회원 사용자 - 사용자 ID: {}", user.getUserId());
             throw new UserException(ExceptionType.USER_LOGIN_FAILED);
         }
 
-        log.debug("로그인 검증 완료 - 로그인 가능 사용자 ID: {}", user.getUserId());
-    }
+        String accessToken = jwtProvider.createAccessToken(userUUID, response);
+        String refreshToken = jwtProvider.createRefreshToken(userUUID, response);
 
-    public void checkEmailDuplication(String email) {
+        // FCM 토큰 저장
+        profileRepository.findByUser_UserUUID(userUUID).ifPresent(userProfile -> {
+            userProfile.updateFcmTokenTime(request.getFcmToken(), LocalDateTime.now().plusDays(FCM_TOKEN_CERTIFICATION_TIME));
+            profileRepository.save(userProfile);
+            log.debug("FCM 토큰 업데이트 완료: {}", userDetails.getUsername());
+        });
+
+        log.debug("로그인 성공, UUID: {}", userUUID);
+
+        return new TokenDto(accessToken, refreshToken);
+    }
+    public EmailToken checkEmailDuplication(String email) {
         log.debug("이메일 중복 확인 시작, email: {}", email);
 
+        EmailToken emailToken;
+
         // 실제 사용중인 이메일 확인
-        log.debug("userRepository에서 이메일 존재 여부 확인 중...");
         if (userRepository.findByEmail(email).isPresent()) {
             log.error("user 테이블에서 중복된 이메일 존재, email 값= {}", email);
             throw new UserException(ExceptionType.USER_OVERLAP);
@@ -432,13 +392,17 @@ public class UserService {
         else if (emailTokenRepository.findByEmail(email).isPresent()) {
             log.debug("요청 가입 대기자 존재 - emailToken 테이블에서 중복된 이메일 존재, email 값= {}", email);
             // 이메일 토큰 정보 조회
-            EmailToken emailToken = emailTokenService.getEmailTokenByEmail(email);
+            emailToken = emailTokenService.getEmailTokenByEmail(email);
             log.debug("emailToken 조회 완료, emailTokenUUID= {}", emailToken.getEmailTokenUUID());
             // 토큰 만료시간 업데이트
             emailTokenService.updateCertificationTime(emailToken);
             log.debug("이메일 인증 만료시간 업데이트 완료, emailTokenUUID= {}", emailToken.getEmailTokenUUID());
+        }else{
+            // 그 외의 경우 새로운 이메일 토큰 생성
+            emailToken = emailTokenService.createEmailToken(email);
         }
         log.debug("이메일 중복 확인 완료");
+        return emailToken;
     }
 
 
@@ -452,7 +416,35 @@ public class UserService {
             throw new EmailException(ExceptionType.EMAIL_TOKEN_NOT_VERIFIED);
         }
         // 이메일 인증여부 확인 후, signupUUID 리턴
+        log.debug("signupUUID={}",emailToken.getSignupUUID());
         return emailToken.getSignupUUID();
     }
+    /**
+     * 회원 탈퇴 (User)
+     */
+    public void cancelMembership(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = jwtProvider.resolveRefreshToken(request);
 
+        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken, request)) {
+            jwtProvider.deleteRefreshTokenCookie(response);
+            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
+        }
+
+        UUID userUUID = jwtProvider.getUUIDFromRefreshToken(refreshToken);
+
+        // FCM 토큰 삭제 (모바일 푸시 알림 무효화)
+        profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
+            profile.updateFcmToken(null);
+            profileRepository.save(profile);
+            log.debug("회원 탈퇴 - FCM 토큰 삭제 완료 - UUID: {}", userUUID);
+        });
+
+        // 회원 정보 삭제
+        profileService.deleteProfileByUserUUID(userUUID);
+        userRepository.deleteByUserUUID(userUUID);
+
+        SecurityContextHolder.clearContext();
+        jwtProvider.deleteRefreshTokenCookie(response);
+        log.info("회원 탈퇴 성공 - UUID: {}", userUUID);
+    }
 }

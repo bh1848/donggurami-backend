@@ -4,6 +4,7 @@ import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.repository.EmailTokenRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.EmailException;
+import com.USWCicrcleLink.server.global.exception.errortype.EmailTokenException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,7 @@ public class EmailTokenService {
 
         log.debug("토큰 만료시간 검증 시작");
         if(emailToken.isExpired()){ // 이메일 토큰이 만료된 경우
-            throw new EmailException(ExceptionType.EMAIL_TOKEN_IS_EXPIRED);
+            throw new EmailTokenException(ExceptionType.EMAIL_TOKEN_IS_EXPIRED);
         }
 
         return emailToken; // 인증 완료된 이메일 토큰
@@ -81,7 +82,7 @@ public class EmailTokenService {
 
     // 이메일 인증 토큰 업데이트
    public EmailToken updateCertificationTime (EmailToken emailToken) {
-        log.debug("이메일 재인증 메서드 시작");
+        log.debug("이메일 만료시간 업데이트 메서드 시작");
 
        // 이메일 토큰의 만료시간 갱신
        try{
@@ -95,5 +96,17 @@ public class EmailTokenService {
        log.debug("이메일 토큰의 만료시간 갱신 완료");
 
         return emailToken;
+    }
+
+    // 이메일의 인증 여부를 확인
+    public boolean checkEmailIsVerified(String email) {
+        // 이메일에 해당하는 이메일 토큰 조회
+        EmailToken emailToken = getEmailTokenByEmail(email);
+        // 해당 이메일 토큰의 인증 여부 필드 확인
+        if(emailToken.isVerified()){
+            return true;
+        }else{
+            return false;
+        }
     }
 }

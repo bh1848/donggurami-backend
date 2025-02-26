@@ -1,4 +1,4 @@
-package com.USWCicrcleLink.server.global.security.domain;
+package com.USWCicrcleLink.server.global.security.jwt.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

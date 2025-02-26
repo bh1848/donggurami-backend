@@ -8,7 +8,6 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class AdminClubListResponse {
     private UUID clubUUID;
     private Department department;

@@ -8,12 +8,14 @@ import org.checkerframework.checker.units.qual.A;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Repository
 public interface AplictRepository extends JpaRepository<Aplict, Long> ,AplictRepositoryCustom{
     List<Aplict> findByProfileProfileId(Long profileId);
 
@@ -26,8 +28,8 @@ public interface AplictRepository extends JpaRepository<Aplict, Long> ,AplictRep
 
     void deleteAllByProfile(Profile profile);
 
-    // AplictRepository에서 지원 여부 확인
-    boolean existsByProfileAndClub_ClubId(Profile profile, Long clubId);
+    @Query("SELECT COUNT(a) > 0 FROM Aplict a WHERE a.profile = :profile AND a.club.clubUUID = :clubUUID")
+    boolean existsByProfileAndClubUUID(Profile profile, UUID clubUUID);
 
     @Query("SELECT a.club FROM Aplict a WHERE a.aplictId = :aplictId")
     Optional<Club> findClubByAplictId(@Param("aplictId") Long aplictId);

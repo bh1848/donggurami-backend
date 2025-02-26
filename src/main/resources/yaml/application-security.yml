@@ -6,7 +6,6 @@ spring:
 
   security:
     permit-all-paths:
-      - /users/login
       - /users/temporary/register
       - /users/email/verify-token
       - /users/finish-signup
@@ -17,12 +16,13 @@ spring:
       - /users/auth/verify-token
       - /users/reset-password
       - /users/email/resend-confirmation
-      - /auth/refresh-token
+      - /users/login
       - /club-leader/login
       - /admin/login
-      - /integration/logout
+      - /integration/**
       - /mainPhoto/**
       - /introPhoto/**
+      - /notice/Photo/**
       - /my-notices/**
       - /clubs/**
       - /profiles/duplication-check
@@ -30,3 +30,23 @@ spring:
       - /mypages/clubs/{floor}/photo
       - /clubs/filter/**
       - /images/logo.png
+      - /users/signup
+      - /users/email/verification
+
+    logging-paths:
+      - /admin/**
+      - /notices/**
+      - /apply/**
+      - /integration/**
+      - /clubs/**
+      - /my-notices/**
+      - /profiles/**
+      - /users/**
+      - /profiles/**
+      - /club-leader/**
+
+    methods:
+      - POST
+      - DELETE
+      - PUT
+      - PATCH

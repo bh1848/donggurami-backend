@@ -5,10 +5,12 @@ import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface ClubMainPhotoRepository extends JpaRepository<ClubMainPhoto, Long> {
     ClubMainPhoto findByClub_ClubId(Long clubId);
 
@@ -19,4 +21,7 @@ public interface ClubMainPhotoRepository extends JpaRepository<ClubMainPhoto, Lo
 
     @Query("SELECT cmp FROM ClubMainPhoto cmp WHERE cmp.club.clubId IN :clubIds")
     List<ClubMainPhoto> findByClubIds(@Param("clubIds") List<Long> clubIds);
+
+    @Query("SELECT c.clubMainPhotoS3Key FROM ClubMainPhoto c WHERE c.club.clubId = :clubId")
+    Optional<String> findS3KeyByClubId(@Param("clubId") Long clubId);
 }

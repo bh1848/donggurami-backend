@@ -13,7 +13,7 @@ import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoReposit
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
-import com.USWCicrcleLink.server.global.security.domain.Role;
+import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
@@ -95,7 +95,7 @@ public class DummyData {
         User user1 = User.builder()
                 .userUUID(UUID.randomUUID())
                 .userAccount("user11")
-                .userPw(passwordEncoder.encode("12345"))
+                .userPw(passwordEncoder.encode("qwer1234!"))
                 .email("user111")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
@@ -106,7 +106,7 @@ public class DummyData {
         User user2 = User.builder()
                 .userUUID(UUID.randomUUID())
                 .userAccount("user222")
-                .userPw(passwordEncoder.encode("12345"))
+                .userPw(passwordEncoder.encode("qwer1234!"))
                 .email("user222")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
@@ -117,7 +117,7 @@ public class DummyData {
         User user3 = User.builder()
                 .userUUID(UUID.randomUUID())
                 .userAccount("user333")
-                .userPw(passwordEncoder.encode("12345"))
+                .userPw(passwordEncoder.encode("qwer1234!"))
                 .email("user333")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
@@ -128,7 +128,7 @@ public class DummyData {
         User user4 = User.builder()
                 .userUUID(UUID.randomUUID())
                 .userAccount("user444")
-                .userPw(passwordEncoder.encode("12345"))
+                .userPw(passwordEncoder.encode("qwer1234!"))
                 .email("user444")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
@@ -139,7 +139,7 @@ public class DummyData {
         User user5 = User.builder()
                 .userUUID(UUID.randomUUID())
                 .userAccount("user555")
-                .userPw(passwordEncoder.encode("12345"))
+                .userPw(passwordEncoder.encode("qwer1234!"))
                 .email("user555@example.com")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
@@ -150,7 +150,7 @@ public class DummyData {
         User user6 = User.builder()
                 .userUUID(UUID.randomUUID())
                 .userAccount("user666")
-                .userPw(passwordEncoder.encode("12345"))
+                .userPw(passwordEncoder.encode("qwer1234!"))
                 .email("user666@example.com")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
@@ -161,7 +161,7 @@ public class DummyData {
         User user7 = User.builder()
                 .userUUID(UUID.randomUUID())
                 .userAccount("user777")
-                .userPw(passwordEncoder.encode("12345"))
+                .userPw(passwordEncoder.encode("qwer1234!"))
                 .email("user777@example.com")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
@@ -172,7 +172,7 @@ public class DummyData {
         User user8 = User.builder()
                 .userUUID(UUID.randomUUID())
                 .userAccount("user888")
-                .userPw(passwordEncoder.encode("12345"))
+                .userPw(passwordEncoder.encode("qwer1234!"))
                 .email("user888@example.com")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())
@@ -711,7 +711,7 @@ public class DummyData {
         User user = User.builder()
                 .userUUID(UUID.randomUUID())
                 .userAccount("user22")
-                .userPw(passwordEncoder.encode("12345"))
+                .userPw(passwordEncoder.encode(""))
                 .email("user22")
                 .userCreatedAt(LocalDateTime.now())
                 .userUpdatedAt(LocalDateTime.now())

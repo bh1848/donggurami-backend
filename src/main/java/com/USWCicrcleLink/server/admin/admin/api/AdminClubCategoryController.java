@@ -1,8 +1,8 @@
 package com.USWCicrcleLink.server.admin.admin.api;
 
 import com.USWCicrcleLink.server.admin.admin.dto.AdminClubCategoryCreationRequest;
-import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.admin.admin.service.AdminClubCategoryService;
+import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,22 +19,21 @@ public class AdminClubCategoryController {
 
     private final AdminClubCategoryService adminClubCategoryService;
 
-    // 동아리 카테고리 설정(웹) - 카테고리 조회
+    // 동아리 카테고리 설정 - 카테고리 조회
     @GetMapping
     public ResponseEntity<ApiResponse<List<ClubCategoryResponse>>> getAllClubCategories() {
         List<ClubCategoryResponse> clubCategories = adminClubCategoryService.getAllClubCategories();
         return ResponseEntity.ok(new ApiResponse<>("카테고리 리스트 조회 성공", clubCategories));
     }
 
-    // 동아리 카테고리 설정(웹) - 카테고리 추가
+    // 동아리 카테고리 설정 - 카테고리 추가
     @PostMapping
     public ResponseEntity<ApiResponse<ClubCategoryResponse>> addClubCategory(@RequestBody @Valid AdminClubCategoryCreationRequest request) {
         ClubCategoryResponse addedClubCategory = adminClubCategoryService.addClubCategory(request);
         return ResponseEntity.ok(new ApiResponse<>("카테고리 추가 성공", addedClubCategory));
     }
 
-
-    // 동아리 카테고리 설정(웹) - 카테고리 삭제
+    // 동아리 카테고리 설정 - 카테고리 삭제
     @DeleteMapping("/{clubCategoryUUID}")
     public ResponseEntity<ApiResponse<ClubCategoryResponse>> deleteClubCategory(@PathVariable("clubCategoryUUID") UUID clubCategoryUUID) {
         ClubCategoryResponse deletedCategory = adminClubCategoryService.deleteClubCategory(clubCategoryUUID);

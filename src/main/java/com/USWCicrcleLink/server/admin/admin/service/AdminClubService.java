@@ -18,9 +18,10 @@ import com.USWCicrcleLink.server.clubLeader.domain.Leader;
 import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.AdminException;
+import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
 import com.USWCicrcleLink.server.global.security.details.CustomAdminDetails;
-import com.USWCicrcleLink.server.global.security.domain.Role;
+import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -48,11 +49,12 @@ public class AdminClubService {
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 메인 페이지(웹) - 동아리 목록 조회
+    /**
+     * 메인 페이지(ADMIN) - 동아리 목록 조회
+     */
     @Transactional(readOnly = true)
     public AdminClubPageListResponse getAllClubs(Pageable pageable) {
         Page<AdminClubListResponse> clubs = clubRepository.findAllWithMemberAndLeaderCount(pageable);
-
         log.debug("동아리 목록 조회 성공 - 총 {}개", clubs.getTotalElements());
 
         return AdminClubPageListResponse.builder()
@@ -63,28 +65,32 @@ public class AdminClubService {
                 .build();
     }
 
-    // 동아리 생성(웹) - 동아리 생성 완료하기
+    /**
+     * 동아리 생성(ADMIN) - 동아리 생성 완료하기
+     */
     public void createClub(AdminClubCreationRequest request) {
-        // 인증된 관리자 정보 가져오기
         Admin admin = getAuthenticatedAdmin();
 
-        // 동아리 회장 비밀번호 확인
         if (!request.getLeaderPw().equals(request.getLeaderPwConfirm())) {
-            log.warn("동아리 생성 실패 - 회장 비밀번호 불일치");
             throw new ClubException(ExceptionType.ClUB_LEADER_PASSWORD_NOT_MATCH);
         }
 
-        //동아리 회장, 동아리 이름 중복 확인
         validateLeaderAccount(request.getLeaderAccount());
         validateClubName(request.getClubName());
 
-        // 관리자 비밀번호 검증
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
-            log.warn("동아리 생성 실패 - 관리자 비밀번호 불일치, 관리자 ID: {}", admin.getAdminId());
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
 
-        // Club 생성 및 저장
+        Club club = createClubEntity(request);
+        log.info("동아리 생성 성공 - Club ID: {}, Name: {}", club.getClubId(), club.getClubName());
+
+        createLeaderAccount(request.getLeaderAccount(), request.getLeaderPw(), club);
+        createClubDefaultData(club);
+    }
+
+    // 동아리 생성 - 동아리 생성
+    private Club createClubEntity(AdminClubCreationRequest request) {
         Club club = Club.builder()
                 .clubName(request.getClubName())
                 .department(request.getDepartment())
@@ -93,53 +99,68 @@ public class AdminClubService {
                 .clubInsta("")
                 .clubRoomNumber(request.getClubRoomNumber())
                 .build();
-        clubRepository.save(club);
-        log.info("동아리 생성 성공 - Club ID: {}, 동아리명: {}", club.getClubId(), club.getClubName());
 
-        // Leader 생성 및 저장
+        return clubRepository.save(club);
+    }
+
+    // 동아리 생성 - 회장 계정 생성
+    private void createLeaderAccount(String leaderAccount, String leaderPw, Club club) {
         Leader leader = Leader.builder()
-                .leaderAccount(request.getLeaderAccount())
-                .leaderPw(passwordEncoder.encode(request.getLeaderPw()))
+                .leaderAccount(leaderAccount)
+                .leaderPw(passwordEncoder.encode(leaderPw))
                 .leaderUUID(UUID.randomUUID())
                 .role(Role.LEADER)
                 .club(club)
                 .build();
         leaderRepository.save(leader);
-        log.info("회장 계정 생성 성공 - Leader ID: {}, 계정명: {}", leader.getLeaderId(), leader.getLeaderAccount());
+        log.info("회장 계정 생성 성공 - Leader ID: {}", leader.getLeaderId());
+    }
 
-        // ClubMainPhoto 생성 및 저장
-        ClubMainPhoto mainPhoto = ClubMainPhoto.builder()
-                .club(club)
-                .clubMainPhotoName("")
-                .clubMainPhotoS3Key("")
-                .build();
-        clubMainPhotoRepository.save(mainPhoto);
+    // 동아리 생성 - 기본 동아리 데이터 생성
+    private void createClubDefaultData(Club club) {
+        createClubMainPhoto(club);
+        ClubIntro clubIntro = createClubIntro(club);
+        createClubIntroPhotos(clubIntro);
+    }
 
-        // ClubIntro 생성 및 저장
-        ClubIntro clubIntro = ClubIntro.builder()
-                .club(club)
-                .clubIntro("")
-                .googleFormUrl("")
-                .recruitmentStatus(RecruitmentStatus.CLOSE)
-                .build();
-        clubIntroRepository.save(clubIntro);
+    private void createClubMainPhoto(Club club) {
+        clubMainPhotoRepository.save(
+                ClubMainPhoto.builder()
+                        .club(club)
+                        .clubMainPhotoName("")
+                        .clubMainPhotoS3Key("")
+                        .build()
+        );
+    }
 
-        // ClubIntroPhoto 기본값 설정 (5개 생성)
+    private ClubIntro createClubIntro(Club club) {
+        return clubIntroRepository.save(
+                ClubIntro.builder()
+                        .club(club)
+                        .clubIntro("")
+                        .googleFormUrl("")
+                        .recruitmentStatus(RecruitmentStatus.CLOSE)
+                        .build()
+        );
+    }
+
+    private void createClubIntroPhotos(ClubIntro clubIntro) {
         List<ClubIntroPhoto> introPhotos = new ArrayList<>();
+
         for (int i = 1; i <= 5; i++) {
-            ClubIntroPhoto introPhoto = ClubIntroPhoto.builder()
+            introPhotos.add(ClubIntroPhoto.builder()
                     .clubIntro(clubIntro)
                     .clubIntroPhotoName("")
                     .clubIntroPhotoS3Key("")
                     .order(i)
-                    .build();
-            introPhotos.add(introPhoto);
+                    .build());
         }
+
         clubIntroPhotoRepository.saveAll(introPhotos);
-        log.info("동아리 생성 및 초기 데이터 저장 완료 - Club ID: {}", club.getClubId());
+        log.info("기본 동아리 소개 사진 5개 생성 완료 - Club ID: {}", clubIntro.getClub().getClubId());
     }
 
-    // 동아리 생성(웹) - 동아리 회장 아이디 중복 확인
+    // 동아리 생성 - 동아리 회장 아이디 중복 확인
     public void validateLeaderAccount(String leaderAccount) {
         if (leaderRepository.existsByLeaderAccount(leaderAccount)) {
             log.warn("동아리 회장 계정 중복 - LeaderAccount: {}", leaderAccount);
@@ -147,7 +168,7 @@ public class AdminClubService {
         }
     }
 
-    // 동아리 생성(웹) - 동아리 이름 중복 확인
+    // 동아리 생성 - 동아리 이름 중복 확인
     public void validateClubName(String clubName) {
         if (clubRepository.existsByClubName(clubName)) {
             log.warn("동아리명 중복 - ClubName: {}", clubName);
@@ -155,12 +176,14 @@ public class AdminClubService {
         }
     }
 
-    // 동아리 삭제(웹) - 동아리 삭제 완료하기
+    /**
+     * 동아리 삭제(ADMIN) - 동아리 삭제 완료하기
+     */
+    @Transactional
     public void deleteClub(UUID clubUUID, AdminPwRequest request) {
         Admin admin = getAuthenticatedAdmin();
 
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
-            log.warn("동아리 삭제 실패 - 관리자 비밀번호 불일치, 관리자 ID: {}", admin.getAdminId());
             throw new AdminException(ExceptionType.ADMIN_PASSWORD_NOT_MATCH);
         }
 
@@ -170,12 +193,18 @@ public class AdminClubService {
                     return new ClubException(ExceptionType.CLUB_NOT_EXISTS);
                 });
 
-        // 동아리 및 관련 데이터 삭제
-        clubRepository.deleteClubAndDependencies(clubId);
-        log.info("동아리 삭제 성공 - Club ID: {}", clubId);
+        try {
+            clubRepository.deleteClubAndDependencies(clubId);
+            log.info("동아리 삭제 성공 - Club ID: {}", clubId);
+        } catch (Exception e) {
+            log.error("동아리 삭제 중 오류 발생 - Club ID: {}, 오류: {}", clubId, e.getMessage());
+            throw new BaseException(ExceptionType.SERVER_ERROR, e);
+        }
     }
 
-    // 인증된 관리자 정보 가져오기
+    /**
+     * 인증된 ADMIN 정보 가져오기
+     */
     private Admin getAuthenticatedAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();

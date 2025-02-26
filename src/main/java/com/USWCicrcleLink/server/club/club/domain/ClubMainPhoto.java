@@ -27,9 +27,4 @@ public class ClubMainPhoto {
 
     @Column(name = "club_main_photo_s3key")
     private String clubMainPhotoS3Key;
-
-    public void updateClubMainPhoto(String clubMainPhotoName, String clubMainPhotoS3Key) {
-        this.clubMainPhotoName = clubMainPhotoName;
-        this.clubMainPhotoS3Key = clubMainPhotoS3Key;
-    }
 }
