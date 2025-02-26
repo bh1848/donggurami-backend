@@ -5,11 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
 
+@Repository
 public interface ClubHashtagRepository extends JpaRepository<ClubHashtag, Long> {
     @Query("SELECT ch FROM ClubHashtag ch WHERE ch.club.clubId IN :clubIds")
     List<ClubHashtag> findByClubIds(@Param("clubIds") List<Long> clubIds);
