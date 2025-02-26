@@ -5,6 +5,7 @@ import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
+import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
@@ -60,16 +61,16 @@ public class Profile {
     @Column(name = "fcm_token_updated_at")
     private LocalDateTime fcmTokenCertificationTimestamp;
 
-    public static Profile createProfile(UserTemp userTemp, User user) {
+    public static Profile createProfile(User user, SignUpRequest request,String telephone) {
         return Profile.builder()
                 .user(user)
-                .userName(userTemp.getTempName())
-                .studentNumber(userTemp.getTempStudentNumber())
-                .userHp(userTemp.getTempHp())
-                .major(userTemp.getTempMajor())
+                .userName(request.getUserName())
+                .studentNumber(request.getStudentNumber())
+                .userHp(telephone)
+                .major(request.getMajor())
                 .profileCreatedAt(LocalDateTime.now())
                 .profileUpdatedAt(LocalDateTime.now())
-                .memberType(MemberType.REGULARMEMBER) // 정회원
+                .memberType(MemberType.REGULARMEMBER) // 기본값: 정회원
                 .build();
     }
 

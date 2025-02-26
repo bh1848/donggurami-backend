@@ -11,7 +11,6 @@ import com.USWCicrcleLink.server.user.domain.*;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
-import com.USWCicrcleLink.server.user.service.PasswordService;
 import com.USWCicrcleLink.server.user.service.UserService;
 
 import com.USWCicrcleLink.server.user.service.WithdrawalTokenService;
@@ -41,7 +40,6 @@ public class UserController {
     private final AuthTokenService authTokenService;
     private final EmailTokenService emailTokenService;
     private final WithdrawalTokenService withdrawalTokenService;
-    private final PasswordService passwordService;
 
     @PatchMapping("/userpw")
     public ApiResponse<String> updateUserPw(@Validated(ValidationSequence.class) @RequestBody UpdatePwRequest request) {
@@ -59,44 +57,62 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 비밀번호 유효성 확인
+   /* // 비밀번호 유효성 확인
     @PostMapping("/validate-passwords-match")
     public ResponseEntity<ApiResponse<Void>> validatePassword(@Validated(ValidationSequence.class) @RequestBody PasswordRequest request) {
         passwordService.validatePassword(request);
         return ResponseEntity.ok(new ApiResponse<>("비밀번호가 일치합니다"));
-    }
+    }*/
 
-    // 신규회원가입
+    // 신규회원가입 - 인증 메일 전송
     @PostMapping("/temporary/register")
-    public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated(ValidationSequence.class) @RequestBody SignUpRequest request)  {
+    public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@RequestBody EmailDTO request)  {
 
-        UserTemp userTemp = userService.registerUserTemp(request);
-        EmailToken emailToken = emailTokenService.createEmailToken(userTemp);
-        userService.sendSignUpMail(userTemp,emailToken);
+        // 이메일 중복 검증
+        userService.checkEmailDuplication(request.getEmail());
+
+        // 신규회원가입을 위한 이메일 전송
+        EmailToken emailToken = emailTokenService.createEmailToken(request.getEmail());
+        userService.sendSignUpMail(emailToken);
+
 
         ApiResponse<VerifyEmailResponse> verifyEmailResponse = new ApiResponse<>("인증 메일 전송 완료",
-                new VerifyEmailResponse(emailToken.getEmailTokenUUID(), userTemp.getTempAccount()));
+                new VerifyEmailResponse(emailToken.getEmailTokenUUID(), emailToken.getEmail()));
 
         return new ResponseEntity<>(verifyEmailResponse, HttpStatus.OK);
     }
 
-    // 신규회원 - 이메일 인증 후 회원가입
+    // 이메일 인증 여부 검증하기
     @GetMapping("/email/verify-token")
     public ModelAndView verifySignUpMail (@RequestParam("emailToken_uuid") UUID emailToken_uuid) {
 
         ModelAndView modelAndView = new ModelAndView();
 
         try {
-            UserTemp userTemp = userService.verifyEmailToken(emailToken_uuid);
-            userService.signUp(userTemp);
+            // 제한시간 안에 인증에 성공
+            userService.verifyEmailToken(emailToken_uuid);
             modelAndView.setViewName("success");
         } catch (EmailException e) {
+            // 이메일 만료 시간이 지난경우
+            modelAndView.setViewName("expired");
+        } catch (Exception e){
+            // 예상치 못한 다른 예외
             modelAndView.setViewName("failure");
         }
         return modelAndView;
     }
 
-    // 이메일 재인증
+    // 회원 가입 정보 등록하기
+    @PostMapping("/signup")
+    public ResponseEntity<ApiResponse<Void>> signUp(@Validated(ValidationSequence.class) @RequestBody SignUpRequest request,@RequestHeader("emailToken_uuid") UUID emailToken_uuid,String email) {
+        // 이메일 인증 여부 확인
+        UUID singupUUID = userService.isEmailVerified(emailToken_uuid);
+        // 회원가입 진행
+        userService.signUpUser(singupUUID,request,email);
+        return ResponseEntity.ok(new ApiResponse<>("회원가입이 정상적으로 완료되어 로그인이 가능합니다."));
+    }
+
+  /*  // 이메일 재인증
     @PostMapping("/email/resend-confirmation")
     public ResponseEntity<ApiResponse<UUID>> resendConfirmEmail(@RequestHeader("emailToken_uuid") UUID emailToken_uuid) {
 
@@ -105,14 +121,7 @@ public class UserController {
 
         ApiResponse<UUID> response = new ApiResponse<>("이메일 재인증을 해주세요", emailToken_uuid);
         return new ResponseEntity<>(response,HttpStatus.OK);
-    }
-
-    // 로그인하러가기 - 회원가입 최종 확인
-    @PostMapping("/finish-signup")
-    public ResponseEntity<ApiResponse<Void>> signUpFinish(@RequestBody FinishSignupRequest request) {
-        userService.signUpFinish(request.getAccount());
-        return ResponseEntity.ok(new ApiResponse<>("회원가입이 정상적으로 완료되어 로그인이 가능합니다."));
-    }
+    }*/
 
     // 기존 동아리원 회원가입
     @PostMapping("/existing/register")

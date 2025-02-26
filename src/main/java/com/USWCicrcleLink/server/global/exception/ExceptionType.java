@@ -28,6 +28,10 @@ public enum ExceptionType {
      */
     EMAIL_TOKEN_NOT_FOUND("EMAIL_TOKEN-001", "해당 토큰이 존재하지 않습니다.", BAD_REQUEST),
     EMAIL_TOKEN_IS_EXPIRED("EMAIL_TOKEN-002", "토큰이 만료되었습니다. 다시 이메일인증 해주세요", BAD_REQUEST),
+    EMAIL_TOKEN_CREATION_FALILED("EMAIL_TOKEN-003", "이메일 토큰 생성중 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
+    EMAIL_TOKEN_STATUS_UPATE_FALIED("EMAIL_TOKEN-004", "이메일 토큰의 필드 업데이트 후, 저장하는 과정에서 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
+    EMAIL_TOKEN_NOT_VERIFIED("EMAIL_TOKEN-005", "인증이 완료되지 않은 이메일 토큰입니다.", INTERNAL_SERVER_ERROR),
+
 
     /**
      * Domain: User

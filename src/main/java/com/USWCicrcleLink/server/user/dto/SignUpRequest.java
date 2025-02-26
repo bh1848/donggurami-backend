@@ -1,6 +1,7 @@
 package com.USWCicrcleLink.server.user.dto;
 
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
+import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.UserTemp;
 import  com.USWCicrcleLink.server.global.validation.ValidationGroups.*;
 
@@ -44,21 +45,4 @@ public class SignUpRequest {
     @NotBlank(message = "학과 필수 입력 값입니다.")
     private String major;
 
-    @NotBlank(message = "이메일 필수 입력 값입니다.")
-    private String email;
-
-    private Boolean isEmailVerified = false;
-
-    public UserTemp toEntity(String encodedPassword,String telephone) {
-        return UserTemp.builder()
-                .tempAccount(account)
-                .tempPw(encodedPassword)
-                .tempName(userName)
-                .tempHp(telephone)
-                .tempStudentNumber(studentNumber)
-                .tempMajor(major)
-                .tempEmail(email)
-                .isEmailVerified(isEmailVerified)
-                .build();
-    }
 }
