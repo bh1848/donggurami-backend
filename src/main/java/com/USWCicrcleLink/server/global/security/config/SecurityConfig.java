@@ -34,7 +34,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtFilter jwtAuthFilter() {
-        return new JwtFilter(jwtProvider, securityProperties.getPermitAllPaths());
+        return new JwtFilter(jwtProvider, securityProperties.getPermitAllPaths(), customAuthenticationEntryPoint);
     }
 
     @Bean

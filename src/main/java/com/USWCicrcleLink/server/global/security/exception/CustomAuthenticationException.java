@@ -3,15 +3,10 @@ package com.USWCicrcleLink.server.global.security.exception;
 import org.springframework.security.core.AuthenticationException;
 
 /**
- * JWT 인증 예외
+ * 잘못된 JWT 토큰 예외 (변조된 토큰, 서명 불일치 등)
  */
 public class CustomAuthenticationException extends AuthenticationException {
     public CustomAuthenticationException(String message) {
-        super(message, null);
-    }
-
-    @Override
-    public synchronized Throwable fillInStackTrace() {
-        return this;
+        super(message);
     }
 }

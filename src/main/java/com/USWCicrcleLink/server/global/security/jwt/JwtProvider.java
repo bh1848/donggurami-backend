@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.global.security.jwt;
 import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
 import com.USWCicrcleLink.server.global.security.details.service.CustomUserDetailsService;
+import com.USWCicrcleLink.server.global.security.jwt.domain.TokenValidationResult;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -96,12 +97,14 @@ public class JwtProvider {
     /**
      * 엑세스 토큰 유효성 검증
      */
-    public boolean validateAccessToken(String accessToken) {
+    public TokenValidationResult validateAccessToken(String accessToken) {
         try {
             Claims claims = getClaims(accessToken);
-            return !claims.getExpiration().before(new Date());
+            return claims.getExpiration().before(new Date()) ? TokenValidationResult.EXPIRED : TokenValidationResult.VALID;
+        } catch (ExpiredJwtException e) {
+            return TokenValidationResult.EXPIRED;
         } catch (JwtException | IllegalArgumentException e) {
-            return false;
+            return TokenValidationResult.INVALID;
         }
     }
 
