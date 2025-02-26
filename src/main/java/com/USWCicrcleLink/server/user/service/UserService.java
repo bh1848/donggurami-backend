@@ -47,7 +47,6 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserTempRepository userTempRepository;
     private final ProfileRepository profileRepository;
     private final ClubMemberTempRepository clubMemberTempRepository;
     private final ClubRepository clubRepository;
@@ -421,19 +420,27 @@ public class UserService {
         log.debug("로그인 검증 완료 - 로그인 가능 사용자 ID: {}", user.getUserId());
     }
 
-    // 이메일 중복 확인
     public void checkEmailDuplication(String email) {
-        if (userRepository.findByEmail(email).isPresent()) { // 실제 사용중인 사람 존재시
-            log.error("user 테이블에서 중복된 이메일 존재, email 값= {} ", email);
+        log.debug("이메일 중복 확인 시작, email: {}", email);
+
+        // 실제 사용중인 이메일 확인
+        log.debug("userRepository에서 이메일 존재 여부 확인 중...");
+        if (userRepository.findByEmail(email).isPresent()) {
+            log.error("user 테이블에서 중복된 이메일 존재, email 값= {}", email);
             throw new UserException(ExceptionType.USER_OVERLAP);
-        } else if (emailTokenRepository.findByEmail(email).isPresent()) {  // 인증 중인 사람 존재시
-            log.debug("요청 가입 대기자 존재 - emailToken 테이블에서 중복된 이메일 존재, email 값= {} ", email);
-            // 해당 이메일 토큰의 만료시간 업데이트
-            EmailToken emailToken = emailTokenService.getEmailTokenByEmail(email);
-            emailTokenService.updateCertificationTime(emailToken);
-            log.debug("emailTokenUUID= {}, 이메일 인증 만료시간 업데이트 완료",emailToken.getEmailTokenUUID());
         }
+        else if (emailTokenRepository.findByEmail(email).isPresent()) {
+            log.debug("요청 가입 대기자 존재 - emailToken 테이블에서 중복된 이메일 존재, email 값= {}", email);
+            // 이메일 토큰 정보 조회
+            EmailToken emailToken = emailTokenService.getEmailTokenByEmail(email);
+            log.debug("emailToken 조회 완료, emailTokenUUID= {}", emailToken.getEmailTokenUUID());
+            // 토큰 만료시간 업데이트
+            emailTokenService.updateCertificationTime(emailToken);
+            log.debug("이메일 인증 만료시간 업데이트 완료, emailTokenUUID= {}", emailToken.getEmailTokenUUID());
+        }
+        log.debug("이메일 중복 확인 완료");
     }
+
 
     // 이메일이 인증 받았는지 확인하기
     public UUID isEmailVerified(UUID emailTokenUuid) {

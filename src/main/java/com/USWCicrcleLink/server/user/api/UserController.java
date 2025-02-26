@@ -66,7 +66,7 @@ public class UserController {
 
     // 신규회원가입 - 인증 메일 전송
     @PostMapping("/temporary/register")
-    public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@RequestBody EmailDTO request)  {
+    public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated @RequestBody EmailDTO request)  {
 
         // 이메일 중복 검증
         userService.checkEmailDuplication(request.getEmail());

@@ -4,14 +4,12 @@ import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.ProfileException;
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Entity
 @Getter
