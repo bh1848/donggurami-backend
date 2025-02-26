@@ -414,7 +414,7 @@ public class UserService {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
 
-        UUID userUUID = UUID.fromString(jwtProvider.getClaims(refreshToken).getSubject());
+        UUID userUUID = jwtProvider.getUUIDFromRefreshToken(refreshToken);
 
         // FCM 토큰 삭제 (모바일 푸시 알림 무효화)
         profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
