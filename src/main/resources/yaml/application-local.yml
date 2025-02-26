@@ -10,14 +10,20 @@ server:
 
 logging:
   level:
-    root: debug
+    root: info
+    # 서비스
     com.USWCicrcleLink.server: debug
-    org.springframework.security: info
+    # 스프링 프레임워크
+    org.springframework: info
     org.springframework.web: debug
-    org.apache.catalina.core: debug
-    org.springframework: debug
+    org.springframework.security: info
+    # JPA
     org.hibernate.SQL: debug
-    org.hibernate.type: debug
+    org.hibernate.type.descriptor.sql: trace  # 바인딩된 SQL 파라미터
+    org.hibernate.type: info  # Hibernate 데이터 타입 변환 로그
+    # tomcat, 웹 서버
+    org.apache.catalina.core: info
+    # DB 쿼리
     p6spy: debug
 
 email:

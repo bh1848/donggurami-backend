@@ -5,11 +5,13 @@ import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Repository
 public interface ClubIntroRepository extends JpaRepository<ClubIntro, Long> {
     @Query("SELECT ci FROM ClubIntro ci WHERE ci.club.clubId = :clubId")
     Optional<ClubIntro> findByClubClubId(@Param("clubId") Long clubId);

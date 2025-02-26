@@ -5,12 +5,14 @@ import com.USWCicrcleLink.server.user.domain.UserTemp;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Repository
 public interface EmailTokenRepository extends JpaRepository<EmailToken, Long> {
 
     @EntityGraph(attributePaths = "userTemp")

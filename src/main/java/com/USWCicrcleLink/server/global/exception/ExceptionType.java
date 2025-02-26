@@ -139,7 +139,7 @@ public enum ExceptionType {
      * Domain: ClubMember
      */
     CLUB_MEMBER_NOT_EXISTS("CMEM-201","동아리 회원이 존재하지 않습니다.", NOT_FOUND),
-    CLUB_MEMBER_ALREADY_EXISTS("CMEM-202","동아리 회원이 이미 존재합니다. 관리자에게 문의하세요.", BAD_REQUEST),
+    CLUB_MEMBER_ALREADY_EXISTS("CMEM-202","동아리 회원이 이미 존재합니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubMemberAccountStatus

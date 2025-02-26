@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.profile.repository;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+@Repository
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
     Optional<Profile> findByProfileId(Long profileId);
     Optional<Profile> findByUser_UserUUID(UUID userUUID);
