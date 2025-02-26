@@ -304,6 +304,12 @@ public class UserService {
         // 회원 조회
         User user = userRepository.findByUserUUID(uuid).orElseThrow(() -> new UserException(ExceptionType.USER_UUID_NOT_FOUND));
 
+        // 이전 비밀번호와 새로 설정할 비밀번호가 일치하는 경우
+        if(passwordEncoder.matches(request.getPassword(), user.getUserPw())){
+            log.debug("이전 비밀번호와 새롭게 설정한 비밀번호가 일치함");
+            throw new UserException(ExceptionType.USER_PASSWORD_NOT_CHANGED);
+        }
+
         // 새로운 비밀번호의 유효성 검사
         passwordService.validatePassword(request.getPassword(), request.getConfirmPassword());
 

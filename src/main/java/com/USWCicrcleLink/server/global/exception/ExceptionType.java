@@ -50,6 +50,7 @@ public enum ExceptionType {
     USER_PASSWORD_CONDITION_FAILED("USR-214","영문자,숫자,특수문자는 적어도 1개 이상씩 포함되어야합니다",BAD_REQUEST),
     USER_LOGIN_FAILED("USR-216","비회원 사용자입니다.인증을 완료해주세요",BAD_REQUEST),
     USER_CREATION_FAILED("USR-217","회원 생성중 오류 발생",INTERNAL_SERVER_ERROR),
+    USER_PASSWORD_NOT_CHANGED ("USR-218", "새로운 비밀번호는 이전 비밀번호와 달라야 합니다.", BAD_REQUEST),
 
     /**
      * Domain: ClubMemberTemp
