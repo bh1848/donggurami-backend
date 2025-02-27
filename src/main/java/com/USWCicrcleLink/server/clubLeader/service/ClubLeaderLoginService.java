@@ -34,7 +34,7 @@ public class ClubLeaderLoginService {
     @RateLimite(action = "WEB_LOGIN")
     public LeaderLoginResponse leaderLogin(LeaderLoginRequest request, HttpServletResponse response) {
         Leader leader = leaderRepository.findByLeaderAccount(request.getLeaderAccount())
-                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
 
         if (!passwordEncoder.matches(request.getLeaderPw(), leader.getLeaderPw())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);

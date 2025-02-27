@@ -24,6 +24,6 @@ public class UserDetailsServiceManager {
             } catch (UserException ignored) {
             }
         }
-        throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
+        throw new UserException(ExceptionType.USER_NOT_EXISTS);
     }
 }

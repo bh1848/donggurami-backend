@@ -347,7 +347,7 @@ public class UserService {
     @RateLimite(action = "WEB_LOGIN")
     public TokenDto userLogin(LogInRequest request, HttpServletResponse response) {
         User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getUserPw())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);

@@ -33,7 +33,7 @@ public class AdminLoginService {
     @RateLimite(action = "WEB_LOGIN")
     public AdminLoginResponse adminLogin(AdminLoginRequest request, HttpServletResponse response) {
         Admin admin = adminRepository.findByAdminAccount(request.getAdminAccount())
-                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
 
         if (!passwordEncoder.matches(request.getAdminPw(), admin.getAdminPw())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
