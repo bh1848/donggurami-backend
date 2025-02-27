@@ -175,14 +175,14 @@ public class ClubLeaderController {
 
     // 기존 동아리 회원 엑셀 파일로 추가
     @PostMapping("/{clubUUID}/members")
-    public ResponseEntity<ApiResponse> addClubMembersFromExcel(@PathVariable("clubUUID") UUID clubUUID, @RequestBody List<ClubMembersAddFromExcelRequest> clubMembersAddFromExcelRequest) {
-        clubLeaderService.addClubMembersFromExcel(clubUUID, clubMembersAddFromExcelRequest);
+    public ResponseEntity<ApiResponse> addClubMembersFromExcel(@PathVariable("clubUUID") UUID clubUUID, @RequestBody @Validated(ValidationSequence.class) ClubMembersAddFromExcelRequestList clubMembersAddFromExcelRequestList) {
+        clubLeaderService.addClubMembersFromExcel(clubUUID, clubMembersAddFromExcelRequestList.getClubMembersAddFromExcelRequestList());
         return new ResponseEntity<>(new ApiResponse<>("엑셀로 추가된 기존 동아리 회원 저장 완료"), HttpStatus.OK);
     }
 
     // 프로필 중복 동아리 회원 추가
     @PostMapping("/{clubUUID}/members/duplicate-profiles")
-    public ResponseEntity<ApiResponse> getDuplicateProfileMember(@PathVariable("clubUUID") UUID clubUUID, @RequestBody DuplicateProfileMemberRequest duplicateProfileMemberRequest) {
+    public ResponseEntity<ApiResponse> getDuplicateProfileMember(@PathVariable("clubUUID") UUID clubUUID, @RequestBody @Validated(ValidationSequence.class) DuplicateProfileMemberRequest duplicateProfileMemberRequest) {
         return new ResponseEntity<>(clubLeaderService.addDuplicateProfileMember(clubUUID, duplicateProfileMemberRequest), HttpStatus.OK);
     }
 
@@ -190,7 +190,7 @@ public class ClubLeaderController {
     @PatchMapping("/{clubUUID}/members/{clubMemberUUID}/non-member")
     public ResponseEntity<ApiResponse> updateNonMemberProfile(@PathVariable("clubUUID") UUID clubUUID,
                                                               @PathVariable("clubMemberUUID") UUID clubMemberUUID,
-                                                              @RequestBody ClubNonMemberUpdateRequest clubNonMemberUpdateRequest) {
+                                                              @RequestBody @Validated(ValidationSequence.class) ClubNonMemberUpdateRequest clubNonMemberUpdateRequest) {
         return new ResponseEntity<>(clubLeaderService.updateNonMemberProfile(clubUUID, clubMemberUUID, clubNonMemberUpdateRequest), HttpStatus.OK);
     }
 
@@ -208,7 +208,7 @@ public class ClubLeaderController {
 
     // 기존 동아리 회원 가입 요청 수락
     @PostMapping("/{clubUUID}/members/sign-up")
-    public ResponseEntity<ApiResponse> acceptSignUpRequest(@PathVariable("clubUUID") UUID clubUUID, @RequestBody @Valid ClubMembersAcceptSignUpRequest clubMembersAcceptSignUpRequest) {
+    public ResponseEntity<ApiResponse> acceptSignUpRequest(@PathVariable("clubUUID") UUID clubUUID, @RequestBody @Validated(ValidationSequence.class) ClubMembersAcceptSignUpRequest clubMembersAcceptSignUpRequest) {
         return new ResponseEntity<>(clubLeaderService.acceptSignUpRequest(clubUUID, clubMembersAcceptSignUpRequest), HttpStatus.OK);
     }
 

@@ -22,7 +22,7 @@ public class ProfileController {
     private final PasswordService passwordService;
 
     @PatchMapping("/change")
-    public ApiResponse<ProfileResponse> updateProfile(@Validated(ValidationSequence.class) @RequestBody ProfileRequest profileRequest) {
+    public ApiResponse<ProfileResponse> updateProfile(@RequestBody @Validated(ValidationSequence.class) ProfileRequest profileRequest) {
         ProfileResponse profileResponse = profileService.updateProfile(profileRequest);
         return new ApiResponse<>("프로필 수정 성공", profileResponse);
     }
@@ -35,7 +35,7 @@ public class ProfileController {
 
     // 기존 회원가입시 프로필 중복 확인 및 비밀번호 유효성 검사
     @GetMapping("/duplication-check")
-    public ResponseEntity<ApiResponse<String>> checkProfileDuplicated(@Validated(ValidationSequence.class) @RequestBody DuplicationProfileRequest request){
+    public ResponseEntity<ApiResponse<String>> checkProfileDuplicated(@RequestBody @Validated(ValidationSequence.class) DuplicationProfileRequest request){
         // 비밀번호 유효성 확인
         passwordService.validatePassword(request.getPassword(), request.getConfirmPassword());
         // 프로필 중복 확인
