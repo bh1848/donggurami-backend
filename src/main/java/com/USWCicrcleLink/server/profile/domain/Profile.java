@@ -42,7 +42,7 @@ public class Profile {
     @Column(name = "student_number", nullable = false,length = 8)
     @NotBlank(message = "학번은 필수 입력 값입니다.", groups = ValidationGroups.NotBlankGroup.class)
     @Size(min = 8, max = 8, message = "학번은 8자리 숫자여야 합니다.", groups = ValidationGroups.SizeGroup.class)
-    @Pattern(regexp = "^[0-9]{8}$", message = "학번은 8자리 숫자여야 합니다.", groups = ValidationGroups.PatternGroup.class)
+    @Pattern(regexp = "^[0-9]{8}$", message = "학번은 숫자만 입력 가능합니다.", groups = ValidationGroups.PatternGroup.class)
     private String studentNumber;
 
     @Column(name = "user_hp", nullable = false,length = 11)
