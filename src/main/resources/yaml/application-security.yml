@@ -8,7 +8,9 @@ spring:
     permit-all-paths:
       - /users/temporary/register
       - /users/email/verify-token
-      - /users/finish-signup
+      - /users/email/verification
+      - /users/signup
+      - /users/existing/register
       - /users/verify-duplicate/{account}
       - /users/validate-passwords-match
       - /users/find-account/{email}
@@ -26,12 +28,9 @@ spring:
       - /my-notices/**
       - /clubs/**
       - /profiles/duplication-check
-      - /users/existing/register
       - /mypages/clubs/{floor}/photo
       - /clubs/filter/**
       - /images/logo.png
-      - /users/signup
-      - /users/email/verification
 
     logging-paths:
       - /admin/**

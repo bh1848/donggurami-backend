@@ -70,11 +70,10 @@ public class SecurityConfig {
                     // USER
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw","/club-leader/fcmtoken").hasRole("USER");
                     auth.requestMatchers(HttpMethod.GET,"/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/my-notices/{noticeUUID}/details").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.DELETE, "/exit").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.POST, "/exit/send-code").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/users/exit").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.POST, "/users/exit/send-code").hasRole("USER");
                     auth.requestMatchers(HttpMethod.POST, "/apply/**").hasRole("USER");
                     auth.requestMatchers(HttpMethod.GET, "/apply/**").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.POST,"/users/**").hasRole("USER");
 
                     // LEADER
                     auth.requestMatchers(HttpMethod.POST, "/club-leader/**").hasRole("LEADER");
