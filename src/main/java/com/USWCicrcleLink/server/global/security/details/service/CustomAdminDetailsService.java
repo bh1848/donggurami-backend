@@ -22,6 +22,6 @@ public class CustomAdminDetailsService implements RoleBasedUserDetailsService {
     public UserDetails loadUserByUuid(UUID uuid) {
         return adminRepository.findByAdminUUID(uuid)
                 .map(CustomAdminDetails::new)
-                .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
     }
 }

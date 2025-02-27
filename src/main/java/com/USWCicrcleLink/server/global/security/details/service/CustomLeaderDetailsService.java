@@ -22,10 +22,10 @@ public class CustomLeaderDetailsService implements RoleBasedUserDetailsService {
     @Override
     public UserDetails loadUserByUuid(UUID uuid) {
         Leader leader = leaderRepository.findByLeaderUUID(uuid)
-                .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
 
         UUID clubUUID = leaderRepository.findClubUUIDByLeaderUUID(leader.getLeaderUUID())
-                .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
 
         return new CustomLeaderDetails(leader, clubUUID);
     }
