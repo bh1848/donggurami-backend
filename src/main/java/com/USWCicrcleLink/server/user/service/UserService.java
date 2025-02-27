@@ -406,9 +406,9 @@ public class UserService {
 
 
     // 이메일이 인증 받았는지 확인하기
-    public UUID isEmailVerified(UUID emailTokenUuid) {
+    public UUID isEmailVerified(UUID emailTokenUUID) {
         // 이메일 토큰 조회
-        EmailToken emailToken = emailTokenService.getEmailTokenByEmailTokenUUID(emailTokenUuid);
+        EmailToken emailToken = emailTokenService.getEmailTokenByEmailTokenUUID(emailTokenUUID);
         // 조회된 이메일 토큰의 이메일 인증 여부 확인
         if (!emailToken.isVerified()) {
             log.error("인증이 완료되지 않은 이메일 email={}", emailToken.getEmail());

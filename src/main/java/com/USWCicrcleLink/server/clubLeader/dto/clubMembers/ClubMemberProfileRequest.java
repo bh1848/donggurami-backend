@@ -2,6 +2,7 @@ package com.USWCicrcleLink.server.clubLeader.dto.clubMembers;
 
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Data
 public class ClubMemberProfileRequest {
 
+    @NotNull(message = "대상을 선택해주세요.")
     private UUID uuid;// clubMemberUUID, clubMemberAccountStatusUUID
 
     @NotBlank(message = "이름은 필수 입력 값입니다.",groups = ValidationGroups.NotBlankGroup.class)

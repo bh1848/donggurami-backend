@@ -100,9 +100,9 @@ public class UserController {
 
     // 회원 가입 정보 등록하기
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<Void>> signUp(@RequestBody @Validated(ValidationSequence.class) SignUpRequest request,@RequestHeader("emailToken_uuid") UUID emailToken_uuid,@RequestHeader("user_email") String email) {
+    public ResponseEntity<ApiResponse<Void>> signUp(@RequestBody @Validated(ValidationSequence.class) SignUpRequest request,@RequestHeader("emailTokenUUID") UUID emailTokenUUID,@RequestHeader("email") String email) {
         // 이메일 인증 여부 확인
-        UUID singupUUID = userService.isEmailVerified(emailToken_uuid);
+        UUID singupUUID = userService.isEmailVerified(emailTokenUUID);
         // 회원가입 진행
         userService.signUpUser(singupUUID,request,email);
         return ResponseEntity.ok(new ApiResponse<>("회원가입이 정상적으로 완료되어 로그인이 가능합니다."));

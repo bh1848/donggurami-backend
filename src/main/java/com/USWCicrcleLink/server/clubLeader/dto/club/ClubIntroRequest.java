@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.clubLeader.dto.club;
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
 import com.USWCicrcleLink.server.global.validation.Sanitize;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -24,6 +25,10 @@ public class ClubIntroRequest {
     private String clubRecruitment;
 
     @Sanitize
+    @Pattern(
+            regexp = "^https://[a-zA-Z0-9._-]+(?:\\.[a-zA-Z]{2,})+.*$",
+            message = "유효한 HTTPS 링크를 입력해주세요."
+    )
     private String googleFormUrl;
 
     private List<Integer> orders;
