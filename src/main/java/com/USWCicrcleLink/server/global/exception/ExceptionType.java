@@ -28,6 +28,10 @@ public enum ExceptionType {
      */
     EMAIL_TOKEN_NOT_FOUND("EMAIL_TOKEN-001", "해당 토큰이 존재하지 않습니다.", BAD_REQUEST),
     EMAIL_TOKEN_IS_EXPIRED("EMAIL_TOKEN-002", "토큰이 만료되었습니다. 다시 이메일인증 해주세요", BAD_REQUEST),
+    EMAIL_TOKEN_CREATION_FALILED("EMAIL_TOKEN-003", "이메일 토큰 생성중 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
+    EMAIL_TOKEN_STATUS_UPATE_FALIED("EMAIL_TOKEN-004", "이메일 토큰의 필드 업데이트 후, 저장하는 과정에서 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
+    EMAIL_TOKEN_NOT_VERIFIED("EMAIL_TOKEN-005", "인증이 완료되지 않은 이메일 토큰입니다.", INTERNAL_SERVER_ERROR),
+
 
     /**
      * Domain: User
@@ -43,10 +47,11 @@ public enum ExceptionType {
     USER_INVALID_ACCOUNT_AND_EMAIL("USR-209", "올바르지 않은 이메일 혹은 아이디입니다.", BAD_REQUEST),
     USER_UUID_NOT_FOUND("USR-210","회원의 uuid를 찾을 수 없습니다.", BAD_REQUEST),
     USER_AUTHENTICATION_FAILED("USR-211","아이디 혹은 비밀번호가 일치하지 않습니다",UNAUTHORIZED),
-    USER_PROFILE_NOT_FOUND("USR-213","프로필 정보를 찾을 수 없습니다", NOT_FOUND),
     USER_PASSWORD_CONDITION_FAILED("USR-214","영문자,숫자,특수문자는 적어도 1개 이상씩 포함되어야합니다",BAD_REQUEST),
     USER_LOGIN_FAILED("USR-216","비회원 사용자입니다.인증을 완료해주세요",BAD_REQUEST),
     USER_PASSWORD_NOT_REUSE("USR-217", "현재 비밀번호와 같은 비밀번호로 변경할 수 없습니다.", BAD_REQUEST),
+    USER_CREATION_FAILED("USR-218","회원 생성중 오류 발생",INTERNAL_SERVER_ERROR),
+
 
     /**
      * Domain: ClubMemberTemp
@@ -62,10 +67,11 @@ public enum ExceptionType {
 
 
     /**
-     * Domain: Jwt
+     * Domain: Security
      */
     INVALID_ROLE("TOK-201", "유효하지 않은 role입니다.", BAD_REQUEST),
     UNAUTHENTICATED_USER("TOK-204", "인증되지 않은 사용자입니다.", UNAUTHORIZED),
+    INVALID_TOKEN("TOK-202", "유효하지 않은 토큰입니다.", UNAUTHORIZED),
 
     /**
      * Domain: Club
@@ -118,6 +124,8 @@ public enum ExceptionType {
     PROFILE_ALREADY_EXISTS("PFL-207","프로필이 이미 존재합니다",BAD_REQUEST),
     INVALID_MEMBER_TYPE("PFL-208","유효하지 않은 회원 종류입니다.",BAD_REQUEST),
     PROFILE_VALUE_MISMATCH("PFL-209","프로필 값이 일치하지 않습니다.",BAD_REQUEST),
+    PROFILE_CREATION_FAILED("PFL-210","프로필 생성중 오류 발생",INTERNAL_SERVER_ERROR),
+
 
 
     /**
@@ -175,7 +183,7 @@ public enum ExceptionType {
      */
     SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR),
     INVALID_UUID_FORMAT("UUID-502", "유효하지 않은 UUID 형식입니다." , BAD_REQUEST),
-    TOO_MANY_ATTEMPT("ATTEMPT-503", "최대 시도 횟수를 초과했습니다. 1분 후  다시 시도 하세요", BAD_REQUEST),
+    TOO_MANY_ATTEMPT("ATTEMPT-503", "최대 시도 횟수를 초과했습니다. 5분 후  다시 시도 하세요", BAD_REQUEST),
     PHOTO_FILE_IS_EMPTY("PHOTO-504","사진 파일이 비어있습니다." ,BAD_REQUEST),
     PHOTO_NOT_FOUND("PHOTO-505", "해당 사진이 존재하지 않습니다.", NOT_FOUND),
     INVALID_ENUM_VALUE("ENUM-401", "유효하지 않은 Enum 값입니다.", BAD_REQUEST),

@@ -33,8 +33,6 @@ public record CustomLeaderDetails(Leader leader, UUID clubUUID) implements UserD
         return leader.getLeaderUUID().toString();
     }
 
-    public Boolean getIsAgreedTerms() { return leader.isAgreedTerms();}
-
     @Override
     public boolean isAccountNonExpired() {
         return true;

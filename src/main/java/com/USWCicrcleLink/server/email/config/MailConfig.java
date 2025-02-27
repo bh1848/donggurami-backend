@@ -36,10 +36,10 @@ public class MailConfig {
         Properties properties = new Properties();
         properties.setProperty("mail.transport.protocol", "smtp");
         properties.setProperty("mail.smtp.auth", "true");
-        properties.setProperty("mail.smtp.starttls.enable", "true");
-        properties.setProperty("mail.debug", "true");
+        properties.setProperty("mail.debug", "false");
         properties.setProperty("mail.smtp.ssl.trust","smtp.naver.com");
         properties.setProperty("mail.smtp.ssl.enable","true");
+
 
         return properties;
     }

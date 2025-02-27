@@ -35,9 +35,11 @@ public class ProfileController {
 
     // 기존 회원가입시 프로필 중복 확인 및 비밀번호 유효성 검사
     @GetMapping("/duplication-check")
-    public ResponseEntity<ApiResponse<String>> checkProfileDuplicated(@Validated(ValidationSequence.class) @RequestBody DuplicationProfileRequest profileRequest){
+    public ResponseEntity<ApiResponse<String>> checkProfileDuplicated(@Validated(ValidationSequence.class) @RequestBody DuplicationProfileRequest request){
+        // 비밀번호 유효성 확인
+        passwordService.validatePassword(request.getPassword(), request.getConfirmPassword());
         // 프로필 중복 확인
-        profileService.checkProfileDuplicated(profileRequest);
+        profileService.checkProfileDuplicated(request);
         ApiResponse<String> response = new ApiResponse<>("사용 가능한 프로필 입니다.");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

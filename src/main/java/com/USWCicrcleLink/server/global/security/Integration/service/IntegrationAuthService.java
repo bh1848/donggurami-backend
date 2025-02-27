@@ -1,5 +1,6 @@
 package com.USWCicrcleLink.server.global.security.Integration.service;
 
+import com.USWCicrcleLink.server.global.exception.errortype.TokenException;
 import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import com.USWCicrcleLink.server.global.security.jwt.dto.TokenDto;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
@@ -27,17 +28,21 @@ public class IntegrationAuthService {
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken != null && jwtProvider.validateRefreshToken(refreshToken, request)) {
-            UUID userUUID = jwtProvider.getUUIDFromRefreshToken(refreshToken);
+        if (refreshToken != null) {
+            try {
+                jwtProvider.validateRefreshToken(refreshToken, request);
+                UUID userUUID = jwtProvider.getUUIDFromRefreshToken(refreshToken);
 
-            // 유저라면 FCM 토큰 삭제 (푸시 알림 무효화)
-            profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
-                profile.updateFcmToken(null);
-                profileRepository.save(profile);
-                log.debug("User 로그아웃 - FCM 토큰 삭제 완료 - UUID: {}", userUUID);
-            });
+                // 유저라면 FCM 토큰 삭제 (푸시 알림 무효화)
+                profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
+                    profile.updateFcmToken(null);
+                    profileRepository.save(profile);
+                    log.debug("User 로그아웃 - FCM 토큰 삭제 완료 - UUID: {}", userUUID);
+                });
 
-            jwtProvider.deleteRefreshToken(userUUID);
+                jwtProvider.deleteRefreshToken(userUUID);
+            } catch (TokenException ignored) {
+            }
         }
 
         SecurityContextHolder.clearContext();
@@ -52,19 +57,25 @@ public class IntegrationAuthService {
     public TokenDto refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken, request)) {
-            jwtProvider.deleteRefreshTokenCookie(response);
+        if (refreshToken == null) {
+            logout(request, response);
             return null;
         }
 
-        UUID uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
+        try {
+            jwtProvider.validateRefreshToken(refreshToken, request);
+            UUID uuid = jwtProvider.getUUIDFromRefreshToken(refreshToken);
 
-        jwtProvider.deleteRefreshToken(uuid);
+            jwtProvider.deleteRefreshToken(uuid);
 
-        String newAccessToken = jwtProvider.createAccessToken(uuid, response);
-        String newRefreshToken = jwtProvider.createRefreshToken(uuid, response);
+            String newAccessToken = jwtProvider.createAccessToken(uuid, response);
+            String newRefreshToken = jwtProvider.createRefreshToken(uuid, response);
 
-        log.debug("토큰 갱신 성공 - UUID: {}", uuid);
-        return new TokenDto(newAccessToken, newRefreshToken);
+            log.debug("토큰 갱신 성공 - UUID: {}", uuid);
+            return new TokenDto(newAccessToken, newRefreshToken);
+        } catch (TokenException e) {
+            logout(request, response);
+            return null;
+        }
     }
 }

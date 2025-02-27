@@ -3,8 +3,10 @@ package com.USWCicrcleLink.server.global.security.jwt.filter;
 import com.USWCicrcleLink.server.global.security.details.CustomAdminDetails;
 import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
+import com.USWCicrcleLink.server.global.security.exception.CustomAuthenticationEntryPoint;
 import com.USWCicrcleLink.server.global.security.exception.CustomAuthenticationException;
 import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
+import com.USWCicrcleLink.server.global.security.jwt.domain.TokenValidationResult;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
@@ -31,6 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
     private final List<String> permitAllPaths;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final PathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
@@ -49,19 +53,21 @@ public class JwtFilter extends OncePerRequestFilter {
         String accessToken = jwtProvider.resolveAccessToken(request);
 
         try {
-            if (accessToken == null || !jwtProvider.validateAccessToken(accessToken)) {
-                if (accessToken != null) {
-                    log.warn("JWT 공격 시도 감지: 잘못된 서명 또는 변조된 토큰 - IP: {} | 요청 경로: {}",
-                            request.getRemoteAddr(), request.getRequestURI());
+            TokenValidationResult tokenValidationResult = jwtProvider.validateAccessToken(accessToken);
+
+            switch (tokenValidationResult) {
+                case EXPIRED -> throw new CustomAuthenticationException("TOKEN_EXPIRED");
+                case INVALID -> throw new CustomAuthenticationException("INVALID_TOKEN");
+                case VALID -> {
+                    Authentication auth = jwtProvider.getAuthentication(accessToken);
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                    setMDCUserDetails(auth, request.getMethod(), request.getRequestURI());
+                    filterChain.doFilter(request, response);
                 }
-                throw new CustomAuthenticationException("유효하지 않은 액세스 토큰");
             }
-
-            Authentication auth = jwtProvider.getAuthentication(accessToken);
-            SecurityContextHolder.getContext().setAuthentication(auth);
-            setMDCUserDetails(auth, request.getMethod(), request.getRequestURI());
-
-            filterChain.doFilter(request, response);
+        } catch (AuthenticationException e) {
+            SecurityContextHolder.clearContext();
+            customAuthenticationEntryPoint.commence(request, response, e);
         } finally {
             MDC.clear();
         }

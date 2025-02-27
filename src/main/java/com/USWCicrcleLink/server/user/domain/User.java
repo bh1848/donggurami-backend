@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.user.domain;
 import com.USWCicrcleLink.server.global.bucket4j.ClientIdentifier;
 import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
+import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @Builder
 @Table(name = "USER_TABLE")
 public class User implements ClientIdentifier {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id", nullable = false)
@@ -52,20 +54,26 @@ public class User implements ClientIdentifier {
     @Column(name = "role")
     private Role role;
 
-    @PrePersist
-    public void prePersist() {
-        this.userUUID = UUID.randomUUID();
-    }
 
-    public static User createUser(UserTemp userTemp){
+    public static User createUser(UUID signupUUID,SignUpRequest request,String encodedPw,String email){
         return User.builder()
-                .userAccount(userTemp.getTempAccount())
-                .userPw(userTemp.getTempPw())
-                .email(userTemp.getTempEmail())
-                .userCreatedAt(LocalDateTime.now())
-                .userUpdatedAt(LocalDateTime.now())
+                .userUUID(signupUUID)
+                .userAccount(request.getAccount())
+                .userPw(encodedPw)
+                .email(email)
                 .role(Role.USER)
                 .build();
+    }
+
+    @PrePersist
+    public void prePersist() {
+        this.userCreatedAt = LocalDateTime.now();
+        this.userUpdatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.userUpdatedAt = LocalDateTime.now();
     }
 
     public void updateUserPw(String userPw){

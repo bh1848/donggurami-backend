@@ -4,6 +4,7 @@ import com.USWCicrcleLink.server.global.exception.errortype.BaseException;
 import com.USWCicrcleLink.server.global.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,9 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @Value("${spring.profiles.active:dev}")
+    private String activeProfile;
+
     /**
      * 공통 ErrorResponse 생성 메서드
      */
@@ -45,10 +49,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 요청 정보를 포함하여 4xx 에러는 warn, 5xx 에러는 error 로깅
+     * 운영 환경(production)에서는 4xx 에러 로그를 남기지 않음
      */
     private void logByHttpStatus(HttpStatus status, String logMessage, Throwable e, HttpServletRequest request) {
         String requestInfo = String.format("Request: %s %s", request.getMethod(), request.getRequestURI());
+
+        boolean isProduction = "prod".equals(activeProfile);
+
+        if (status.is4xxClientError() && isProduction) {
+            return;
+        }
+
         if (status.is4xxClientError()) {
             log.warn("[Client Error] {} | {}", logMessage, requestInfo);
         } else if (status.is5xxServerError()) {
@@ -96,7 +107,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, status);
     }
 
-
     /**
      * @Valid 검증 실패 (예: @NotBlank) 처리 - 400 에러
      */
@@ -110,14 +120,12 @@ public class GlobalExceptionHandler {
         });
 
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        String message = "입력 값 검증에 실패했습니다.";
-
         logByHttpStatus(status, "Validation failed: " + fieldErrors, ex, request);
 
         ErrorResponse errorResponse = buildErrorResponse(
                 ex.getClass().getSimpleName(),
                 "INVALID_ARGUMENT",
-                message,
+                "입력 값 검증에 실패했습니다.",
                 status,
                 fieldErrors
         );
@@ -136,7 +144,6 @@ public class GlobalExceptionHandler {
                 : "잘못된 요청입니다.";
 
         HttpStatus status = HttpStatus.BAD_REQUEST;
-
         logByHttpStatus(status, errorMessage, ex, request);
 
         ErrorResponse errorResponse = buildErrorResponse(
@@ -161,11 +168,10 @@ public class GlobalExceptionHandler {
                 : "유효하지 않은 JSON 혹은 ENUM 값입니다. 올바른 값을 입력하세요.";
 
         HttpStatus status = HttpStatus.BAD_REQUEST;
-
         logByHttpStatus(status, errorMessage, e, request);
 
         ErrorResponse errorResponse = buildErrorResponse(
-                e.getClass().getSimpleName(),
+                "HttpMessageNotReadableException",
                 "INVALID_REQUEST_BODY",
                 errorMessage,
                 status,
@@ -186,7 +192,6 @@ public class GlobalExceptionHandler {
                 : "서버 로직 처리 중 NPE가 발생했습니다.";
 
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-
         logByHttpStatus(status, errorMessage, e, request);
 
         ErrorResponse errorResponse = buildErrorResponse(
@@ -206,14 +211,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException e, HttpServletRequest request) {
         HttpStatus status = HttpStatus.NOT_FOUND;
-        String message = "요청하신 경로를 찾을 수 없습니다.";
-
-        logByHttpStatus(status, message, e, request);
-
+        logByHttpStatus(status, e.getMessage(), e, request);
         ErrorResponse errorResponse = buildErrorResponse(
                 "NoResourceFoundException",
                 "RESOURCE_NOT_FOUND",
-                message,
+                "요청하신 경로를 찾을 수 없습니다.",
                 status,
                 null
         );
@@ -228,7 +230,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException e, HttpServletRequest request) {
         HttpStatus status = HttpStatus.CONFLICT;
         String errorMessage = "데이터 무결성 위반 오류가 발생했습니다.";
-
         logByHttpStatus(status, errorMessage, e, request);
 
         ErrorResponse errorResponse = buildErrorResponse(
@@ -249,7 +250,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleSQLException(SQLException e, HttpServletRequest request) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         String errorMessage = "데이터베이스 오류가 발생했습니다.";
-
         logByHttpStatus(status, errorMessage, e, request);
 
         ErrorResponse errorResponse = buildErrorResponse(

@@ -37,7 +37,7 @@ public class SchedulerConfig {
     public void deleteExpiredTokens() {
 
             LocalDateTime time = LocalDateTime.now().minusHours(1); // 만료시간 1시간 경과된 토큰 삭제
-            List<EmailToken> tokens = emailTokenRepository.findAllByCertificationTimeBefore(time);
+            List<EmailToken> tokens = emailTokenRepository.findAllByExpirationTimeBefore(time);
 
             if(!tokens.isEmpty()){
                 emailTokenRepository.deleteAll(tokens);

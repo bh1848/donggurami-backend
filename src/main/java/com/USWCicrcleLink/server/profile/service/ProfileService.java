@@ -124,6 +124,7 @@ public class ProfileService {
 
     // 프로필 중복 확인
     public void checkProfileDuplicated(DuplicationProfileRequest request) {
+        // 프로필 중복확인
         log.debug("프로필 중복 체크 요청 시작 - 이름: {}, 전화번호: {}, 학번: {}",
                 request.getUserName(), request.getUserHp(), request.getStudentNumber());
         profileRepository.findByUserNameAndStudentNumberAndUserHp(request.getUserName(),request.getStudentNumber(),request.getUserHp())
@@ -131,11 +132,6 @@ public class ProfileService {
                     throw new ProfileException(ExceptionType.PROFILE_ALREADY_EXISTS);
                 });
         log.debug("프로필 중복 확인 완료- 중복없음");
-
-        // 비밀번호 유효성 확인
-        passwordService.checkPasswordFieldBlank(request.getPassword(),request.getConfirmPassword());
-        passwordService.checkPasswordCondition(request.getPassword());
-        passwordService.checkPasswordMatch(request.getPassword(), request.getConfirmPassword());
     }
 
 }

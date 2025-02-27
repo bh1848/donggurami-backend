@@ -46,12 +46,12 @@ public class EmailService {
     }
 
     // 회원가입 링크 생성
-    public MimeMessage createSignUpLink(UserTemp userTemp, EmailToken emailToken) {
+    public MimeMessage createSignUpLink(EmailToken emailToken) {
         try {
             // 회원 가입 인증 메일 생성
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage,true,"utf-8");
-            helper.setTo(userTemp.getTempEmail() + "@suwon.ac.kr");
+            helper.setTo(emailToken.getEmail() + "@suwon.ac.kr");
             helper.setSubject("동구라미 회원가입 인증 메일");
             helper.setFrom(email_user);
 
@@ -145,6 +145,8 @@ public class EmailService {
         }
 
     }
+
+
 
 
 }
