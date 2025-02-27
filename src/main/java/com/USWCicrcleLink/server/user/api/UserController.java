@@ -3,7 +3,6 @@ package com.USWCicrcleLink.server.user.api;
 import com.USWCicrcleLink.server.email.domain.EmailToken;
 import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
-import com.USWCicrcleLink.server.global.exception.errortype.EmailException;
 import com.USWCicrcleLink.server.global.exception.errortype.EmailTokenException;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
 import com.USWCicrcleLink.server.global.security.jwt.dto.TokenDto;
@@ -11,7 +10,6 @@ import com.USWCicrcleLink.server.global.validation.ValidationSequence;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
@@ -192,12 +190,14 @@ public class UserController {
     @RateLimite(action ="WITHDRAWAL_CODE")
     public ApiResponse<String> cancelMembership(HttpServletRequest request, HttpServletResponse response,@Valid @RequestBody AuthCodeRequest authCodeRequest){
 
-        // 토큰 검증 및 삭제
+        // 토큰 검증
         UUID uuid = withdrawalTokenService.verifyWithdrawalToken(authCodeRequest);
-        withdrawalTokenService.deleteWithdrawalToken(uuid);
 
         // 회원 탈퇴 진행
         userService.cancelMembership(request,response);
+
+        // 토큰 삭제
+        withdrawalTokenService.deleteWithdrawalToken(uuid);
         return new ApiResponse<>("회원 탈퇴가 완료되었습니다.");
     }
 }
