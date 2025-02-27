@@ -395,11 +395,12 @@ public class UserService {
             // 토큰 만료시간 업데이트
             emailTokenService.updateCertificationTime(emailToken);
             log.debug("이메일 인증 만료시간 업데이트 완료, emailTokenUUID= {}", emailToken.getEmailTokenUUID());
-        }else{
+        } else{
             // 그 외의 경우 새로운 이메일 토큰 생성
             emailToken = emailTokenService.createEmailToken(email);
         }
         log.debug("이메일 중복 확인 완료");
+
         return emailToken;
     }
 
@@ -417,6 +418,7 @@ public class UserService {
         log.debug("signupUUID={}",emailToken.getSignupUUID());
         return emailToken.getSignupUUID();
     }
+
     /**
      * 회원 탈퇴 (User)
      */
