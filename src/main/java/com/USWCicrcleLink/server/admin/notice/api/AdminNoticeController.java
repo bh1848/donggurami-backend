@@ -1,14 +1,18 @@
 package com.USWCicrcleLink.server.admin.notice.api;
 
-import com.USWCicrcleLink.server.admin.notice.dto.*;
+import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeCreationRequest;
+import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticePageListResponse;
+import com.USWCicrcleLink.server.admin.notice.dto.AdminNoticeUpdateRequest;
+import com.USWCicrcleLink.server.admin.notice.dto.NoticeDetailResponse;
 import com.USWCicrcleLink.server.admin.notice.service.AdminNoticeService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import jakarta.validation.Valid;
+import com.USWCicrcleLink.server.global.validation.ValidationSequence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,7 +47,7 @@ public class AdminNoticeController {
     // 공지사항 생성 (ADMIN)
     @PostMapping
     public ResponseEntity<ApiResponse<List<String>>> createNotice(
-            @RequestPart(value = "request", required = false) @Valid AdminNoticeCreationRequest request,
+            @RequestPart(value = "request", required = false) @Validated(ValidationSequence.class) AdminNoticeCreationRequest request,
             @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos) {
         List<String> presignedUrls = noticeService.createNotice(request, noticePhotos);
         return ResponseEntity.ok(new ApiResponse<>("공지사항 생성 성공", presignedUrls));
@@ -53,7 +57,7 @@ public class AdminNoticeController {
     @PutMapping("/{noticeUUID}")
     public ResponseEntity<ApiResponse<List<String>>> updateNotice(
             @PathVariable("noticeUUID") UUID noticeUUID,
-            @RequestPart(value = "request", required = false) @Valid AdminNoticeUpdateRequest request,
+            @RequestPart(value = "request", required = false) @Validated(ValidationSequence.class) AdminNoticeUpdateRequest request,
             @RequestPart(value = "photos", required = false) List<MultipartFile> noticePhotos) {
 
         List<String> presignedUrls = noticeService.updateNotice(noticeUUID, request, noticePhotos);

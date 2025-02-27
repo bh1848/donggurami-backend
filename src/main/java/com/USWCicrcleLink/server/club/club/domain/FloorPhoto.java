@@ -25,6 +25,6 @@ public class FloorPhoto {
     private String floorPhotoS3key;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "floor_photo_floor", nullable = false)
+    @Column(name = "floor_photo_floor", nullable = false, length = 5)
     private FloorPhotoEnum floor;
 }

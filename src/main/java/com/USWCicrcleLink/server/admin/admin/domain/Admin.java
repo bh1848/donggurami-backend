@@ -26,17 +26,17 @@ public class Admin {
     @Column(name = "admin_UUID", nullable = false, unique = true, updatable = false)
     private UUID adminUUID = UUID.randomUUID();
 
-    @Column(name = "admin_account", nullable = false, unique = true)
+    @Column(name = "admin_account", nullable = false, unique = true, length = 20)
     private String adminAccount;
 
-    @Column(name = "admin_pw", nullable = false)
+    @Column(name = "admin_pw", nullable = false, length = 20)
     private String adminPw;
 
-    @Column(name = "admin_name", nullable = false)
+    @Column(name = "admin_name", nullable = false, length = 30)
     private String adminName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
+    @Column(name = "role", nullable = false, length = 10)
     private Role role;
 
     @PrePersist

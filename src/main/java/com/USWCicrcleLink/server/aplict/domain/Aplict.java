@@ -40,7 +40,7 @@ public class Aplict {
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(name = "aplict_status", nullable = false)
+    @Column(name = "aplict_status", nullable = false, length = 10)
     private AplictStatus aplictStatus = AplictStatus.WAIT;
 
     @Column(name = "aplict_checked")

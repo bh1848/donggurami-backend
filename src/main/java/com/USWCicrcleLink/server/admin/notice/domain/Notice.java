@@ -23,7 +23,7 @@ public class Notice {
     @Column(name = "notice_uuid", unique = true, nullable = false, updatable = false)
     private UUID noticeUUID = UUID.randomUUID();
 
-    @Column(name = "notice_title", length = 100, nullable = false)
+    @Column(name = "notice_title", length = 200, nullable = false)
     private String noticeTitle;
 
     @Column(name = "notice_content", length=3000, nullable = false)

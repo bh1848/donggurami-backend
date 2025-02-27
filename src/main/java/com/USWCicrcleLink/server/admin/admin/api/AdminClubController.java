@@ -7,12 +7,13 @@ import com.USWCicrcleLink.server.admin.admin.dto.AdminPwRequest;
 import com.USWCicrcleLink.server.admin.admin.service.AdminClubService;
 import com.USWCicrcleLink.server.club.club.service.ClubService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import jakarta.validation.Valid;
+import com.USWCicrcleLink.server.global.validation.ValidationSequence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -45,14 +46,14 @@ public class AdminClubController {
 
     // 동아리 추가 - 동아리 추가 (ADMIN)
     @PostMapping
-    public ResponseEntity<ApiResponse<String>> createClub(@RequestBody @Valid AdminClubCreationRequest clubRequest) {
+    public ResponseEntity<ApiResponse<String>> createClub(@RequestBody @Validated(ValidationSequence.class) AdminClubCreationRequest clubRequest) {
         adminClubService.createClub(clubRequest);
         return ResponseEntity.ok(new ApiResponse<>("동아리 생성 성공"));
     }
 
     // 동아리 삭제 (ADMIN)
     @DeleteMapping("{clubUUID}")
-    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubUUID") UUID clubUUID, @RequestBody @Valid AdminPwRequest request) {
+    public ResponseEntity<ApiResponse<Long>> deleteClub(@PathVariable("clubUUID") UUID clubUUID, @RequestBody @Validated(ValidationSequence.class) AdminPwRequest request) {
         adminClubService.deleteClub(clubUUID, request);
         return ResponseEntity.ok(new ApiResponse<>("동아리 삭제 성공"));
     }

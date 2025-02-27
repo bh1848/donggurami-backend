@@ -25,7 +25,7 @@ public class ClubCategory {
     @Column(name = "club_category_uuid", nullable = false, unique = true, updatable = false)
     private UUID clubCategoryUUID = UUID.randomUUID();
 
-    @Column(name = "club_category_name", nullable = false)
+    @Column(name = "club_category_name", nullable = false, length = 20)
     private String clubCategoryName;
 
     @PrePersist

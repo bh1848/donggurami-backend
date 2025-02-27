@@ -4,9 +4,10 @@ import com.USWCicrcleLink.server.admin.admin.dto.AdminClubCategoryCreationReques
 import com.USWCicrcleLink.server.admin.admin.service.AdminClubCategoryService;
 import com.USWCicrcleLink.server.club.club.dto.ClubCategoryResponse;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import jakarta.validation.Valid;
+import com.USWCicrcleLink.server.global.validation.ValidationSequence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public class AdminClubCategoryController {
 
     // 동아리 카테고리 설정 - 카테고리 추가
     @PostMapping
-    public ResponseEntity<ApiResponse<ClubCategoryResponse>> addClubCategory(@RequestBody @Valid AdminClubCategoryCreationRequest request) {
+    public ResponseEntity<ApiResponse<ClubCategoryResponse>> addClubCategory(@RequestBody @Validated(ValidationSequence.class) AdminClubCategoryCreationRequest request) {
         ClubCategoryResponse addedClubCategory = adminClubCategoryService.addClubCategory(request);
         return ResponseEntity.ok(new ApiResponse<>("카테고리 추가 성공", addedClubCategory));
     }
