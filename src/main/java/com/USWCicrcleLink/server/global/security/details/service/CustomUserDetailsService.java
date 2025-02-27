@@ -29,10 +29,10 @@ public class CustomUserDetailsService implements RoleBasedUserDetailsService {
     @Override
     public UserDetails loadUserByUuid(UUID uuid) {
         User user = userRepository.findByUserUUID(uuid)
-                .orElseThrow(() -> new UserException(ExceptionType.USER_NOT_EXISTS));
+                .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
 
         Profile profile = profileRepository.findByUser_UserUUID(user.getUserUUID())
-                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
+                .orElseThrow(() -> new ProfileException(ExceptionType.USER_AUTHENTICATION_FAILED));
 
         List<UUID> clubUUIDs = getUserClubUUIDs(profile.getProfileId());
         return new CustomUserDetails(user, clubUUIDs);
