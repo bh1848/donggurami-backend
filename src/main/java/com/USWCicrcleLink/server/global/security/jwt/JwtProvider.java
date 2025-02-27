@@ -10,6 +10,7 @@ import com.USWCicrcleLink.server.global.security.details.service.UserDetailsServ
 import com.USWCicrcleLink.server.global.security.jwt.domain.TokenValidationResult;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -98,16 +99,30 @@ public class JwtProvider {
     }
 
     /**
-     * 엑세스 토큰 유효성 검증
+     * 액세스 토큰 유효성 검증
      */
     public TokenValidationResult validateAccessToken(String accessToken) {
+        if (accessToken == null || accessToken.trim().isEmpty()) {
+            return TokenValidationResult.INVALID; // 비어있는 토큰
+        }
+
         try {
             Claims claims = getClaims(accessToken);
+
+            if (claims == null) {
+                return TokenValidationResult.INVALID; // claims null
+            }
+
             return claims.getExpiration().before(new Date()) ? TokenValidationResult.EXPIRED : TokenValidationResult.VALID;
+
         } catch (ExpiredJwtException e) {
-            return TokenValidationResult.EXPIRED;
+            return TokenValidationResult.EXPIRED; // 만료된 토큰
+        } catch (MalformedJwtException e) {
+            return TokenValidationResult.INVALID; // 토큰이 변조되었거나 잘못된 형식
+        } catch (SignatureException e) {
+            return TokenValidationResult.INVALID; // 서명이 맞지 않음 (변조 가능성)
         } catch (JwtException | IllegalArgumentException e) {
-            return TokenValidationResult.INVALID;
+            return TokenValidationResult.INVALID; // 기타 JWT 오류
         }
     }
 

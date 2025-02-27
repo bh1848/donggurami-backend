@@ -30,25 +30,32 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String errorCode = authException.getMessage();
+        String errorCode = "AUTH_REQUIRED";
         String errorMessage = "인증이 필요합니다.";
         int status = HttpServletResponse.SC_UNAUTHORIZED;
 
-        if ("TOKEN_EXPIRED".equals(errorCode)) {
-            status = HttpServletResponse.SC_FORBIDDEN;
-        } else if ("INVALID_TOKEN".equals(errorCode)) {
-            if ("prod".equals(activeProfile)) {
-                log.error("[SECURITY ALERT] 변조된 JWT 감지 - IP: {} | 요청 경로: {}",
-                        request.getRemoteAddr(), request.getRequestURI());
-            } else {
-                log.warn("[JWT WARNING] 변조된 JWT 감지 - IP: {} | 요청 경로: {}",
-                        request.getRemoteAddr(), request.getRequestURI());
+        if (authException instanceof CustomAuthenticationException) {
+            errorCode = authException.getMessage();
+
+            if ("TOKEN_EXPIRED".equals(errorCode)) {
+                errorMessage = "토큰이 만료되었습니다.";
+            } else if ("INVALID_TOKEN".equals(errorCode)) {
+                errorMessage = "인증이 필요합니다.";
+
+                if ("prod".equals(activeProfile)) {
+                    log.error("[SECURITY ALERT] 변조된 JWT 감지 - IP: {} | 요청 경로: {}",
+                            request.getRemoteAddr(), request.getRequestURI());
+                } else {
+                    log.warn("[JWT WARNING] 변조된 JWT 감지 - IP: {} | 요청 경로: {}",
+                            request.getRemoteAddr(), request.getRequestURI());
+                }
             }
         }
 
         response.setStatus(status);
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("status", status);
+        responseBody.put("errorCode", errorCode);
         responseBody.put("message", errorMessage);
 
         response.getWriter().write(objectMapper.writeValueAsString(responseBody));

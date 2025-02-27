@@ -53,10 +53,6 @@ public class JwtFilter extends OncePerRequestFilter {
         String accessToken = jwtProvider.resolveAccessToken(request);
 
         try {
-            if (accessToken == null) {
-                throw new CustomAuthenticationException("INVALID_TOKEN");
-            }
-
             TokenValidationResult tokenValidationResult = jwtProvider.validateAccessToken(accessToken);
 
             switch (tokenValidationResult) {
