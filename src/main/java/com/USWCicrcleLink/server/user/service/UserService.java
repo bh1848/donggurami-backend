@@ -9,8 +9,8 @@ import com.USWCicrcleLink.server.email.service.EmailTokenService;
 import com.USWCicrcleLink.server.global.bucket4j.RateLimite;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.*;
+import com.USWCicrcleLink.server.global.security.Integration.service.IntegrationAuthService;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
-import com.USWCicrcleLink.server.global.security.details.service.CustomUserDetailsService;
 import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
 import com.USWCicrcleLink.server.global.security.jwt.dto.TokenDto;
 import com.USWCicrcleLink.server.profile.domain.MemberType;
@@ -20,12 +20,11 @@ import com.USWCicrcleLink.server.profile.service.ProfileService;
 import com.USWCicrcleLink.server.user.domain.AuthToken;
 import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
 import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.domain.UserTemp;
 import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
 import com.USWCicrcleLink.server.user.repository.UserRepository;
-import com.USWCicrcleLink.server.user.repository.UserTempRepository;
+import com.USWCicrcleLink.server.user.repository.WithdrawalTokenRepository;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -56,9 +55,10 @@ public class UserService {
     private final EmailTokenRepository emailTokenRepository;
     private final EmailService emailService;
     private final EmailTokenService emailTokenService;
-    private final CustomUserDetailsService customUserDetailsService;
     private final ClubMemberAccountStatusService clubMemberAccountStatusService;
     private final PasswordService passwordService;
+    private final IntegrationAuthService integrationAuthService;
+    private final WithdrawalTokenRepository withdrawalTokenRepository;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
@@ -425,26 +425,30 @@ public class UserService {
     public void cancelMembership(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken == null || !jwtProvider.validateRefreshToken(refreshToken, request)) {
-            jwtProvider.deleteRefreshTokenCookie(response);
-            throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
+        if (refreshToken == null) {
+            integrationAuthService.logout(request, response);
+            return;
         }
 
-        UUID userUUID = jwtProvider.getUUIDFromRefreshToken(refreshToken);
+        try {
+            jwtProvider.validateRefreshToken(refreshToken, request);
+            UUID userUUID = jwtProvider.getUUIDFromRefreshToken(refreshToken);
 
-        // FCM 토큰 삭제 (모바일 푸시 알림 무효화)
-        profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
-            profile.updateFcmToken(null);
-            profileRepository.save(profile);
-            log.debug("회원 탈퇴 - FCM 토큰 삭제 완료 - UUID: {}", userUUID);
-        });
+            // FCM 토큰 삭제 (모바일 푸시 알림 무효화)
+            profileRepository.findByUser_UserUUID(userUUID).ifPresent(profile -> {
+                profile.updateFcmToken(null);
+                profileRepository.save(profile);
+                log.debug("회원 탈퇴 - FCM 토큰 삭제 완료 - UUID: {}", userUUID);
+            });
 
-        // 회원 정보 삭제
-        profileService.deleteProfileByUserUUID(userUUID);
-        userRepository.deleteByUserUUID(userUUID);
+            // 회원 정보 삭제
+            profileService.deleteProfileByUserUUID(userUUID);
+            userRepository.deleteByUserUUID(userUUID);
 
-        SecurityContextHolder.clearContext();
-        jwtProvider.deleteRefreshTokenCookie(response);
-        log.info("회원 탈퇴 성공 - UUID: {}", userUUID);
+            log.info("회원 탈퇴 성공 - UUID: {}", userUUID);
+        } catch (TokenException ignored) {
+        } finally {
+            integrationAuthService.logout(request, response);
+        }
     }
 }

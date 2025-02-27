@@ -190,14 +190,12 @@ public class UserController {
     @RateLimite(action ="WITHDRAWAL_CODE")
     public ApiResponse<String> cancelMembership(HttpServletRequest request, HttpServletResponse response,@Valid @RequestBody AuthCodeRequest authCodeRequest){
 
-        // 토큰 검증
+        // 토큰 검증 및 삭제
         UUID uuid = withdrawalTokenService.verifyWithdrawalToken(authCodeRequest);
+        withdrawalTokenService.deleteWithdrawalToken(uuid);
 
         // 회원 탈퇴 진행
         userService.cancelMembership(request,response);
-
-        // 토큰 삭제
-        withdrawalTokenService.deleteWithdrawalToken(uuid);
         return new ApiResponse<>("회원 탈퇴가 완료되었습니다.");
     }
 }

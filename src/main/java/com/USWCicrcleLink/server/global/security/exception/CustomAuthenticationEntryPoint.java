@@ -38,10 +38,10 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
             status = HttpServletResponse.SC_FORBIDDEN;
         } else if ("INVALID_TOKEN".equals(errorCode)) {
             if ("prod".equals(activeProfile)) {
-                log.error("[SECURITY ALERT] 변조된 JWT 토큰 감지 - IP: {} | 요청 경로: {}",
+                log.error("[SECURITY ALERT] 변조된 JWT 감지 - IP: {} | 요청 경로: {}",
                         request.getRemoteAddr(), request.getRequestURI());
             } else {
-                log.warn("[JWT WARNING] 변조된 JWT 토큰 감지 - IP: {} | 요청 경로: {}",
+                log.warn("[JWT WARNING] 변조된 JWT 감지 - IP: {} | 요청 경로: {}",
                         request.getRemoteAddr(), request.getRequestURI());
             }
         }

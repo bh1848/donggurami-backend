@@ -67,10 +67,11 @@ public enum ExceptionType {
 
 
     /**
-     * Domain: Jwt
+     * Domain: Security
      */
     INVALID_ROLE("TOK-201", "유효하지 않은 role입니다.", BAD_REQUEST),
     UNAUTHENTICATED_USER("TOK-204", "인증되지 않은 사용자입니다.", UNAUTHORIZED),
+    INVALID_TOKEN("TOK-202", "유효하지 않은 토큰입니다.", UNAUTHORIZED),
 
     /**
      * Domain: Club

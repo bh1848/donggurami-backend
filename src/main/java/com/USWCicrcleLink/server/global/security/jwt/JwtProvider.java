@@ -1,5 +1,9 @@
 package com.USWCicrcleLink.server.global.security.jwt;
 
+import com.USWCicrcleLink.server.global.exception.ExceptionType;
+import com.USWCicrcleLink.server.global.exception.errortype.JwtException;
+import com.USWCicrcleLink.server.global.exception.errortype.TokenException;
+import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
 import com.USWCicrcleLink.server.global.security.details.service.UserDetailsServiceManager;
@@ -152,7 +156,6 @@ public class JwtProvider {
      * 리프레시 토큰 생성
      */
     public String createRefreshToken(UUID uuid, HttpServletResponse response) {
-        // 기존 Refresh Token 삭제 (Refresh Token Rotation 적용)
         deleteRefreshToken(uuid);
 
         String newRefreshToken = UUID.randomUUID().toString();
@@ -160,9 +163,7 @@ public class JwtProvider {
 
         redisTemplate.opsForValue().set(redisKey, uuid.toString(), REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
 
-        // 클라이언트에 쿠키로 전달
         setRefreshTokenCookie(response, newRefreshToken);
-
         log.debug("새로운 Refresh Token 발급 - UUID: {}", uuid);
         return newRefreshToken;
     }
@@ -170,20 +171,20 @@ public class JwtProvider {
     /**
      * 리프레시 토큰 검증 (Redis 조회 방식)
      */
-    public boolean validateRefreshToken(String refreshToken, HttpServletRequest request) {
+    public void validateRefreshToken(String refreshToken, HttpServletRequest request) {
         if (refreshToken == null || refreshToken.isEmpty()) {
-            return false;
+            throw new TokenException(ExceptionType.INVALID_TOKEN);
         }
 
         boolean existsInRedis = redisTemplate.opsForValue().get("refreshToken:" + refreshToken) != null;
-        if (existsInRedis) {
-            log.debug("Refresh Token 검증 성공");
-        } else {
+        if (!existsInRedis) {
             String clientIp = request.getRemoteAddr();
             String requestUri = request.getRequestURI();
             log.warn("Refresh Token 검증 실패 - | IP: {} | 요청 경로: {}", clientIp, requestUri);
+            throw new TokenException(ExceptionType.INVALID_TOKEN);
         }
-        return existsInRedis;
+
+        log.debug("Refresh Token 검증 성공");
     }
 
     /**
@@ -191,7 +192,10 @@ public class JwtProvider {
      */
     public UUID getUUIDFromRefreshToken(String refreshToken) {
         String storedUuid = redisTemplate.opsForValue().get("refreshToken:" + refreshToken);
-        return (storedUuid != null) ? UUID.fromString(storedUuid) : null;
+        if (storedUuid == null) {
+            throw new UserException(ExceptionType.INVALID_TOKEN);
+        }
+        return UUID.fromString(storedUuid);
     }
 
     /**
