@@ -3,6 +3,7 @@ package com.USWCicrcleLink.server.admin.admin.dto;
 import com.USWCicrcleLink.server.club.club.domain.Department;
 import com.USWCicrcleLink.server.global.validation.Sanitize;
 import com.USWCicrcleLink.server.global.validation.ValidClubRoomNumber;
+import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
@@ -35,9 +36,9 @@ public class AdminClubCreationRequest {
     @Sanitize
     private String leaderPwConfirm;
 
-    @NotBlank(message = "동아리명은 필수 입력 값입니다.")
-    @Size(max = 20, message = "동아리명은 20글자 이내여야 합니다.")
-    @Pattern(regexp = "^[가-힣a-zA-Z0-9]+$", message = "동아리명에는 공백 또는 특수문자를 포함할 수 없습니다.")
+    @NotBlank(message = "동아리 이름은 필수 입력 값입니다.", groups = ValidationGroups.NotBlankGroup.class)
+    @Size(min = 1, max = 10, message = "동아리 이름은 1~10자 이내여야 합니다.", groups = ValidationGroups.SizeGroup.class)
+    @Pattern(regexp = "^[a-zA-Z가-힣]+$", message = "동아리 이름은 영어 또는 한글만 입력 가능합니다.", groups = ValidationGroups.PatternGroup.class)
     @Sanitize
     private String clubName;
 
@@ -49,7 +50,9 @@ public class AdminClubCreationRequest {
     @Sanitize
     private String adminPw;
 
-    @NotBlank(message = "동아리 호수는 필수 입력 값입니다.")
+    @NotBlank(message = "동아리방 호수는 필수 입력 값입니다.", groups = ValidationGroups.NotBlankGroup.class)
+    @Size(min = 1, max = 4, message = "동아리방 호수는 1~4자 이내여야 합니다.", groups = ValidationGroups.SizeGroup.class)
+    @Pattern(regexp = "^[0-9A-Za-z]{1,4}$", message = "동아리 방 호수는 1~4자의 숫자 또는 영문이어야 합니다.", groups = ValidationGroups.PatternGroup.class)
     @ValidClubRoomNumber
     private String clubRoomNumber;
 }

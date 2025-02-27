@@ -347,7 +347,7 @@ public class DummyData {
                 .leaderName("flag")
                 .leaderHp("01012345678")
                 .department(Department.ACADEMIC)
-                .clubInsta("ddddddd")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("208")
                 .build();
         clubRepository.save(flagClub);
@@ -357,7 +357,7 @@ public class DummyData {
                 .leaderName("배드민턴")
                 .leaderHp("00000000000")
                 .department(Department.SPORT)
-                .clubInsta("badminton_insta")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("B101")
                 .build();
         clubRepository.save(badmintonClub);
@@ -367,7 +367,7 @@ public class DummyData {
                 .leaderName("봉사")
                 .leaderHp("00000000000")
                 .department(Department.ACADEMIC)
-                .clubInsta("volunteer_insta")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("108")
                 .build();
         clubRepository.save(volunteerClub);
@@ -738,7 +738,7 @@ public class DummyData {
                 .leaderName("춤짱")
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
-                .clubInsta("allabout_insta")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("B103")
                 .build();
 
@@ -826,7 +826,7 @@ public class DummyData {
                 .leaderName("볼링짱")
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
-                .clubInsta("gullisae_insta")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("205")
                 .build();
 
@@ -874,7 +874,7 @@ public class DummyData {
                 .leaderName("테니스짱")
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
-                .clubInsta("tennis_insta")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("105")
                 .build();
 
@@ -903,7 +903,7 @@ public class DummyData {
                 .leaderName("농구짱")
                 .leaderHp("00012341234")
                 .department(Department.SPORT)
-                .clubInsta("basketball_insta")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("201")
                 .build();
 
@@ -932,7 +932,7 @@ public class DummyData {
                 .leaderName("토론짱")
                 .leaderHp("00012341234")
                 .department(Department.ACADEMIC)
-                .clubInsta("basketball_insta")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("B106")
                 .build();
 
@@ -961,7 +961,7 @@ public class DummyData {
                 .leaderName("햄스터짱")
                 .leaderHp("00012341234")
                 .department(Department.ACADEMIC)
-                .clubInsta("hamster_insta")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("107")
                 .build();
 
@@ -990,7 +990,7 @@ public class DummyData {
                 .leaderName("해달짱")
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
-                .clubInsta("sunmoon_insta")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("210")
                 .build();
 
@@ -1019,7 +1019,7 @@ public class DummyData {
                 .leaderName("돼지짱")
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
-                .clubInsta("pig_insta")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("B109")
                 .build();
 
@@ -1049,7 +1049,7 @@ public class DummyData {
                 .leaderName("고양이짱")
                 .leaderHp("00012341234")
                 .department(Department.SHOW)
-                .clubInsta("pig_insta")
+                .clubInsta("https://www.instagram.com/usw1982/")
                 .clubRoomNumber("203")
                 .build();
 
