@@ -1,14 +1,12 @@
 package com.USWCicrcleLink.server.clubLeader.dto.club;
 
 import com.USWCicrcleLink.server.club.club.domain.RecruitmentStatus;
-import com.USWCicrcleLink.server.global.validation.Sanitize;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
-
 
 @Data
 public class ClubIntroRequest {
@@ -22,6 +20,10 @@ public class ClubIntroRequest {
     @Size(max = 3000, message = "모집글은 최대 3000자까지 입력 가능합니다.")
     private String clubRecruitment;
 
+    @Pattern(
+            regexp = "^https://[a-zA-Z0-9._-]+(?:\\.[a-zA-Z]{2,})+.*$",
+            message = "유효한 HTTPS 링크를 입력해주세요."
+    )
     private String googleFormUrl;
 
     private List<Integer> orders;

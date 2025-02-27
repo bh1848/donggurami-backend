@@ -29,7 +29,7 @@ public class Admin {
     @Column(name = "admin_account", nullable = false, unique = true, length = 20)
     private String adminAccount;
 
-    @Column(name = "admin_pw", nullable = false, length = 20)
+    @Column(name = "admin_pw", nullable = false)
     private String adminPw;
 
     @Column(name = "admin_name", nullable = false, length = 30)

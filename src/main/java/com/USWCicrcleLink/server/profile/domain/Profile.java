@@ -6,8 +6,13 @@ import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.*;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -28,19 +33,16 @@ public class Profile {
     @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
-    @Column(name = "user_name", nullable = false)
-    @Pattern(regexp = "^[a-zA-Z가-힣]+$", message = "이름은 영어 또는 한글만 입력 가능합니다.", groups = ValidationGroups.PatternGroup.class)
+    @Column(name = "user_name", nullable = false, length = 30)
     private String userName;
 
-    @Column(name = "student_number", nullable = false)
-    @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다.", groups = ValidationGroups.PatternGroup.class)
+    @Column(name = "student_number", nullable = false,length = 8)
     private String studentNumber;
 
-    @Column(name = "user_hp", nullable = false)
-    @Pattern(regexp = "^[0-9]*$", message = "숫자만 입력 가능 합니다.", groups = ValidationGroups.PatternGroup.class)
+    @Column(name = "user_hp", nullable = false,length = 11)
     private String userHp;
 
-    @Column(name = "major", nullable = false)
+    @Column(name = "major", nullable = false,length = 20)
     private String major;
 
     @Column(name = "profile_created_at", nullable = false)
