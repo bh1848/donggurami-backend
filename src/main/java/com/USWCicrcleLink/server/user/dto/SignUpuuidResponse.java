@@ -11,5 +11,6 @@ import java.util.UUID;
 @NoArgsConstructor
 public class SignUpuuidResponse {
 
+    private UUID emailTokenUUID;
     private UUID signupUUID;
 }
