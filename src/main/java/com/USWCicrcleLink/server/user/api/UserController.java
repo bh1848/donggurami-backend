@@ -95,13 +95,12 @@ public class UserController {
     @GetMapping("/email/verification")
     public ResponseEntity<ApiResponse<SignUpuuidResponse>> emailVerification(@Validated @RequestBody EmailDTO request){
 
-        UUID signupUUID = emailTokenService.checkEmailIsVerified(request.getEmail());
+        EmailToken emailToken = emailTokenService.checkEmailIsVerified(request.getEmail());
 
         ApiResponse<SignUpuuidResponse> response = new ApiResponse<>("인증 확인 버튼 클릭 후, 이메일 인증 완료",
-                new SignUpuuidResponse(signupUUID));
+                new SignUpuuidResponse(emailToken.getEmailTokenUUID(),emailToken.getSignupUUID()));
 
         return new ResponseEntity<>(response, HttpStatus.OK);
-
     }
 
     // 회원 가입 정보 등록하기 -- 다음 버튼 누른 후
