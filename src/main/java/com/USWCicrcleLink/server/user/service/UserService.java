@@ -321,19 +321,6 @@ public class UserService {
         emailService.sendEmail(message);
         log.debug("회원 탈퇴 메일 전송 완료 email=  {} ", findUser.getEmail());
     }
-
-  /*  // 회원 가입 확인
-    @Transactional(readOnly = true)
-    public void signUpFinish(String account) {
-
-        log.debug("회원 가입 완료 처리 요청 ");
-        // 계정이 존재하는지 확인
-        userRepository.findByUserAccount(account)
-                .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
-
-        log.debug("최종 회원 가입 완료");
-    }*/
-
     /**
      * User 로그인
      */
@@ -474,11 +461,27 @@ public class UserService {
         verifyUserDuplicate(request.getEmail());
 
         // clubMemberTemp에서 이메일로 중복 확인
+        verifyClubMemberTempDuplicate(request.getEmail());
 
-        // clubMember테이블에서 프로필 중복 확인(이름&&학번&&전화번호)
-
-
-
-
+        // clubMemberTemp 테이블에서 프로필 중복 확인(이름&&학번&&전화번호)
+        checkClubMemberTempProfileDuplicate(request.getUserName(), request.getStudentNumber(), request.getTelephone());
     }
+
+    // clubMemberTemp에서 이메일로 중복 확인
+    public void verifyClubMemberTempDuplicate(String email) {
+        clubMemberTempRepository.findByProfileTempEmail(email)
+                .ifPresent(clubMemberTemp -> {
+                    throw new ClubMemberTempException(ExceptionType.CLUB_MEMBERTEMP_IS_DUPLICATED);
+                });
+    }
+
+
+    // clubMember테이블에서 프로필 중복 확인(이름&&학번&&전화번호)
+    public void checkClubMemberTempProfileDuplicate(String name,String studentNumber,String hp){
+        clubMemberTempRepository.findByProfileTempNameAndProfileTempStudentNumberAndAndProfileTempHp(name,studentNumber,hp)
+                .ifPresent(clubMemberTemp -> {
+                    throw new ClubMemberTempException(ExceptionType.CLUB_MEMBERTEMP_IS_EXISTS);
+                });
+    }
+
 }
