@@ -93,23 +93,29 @@ public class UserController {
 
     // 인증 확인 버튼
     @GetMapping("/email/verification")
-    public ResponseEntity<Void> emailVerification(@Validated @RequestBody EmailDTO request){
-        emailTokenService.checkEmailIsVerified(request.getEmail());
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<ApiResponse<SignUpuuidResponse>> emailVerification(@Validated @RequestBody EmailDTO request){
+
+        UUID signupUUID = emailTokenService.checkEmailIsVerified(request.getEmail());
+
+        ApiResponse<SignUpuuidResponse> response = new ApiResponse<>("인증 확인 버튼 클릭 후, 이메일 인증 완료",
+                new SignUpuuidResponse(signupUUID));
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
     }
 
     // 회원 가입 정보 등록하기 -- 다음 버튼 누른 후
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<Void>> signUp(@Validated(ValidationSequence.class) @RequestBody  SignUpRequest request,@RequestHeader("emailTokenUUID") UUID emailTokenUUID,@RequestHeader("email") String email) {
+    public ResponseEntity<ApiResponse<Void>> signUp(@Validated(ValidationSequence.class) @RequestBody  SignUpRequest request,@RequestHeader("emailTokenUUID") UUID emailTokenUUID,@RequestHeader("signupUUID") UUID signupUUID) {
 
-        // 이메일 인증 여부 확인 + 회원 uuid 조회
-        UUID singupUUID = userService.isEmailVerified(emailTokenUUID);
+        // 인증을 받은 사용자가 맞는지 검증하기
+        String email = userService.isEmailVerified(emailTokenUUID, signupUUID);
 
         // 신규 회원가입을 위한 조건 검사
         userService.checkNewSignupCondition(request);
 
         // 회원가입 진행
-        userService.signUpUser(singupUUID,request,email);
+        userService.signUpUser(request,email);
         return ResponseEntity.ok(new ApiResponse<>("회원가입이 정상적으로 완료되어 로그인이 가능합니다."));
     }
 

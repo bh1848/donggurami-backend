@@ -117,11 +117,12 @@ public class UserService {
 
 
     // 신규 회원 가입
-    public void signUpUser(UUID signupUUID, SignUpRequest request,String email) {
+    public void signUpUser(SignUpRequest request,String email) {
         // user 객체 생성
-        User user = createUser(signupUUID, request,email);
+        User user = createUser(request,email);
         userRepository.save(user);
         log.debug("user 객체 생성: user_uuid={}",user.getUserUUID());
+
         // profile 객체 생성
         Profile profile = createProfile(user, request);
         profileRepository.save(profile);
@@ -135,12 +136,12 @@ public class UserService {
 
     // user 객체 생성
     @Transactional
-    public User createUser(UUID signupUUID, SignUpRequest request,String email) {
+    public User createUser(SignUpRequest request,String email) {
         // 비밀번호 인코딩
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         // user 객체 생성하기
         try {
-            return User.createUser(signupUUID, request, encodedPassword,email);
+            return User.createUser(request, encodedPassword,email);
         } catch (Exception e) {
             log.error("이메일 인증 후, 회원가입 진행 중 user객체를 생성하는 과정에서 오류 발생");
             throw new UserException(ExceptionType.USER_CREATION_FAILED);
@@ -397,18 +398,18 @@ public class UserService {
     }
 
 
-    // 이메일이 인증 받았는지 확인하기
-    public UUID isEmailVerified(UUID emailTokenUUID) {
+    // 이메일 인증 받은 사용자인지 검증하기
+    public String isEmailVerified(UUID emailTokenUUID,UUID requestSignupUUID) {
+
         // 이메일 토큰 조회
         EmailToken emailToken = emailTokenService.getEmailTokenByEmailTokenUUID(emailTokenUUID);
-        // 조회된 이메일 토큰의 이메일 인증 여부 확인
-        if (!emailToken.isVerified()) {
-            log.error("인증이 완료되지 않은 이메일 email={}", emailToken.getEmail());
-            throw new EmailException(ExceptionType.EMAIL_TOKEN_NOT_VERIFIED);
+
+        // 이메일 토큰 조회로 찾은 signupuuid와 프론트에서 가지고 있던 signupuuid비교
+        if(!emailToken.getSignupUUID().equals(requestSignupUUID)){
+            throw new UserException(ExceptionType.USER_UUID_IS_NOT_VALID);
         }
-        // 이메일 인증여부 확인 후, signupUUID 리턴
-        log.debug("signupUUID={}",emailToken.getSignupUUID());
-        return emailToken.getSignupUUID();
+
+        return emailToken.getEmail();
     }
 
     /**
@@ -463,17 +464,21 @@ public class UserService {
     //fixme 기존회원가입 시 검사해야하는 조건 생각해보기(프로필 중복확인)
     public void checkExistingSignupCondition(ExistingMemberSignUpRequest request) {
 
-        // user테이블에서 중복 확인
-        verifyUserDuplicate(request.getEmail());
-
-        // clubMember테이블에 이미 전송된 요청이 있는지 확인
-
-
         // 아이디 중복 확인 검사
         verifyAccountDuplicate(request.getAccount());
 
         // 비밀번호 유효성 검사
         passwordService.validatePassword(request.getPassword(),request.getConfirmPassword());
+
+        // user테이블에서 중복 확인
+        verifyUserDuplicate(request.getEmail());
+
+        // clubMemberTemp에서 이메일로 중복 확인
+
+        // clubMember테이블에서 프로필 중복 확인(이름&&학번&&전화번호)
+
+
+
 
     }
 }

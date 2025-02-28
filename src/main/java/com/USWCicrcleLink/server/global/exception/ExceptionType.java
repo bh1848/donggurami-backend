@@ -51,6 +51,7 @@ public enum ExceptionType {
     USER_LOGIN_FAILED("USR-216","비회원 사용자입니다.인증을 완료해주세요",BAD_REQUEST),
     USER_PASSWORD_NOT_REUSE("USR-217", "현재 비밀번호와 같은 비밀번호로 변경할 수 없습니다.", BAD_REQUEST),
     USER_CREATION_FAILED("USR-218","회원 생성중 오류 발생",INTERNAL_SERVER_ERROR),
+    USER_UUID_IS_NOT_VALID("USR-219","요청 받은 SIGNUPUUID가 일치하지 않습니다",UNAUTHORIZED),
 
 
     /**
