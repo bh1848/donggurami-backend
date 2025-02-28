@@ -58,7 +58,6 @@ public class UserService {
     private final ClubMemberAccountStatusService clubMemberAccountStatusService;
     private final PasswordService passwordService;
     private final IntegrationAuthService integrationAuthService;
-    private final WithdrawalTokenRepository withdrawalTokenRepository;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
@@ -114,6 +113,24 @@ public class UserService {
             return telephone.replaceAll("-", "");
         }
         return telephone;
+    }
+
+    // 신규회원가입 전, 조건 검사
+    public void checkSignupCondition(SignUpRequest request){
+        log.debug("회원가입 요청 처리전, 3가지 조건 검사");
+
+        log.debug("1- 아이디 중복 확인 검사");
+        // 아이디 중복 확인 검사
+        verifyAccountDuplicate(request.getAccount());
+
+        log.debug("2- 비밀번호 유효성 검사");
+        // 비밀번호 유효성 검사
+        passwordService.validatePassword(request.getPassword(), request.getConfirmPassword());
+
+        log.debug("3- 프로필 중복 확인 검사");
+        // 프로필 중복 확인 검사 (이름,학번,전화번호)
+        profileService.checkProfileDuplicated(request.getUserName(),request.getStudentNumber(), request.getTelephone());
+
     }
 
     // 신규 회원 가입
@@ -381,10 +398,10 @@ public class UserService {
         }
         else if (emailTokenRepository.findByEmail(email).isPresent()) {
             log.debug("요청 가입 대기자 존재 - emailToken 테이블에서 중복된 이메일 존재, email 값= {}", email);
-            // 이메일 토큰 정보 조회
+
+            // 토큰 만료시간 업데이트
             emailToken = emailTokenService.getEmailTokenByEmail(email);
             log.debug("emailToken 조회 완료, emailTokenUUID= {}", emailToken.getEmailTokenUUID());
-            // 토큰 만료시간 업데이트
             emailTokenService.updateCertificationTime(emailToken);
             log.debug("이메일 인증 만료시간 업데이트 완료, emailTokenUUID= {}", emailToken.getEmailTokenUUID());
         } else{

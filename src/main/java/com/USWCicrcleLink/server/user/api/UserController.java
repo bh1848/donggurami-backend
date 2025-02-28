@@ -13,7 +13,6 @@ import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
-import com.USWCicrcleLink.server.user.service.PasswordService;
 import com.USWCicrcleLink.server.user.service.UserService;
 import com.USWCicrcleLink.server.user.service.WithdrawalTokenService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,7 +38,6 @@ public class UserController {
     private final AuthTokenService authTokenService;
     private final WithdrawalTokenService withdrawalTokenService;
     private final EmailTokenService emailTokenService;
-    private final PasswordService passwordService;
 
     @PatchMapping("/userpw")
     public ApiResponse<String> updateUserPw(@Validated(ValidationSequence.class) @RequestBody UpdatePwRequest request) {
@@ -57,7 +55,7 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 신규회원가입 - 인증 메일 전송
+    // 신규회원가입 요청 - 인증 메일 전송
     @PostMapping("/temporary/register")
     public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated @RequestBody EmailDTO request)  {
 
@@ -95,19 +93,17 @@ public class UserController {
 
     // 인증 확인 버튼
     @GetMapping("/email/verification")
-    public ResponseEntity<Boolean> emailVerification(@Validated @RequestBody EmailDTO request){
-        boolean response = emailTokenService.checkEmailIsVerified(request.getEmail());
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<Void> emailVerification(@Validated @RequestBody EmailDTO request){
+        emailTokenService.checkEmailIsVerified(request.getEmail());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // 회원 가입 정보 등록하기
+    // 회원 가입 정보 등록하기 -- 다음 버튼 누른 후
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signUp(@RequestBody @Validated(ValidationSequence.class) SignUpRequest request,@RequestHeader("emailTokenUUID") UUID emailTokenUUID,@RequestHeader("email") String email) {
 
-        // 아이디 중복 확인 검사
-        userService.verifyAccountDuplicate(request.getAccount());
-        // 비밀번호 유효성 검사
-        passwordService.validatePassword(request.getPassword(),request.getConfirmPassword());
+        // 회원가입을 위한 조건 검사
+        userService.checkSignupCondition(request);
         // 이메일 인증 여부 확인 + 회원 uuid 조회
         UUID singupUUID = userService.isEmailVerified(emailTokenUUID);
         // 회원가입 진행
