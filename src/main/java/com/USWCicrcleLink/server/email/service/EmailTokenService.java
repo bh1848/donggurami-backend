@@ -34,10 +34,10 @@ public class EmailTokenService {
     }
 
     // 유효한 토큰 검증
-    public EmailToken verifyEmailToken (UUID emailToken_uuid) {
+    public EmailToken verifyEmailToken (UUID emailTokenUUID) {
 
         log.debug("emailToken_uuid에 해당하는 이메일 토큰이 있는지 확인");
-        EmailToken emailToken= getEmailTokenByEmailTokenUUID(emailToken_uuid);
+        EmailToken emailToken= getEmailTokenByEmailTokenUUID(emailTokenUUID);
 
 
         log.debug("토큰 만료시간 검증 시작");

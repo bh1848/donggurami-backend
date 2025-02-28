@@ -15,7 +15,7 @@ import java.util.UUID;
 @Repository
 public interface EmailTokenRepository extends JpaRepository<EmailToken, Long> {
 
-    Optional<EmailToken> findByEmailTokenUUID (UUID uuid);
+    Optional<EmailToken> findByEmailTokenUUID (UUID emailTokenUUID);
     List<EmailToken> findAllByExpirationTimeBefore(LocalDateTime time);
 
     Optional<EmailToken> findByEmail(String email);

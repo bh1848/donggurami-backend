@@ -64,7 +64,7 @@ public class EmailService {
             }
 
             // 동적 인증 링크 생성
-            String verificationLink = emailConfig.getBaseUrl() + VERIFY_EMAIL_PATH + "?emailToken_uuid=" + emailToken.getEmailTokenUUID();
+            String verificationLink = emailConfig.getBaseUrl() + VERIFY_EMAIL_PATH + "?emailTokenUUID=" + emailToken.getEmailTokenUUID();
 
             // HTML 내용에서 인증 링크를 변경
             htmlContent = htmlContent.replace("https://www.naver.com", verificationLink);

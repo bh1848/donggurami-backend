@@ -241,10 +241,10 @@ public class UserService {
     }
 
     // 이메일 토큰의 유효성 확인
-    public EmailToken verifyEmailToken(UUID emailToken_uuid) {
+    public EmailToken verifyEmailToken(UUID emailTokenUUID) {
 
         // 이메일 토큰 검증
-        EmailToken emailToken = emailTokenService.verifyEmailToken(emailToken_uuid);
+        EmailToken emailToken = emailTokenService.verifyEmailToken(emailTokenUUID);
 
         // 이메일 토큰 인증 완료 처리
         try {

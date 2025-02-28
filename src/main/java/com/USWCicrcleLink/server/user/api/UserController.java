@@ -73,13 +73,13 @@ public class UserController {
 
     // 이메일 인증 여부 검증하기
     @GetMapping("/email/verify-token")
-    public ModelAndView verifySignUpMail (@RequestParam("emailToken_uuid") UUID emailToken_uuid) {
+    public ModelAndView verifySignUpMail (@RequestParam("emailTokenUUID") UUID emailTokenUUID) {
 
         ModelAndView modelAndView = new ModelAndView();
 
         try {
             // 제한시간 안에 인증에 성공
-            userService.verifyEmailToken(emailToken_uuid);
+            userService.verifyEmailToken(emailTokenUUID);
             modelAndView.setViewName("success");
         } catch (EmailTokenException e) {
             // 이메일 만료 시간이 지난경우
