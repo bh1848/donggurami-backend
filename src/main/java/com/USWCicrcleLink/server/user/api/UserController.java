@@ -13,6 +13,7 @@ import com.USWCicrcleLink.server.user.domain.User;
 import com.USWCicrcleLink.server.user.domain.WithdrawalToken;
 import com.USWCicrcleLink.server.user.dto.*;
 import com.USWCicrcleLink.server.user.service.AuthTokenService;
+import com.USWCicrcleLink.server.user.service.PasswordService;
 import com.USWCicrcleLink.server.user.service.UserService;
 import com.USWCicrcleLink.server.user.service.WithdrawalTokenService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +39,7 @@ public class UserController {
     private final AuthTokenService authTokenService;
     private final WithdrawalTokenService withdrawalTokenService;
     private final EmailTokenService emailTokenService;
+    private final PasswordService passwordService;
 
     @PatchMapping("/userpw")
     public ApiResponse<String> updateUserPw(@Validated(ValidationSequence.class) @RequestBody UpdatePwRequest request) {
@@ -101,7 +103,12 @@ public class UserController {
     // 회원 가입 정보 등록하기
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signUp(@RequestBody @Validated(ValidationSequence.class) SignUpRequest request,@RequestHeader("emailTokenUUID") UUID emailTokenUUID,@RequestHeader("email") String email) {
-        // 이메일 인증 여부 확인
+
+        // 아이디 중복 확인 검사
+        userService.verifyAccountDuplicate(request.getAccount());
+        // 비밀번호 유효성 검사
+        passwordService.validatePassword(request.getPassword(),request.getConfirmPassword());
+        // 이메일 인증 여부 확인 + 회원 uuid 조회
         UUID singupUUID = userService.isEmailVerified(emailTokenUUID);
         // 회원가입 진행
         userService.signUpUser(singupUUID,request,email);

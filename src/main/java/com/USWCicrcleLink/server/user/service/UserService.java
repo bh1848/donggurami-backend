@@ -240,20 +240,12 @@ public class UserService {
         return emailToken;
     }
 
-
+    // 아이디 중복 확인
     public void verifyAccountDuplicate(String account) {
         log.debug("계정 중복 체크 요청 시작 account = {}", account);
-
-        if (userRepository.findByUserAccount(account).isPresent()) {
-            log.debug("중복된 계정이 user_table에서 발견됨. account = {}", account);
+        if (userRepository.findByUserAccount(account).isPresent() || clubMemberTempRepository.findByProfileTempAccount(account).isPresent()) {
             throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
         }
-
-        if (clubMemberTempRepository.findByProfileTempAccount(account).isPresent()) {
-            log.debug("중복된 계정이 clubMemberTemp_table에서 발견됨. account = {}", account);
-            throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
-        }
-
         log.debug("계정 중복 체크 완료. account = {}", account);
     }
 
