@@ -105,8 +105,8 @@ public class UserController {
         // 이메일 인증 여부 확인 + 회원 uuid 조회
         UUID singupUUID = userService.isEmailVerified(emailTokenUUID);
 
-        // 회원가입을 위한 조건 검사
-        userService.checkSignupCondition(request);
+        // 신규 회원가입을 위한 조건 검사
+        userService.checkNewSignupCondition(request);
 
         // 회원가입 진행
         userService.signUpUser(singupUUID,request,email);
@@ -116,6 +116,9 @@ public class UserController {
     // 기존 동아리원 회원가입
     @PostMapping("/existing/register")
     public ResponseEntity<ApiResponse<Void>> ExistingMemberSignUp(@RequestBody @Validated(ValidationSequence.class) ExistingMemberSignUpRequest request)  {
+
+        // 기존 회원 가입을 위한 조건 검사
+        userService.checkExistingSignupCondition(request);
         // 임시 동아리 회원 생성
         ClubMemberTemp clubMemberTemp = userService.registerClubMemberTemp(request);
         // 입력받은 동아리의 회장들에게 가입신청서 보내기

@@ -115,23 +115,6 @@ public class UserService {
         return telephone;
     }
 
-    // 신규회원가입 전, 조건 검사
-    public void checkSignupCondition(SignUpRequest request){
-        log.debug("회원가입 요청 처리전, 3가지 조건 검사");
-
-        log.debug("1- 아이디 중복 확인 검사");
-        // 아이디 중복 확인 검사
-        verifyAccountDuplicate(request.getAccount());
-
-        log.debug("2- 비밀번호 유효성 검사");
-        // 비밀번호 유효성 검사
-        passwordService.validatePassword(request.getPassword(), request.getConfirmPassword());
-
-        log.debug("3- 프로필 중복 확인 검사");
-        // 프로필 중복 확인 검사 (이름,학번,전화번호)
-        profileService.checkProfileDuplicated(request.getUserName(),request.getStudentNumber(), request.getTelephone());
-
-    }
 
     // 신규 회원 가입
     public void signUpUser(UUID signupUUID, SignUpRequest request,String email) {
@@ -231,7 +214,7 @@ public class UserService {
     }
 
     // 이메일 중복 검증
-    private void verifyUserDuplicate(String email) {
+    public void verifyUserDuplicate(String email) {
         log.debug("이메일 중복 검증 시작 email= {}", email);
         userRepository.findByEmail(email)
                 .ifPresent(user -> {
@@ -338,7 +321,7 @@ public class UserService {
         log.debug("회원 탈퇴 메일 전송 완료 email=  {} ", findUser.getEmail());
     }
 
-    // 회원 가입 확인
+  /*  // 회원 가입 확인
     @Transactional(readOnly = true)
     public void signUpFinish(String account) {
 
@@ -348,7 +331,7 @@ public class UserService {
                 .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
 
         log.debug("최종 회원 가입 완료");
-    }
+    }*/
 
     /**
      * User 로그인
@@ -459,5 +442,38 @@ public class UserService {
         } finally {
             integrationAuthService.logout(request, response);
         }
+    }
+
+    // 신규회원가입 전, 조건 검사
+    public void checkNewSignupCondition(SignUpRequest request){
+        log.debug("신규 회원가입 요청 처리전, 3가지 조건 검사");
+
+        log.debug("1- 아이디 중복 확인 검사");
+        verifyAccountDuplicate(request.getAccount());
+
+        log.debug("2- 비밀번호 유효성 검사");
+        passwordService.validatePassword(request.getPassword(), request.getConfirmPassword());
+
+        log.debug("3- 프로필 중복 확인 검사");
+        profileService.checkProfileDuplicated(request.getUserName(),request.getStudentNumber(), request.getTelephone());
+
+    }
+
+    // 기존 회원 가입 전 조건 검사
+    //fixme 기존회원가입 시 검사해야하는 조건 생각해보기(프로필 중복확인)
+    public void checkExistingSignupCondition(ExistingMemberSignUpRequest request) {
+
+        // user테이블에서 중복 확인
+        verifyUserDuplicate(request.getEmail());
+
+        // clubMember테이블에 이미 전송된 요청이 있는지 확인
+
+
+        // 아이디 중복 확인 검사
+        verifyAccountDuplicate(request.getAccount());
+
+        // 비밀번호 유효성 검사
+        passwordService.validatePassword(request.getPassword(),request.getConfirmPassword());
+
     }
 }
