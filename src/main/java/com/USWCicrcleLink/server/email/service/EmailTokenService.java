@@ -99,14 +99,12 @@ public class EmailTokenService {
     }
 
     // 이메일의 인증 여부를 확인
-    public boolean checkEmailIsVerified(String email) {
+    public void checkEmailIsVerified(String email) {
         // 이메일에 해당하는 이메일 토큰 조회
         EmailToken emailToken = getEmailTokenByEmail(email);
         // 해당 이메일 토큰의 인증 여부 필드 확인
-        if(emailToken.isVerified()){
-            return true;
-        }else{
-            return false;
+        if(!emailToken.isVerified()){
+            throw new EmailException(ExceptionType.EMAIL_TOKEN_NOT_VERIFIED);
         }
     }
 }
