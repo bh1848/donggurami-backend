@@ -214,8 +214,12 @@ public class UserController {
         UUID uuid = withdrawalTokenService.verifyWithdrawalToken(authCodeRequest);
         withdrawalTokenService.deleteWithdrawalToken(uuid);
 
+        // 인증 토큰 존재시 인증 토큰도 삭제
+        authTokenService.delete(uuid);
+
         // 회원 탈퇴 진행
         userService.cancelMembership(request,response);
+
         return new ApiResponse<>("회원 탈퇴가 완료되었습니다.");
     }
 }

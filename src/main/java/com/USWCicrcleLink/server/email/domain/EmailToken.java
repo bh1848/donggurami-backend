@@ -36,7 +36,7 @@ public class EmailToken { // temp 테이블 (이메일 인증 관리)
     private UUID signupUUID;
 
     // 인증 요청한 이메일
-    @Column(name = "email", unique = true, nullable = false)
+    @Column(name = "email", unique = true, nullable = false,length = 30)
     private String email;
 
     // 이메일 토큰 만료시간
