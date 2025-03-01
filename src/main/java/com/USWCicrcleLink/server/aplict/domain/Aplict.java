@@ -32,9 +32,6 @@ public class Aplict {
     @Column(name = "aplict_uuid", nullable = false, unique = true, updatable = false)
     private UUID aplictUUID = UUID.randomUUID();
 
-    @Column(name = "aplict_google_form_url", nullable = false)
-    private String aplictGoogleFormUrl;
-
     @Column(name = "aplict_submitted_at", nullable = false)
     private LocalDateTime submittedAt;
 

@@ -34,8 +34,8 @@ public class AdminClubCreationRequest {
     private String leaderPwConfirm;
 
     @NotBlank(message = "동아리명은 필수 입력 값입니다.", groups = ValidationGroups.NotBlankGroup.class)
-    @Size(max = 10, message = "동아리명은 10글자 이내여야 합니다.", groups = ValidationGroups.SizeGroup.class)
-    @Pattern(regexp = "^[가-힣a-zA-Z0-9]+$", message = "동아리명에는 공백 또는 특수문자를 포함할 수 없습니다.", groups = ValidationGroups.PatternGroup.class)
+    @Size(min = 1, max = 10, message = "동아리명은 최대 10자까지 입력 가능합니다.", groups = ValidationGroups.SizeGroup.class)
+    @Pattern(regexp = "^[가-힣a-zA-Z0-9]+$", message = "동아리명에는 한글, 영문 대소문자, 숫자만 포함할 수 있으며 공백 또는 특수문자를 포함할 수 없습니다.", groups = ValidationGroups.PatternGroup.class)
     private String clubName;
 
     @NotNull(message = "학부는 필수 입력 값입니다.", groups = ValidationGroups.NotBlankGroup.class)

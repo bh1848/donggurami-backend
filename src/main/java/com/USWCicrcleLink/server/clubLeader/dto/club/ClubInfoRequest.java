@@ -38,8 +38,8 @@ public class ClubInfoRequest {
     private String clubRoomNumber;
 
     @Size(max = 2, message = "해시태그는 2개까지 입력 가능합니다.")
-    private List<@Size(max = 6, message = "각 해시태그는 최대 6자까지 입력 가능합니다.", groups = ValidationGroups.SizeGroup.class) String> clubHashtag;
+    private List<@Size(min = 1, max = 6, message = "각 해시태그는 최대 6자까지 입력 가능합니다.", groups = ValidationGroups.SizeGroup.class) String> clubHashtag;
 
     @Size(max = 3, message = "카테고리는 3개까지 입력 가능합니다.")
-    private List<@Size(max = 20, message = "각 카테고리는 20자까지 입력 가능합니다.", groups = ValidationGroups.SizeGroup.class) String> clubCategoryName;
+    private List<@Size(min = 1, max = 20, message = "각 카테고리는 20자까지 입력 가능합니다.", groups = ValidationGroups.SizeGroup.class) String> clubCategoryName;
 }
