@@ -1,8 +1,6 @@
 package com.USWCicrcleLink.server.user.dto;
 
 import com.USWCicrcleLink.server.global.validation.ValidationGroups;
-import com.USWCicrcleLink.server.user.domain.User;
-import com.USWCicrcleLink.server.user.domain.UserTemp;
 import  com.USWCicrcleLink.server.global.validation.ValidationGroups.*;
 
 import jakarta.persistence.Column;
