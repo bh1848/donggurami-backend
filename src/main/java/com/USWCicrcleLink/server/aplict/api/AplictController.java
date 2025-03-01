@@ -1,13 +1,9 @@
 package com.USWCicrcleLink.server.aplict.api;
 
-import com.USWCicrcleLink.server.aplict.dto.AplictRequest;
 import com.USWCicrcleLink.server.aplict.service.AplictService;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import com.USWCicrcleLink.server.global.validation.ValidationSequence;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -35,9 +31,8 @@ public class AplictController {
     //동아리 지원서 제출 (USER)
     @PostMapping("/{clubUUID}")
     public ResponseEntity<ApiResponse<Void>> submitAplict(
-            @PathVariable("clubUUID") UUID clubUUID,
-            @RequestBody @Validated(ValidationSequence.class) AplictRequest request) {
-        aplictService.submitAplict(clubUUID, request);
+            @PathVariable("clubUUID") UUID clubUUID) {
+        aplictService.submitAplict(clubUUID);
         return ResponseEntity.ok(new ApiResponse<>("지원서 제출 성공"));
     }
 }

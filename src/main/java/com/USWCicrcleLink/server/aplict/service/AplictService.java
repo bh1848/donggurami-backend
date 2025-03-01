@@ -2,7 +2,6 @@ package com.USWCicrcleLink.server.aplict.service;
 
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
-import com.USWCicrcleLink.server.aplict.dto.AplictRequest;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
 import com.USWCicrcleLink.server.club.club.domain.Club;
 import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
@@ -10,7 +9,9 @@ import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
-import com.USWCicrcleLink.server.global.exception.errortype.*;
+import com.USWCicrcleLink.server.global.exception.errortype.AplictException;
+import com.USWCicrcleLink.server.global.exception.errortype.ClubException;
+import com.USWCicrcleLink.server.global.exception.errortype.UserException;
 import com.USWCicrcleLink.server.global.security.details.CustomUserDetails;
 import com.USWCicrcleLink.server.profile.domain.Profile;
 import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
@@ -38,7 +39,7 @@ public class AplictService {
     private final ClubMembersRepository clubMembersRepository;
 
     /**
-     *  동아리 지원 가능 여부 확인 (ANYONE)
+     * 동아리 지원 가능 여부 확인 (ANYONE)
      */
     @Transactional(readOnly = true)
     public void checkIfCanApply(UUID clubUUID) {
@@ -93,7 +94,7 @@ public class AplictService {
     /**
      * 동아리 지원서 제출 (USER)
      */
-    public void submitAplict(UUID clubUUID, AplictRequest request) {
+    public void submitAplict(UUID clubUUID) {
         Profile profile = getAuthenticatedProfile();
 
         Club club = clubRepository.findByClubUUID(clubUUID)
@@ -102,13 +103,12 @@ public class AplictService {
         Aplict aplict = Aplict.builder()
                 .profile(profile)
                 .club(club)
-                .aplictGoogleFormUrl(request.getAplictGoogleFormUrl())
                 .submittedAt(LocalDateTime.now())
                 .aplictStatus(AplictStatus.WAIT)
                 .build();
 
         aplictRepository.save(aplict);
-        log.info("동아리 지원서 제출 성공 - ClubUUID: {}, Status: {}", clubUUID, AplictStatus.WAIT);
+        log.debug("동아리 지원서 제출 성공 - ClubUUID: {}, Status: {}", clubUUID, AplictStatus.WAIT);
     }
 
     /**

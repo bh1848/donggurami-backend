@@ -552,7 +552,6 @@ public class DummyData {
         Aplict aplict1 = Aplict.builder()
                 .profile(profile1)
                 .club(flagClub)
-                .aplictGoogleFormUrl("flag_google_url1")
                 .submittedAt(LocalDateTime.now())
                 .build();
         aplictRepository.save(aplict1);
@@ -560,7 +559,6 @@ public class DummyData {
         Aplict aplict2 = Aplict.builder()
                 .profile(profile2)
                 .club(flagClub)
-                .aplictGoogleFormUrl("flag_google_url1")
                 .submittedAt(LocalDateTime.now())
                 .build();
         aplictRepository.save(aplict2);
@@ -568,7 +566,6 @@ public class DummyData {
         Aplict aplict3 = Aplict.builder()
                 .profile(profile3)
                 .club(flagClub)
-                .aplictGoogleFormUrl("flag_google_url1")
                 .submittedAt(LocalDateTime.now())
                 .checked(true)
                 .aplictStatus(AplictStatus.FAIL)
@@ -578,7 +575,6 @@ public class DummyData {
         Aplict aplict4 = Aplict.builder()
                 .profile(profile4)
                 .club(flagClub)
-                .aplictGoogleFormUrl("flag_google_url1")
                 .submittedAt(LocalDateTime.now())
                 .checked(true)
                 .aplictStatus(AplictStatus.FAIL)
@@ -628,7 +624,6 @@ public class DummyData {
         Aplict badmintonAplict = Aplict.builder()
                 .profile(profile1)
                 .club(badmintonClub)
-                .aplictGoogleFormUrl("badminton_google_url")
                 .submittedAt(LocalDateTime.now())
                 .aplictStatus(AplictStatus.PASS)
                 .build();
@@ -644,7 +639,6 @@ public class DummyData {
         Aplict volunteerAplict = Aplict.builder()
                 .profile(profile1)
                 .club(volunteerClub)
-                .aplictGoogleFormUrl("volunteer_google_url")
                 .submittedAt(LocalDateTime.now())
                 .aplictStatus(AplictStatus.FAIL)
                 .build();
@@ -785,7 +779,6 @@ public class DummyData {
         Aplict aplict = Aplict.builder()
                 .profile(profile)
                 .club(allaboutClub)
-                .aplictGoogleFormUrl("allabout_google_url2")
                 .submittedAt(LocalDateTime.now())
                 .aplictStatus(AplictStatus.PASS)
                 .build();
@@ -859,7 +852,6 @@ public class DummyData {
         Aplict aplict = Aplict.builder()
                 .profile(profile)
                 .club(gullisaeClub)
-                .aplictGoogleFormUrl("gullisae_google_url3")
                 .submittedAt(LocalDateTime.now())
                 .aplictStatus(AplictStatus.PASS)
                 .build();
