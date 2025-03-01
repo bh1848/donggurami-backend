@@ -32,7 +32,6 @@ public class ProfileService {
     private final AplictRepository aplictRepository;
     private final ClubMembersRepository clubMembersRepository;
     private final PasswordEncoder passwordEncoder;
-    private final PasswordService passwordService;
 
 
     //프로필 업데이트
@@ -123,11 +122,11 @@ public class ProfileService {
 
 
     // 프로필 중복 확인
-    public void checkProfileDuplicated(DuplicationProfileRequest request) {
+    public void checkProfileDuplicated(String userName, String userStudentNumber,String userHp) {
         // 프로필 중복확인
         log.debug("프로필 중복 체크 요청 시작 - 이름: {}, 전화번호: {}, 학번: {}",
-                request.getUserName(), request.getUserHp(), request.getStudentNumber());
-        profileRepository.findByUserNameAndStudentNumberAndUserHp(request.getUserName(),request.getStudentNumber(),request.getUserHp())
+                userName, userHp, userStudentNumber);
+        profileRepository.findByUserNameAndStudentNumberAndUserHp(userName,userStudentNumber,userHp)
                 .ifPresent(profile -> {
                     throw new ProfileException(ExceptionType.PROFILE_ALREADY_EXISTS);
                 });

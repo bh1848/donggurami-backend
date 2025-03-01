@@ -30,7 +30,7 @@ public enum ExceptionType {
     EMAIL_TOKEN_IS_EXPIRED("EMAIL_TOKEN-002", "토큰이 만료되었습니다. 다시 이메일인증 해주세요", BAD_REQUEST),
     EMAIL_TOKEN_CREATION_FALILED("EMAIL_TOKEN-003", "이메일 토큰 생성중 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
     EMAIL_TOKEN_STATUS_UPATE_FALIED("EMAIL_TOKEN-004", "이메일 토큰의 필드 업데이트 후, 저장하는 과정에서 오류가 발생했습니다.", INTERNAL_SERVER_ERROR),
-    EMAIL_TOKEN_NOT_VERIFIED("EMAIL_TOKEN-005", "인증이 완료되지 않은 이메일 토큰입니다.", INTERNAL_SERVER_ERROR),
+    EMAIL_TOKEN_NOT_VERIFIED("EMAIL_TOKEN-005", "인증이 완료되지 않은 이메일 토큰입니다.",BAD_REQUEST),
 
 
     /**
@@ -51,12 +51,15 @@ public enum ExceptionType {
     USER_LOGIN_FAILED("USR-216","비회원 사용자입니다.인증을 완료해주세요",BAD_REQUEST),
     USER_PASSWORD_NOT_REUSE("USR-217", "현재 비밀번호와 같은 비밀번호로 변경할 수 없습니다.", BAD_REQUEST),
     USER_CREATION_FAILED("USR-218","회원 생성중 오류 발생",INTERNAL_SERVER_ERROR),
+    USER_UUID_IS_NOT_VALID("USR-219","요청 받은 SIGNUPUUID가 일치하지 않습니다",UNAUTHORIZED),
 
 
     /**
      * Domain: ClubMemberTemp
      */
     CLUB_MEMBERTEMP_CREATE_FAILED("CMEM-TEMP-301","기존 회원가입 사용자 생성에 실패했습니다",INTERNAL_SERVER_ERROR),
+    CLUB_MEMBERTEMP_IS_DUPLICATED("CMEM-TEMP-302","CLUBMEMBERTEMP 테이블에 존재하는 이메일 입니다.",BAD_REQUEST),
+    CLUB_MEMBERTEMP_IS_EXISTS("CMEM-TEMP-303","CLUBMEMBERTEMP 에 중복된 프로필이 존재합니다",BAD_REQUEST),
     /**
      * Domain: ClubMemberAccountStatus
      */

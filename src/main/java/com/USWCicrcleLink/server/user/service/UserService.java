@@ -58,7 +58,6 @@ public class UserService {
     private final ClubMemberAccountStatusService clubMemberAccountStatusService;
     private final PasswordService passwordService;
     private final IntegrationAuthService integrationAuthService;
-    private final WithdrawalTokenRepository withdrawalTokenRepository;
 
     private static final int FCM_TOKEN_CERTIFICATION_TIME = 60;
 
@@ -116,12 +115,14 @@ public class UserService {
         return telephone;
     }
 
+
     // 신규 회원 가입
-    public void signUpUser(UUID signupUUID, SignUpRequest request,String email) {
+    public void signUpUser(SignUpRequest request,String email) {
         // user 객체 생성
-        User user = createUser(signupUUID, request,email);
+        User user = createUser(request,email);
         userRepository.save(user);
         log.debug("user 객체 생성: user_uuid={}",user.getUserUUID());
+
         // profile 객체 생성
         Profile profile = createProfile(user, request);
         profileRepository.save(profile);
@@ -135,12 +136,12 @@ public class UserService {
 
     // user 객체 생성
     @Transactional
-    public User createUser(UUID signupUUID, SignUpRequest request,String email) {
+    public User createUser(SignUpRequest request,String email) {
         // 비밀번호 인코딩
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         // user 객체 생성하기
         try {
-            return User.createUser(signupUUID, request, encodedPassword,email);
+            return User.createUser(request, encodedPassword,email);
         } catch (Exception e) {
             log.error("이메일 인증 후, 회원가입 진행 중 user객체를 생성하는 과정에서 오류 발생");
             throw new UserException(ExceptionType.USER_CREATION_FAILED);
@@ -214,7 +215,7 @@ public class UserService {
     }
 
     // 이메일 중복 검증
-    private void verifyUserDuplicate(String email) {
+    public void verifyUserDuplicate(String email) {
         log.debug("이메일 중복 검증 시작 email= {}", email);
         userRepository.findByEmail(email)
                 .ifPresent(user -> {
@@ -224,10 +225,10 @@ public class UserService {
     }
 
     // 이메일 토큰의 유효성 확인
-    public EmailToken verifyEmailToken(UUID emailToken_uuid) {
+    public EmailToken verifyEmailToken(UUID emailTokenUUID) {
 
         // 이메일 토큰 검증
-        EmailToken emailToken = emailTokenService.verifyEmailToken(emailToken_uuid);
+        EmailToken emailToken = emailTokenService.verifyEmailToken(emailTokenUUID);
 
         // 이메일 토큰 인증 완료 처리
         try {
@@ -240,20 +241,12 @@ public class UserService {
         return emailToken;
     }
 
-
+    // 아이디 중복 확인
     public void verifyAccountDuplicate(String account) {
         log.debug("계정 중복 체크 요청 시작 account = {}", account);
-
-        if (userRepository.findByUserAccount(account).isPresent()) {
-            log.debug("중복된 계정이 user_table에서 발견됨. account = {}", account);
+        if (userRepository.findByUserAccount(account).isPresent() || clubMemberTempRepository.findByProfileTempAccount(account).isPresent()) {
             throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
         }
-
-        if (clubMemberTempRepository.findByProfileTempAccount(account).isPresent()) {
-            log.debug("중복된 계정이 clubMemberTemp_table에서 발견됨. account = {}", account);
-            throw new UserException(ExceptionType.USER_ACCOUNT_OVERLAP);
-        }
-
         log.debug("계정 중복 체크 완료. account = {}", account);
     }
 
@@ -328,19 +321,6 @@ public class UserService {
         emailService.sendEmail(message);
         log.debug("회원 탈퇴 메일 전송 완료 email=  {} ", findUser.getEmail());
     }
-
-    // 회원 가입 확인
-    @Transactional(readOnly = true)
-    public void signUpFinish(String account) {
-
-        log.debug("회원 가입 완료 처리 요청 ");
-        // 계정이 존재하는지 확인
-        userRepository.findByUserAccount(account)
-                .orElseThrow(() -> new UserException(ExceptionType.USER_ACCOUNT_NOT_EXISTS));
-
-        log.debug("최종 회원 가입 완료");
-    }
-
     /**
      * User 로그인
      */
@@ -389,10 +369,10 @@ public class UserService {
         }
         else if (emailTokenRepository.findByEmail(email).isPresent()) {
             log.debug("요청 가입 대기자 존재 - emailToken 테이블에서 중복된 이메일 존재, email 값= {}", email);
-            // 이메일 토큰 정보 조회
+
+            // 토큰 만료시간 업데이트
             emailToken = emailTokenService.getEmailTokenByEmail(email);
             log.debug("emailToken 조회 완료, emailTokenUUID= {}", emailToken.getEmailTokenUUID());
-            // 토큰 만료시간 업데이트
             emailTokenService.updateCertificationTime(emailToken);
             log.debug("이메일 인증 만료시간 업데이트 완료, emailTokenUUID= {}", emailToken.getEmailTokenUUID());
         } else{
@@ -405,18 +385,18 @@ public class UserService {
     }
 
 
-    // 이메일이 인증 받았는지 확인하기
-    public UUID isEmailVerified(UUID emailTokenUUID) {
+    // 이메일 인증 받은 사용자인지 검증하기
+    public String isEmailVerified(UUID emailTokenUUID,UUID requestSignupUUID) {
+
         // 이메일 토큰 조회
         EmailToken emailToken = emailTokenService.getEmailTokenByEmailTokenUUID(emailTokenUUID);
-        // 조회된 이메일 토큰의 이메일 인증 여부 확인
-        if (!emailToken.isVerified()) {
-            log.error("인증이 완료되지 않은 이메일 email={}", emailToken.getEmail());
-            throw new EmailException(ExceptionType.EMAIL_TOKEN_NOT_VERIFIED);
+
+        // 이메일 토큰 조회로 찾은 signupuuid와 프론트에서 가지고 있던 signupuuid비교
+        if(!emailToken.getSignupUUID().equals(requestSignupUUID)){
+            throw new UserException(ExceptionType.USER_UUID_IS_NOT_VALID);
         }
-        // 이메일 인증여부 확인 후, signupUUID 리턴
-        log.debug("signupUUID={}",emailToken.getSignupUUID());
-        return emailToken.getSignupUUID();
+
+        return emailToken.getEmail();
     }
 
     /**
@@ -450,5 +430,65 @@ public class UserService {
         } finally {
             integrationAuthService.logout(request, response);
         }
+    }
+
+    // 신규회원가입 전, 조건 검사
+    public void checkNewSignupCondition(SignUpRequest request){
+        log.debug("신규 회원가입 요청 처리전, 3가지 조건 검사");
+
+        log.debug("1- 아이디 중복 확인 검사");
+        verifyAccountDuplicate(request.getAccount());
+
+        log.debug("2- 비밀번호 유효성 검사");
+        passwordService.validatePassword(request.getPassword(), request.getConfirmPassword());
+
+        log.debug("3- 프로필 중복 확인 검사");
+        profileService.checkProfileDuplicated(request.getUserName(),request.getStudentNumber(), request.getTelephone());
+
+    }
+
+    // 기존 회원 가입 전 조건 검사
+    //fixme 기존회원가입 시 검사해야하는 조건 생각해보기(프로필 중복확인)
+    public void checkExistingSignupCondition(ExistingMemberSignUpRequest request) {
+
+        // 아이디 중복 확인 검사
+        verifyAccountDuplicate(request.getAccount());
+
+        // 비밀번호 유효성 검사
+        passwordService.validatePassword(request.getPassword(),request.getConfirmPassword());
+
+        // user테이블에서 중복 확인
+        verifyUserDuplicate(request.getEmail());
+
+        // clubMemberTemp에서 이메일로 중복 확인
+        verifyClubMemberTempDuplicate(request.getEmail());
+
+        // clubMemberTemp 테이블에서 프로필 중복 확인(이름&&학번&&전화번호)
+        checkClubMemberTempProfileDuplicate(request.getUserName(), request.getStudentNumber(), request.getTelephone());
+    }
+
+    // clubMemberTemp에서 이메일로 중복 확인
+    public void verifyClubMemberTempDuplicate(String email) {
+        clubMemberTempRepository.findByProfileTempEmail(email)
+                .ifPresent(clubMemberTemp -> {
+                    throw new ClubMemberTempException(ExceptionType.CLUB_MEMBERTEMP_IS_DUPLICATED);
+                });
+    }
+
+
+    // clubMember테이블에서 프로필 중복 확인(이름&&학번&&전화번호)
+    public void checkClubMemberTempProfileDuplicate(String name,String studentNumber,String hp){
+        clubMemberTempRepository.findByProfileTempNameAndProfileTempStudentNumberAndAndProfileTempHp(name,studentNumber,hp)
+                .ifPresent(clubMemberTemp -> {
+                    throw new ClubMemberTempException(ExceptionType.CLUB_MEMBERTEMP_IS_EXISTS);
+                });
+    }
+
+    // 이메일 중복 확인
+    public void verifyEmailDuplicate(String email) {
+        // user테이블에서 중복 확인
+        verifyUserDuplicate(email);
+        // clubMemberTemp에서 이메일로 중복 확인
+        verifyClubMemberTempDuplicate(email);
     }
 }

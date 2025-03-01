@@ -45,6 +45,14 @@ public class UserController {
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
 
+    // 기존회원 가입시 이메일 중복 확인
+    @GetMapping("/check/{email}/duplicate")
+    public ResponseEntity<ApiResponse<String>> verifyEmailDuplicate(@PathVariable("email") String email) {
+        userService.verifyEmailDuplicate(email);
+        ApiResponse<String> response = new ApiResponse<>("이메일 중복 확인에 성공하였습니다.");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     // 아이디 중복 체크
     @GetMapping("/verify-duplicate/{account}")
     public ResponseEntity<ApiResponse<String>> verifyAccountDuplicate(@PathVariable("account") String account) {
@@ -55,7 +63,7 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 신규회원가입 - 인증 메일 전송
+    // 신규회원가입 요청 - 인증 메일 전송
     @PostMapping("/temporary/register")
     public ResponseEntity<ApiResponse<VerifyEmailResponse>> registerTemporaryUser(@Validated @RequestBody EmailDTO request)  {
 
@@ -73,13 +81,13 @@ public class UserController {
 
     // 이메일 인증 여부 검증하기
     @GetMapping("/email/verify-token")
-    public ModelAndView verifySignUpMail (@RequestParam("emailToken_uuid") UUID emailToken_uuid) {
+    public ModelAndView verifySignUpMail (@RequestParam("emailTokenUUID") UUID emailTokenUUID) {
 
         ModelAndView modelAndView = new ModelAndView();
 
         try {
             // 제한시간 안에 인증에 성공
-            userService.verifyEmailToken(emailToken_uuid);
+            userService.verifyEmailToken(emailTokenUUID);
             modelAndView.setViewName("success");
         } catch (EmailTokenException e) {
             // 이메일 만료 시간이 지난경우
@@ -93,24 +101,36 @@ public class UserController {
 
     // 인증 확인 버튼
     @GetMapping("/email/verification")
-    public ResponseEntity<Boolean> emailVerification(@Validated @RequestBody EmailDTO request){
-        boolean response = emailTokenService.checkEmailIsVerified(request.getEmail());
+    public ResponseEntity<ApiResponse<SignUpuuidResponse>> emailVerification(@Validated @RequestBody EmailDTO request){
+
+        EmailToken emailToken = emailTokenService.checkEmailIsVerified(request.getEmail());
+
+        ApiResponse<SignUpuuidResponse> response = new ApiResponse<>("인증 확인 버튼 클릭 후, 이메일 인증 완료",
+                new SignUpuuidResponse(emailToken.getEmailTokenUUID(),emailToken.getSignupUUID()));
+
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 회원 가입 정보 등록하기
+    // 회원 가입 정보 등록하기 -- 다음 버튼 누른 후
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<Void>> signUp(@RequestBody @Validated(ValidationSequence.class) SignUpRequest request,@RequestHeader("emailTokenUUID") UUID emailTokenUUID,@RequestHeader("email") String email) {
-        // 이메일 인증 여부 확인
-        UUID singupUUID = userService.isEmailVerified(emailTokenUUID);
+    public ResponseEntity<ApiResponse<Void>> signUp(@Validated(ValidationSequence.class) @RequestBody  SignUpRequest request,@RequestHeader("emailTokenUUID") UUID emailTokenUUID,@RequestHeader("signupUUID") UUID signupUUID) {
+
+        // 인증을 받은 사용자가 맞는지 검증하기
+        String email = userService.isEmailVerified(emailTokenUUID, signupUUID);
+
+        // 신규 회원가입을 위한 조건 검사
+        userService.checkNewSignupCondition(request);
+
         // 회원가입 진행
-        userService.signUpUser(singupUUID,request,email);
+        userService.signUpUser(request,email);
         return ResponseEntity.ok(new ApiResponse<>("회원가입이 정상적으로 완료되어 로그인이 가능합니다."));
     }
 
     // 기존 동아리원 회원가입
     @PostMapping("/existing/register")
     public ResponseEntity<ApiResponse<Void>> ExistingMemberSignUp(@RequestBody @Validated(ValidationSequence.class) ExistingMemberSignUpRequest request)  {
+        // 기존 회원 가입을 위한 조건 검사
+        userService.checkExistingSignupCondition(request);
         // 임시 동아리 회원 생성
         ClubMemberTemp clubMemberTemp = userService.registerClubMemberTemp(request);
         // 입력받은 동아리의 회장들에게 가입신청서 보내기

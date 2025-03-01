@@ -22,9 +22,9 @@ public class ClubMemberAccountStatus {
     @Column(name = "CLUB_MEMBER_ACCOUNTSTATUS_ID")
     private Long clubMemberAccountStatusId;
 
-    @Builder.Default
+
     @Column(name = "clubmemberAccountStatus_uuid", unique = true, nullable = false, updatable = false)
-    private UUID clubMemberAccountStatusUUID= UUID.randomUUID();
+    private UUID clubMemberAccountStatusUUID;
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)
@@ -34,6 +34,14 @@ public class ClubMemberAccountStatus {
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "CLUBMEMBERTEMP_ID", nullable = false)
     private ClubMemberTemp clubMemberTemp;
+
+
+    @PrePersist
+    public void prePersist() {
+        if (this.clubMemberAccountStatusUUID == null) {
+            this.clubMemberAccountStatusUUID = UUID.randomUUID();  // 자동 UUID 생성
+        }
+    }
 
     public static ClubMemberAccountStatus createClubMemberAccountStatus(Club club, ClubMemberTemp clubMemberTemp) {
         return ClubMemberAccountStatus.builder()

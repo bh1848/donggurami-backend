@@ -19,6 +19,7 @@ spring:
       - /users/reset-password
       - /users/email/resend-confirmation
       - /users/login
+      - /users/check/{email}/duplicate
       - /club-leader/login
       - /admin/login
       - /integration/**

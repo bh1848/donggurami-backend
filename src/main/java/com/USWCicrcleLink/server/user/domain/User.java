@@ -55,9 +55,8 @@ public class User implements ClientIdentifier {
     private Role role;
 
 
-    public static User createUser(UUID signupUUID,SignUpRequest request,String encodedPw,String email){
+    public static User createUser(SignUpRequest request,String encodedPw,String email){
         return User.builder()
-                .userUUID(signupUUID)
                 .userAccount(request.getAccount())
                 .userPw(encodedPw)
                 .email(email)
@@ -67,6 +66,9 @@ public class User implements ClientIdentifier {
 
     @PrePersist
     public void prePersist() {
+        if (this.userUUID == null) {
+            this.userUUID = UUID.randomUUID();  // 자동 UUID 생성
+        }
         this.userCreatedAt = LocalDateTime.now();
         this.userUpdatedAt = LocalDateTime.now();
     }

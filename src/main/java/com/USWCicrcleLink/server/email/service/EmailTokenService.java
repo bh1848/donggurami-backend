@@ -34,10 +34,10 @@ public class EmailTokenService {
     }
 
     // 유효한 토큰 검증
-    public EmailToken verifyEmailToken (UUID emailToken_uuid) {
+    public EmailToken verifyEmailToken (UUID emailTokenUUID) {
 
         log.debug("emailToken_uuid에 해당하는 이메일 토큰이 있는지 확인");
-        EmailToken emailToken= getEmailTokenByEmailTokenUUID(emailToken_uuid);
+        EmailToken emailToken= getEmailTokenByEmailTokenUUID(emailTokenUUID);
 
 
         log.debug("토큰 만료시간 검증 시작");
@@ -99,14 +99,13 @@ public class EmailTokenService {
     }
 
     // 이메일의 인증 여부를 확인
-    public boolean checkEmailIsVerified(String email) {
+    public EmailToken checkEmailIsVerified(String email) {
         // 이메일에 해당하는 이메일 토큰 조회
         EmailToken emailToken = getEmailTokenByEmail(email);
         // 해당 이메일 토큰의 인증 여부 필드 확인
-        if(emailToken.isVerified()){
-            return true;
-        }else{
-            return false;
+        if(!emailToken.isVerified()){
+            throw new EmailException(ExceptionType.EMAIL_TOKEN_NOT_VERIFIED);
         }
+        return emailToken;
     }
 }

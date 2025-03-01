@@ -13,5 +13,7 @@ import java.util.Optional;
 public interface ClubMemberTempRepository extends JpaRepository<ClubMemberTemp,Long> {
     List<ClubMemberTemp> findAllByClubMemberTempExpiryDateBefore(LocalDateTime dateTime);
     Optional<ClubMemberTemp> findByProfileTempAccount(String account);
+    Optional<ClubMemberTemp> findByProfileTempEmail(String email);
+    Optional<ClubMemberTemp> findByProfileTempNameAndProfileTempStudentNumberAndAndProfileTempHp(String name,String studentNumber,String hp);
 
 }
