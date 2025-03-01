@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -324,11 +325,22 @@ public class UserService {
     /**
      * User 로그인
      */
-    @RateLimite(action = "WEB_LOGIN")
     public TokenDto userLogin(LogInRequest request, HttpServletResponse response) {
-        User user = userRepository.findByUserAccount(request.getAccount())
-                .orElseThrow(() -> new UserException(ExceptionType.USER_AUTHENTICATION_FAILED));
 
+        User user = userRepository.findByUserAccount(request.getAccount()).orElse(null);
+
+        // 유저 객체가 존재하는지 확인
+        if (user == null) {
+            // 기존 회원 가입 요청을 보낸 사람인지 확인(비회원 확인)
+            Optional<ClubMemberTemp> clubMemberTemp = clubMemberTempRepository.findByProfileTempAccount(request.getAccount());
+            if (clubMemberTemp.isPresent() && passwordEncoder.matches(request.getPassword(), clubMemberTemp.get().getProfileTempPw())) {
+                throw new UserException(ExceptionType.USER_NONMEMBER);
+            } else { // 제3자의 요청인 경우
+                throw new UserException(ExceptionType.THIRD_PARTY_LOGIN_ATTEMPT);
+            }
+        }
+
+        // 아이디 비밀번호 일치 불일치 여부 확인
         if (!passwordEncoder.matches(request.getPassword(), user.getUserPw())) {
             throw new UserException(ExceptionType.USER_AUTHENTICATION_FAILED);
         }
@@ -339,10 +351,6 @@ public class UserService {
 
         log.debug("프로필 조회 성공 - 사용자 UUID: {}, 회원 타입: {}", userUUID, profile.getMemberType());
 
-        // 비회원(NONMEMBER) 로그인 차단
-        if (profile.getMemberType().equals(MemberType.NONMEMBER)) {
-            throw new UserException(ExceptionType.USER_LOGIN_FAILED);
-        }
 
         String accessToken = jwtProvider.createAccessToken(userUUID, response);
         String refreshToken = jwtProvider.createRefreshToken(userUUID, response);
@@ -357,6 +365,7 @@ public class UserService {
         log.debug("로그인 성공, UUID: {}", userUUID);
         return new TokenDto(accessToken, refreshToken);
     }
+
     public EmailToken checkEmailDuplication(String email) {
         log.debug("이메일 중복 확인 시작, email: {}", email);
 

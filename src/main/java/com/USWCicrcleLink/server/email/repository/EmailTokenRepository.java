@@ -1,9 +1,7 @@
 package com.USWCicrcleLink.server.email.repository;
 
 import com.USWCicrcleLink.server.email.domain.EmailToken;
-import com.USWCicrcleLink.server.user.domain.UserTemp;
 
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
