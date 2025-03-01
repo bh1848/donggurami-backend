@@ -68,4 +68,12 @@ public class AuthTokenService {
         authTokenRepository.delete(authToken);
         log.debug("검증 완료된 인증 코드 토큰 삭제 완료");
     }
+
+    // 인증 토큰 삭제
+    @Transactional
+    public void delete(UUID uuid){
+        log.debug("회원 탈퇴시, 인증 완료하지 않은 auth_token 삭제");
+        authTokenRepository.findByUserUserUUID(uuid)
+                .ifPresent(authTokenRepository::delete);
+    }
 }
