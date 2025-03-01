@@ -21,7 +21,7 @@ public class ClubIntroRequest {
     private String clubRecruitment;
 
     @Pattern(
-            regexp = "^https://[a-zA-Z0-9._-]+(?:\\.[a-zA-Z]{2,})+.*$",
+            regexp = "^(https://[a-zA-Z0-9._-]+(?:\\.[a-zA-Z]{2,})+.*)?$",
             message = "유효한 HTTPS 링크를 입력해주세요."
     )
     private String googleFormUrl;
