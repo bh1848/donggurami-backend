@@ -348,14 +348,6 @@ public class ClubLeaderService {
             throw new ClubException(ExceptionType.INVALID_RECRUITMENT_STATUS);
         }
 
-        // 입력값 검증 (XSS 공격 방지)
-        String sanitizedClubIntro = clubIntroRequest.getClubIntro() != null
-                ? clubIntroRequest.getClubIntro() : "";
-        String sanitizedClubRecruitment = clubIntroRequest.getClubRecruitment() != null
-                ? clubIntroRequest.getClubRecruitment() : "";
-        String sanitizedGoogleFormUrl = clubIntroRequest.getGoogleFormUrl() != null
-                ? clubIntroRequest.getGoogleFormUrl() : "";
-
         // 삭제할 사진 확인
         if (clubIntroRequest.getDeletedOrders() != null && !clubIntroRequest.getDeletedOrders().isEmpty()) {
             // 순서 개수, 범위 검증
@@ -423,7 +415,7 @@ public class ClubLeaderService {
         }
 
         // 소개 글, 모집 글, google form 저장
-        clubIntro.updateClubIntro(sanitizedClubIntro, sanitizedClubRecruitment, sanitizedGoogleFormUrl);
+        clubIntro.updateClubIntro(clubIntroRequest.getClubIntro(), clubIntroRequest.getClubRecruitment(), clubIntroRequest.getGoogleFormUrl());
         clubIntroRepository.save(clubIntro);
 
         log.debug("{} 동아리 소개 변경 완료", club.getClubName());
