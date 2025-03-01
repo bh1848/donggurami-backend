@@ -45,6 +45,15 @@ public class UserController {
         return new ApiResponse<>("비밀번호가 성공적으로 업데이트 되었습니다.");
     }
 
+    // 이메일 중복 확인
+    @GetMapping("/check/email/duplicate")
+    public ResponseEntity<ApiResponse<String>> verifyEmailDuplicate(@PathVariable("account") String account) {
+        userService.verifyEmailDuplicate(account);
+        ApiResponse<String> response = new ApiResponse<>("이메일 중복 확인에 성공하였습니다.");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
     // 아이디 중복 체크
     @GetMapping("/verify-duplicate/{account}")
     public ResponseEntity<ApiResponse<String>> verifyAccountDuplicate(@PathVariable("account") String account) {

@@ -484,4 +484,11 @@ public class UserService {
                 });
     }
 
+    // 이메일 중복 확인
+    public void verifyEmailDuplicate(String email) {
+        // user테이블에서 중복 확인
+        verifyUserDuplicate(email);
+        // clubMemberTemp에서 이메일로 중복 확인
+        verifyClubMemberTempDuplicate(email);
+    }
 }
