@@ -26,6 +26,7 @@ public class WithdrawalToken implements ClientIdentifier {
     @JoinColumn(name = "user_uuid", referencedColumnName = "uuid", unique = true)
     private User user;
 
+    @Column(name="withdrwal_code",nullable = false)
     private String withdrawalCode;
 
 
