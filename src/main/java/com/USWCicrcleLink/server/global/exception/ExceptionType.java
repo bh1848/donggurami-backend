@@ -58,7 +58,7 @@ public enum ExceptionType {
      * Domain: ClubMemberTemp
      */
     CLUB_MEMBERTEMP_CREATE_FAILED("CMEM-TEMP-301","기존 회원가입 사용자 생성에 실패했습니다",INTERNAL_SERVER_ERROR),
-    CLUB_MEMBERTEMP_IS_DUPLICATED("CMEM-TEMP-302","기존 회원가입 요청을 보낸 상태 입니다.",BAD_REQUEST),
+    CLUB_MEMBERTEMP_IS_DUPLICATED("CMEM-TEMP-302","CLUBMEMBERTEMP 테이블에 존재하는 이메일 입니다.",BAD_REQUEST),
     CLUB_MEMBERTEMP_IS_EXISTS("CMEM-TEMP-303","CLUBMEMBERTEMP 에 중복된 프로필이 존재합니다",BAD_REQUEST),
     /**
      * Domain: ClubMemberAccountStatus

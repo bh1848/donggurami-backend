@@ -46,7 +46,7 @@ public class UserController {
     }
 
     // 기존회원 가입시 이메일 중복 확인
-    @GetMapping("/check/email/duplicate")
+    @GetMapping("/check/{email}/duplicate")
     public ResponseEntity<ApiResponse<String>> verifyEmailDuplicate(@PathVariable("email") String email) {
         userService.verifyEmailDuplicate(email);
         ApiResponse<String> response = new ApiResponse<>("이메일 중복 확인에 성공하였습니다.");
@@ -129,7 +129,6 @@ public class UserController {
     // 기존 동아리원 회원가입
     @PostMapping("/existing/register")
     public ResponseEntity<ApiResponse<Void>> ExistingMemberSignUp(@RequestBody @Validated(ValidationSequence.class) ExistingMemberSignUpRequest request)  {
-
         // 기존 회원 가입을 위한 조건 검사
         userService.checkExistingSignupCondition(request);
         // 임시 동아리 회원 생성
