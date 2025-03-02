@@ -485,7 +485,7 @@ public class UserService {
     }
 
 
-    // clubMember테이블에서 프로필 중복 확인(이름&&학번&&전화번호)
+    // clubMemberTemp 테이블에서 프로필 중복 확인(이름&&학번&&전화번호)
     public void checkClubMemberTempProfileDuplicate(String name,String studentNumber,String hp){
         clubMemberTempRepository.findByProfileTempNameAndProfileTempStudentNumberAndAndProfileTempHp(name,studentNumber,hp)
                 .ifPresent(clubMemberTemp -> {
@@ -500,4 +500,5 @@ public class UserService {
         // clubMemberTemp에서 이메일로 중복 확인
         verifyClubMemberTempDuplicate(email);
     }
+
 }
