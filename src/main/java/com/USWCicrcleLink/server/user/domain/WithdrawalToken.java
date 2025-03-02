@@ -20,12 +20,13 @@ public class WithdrawalToken implements ClientIdentifier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "WITHDRAWAL_ID")
-    private Long id;
+    private Long withdrawalId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_uuid", referencedColumnName = "uuid", unique = true)
     private User user;
 
+    @Column(name="withdrawal_code",nullable = false)
     private String withdrawalCode;
 
 

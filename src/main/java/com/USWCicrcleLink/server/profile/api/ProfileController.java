@@ -1,16 +1,16 @@
 package com.USWCicrcleLink.server.profile.api;
 
 import com.USWCicrcleLink.server.global.response.ApiResponse;
+import com.USWCicrcleLink.server.global.validation.ValidationSequence;
+import com.USWCicrcleLink.server.profile.dto.DuplicationProfileRequest;
 import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
 import com.USWCicrcleLink.server.profile.dto.ProfileResponse;
 import com.USWCicrcleLink.server.profile.service.ProfileService;
-import com.USWCicrcleLink.server.profile.dto.ProfileRequest;
-import com.USWCicrcleLink.server.profile.dto.ProfileResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("profiles")
@@ -20,7 +20,7 @@ public class ProfileController {
     private final ProfileService profileService;
 
     @PatchMapping("/change")
-    public ApiResponse<ProfileResponse> updateProfile(@RequestBody ProfileRequest profileRequest) {
+    public ApiResponse<ProfileResponse> updateProfile(@RequestBody @Validated(ValidationSequence.class) ProfileRequest profileRequest) {
         ProfileResponse profileResponse = profileService.updateProfile(profileRequest);
         return new ApiResponse<>("프로필 수정 성공", profileResponse);
     }

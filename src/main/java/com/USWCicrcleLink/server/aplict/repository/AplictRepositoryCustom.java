@@ -2,13 +2,11 @@ package com.USWCicrcleLink.server.aplict.repository;
 
 import com.USWCicrcleLink.server.aplict.domain.Aplict;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public interface AplictRepositoryCustom {
-    void deleteByClubClubId(Long clubId);
+    List<Aplict> findAllWithProfileByClubId(Long clubId, boolean checked);
 
-    Page<Aplict> findAllWithProfileByClubId(Long clubId, Pageable pageable, boolean checked);
-
-    Page<Aplict> findAllWithProfileByClubIdAndFailed(Long clubId, Pageable pageable, boolean checked, AplictStatus status);
+    List<Aplict> findAllWithProfileByClubIdAndFailed(Long clubId, boolean checked, AplictStatus status);
 }

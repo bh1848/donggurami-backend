@@ -1,11 +1,14 @@
 package com.USWCicrcleLink.server.club.club.repository;
 
-import com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse;
-import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
+import com.USWCicrcleLink.server.admin.admin.dto.AdminClubListResponse;
+import com.USWCicrcleLink.server.global.s3File.Service.S3FileUploadService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -16,26 +19,47 @@ import java.util.List;
 public class ClubRepositoryCustomImpl implements ClubRepositoryCustom {
 
     @PersistenceContext
-    private final EntityManager em;
+    private EntityManager em;
 
     private final S3FileUploadService s3FileUploadService;
     @Override
-    public List<ClubAdminListResponse> findAllWithMemberAndLeaderCount() {
-        String jpql = "SELECT new com.USWCicrcleLink.server.admin.admin.dto.ClubAdminListResponse(c.clubId, c.department, c.clubName, c.leaderName, " +
-                "(COUNT(cm) + (CASE WHEN l IS NOT NULL THEN 1 ELSE 0 END))) " +
+    public Page<AdminClubListResponse> findAllWithMemberAndLeaderCount(Pageable pageable) {
+        String jpql = "SELECT new com.USWCicrcleLink.server.admin.admin.dto.AdminClubListResponse(" +
+                "c.clubUUID, c.department, c.clubName, c.leaderName, " +
+                "(COUNT(DISTINCT cm.clubMemberId) + MAX(CASE WHEN l IS NOT NULL THEN 1 ELSE 0 END))) " +
                 "FROM Club c " +
-                "LEFT JOIN ClubMembers cm ON c.clubId = cm.club.clubId " +
-                "LEFT JOIN Leader l ON c.clubId = l.club.clubId " +
-                "GROUP BY c.clubId, l.leaderId";
+                "LEFT JOIN ClubMembers cm ON cm.club.clubId = c.clubId " +
+                "LEFT JOIN Leader l ON l.club.clubId = c.clubId " +
+                "GROUP BY c.clubId, c.clubUUID, c.department, c.clubName, c.leaderName";
 
-        TypedQuery<ClubAdminListResponse> query = em.createQuery(jpql, ClubAdminListResponse.class);
-        return query.getResultList();
+        String countJpql = "SELECT COUNT(c) FROM Club c";
+
+        TypedQuery<AdminClubListResponse> query = em.createQuery(jpql, AdminClubListResponse.class);
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+
+        Long totalCount = em.createQuery(countJpql, Long.class).getSingleResult();
+
+        List<AdminClubListResponse> results = query.getResultList();
+
+        return new PageImpl<>(results, pageable, totalCount);
     }
 
     @Override
     public void deleteClubAndDependencies(Long clubId) {
 
-        // 1. Club과 관련된 참조 엔티티들 삭제
+        em.createQuery("DELETE FROM ClubMemberAccountStatus cmas WHERE cmas.club.clubId = :clubId")
+                .setParameter("clubId", clubId)
+                .executeUpdate();
+
+        em.createQuery("DELETE FROM ClubHashtag ch WHERE ch.club.clubId = :clubId")
+                .setParameter("clubId", clubId)
+                .executeUpdate();
+
+        em.createQuery("DELETE FROM ClubCategoryMapping cm WHERE cm.club.clubId = :clubId")
+                .setParameter("clubId", clubId)
+                .executeUpdate();
+
         em.createQuery("DELETE FROM ClubMembers cm WHERE cm.club.clubId = :clubId")
                 .setParameter("clubId", clubId)
                 .executeUpdate();
@@ -60,7 +84,6 @@ public class ClubRepositoryCustomImpl implements ClubRepositoryCustom {
                 .setParameter("clubId", clubId)
                 .executeUpdate();
 
-        // 2. S3에서 동아리와 관련된 모든 사진 파일 삭제
         List<String> clubIntroPhotoKeys = em.createQuery(
                         "SELECT cip.clubIntroPhotoS3Key FROM ClubIntroPhoto cip WHERE cip.clubIntro.club.clubId = :clubId", String.class)
                 .setParameter("clubId", clubId)
@@ -71,16 +94,14 @@ public class ClubRepositoryCustomImpl implements ClubRepositoryCustom {
                 .setParameter("clubId", clubId)
                 .getResultList();
 
-        // 모든 키를 합친 리스트
         List<String> s3Keys = new ArrayList<>();
         s3Keys.addAll(clubIntroPhotoKeys);
         s3Keys.addAll(clubMainPhotoKeys);
 
         if (!s3Keys.isEmpty()) {
-            s3Keys.forEach(s3FileUploadService::deleteFile);
+            s3FileUploadService.deleteFiles(s3Keys);
         }
 
-        // 3. 마지막으로 Club 삭제
         em.createQuery("DELETE FROM Club c WHERE c.clubId = :clubId")
                 .setParameter("clubId", clubId)
                 .executeUpdate();

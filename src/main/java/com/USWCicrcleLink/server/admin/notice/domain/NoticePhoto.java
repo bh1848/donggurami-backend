@@ -22,16 +22,10 @@ public class NoticePhoto {
     @Column(name = "notice_photo_s3key")
     private String noticePhotoS3Key;
 
-    @Column(name = "photo_order")
+    @Column(name = "photo_order", nullable = false)
     private int order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notice_id", nullable = false)
     private Notice notice;
-
-    public void updateNoticePhoto(String noticePhotoName, String noticePhotoS3Key, int order) {
-        this.noticePhotoName = noticePhotoName;
-        this.noticePhotoS3Key = noticePhotoS3Key;
-        this.order = order;
-    }
 }

@@ -25,6 +25,7 @@ public class AuthToken {
     @JoinColumn(name = "user_uuid", referencedColumnName = "uuid", unique = true)
     private User user;
 
+    @Column(name="auth_code",nullable = false)
     private String authCode;
 
 

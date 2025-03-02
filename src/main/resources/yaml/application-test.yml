@@ -1,13 +1,22 @@
 server:
   port: ${BASIC_PORT}
 
-# log setting
+  error:
+    include-exception: true
+    include-stacktrace: always
+    include-message: always
+
 logging:
   level:
-    root: WARN
-    com:
-      USWCicrcleLink:
-        server: debug
+    root: info
+    com.USWCicrcleLink.server: debug
+    org.springframework.security: warn
+    org.springframework.web: warn
+    org.apache.catalina.core: warn
+    org.springframework: error
+    org.hibernate.SQL: info
+    org.hibernate.type: info
+    p6spy: info
 
 # email url
 email:

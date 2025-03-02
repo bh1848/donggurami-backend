@@ -1,7 +1,10 @@
 package com.USWCicrcleLink.server.global.security.config;
 
-import com.USWCicrcleLink.server.global.security.filter.JwtFilter;
-import com.USWCicrcleLink.server.global.security.util.JwtProvider;
+import com.USWCicrcleLink.server.global.security.exception.CustomAuthenticationEntryPoint;
+import com.USWCicrcleLink.server.global.security.jwt.filter.JwtFilter;
+import com.USWCicrcleLink.server.global.security.jwt.filter.LoggingFilter;
+import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
+import com.USWCicrcleLink.server.global.security.jwt.SecurityProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +16,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,13 +27,19 @@ public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final SecurityProperties securityProperties;
 
-    @Value("${cors.allowed-origins}") // YML 파일에서 allowed-origins 값을 가져옴
+    @Value("${cors.allowed-origins}")
     private String allowedOrigin;
 
     @Bean
     public JwtFilter jwtAuthFilter() {
-        return new JwtFilter(jwtProvider);
+        return new JwtFilter(jwtProvider, securityProperties.getPermitAllPaths(), customAuthenticationEntryPoint);
+    }
+
+    @Bean
+    public LoggingFilter loggingFilter() {
+        return new LoggingFilter(securityProperties.getLoggingPaths(), securityProperties.getMethods());
     }
 
     @Bean
@@ -40,67 +48,45 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptionHandling -> {
-                    // 인증 실패에 대한 처리
-                    exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint);
-                })
+                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(customAuthenticationEntryPoint))
+                // 공개
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers(
-                            "/users/login", // 모바일 로그인
-                            "/users/temporary",
-                            "/users/email/verify-token",
-                            "/users/finish-signup",
-                            "/users/verify-duplicate/{account}",
-                            "/users/validate-passwords-match",
-                            "/users/find-account/{email}",
-                            "/users/auth/send-code",
-                            "/users/auth/verify-token",
-                            "/users/reset-password",
-                            "/users/email/resend-confirmation",
-                            "/auth/refresh-token", // 토큰 재발급
-                            "/integration/login", // 동아리 회장, 동연회-개발자 통합 로그인
-                            "/integration/logout", // 통합 로그아웃
-                            "/mainPhoto/**",
-                            "/introPhoto/**",
-                            "/my-notices/**",
-                            "/clubs/**" // 동아리 조회(모바일)
-                    ).permitAll();
+                    auth.requestMatchers(securityProperties.getPermitAllPaths().toArray(new String[0])).permitAll();
 
-                    // photo
-                    auth.requestMatchers(HttpMethod.GET, "/mainPhoto/**", "/introPhoto/**", "/noticePhoto/**")
-//                            .hasAnyRole("USER", "ADMIN", "LEADER");
-                            .permitAll();
-                    // CLUB(웹)
-                    auth.requestMatchers(HttpMethod.POST, "/admin/clubs").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/clubs/{clubId}").hasAnyRole("ADMIN", "LEADER");
-                    auth.requestMatchers(HttpMethod.DELETE, "/admin/clubs").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/admin/clubs", "/admin/clubs/{clubUUID}").hasAnyRole("ADMIN", "LEADER");
+                    auth.requestMatchers(HttpMethod.GET, "/notices/{noticeUUID}", "/notices").hasAnyRole("ADMIN", "LEADER");
 
-                    // NOTICE(웹)
-                    auth.requestMatchers(HttpMethod.POST, "/notices").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.GET, "/notices/{noticeId}", "/notices/paged").hasAnyRole("ADMIN", "LEADER");
-                    auth.requestMatchers(HttpMethod.DELETE, "/notices/{noticeId}").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.PATCH, "/notices/{noticeId}").hasRole("ADMIN");
+                    // ADMIN
+                    auth.requestMatchers(HttpMethod.GET,"/admin/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.POST, "/admin/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.PATCH, "/admin/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/admin/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.PUT, "/admin/**").hasRole("ADMIN");
 
-                    // APLICT(모바일)
-                    auth.requestMatchers(HttpMethod.POST, "/apply/").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET, "/apply/").hasRole("USER");
+                    // ADMIN - Notice
+                    auth.requestMatchers(HttpMethod.POST, "/notices/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/notices/**").hasRole("ADMIN");
 
                     // USER
                     auth.requestMatchers(HttpMethod.PATCH, "/profiles/change","/users/userpw","/club-leader/fcmtoken").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.GET,"/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/my-notices/{noticeId}/details").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.DELETE, "/exit").hasRole("USER");
-                    auth.requestMatchers(HttpMethod.POST, "/exit/send-code").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET,"/my-notices","/mypages/my-clubs","/mypages/aplict-clubs","/profiles/me","/my-notices/{noticeUUID}/details").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/users/exit").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.POST, "/users/exit/send-code").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.POST, "/apply/**").hasRole("USER");
+                    auth.requestMatchers(HttpMethod.GET, "/apply/**").hasRole("USER");
 
                     // LEADER
-                    auth.requestMatchers(HttpMethod.POST, "/club-leader/{clubId}/**").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.GET, "/club-leader/{clubId}/**").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.PATCH, "/club-leader/{clubId}/**").hasRole("LEADER");
-                    auth.requestMatchers(HttpMethod.DELETE, "/club-leader/{clubId}/members").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.POST, "/club-leader/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.GET, "/club-leader/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.PATCH, "/club-leader/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/club-leader/**").hasRole("LEADER");
+                    auth.requestMatchers(HttpMethod.PUT, "/club-leader/**").hasRole("LEADER");
 
-                    // 기타 모든 요청
+                    // 기타 모든 요청 인증 필요
                     auth.anyRequest().authenticated();
                 })
-                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(loggingFilter(), JwtFilter.class);
         return http.build();
     }
 

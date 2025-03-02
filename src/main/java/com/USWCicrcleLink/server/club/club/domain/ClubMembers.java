@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -18,6 +20,10 @@ public class ClubMembers {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "club_member_id")
     private Long clubMemberId;
+
+    @Builder.Default
+    @Column(name = "club_member_uuid", unique = true, nullable = false, updatable = false)
+    private UUID clubMemberUUID= UUID.randomUUID();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", nullable = false)

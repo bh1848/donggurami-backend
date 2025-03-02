@@ -2,28 +2,29 @@
 //
 //import com.USWCicrcleLink.server.aplict.dto.AplictRequest;
 //import com.USWCicrcleLink.server.aplict.service.AplictService;
-//import com.fasterxml.jackson.databind.ObjectMapper;
+//import com.USWCicrcleLink.server.global.security.jwt.JwtProvider;
+//import org.junit.jupiter.api.BeforeEach;
+//import org.junit.jupiter.api.DisplayName;
 //import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.Mockito;
 //import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+//import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+//import org.springframework.boot.test.context.SpringBootTest;
 //import org.springframework.boot.test.mock.mockito.MockBean;
 //import org.springframework.http.MediaType;
-//import org.springframework.test.context.junit.jupiter.SpringExtension;
+//import org.springframework.mock.web.MockHttpServletResponse;
+//import org.springframework.security.test.context.support.WithMockUser;
 //import org.springframework.test.web.servlet.MockMvc;
+//import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+//import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 //
-//import java.util.UUID;
-//
-//import static org.hamcrest.Matchers.is;
+//import static org.mockito.ArgumentMatchers.any;
 //import static org.mockito.ArgumentMatchers.anyLong;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+//import static org.mockito.Mockito.doNothing;
+//import static org.mockito.Mockito.when;
+//import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 //
-//@ExtendWith(SpringExtension.class)
-//@WebMvcTest(AplictController.class)
+//@SpringBootTest
+//@AutoConfigureMockMvc
 //public class AplictControllerTest {
 //
 //    @Autowired
@@ -32,36 +33,43 @@
 //    @MockBean
 //    private AplictService aplictService;
 //
-//    @Autowired
-//    private ObjectMapper objectMapper;
-//
 //    @Test
-//    void 지원서작성_구글폼URL조회_성공() throws Exception {
-//        //given
-//        String googleFormUrl = "https://forms.gle/testForm";
-//        Mockito.when(aplictService.getGoogleFormUrlByClubId(anyLong())).thenReturn(googleFormUrl);
+//    @DisplayName("지원 가능한지 확인")
+//    @WithMockUser(username = "testUser", roles = {"USER"})
+//    void testCanApply() throws Exception {
+//        doNothing().when(aplictService).checkIfCanApply(anyLong());
 //
-//        //when
-//        mockMvc.perform(get("/aplict/{clubId}", 1L)
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                //then
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.message", is("구글 폼 URL 조회 성공")))
-//                .andExpect(jsonPath("$.data", is(googleFormUrl)));
+//        mockMvc.perform(MockMvcRequestBuilders.get("/apply/can-apply/1"))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("지원 가능"))
+//                .andDo(print());
 //    }
 //
 //    @Test
-//    void 동아리지원서제출_성공() throws Exception {
-//        //given
-//        UUID userUUID = UUID.randomUUID();
-//        AplictRequest request = new AplictRequest();
-//        //when
-//        mockMvc.perform(post("/aplict/submit/{clubId}", 1L)
-//                        .header("User-uuid", userUUID.toString())
+//    @DisplayName("구글 폼 url 조회")
+//    @WithMockUser(username = "testUser", roles = {"USER"})
+//    void testGetGoogleFormUrl() throws Exception {
+//        String googleFormUrl = "https://example.com/google-form";
+//        when(aplictService.getGoogleFormUrlByClubId(anyLong())).thenReturn(googleFormUrl);
+//
+//        mockMvc.perform(MockMvcRequestBuilders.get("/apply/1"))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("구글 폼 URL 조회 성공"))
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.data").value(googleFormUrl))
+//                .andDo(print());
+//    }
+//
+//    @Test
+//    @DisplayName("지원 완료")
+//    @WithMockUser(username = "testUser", roles = {"USER"})
+//    void testSubmitAplict() throws Exception {
+//        doNothing().when(aplictService).submitAplict(anyLong(), any(AplictRequest.class));
+//
+//        mockMvc.perform(MockMvcRequestBuilders.post("/apply/1")
 //                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                //then
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.message", is("지원서 제출 성공")));
+//                        .content("{\"aplictGoogleFormUrl\":\"https://example.com/google-form\"}"))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("지원서 제출 성공"))
+//                .andDo(print());
 //    }
 //}

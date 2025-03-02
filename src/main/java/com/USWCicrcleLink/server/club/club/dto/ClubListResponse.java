@@ -1,26 +1,20 @@
 package com.USWCicrcleLink.server.club.club.dto;
 
-import com.USWCicrcleLink.server.club.club.domain.Club;
-import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
-import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+import java.util.UUID;
 
 @Getter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ClubListResponse {
-    private Long clubId;
+    private UUID clubUUID;
     private String clubName;
     private String mainPhoto;
     private String departmentName;
-
-    // Club 엔티티를 인수로 받는 생성자
-    public ClubListResponse(Club club, String mainPhotoUrl) {
-        this.clubName = club.getClubName();
-        this.mainPhoto = mainPhotoUrl;
-        this.departmentName = club.getDepartment().name();
-        this.clubId = club.getClubId();
-    }
+    private List<String> clubHashtags;
 }
 

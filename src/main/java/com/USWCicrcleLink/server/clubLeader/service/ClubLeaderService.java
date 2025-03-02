@@ -5,37 +5,44 @@ import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantResultsRequest;
 import com.USWCicrcleLink.server.aplict.dto.ApplicantsResponse;
 import com.USWCicrcleLink.server.aplict.repository.AplictRepository;
-import com.USWCicrcleLink.server.club.club.domain.Club;
-import com.USWCicrcleLink.server.club.club.domain.ClubMainPhoto;
-import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
-import com.USWCicrcleLink.server.club.club.repository.ClubMainPhotoRepository;
-import com.USWCicrcleLink.server.club.club.repository.ClubMembersRepository;
-import com.USWCicrcleLink.server.club.club.repository.ClubRepository;
+import com.USWCicrcleLink.server.club.club.domain.*;
+import com.USWCicrcleLink.server.club.club.repository.*;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntro;
 import com.USWCicrcleLink.server.club.clubIntro.domain.ClubIntroPhoto;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroPhotoRepository;
 import com.USWCicrcleLink.server.club.clubIntro.repository.ClubIntroRepository;
 import com.USWCicrcleLink.server.clubLeader.domain.Leader;
-import com.USWCicrcleLink.server.clubLeader.dto.*;
+import com.USWCicrcleLink.server.clubLeader.dto.club.*;
+import com.USWCicrcleLink.server.clubLeader.dto.clubMembers.*;
+import com.USWCicrcleLink.server.clubLeader.repository.LeaderRepository;
+import com.USWCicrcleLink.server.clubLeader.util.ClubMemberExcelDataDto;
 import com.USWCicrcleLink.server.global.exception.ExceptionType;
 import com.USWCicrcleLink.server.global.exception.errortype.*;
 import com.USWCicrcleLink.server.global.response.ApiResponse;
-import com.USWCicrcleLink.server.global.response.PageResponse;
-import com.USWCicrcleLink.server.global.security.util.CustomLeaderDetails;
-import com.USWCicrcleLink.server.global.util.s3File.Service.S3FileUploadService;
-import com.USWCicrcleLink.server.global.util.s3File.dto.S3FileResponse;
-import com.USWCicrcleLink.server.global.util.validator.InputValidator;
+import com.USWCicrcleLink.server.global.s3File.Service.S3FileUploadService;
+import com.USWCicrcleLink.server.global.s3File.dto.S3FileResponse;
+import com.USWCicrcleLink.server.global.security.details.CustomLeaderDetails;
+import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
+import com.USWCicrcleLink.server.global.validation.FileSignatureValidator;
+import com.USWCicrcleLink.server.profile.domain.MemberType;
+import com.USWCicrcleLink.server.profile.domain.Profile;
+import com.USWCicrcleLink.server.profile.repository.ProfileRepository;
+import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberAccountStatus;
+import com.USWCicrcleLink.server.user.domain.ExistingMember.ClubMemberTemp;
+import com.USWCicrcleLink.server.user.domain.User;
+import com.USWCicrcleLink.server.user.repository.ClubMemberAccountStatusRepository;
+import com.USWCicrcleLink.server.user.repository.ClubMemberTempRepository;
+import com.USWCicrcleLink.server.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -47,6 +54,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,9 +71,16 @@ public class ClubLeaderService {
     private final AplictRepository aplictRepository;
     private final ClubIntroPhotoRepository clubIntroPhotoRepository;
     private final ClubMainPhotoRepository clubMainPhotoRepository;
-
+    private final ProfileRepository profileRepository;
+    private final ClubHashtagRepository clubHashtagRepository;
+    private final ClubCategoryRepository clubCategoryRepository;
+    private final ClubCategoryMappingRepository clubCategoryMappingRepository;
     private final S3FileUploadService s3FileUploadService;
     private final FcmServiceImpl fcmService;
+    private final LeaderRepository leaderRepository;
+    private final ClubMemberAccountStatusRepository clubMemberAccountStatusRepository;
+    private final ClubMemberTempRepository clubMemberTempRepository;
+    private final UserRepository userRepository;
 
     // 최대 사진 순서(업로드, 삭제)
     int PHOTO_LIMIT = 5;
@@ -73,91 +88,207 @@ public class ClubLeaderService {
     private final String S3_MAINPHOTO_DIR = "mainPhoto/";
     private final String S3_INTROPHOTO_DIR = "introPhoto/";
 
+    // 동아리 접근 권한 확인
+    public Club validateLeaderAccess(UUID clubUUID) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomLeaderDetails leaderDetails = (CustomLeaderDetails) authentication.getPrincipal();
+        if (!clubUUID.equals(leaderDetails.getClubUUID())) {
+            throw new ClubLeaderException(ExceptionType.CLUB_LEADER_ACCESS_DENIED);
+        }
+
+        return clubRepository.findByClubUUID(clubUUID)
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+    }
+
+    // 약관 동의 여부 업데이트
+    public void updateAgreedTermsTrue() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (!(authentication.getPrincipal() instanceof CustomLeaderDetails leaderDetails)) {
+            throw new UserException(ExceptionType.USER_NOT_EXISTS);
+        }
+
+        Leader leader = leaderDetails.leader();
+        leader.setAgreeTerms(true);
+        leaderRepository.save(leader);
+    }
+
     // 동아리 기본 정보 조회
     @Transactional(readOnly = true)
-    public ApiResponse<ClubInfoResponse> getClubInfo(Long clubId) {
+    public ApiResponse<ClubInfoResponse> getClubInfo(UUID clubUUID) {
 
-        Club club = validateLeader(clubId);
+        Club club = validateLeaderAccess(clubUUID);
 
-        Optional<ClubMainPhoto> clubMainPhoto = Optional.ofNullable(clubMainPhotoRepository.findByClub_ClubId(club.getClubId()));
+        // 동아리 메인 사진 조회
+        Optional<ClubMainPhoto> clubMainPhoto =
+                Optional.ofNullable(clubMainPhotoRepository.findByClub_ClubId(club.getClubId()));
 
-        // 사진이 있으면 url 없으면 null
         String mainPhotoUrl = clubMainPhoto.map(
                         photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubMainPhotoS3Key()))
                 .orElse(null);
 
-        ClubInfoResponse clubInfoResponse = new ClubInfoResponse(
-                mainPhotoUrl,
-                club.getClubName(),
-                club.getLeaderName(),
-                club.getLeaderHp(),
-                club.getClubInsta(),
-                club.getDepartment()
-        );
+        // 동아리 해시태그 조회
+        List<String> clubHashtags = clubHashtagRepository.findByClubClubId(club.getClubId())
+                .stream().map(ClubHashtag::getClubHashtag).collect(Collectors.toList());
 
-        return new ApiResponse<>("동아리 기본 정보 조회 완료", clubInfoResponse);
+        // 동아리 카테고리 조회
+        List<String> clubCategories = clubCategoryMappingRepository.findByClubClubId(club.getClubId())
+                .stream().map(mapping -> mapping.getClubCategory().getClubCategoryName()).collect(Collectors.toList());
+
+        return new ApiResponse<>("동아리 기본 정보 조회 완료",
+                new ClubInfoResponse(mainPhotoUrl, club, clubHashtags, clubCategories));
     }
 
-    // 동아리 기본 정보 변경
-    public ApiResponse<UpdateClubInfoResponse> updateClubInfo(Long clubId, ClubInfoRequest clubInfoRequest, MultipartFile mainPhoto) throws IOException {
+    /**
+     * 동아리 기본 정보 변경
+     */
+    public ApiResponse<UpdateClubInfoResponse> updateClubInfo(UUID clubUUID, ClubInfoRequest clubInfoRequest, MultipartFile mainPhoto) throws IOException {
+        // 동아리 회장 유효성 검증
+        Club club = validateLeaderAccess(clubUUID);
 
-        Club club = validateLeader(clubId);
+        // 동아리 회장 이름 변경 시 약관 동의 갱신 필요
+        updateLeaderAgreementIfNameChanged(club, clubInfoRequest.getLeaderName());
 
-        // 동아리 회장의 이름 필수
-        if (clubInfoRequest.getLeaderName() == null || clubInfoRequest.getLeaderName().trim().isEmpty()) {
-            throw new ClubLeaderException(ExceptionType.LEADER_NAME_REQUIRED);
-        }
+        // 해시태그 업데이트
+        updateClubHashtags(club, clubInfoRequest.getClubHashtag());
 
-        // 입력값 검증 (XSS 공격 방지)
-        String sanitizedLeaderName = InputValidator.sanitizeContent(clubInfoRequest.getLeaderName());
-        String sanitizedClubInsta = clubInfoRequest.getClubInsta() != null ? InputValidator.sanitizeContent(clubInfoRequest.getClubInsta()) : "";
-        String sanitizedLeaderHp = clubInfoRequest.getLeaderHp() != null ? InputValidator.sanitizeContent(clubInfoRequest.getLeaderHp()) : "";
+        // 카테고리 업데이트
+        updateClubCategories(club, clubInfoRequest.getClubCategoryName());
 
-        // 사진이 없을 경우 null
-        S3FileResponse s3FileResponse = null;
-        if (mainPhoto != null && !mainPhoto.isEmpty()) {
-            // 기존 동아리 대표 사진 조회
-            ClubMainPhoto existingPhoto = clubMainPhotoRepository.findByClub_ClubId(clubId);
+        // 사진 업데이트
+        String mainPhotoUrl = updateClubMainPhoto(club.getClubId(), mainPhoto);
 
-            // 기존 사진이 존재할 경우
-            if (existingPhoto != null && existingPhoto.getClubMainPhotoS3Key() != null && !existingPhoto.getClubMainPhotoS3Key().isEmpty()) {
-                s3FileUploadService.deleteFile(existingPhoto.getClubMainPhotoS3Key());
-                log.debug("기존 대표 사진 삭제 완료: {}", existingPhoto.getClubMainPhotoS3Key());
-            }
+        club.updateClubInfo(clubInfoRequest.getLeaderName(), clubInfoRequest.getLeaderHp(), clubInfoRequest.getClubInsta(), clubInfoRequest.getClubRoomNumber());
+        log.info("동아리 기본 정보 변경 완료 - Club UUID: {}, Club Name: {}", club.getClubUUID(), club.getClubName());
 
-            // 새로운 파일 업로드 및 메타 데이터 업데이트
-            s3FileResponse = updateClubMainPhotoAndS3File(mainPhoto, existingPhoto);
-        }
-
-        // 동아리 기본 정보 변경
-        club.updateClubInfo(sanitizedLeaderName, sanitizedLeaderHp, sanitizedClubInsta);
-        clubRepository.save(club);
-        log.debug("동아리 기본 정보 변경 완료: {}", club.getClubName());
-
-        String mainPhotoUrl = s3FileResponse != null ? s3FileResponse.getPresignedUrl() : "";
         return new ApiResponse<>("동아리 기본 정보 변경 완료", new UpdateClubInfoResponse(mainPhotoUrl));
     }
 
-    private S3FileResponse updateClubMainPhotoAndS3File(MultipartFile mainPhoto, ClubMainPhoto existingPhoto) throws IOException {
-        // 새로운 파일 업로드
-        S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(mainPhoto, S3_MAINPHOTO_DIR);
+    // 동아리 회장 이름 변경 시 약관 동의 갱신
+    private void updateLeaderAgreementIfNameChanged(Club club, String newLeaderName) {
 
-        // s3key 및 photoname 업데이트
-        existingPhoto.updateClubMainPhoto(mainPhoto.getOriginalFilename(), s3FileResponse.getS3FileName());
-        clubMainPhotoRepository.save(existingPhoto);
-        log.debug("기존 대표 사진 업데이트 완료: {}", s3FileResponse.getS3FileName());
+        if (!Objects.equals(club.getLeaderName(), newLeaderName)) {
+            Leader leader = leaderRepository.findByClubUUID(club.getClubUUID())
+                    .orElseThrow(() -> new ClubLeaderException(ExceptionType.CLUB_LEADER_NOT_EXISTS));
 
-        return s3FileResponse;
+            leader.setAgreeTerms(false);
+            leaderRepository.save(leader);
+            log.debug("회장 이름 변경으로 약관 동의 상태 초기화 - Leader ID: {}", leader.getLeaderId());
+        }
     }
 
-    // 자신의 동아리 상세 페이지 조회(웹)
+    // 동아리 해시태그 업데이트
+    private void updateClubHashtags(Club club, List<String> newHashtags) {
+        if (newHashtags == null || newHashtags.isEmpty()) return;
+
+        Set<String> newHashtagsSet = new HashSet<>(newHashtags);
+        List<String> existingHashtags = clubHashtagRepository.findHashtagsByClubId(club.getClubId());
+
+        clubHashtagRepository.deleteAllByClub_ClubIdAndClubHashtagNotIn(club.getClubId(), newHashtagsSet);
+
+        // 새 해시태그 중 추가할 항목만 필터링하여 일괄 삽입
+        List<ClubHashtag> newHashtagsToInsert = newHashtagsSet.stream()
+                .filter(newHashtag -> !existingHashtags.contains(newHashtag))
+                .map(newHashtag -> ClubHashtag.builder().club(club).clubHashtag(newHashtag).build())
+                .toList();
+
+        clubHashtagRepository.saveAll(newHashtagsToInsert);
+    }
+
+    // 동아리 카테고리 업데이트
+    private void updateClubCategories(Club club, List<String> newCategories) {
+        if (newCategories == null || newCategories.isEmpty()) return;
+
+        Set<String> newCategoriesSet = new HashSet<>(newCategories);
+        List<ClubCategoryMapping> existingMappings = clubCategoryMappingRepository.findByClub_ClubId(club.getClubId());
+        Set<String> existingCategoryNames = existingMappings.stream()
+                .map(mapping -> mapping.getClubCategory().getClubCategoryName())
+                .collect(Collectors.toSet());
+
+        clubCategoryMappingRepository.deleteAllByClub_ClubIdAndClubCategory_ClubCategoryNameNotIn(club.getClubId(), newCategoriesSet);
+
+        // 새 카테고리 중 추가할 항목만 필터링하여 일괄 삽입
+        List<ClubCategoryMapping> newMappings = newCategoriesSet.stream()
+                .filter(categoryName -> !existingCategoryNames.contains(categoryName))
+                .map(categoryName -> {
+                    ClubCategory clubCategory = clubCategoryRepository.findByClubCategoryName(categoryName)
+                            .orElseThrow(() -> new ClubException(ExceptionType.CATEGORY_NOT_FOUND));
+                    return ClubCategoryMapping.builder().club(club).clubCategory(clubCategory).build();
+                })
+                .toList();
+
+        clubCategoryMappingRepository.saveAll(newMappings);
+    }
+
+    // 동아리 메인 사진 업데이트
+    private String updateClubMainPhoto(Long clubId, MultipartFile mainPhoto) throws IOException {
+        if (clubId == null) {
+            throw new ClubPhotoException(ExceptionType.CLUB_ID_NOT_EXISTS);
+        }
+
+        if (mainPhoto == null || mainPhoto.isEmpty()) {
+            return clubMainPhotoRepository.findS3KeyByClubId(clubId).orElse(null);
+        }
+
+        return processClubMainPhoto(clubId, mainPhoto);
+    }
+
+    // 기존 대표 사진 삭제 및 새로운 파일 업로드
+    private String processClubMainPhoto(Long clubId, MultipartFile mainPhoto) throws IOException {
+        clubMainPhotoRepository.findS3KeyByClubId(clubId).ifPresent(s3FileUploadService::deleteFile);
+
+        return saveClubMainPhoto(mainPhoto, clubId);
+    }
+
+    // 사진 메타데이터 업데이트 및 S3 업로드
+    private String saveClubMainPhoto(MultipartFile mainPhoto, Long clubId) throws IOException {
+        if (clubId == null) {
+            throw new ClubPhotoException(ExceptionType.CLUB_ID_NOT_EXISTS);
+        }
+
+        if (mainPhoto == null || mainPhoto.isEmpty()) {
+            throw new ClubPhotoException(ExceptionType.CLUB_MAINPHOTO_NOT_EXISTS);
+        }
+
+        S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(mainPhoto, S3_MAINPHOTO_DIR);
+
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
+
+        Optional<ClubMainPhoto> existingPhoto = clubMainPhotoRepository.findByClub(club);
+
+        existingPhoto.ifPresent(photo -> {
+            clubMainPhotoRepository.delete(photo);
+            clubMainPhotoRepository.flush();
+        });
+
+        ClubMainPhoto clubMainPhoto = ClubMainPhoto.builder()
+                .club(club)
+                .clubMainPhotoName(mainPhoto.getOriginalFilename())
+                .clubMainPhotoS3Key(s3FileResponse.getS3FileName())
+                .build();
+
+        clubMainPhotoRepository.save(clubMainPhoto);
+
+        return s3FileResponse.getPresignedUrl();
+    }
+
+    // 동아리 요약 조회
     @Transactional(readOnly = true)
-    public ClubIntroWebResponse getClubIntro(Long clubId) {
-        Club club = validateLeader(clubId);
+    public ClubSummaryResponse getClubSummary(UUID clubUUID) {
+        Club club = validateLeaderAccess(clubUUID);
 
         // 동아리 소개 조회
-        ClubIntro clubIntro = clubIntroRepository.findByClub(club)
-                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+
+        // clubHashtag 조회
+        List<String> clubHashtags = clubHashtagRepository.findByClubClubId(club.getClubId())
+                .stream().map(ClubHashtag::getClubHashtag).toList();
+
+        // 동아리 카테고리 조회
+        List<String> clubCategories = clubCategoryMappingRepository.findByClubClubId(club.getClubId())
+                .stream().map(mapping -> mapping.getClubCategory().getClubCategoryName()).toList();
 
         // 동아리 메인 사진 조회
         ClubMainPhoto clubMainPhoto = clubMainPhotoRepository.findByClub(club).orElse(null);
@@ -178,25 +309,47 @@ public class ClubLeaderService {
                 .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
                 .collect(Collectors.toList());
 
-        // ClubIntroResponse 반환
-        return new ClubIntroWebResponse(clubIntro, club, mainPhotoUrl, introPhotoUrls, clubIntro.getGoogleFormUrl());
+        return new ClubSummaryResponse(club, clubHashtags, clubCategories, clubIntro, mainPhotoUrl, introPhotoUrls);
+    }
+
+    // 동아리 소개 조회
+    @Transactional(readOnly = true)
+    public ApiResponse<LeaderClubIntroResponse> getClubIntro(UUID clubUUID) {
+        Club club = validateLeaderAccess(clubUUID);
+
+        // 동아리 소개 조회
+        ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+
+        // 동아리 소개 사진 조회
+        List<ClubIntroPhoto> clubIntroPhotos = clubIntroPhotoRepository.findByClubIntro(clubIntro);
+
+        // S3에서 소개 사진 URL 생성 (소개 사진이 없을 경우 빈 리스트)
+        List<String> introPhotoUrls = clubIntroPhotos.isEmpty()
+                ? Collections.emptyList()
+                : clubIntroPhotos.stream()
+                .sorted(Comparator.comparingInt(ClubIntroPhoto::getOrder))
+                .map(photo -> s3FileUploadService.generatePresignedGetUrl(photo.getClubIntroPhotoS3Key()))
+                .collect(Collectors.toList());
+
+        return new ApiResponse<>("동아리 소개 조회 완료", new LeaderClubIntroResponse(club, clubIntro, introPhotoUrls));
     }
 
     // 동아리 소개 변경
-    public ApiResponse updateClubIntro(Long clubId, ClubIntroRequest clubIntroRequest, List<MultipartFile> introPhotos) throws IOException {
+    public ApiResponse updateClubIntro(UUID clubUUID, ClubIntroRequest clubIntroRequest, List<MultipartFile> introPhotos) throws IOException {
 
-        Club club = validateLeader(clubId);
+        Club club = validateLeaderAccess(clubUUID);
 
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
-                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
 
-        // 입력값 검증 (XSS 공격 방지)
-        String sanitizedClubIntro = clubIntroRequest.getClubIntro() != null
-                ? InputValidator.sanitizeContent(clubIntroRequest.getClubIntro()) : "";
-        String sanitizedGoogleFormUrl = clubIntroRequest.getGoogleFormUrl() != null
-                ? InputValidator.sanitizeContent(clubIntroRequest.getGoogleFormUrl()) : "";
+        // 모집 상태가 null일 때 예외 처리
+        if (clubIntroRequest.getRecruitmentStatus() == null) {
+            throw new ClubException(ExceptionType.INVALID_RECRUITMENT_STATUS);
+        }
 
-        if (clubIntroRequest.getDeletedOrders() != null && !clubIntroRequest.getDeletedOrders().isEmpty()) {// 삭제할 사진이 있다면
+        // 삭제할 사진 확인
+        if (clubIntroRequest.getDeletedOrders() != null && !clubIntroRequest.getDeletedOrders().isEmpty()) {
             // 순서 개수, 범위 검증
             validateOrderValues(clubIntroRequest.getDeletedOrders());
 
@@ -216,7 +369,7 @@ public class ClubLeaderService {
             }
         }
 
-        // 각 사진의 presignedUrls
+        // 각 사진의 조회 presignedUrls
         List<String> presignedUrls = new ArrayList<>();
 
         // 동아리 소개 사진을 넣을 경우
@@ -246,7 +399,9 @@ public class ClubLeaderService {
                 S3FileResponse s3FileResponse;
 
                 // N번째 동아리 소개 사진 존재할 경우
-                if (!existingPhoto.getClubIntroPhotoName().isEmpty() && !existingPhoto.getClubIntroPhotoS3Key().isEmpty()) {
+                if (!Optional.ofNullable(existingPhoto.getClubIntroPhotoName()).orElse("").isEmpty() &&
+                        !Optional.ofNullable(existingPhoto.getClubIntroPhotoS3Key()).orElse("").isEmpty()) {
+
                     // 기존 S3 파일 삭제
                     s3FileUploadService.deleteFile(existingPhoto.getClubIntroPhotoS3Key());
                     log.debug("기존 소개 사진 삭제 완료: {}", existingPhoto.getClubIntroPhotoS3Key());
@@ -259,8 +414,8 @@ public class ClubLeaderService {
             }
         }
 
-        // 소개 글, google form 저장
-        clubIntro.updateClubIntro(sanitizedClubIntro, sanitizedGoogleFormUrl);
+        // 소개 글, 모집 글, google form 저장
+        clubIntro.updateClubIntro(clubIntroRequest.getClubIntro(), clubIntroRequest.getClubRecruitment(), clubIntroRequest.getGoogleFormUrl());
         clubIntroRepository.save(clubIntro);
 
         log.debug("{} 동아리 소개 변경 완료", club.getClubName());
@@ -276,7 +431,7 @@ public class ClubLeaderService {
         // 순서 값
         for (int order : orders) {
             if (order < 1 || order > PHOTO_LIMIT) { // 1 ~ 5 사이여야 함
-                new ClubPhotoException(ExceptionType.PHOTO_ORDER_MISS_MATCH);
+                throw new ClubPhotoException(ExceptionType.PHOTO_ORDER_MISS_MATCH);
             }
         }
 
@@ -286,8 +441,12 @@ public class ClubLeaderService {
         // 새로운 파일 업로드
         S3FileResponse s3FileResponse = s3FileUploadService.uploadFile(introPhoto, S3_INTROPHOTO_DIR);
 
+        // null 체크 후 값 설정
+        String newPhotoName = introPhoto.getOriginalFilename() != null ? introPhoto.getOriginalFilename() : "";
+        String newS3Key = s3FileResponse.getS3FileName() != null ? s3FileResponse.getS3FileName() : "";
+
         // s3key 및 photoname 업데이트
-        existingPhoto.updateClubIntroPhoto(introPhoto.getOriginalFilename(), s3FileResponse.getS3FileName(), order);
+        existingPhoto.updateClubIntroPhoto(newPhotoName, newS3Key, order);
         clubIntroPhotoRepository.save(existingPhoto);
         log.debug("사진 정보 저장 및 업데이트 완료: {}", s3FileResponse.getS3FileName());
 
@@ -295,12 +454,12 @@ public class ClubLeaderService {
     }
 
     // 동아리 모집 상태 변경
-    public ApiResponse toggleRecruitmentStatus(Long clubId) {
+    public ApiResponse toggleRecruitmentStatus(UUID clubUUID) {
 
-        Club club = validateLeader(clubId);
+        Club club = validateLeaderAccess(clubUUID);
 
         ClubIntro clubIntro = clubIntroRepository.findByClubClubId(club.getClubId())
-                .orElseThrow(() -> new ClubIntroException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
+                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_INTRO_NOT_EXISTS));
         log.debug("동아리 소개 조회 결과: {}", clubIntro);
 
         // 모집 상태 현재와 반전
@@ -314,11 +473,11 @@ public class ClubLeaderService {
 //    @Transactional(readOnly = true)
 //    public ApiResponse<List<ClubMembersResponse>> findClubMembers(LeaderToken token) {
 //
-//        Club club = validateLeader(token);
+//        Club club = validateLeaderAccess(token);
 //
 //        // 해당 동아리원 조회(성능 비교)
 ////        List<ClubMembers> findClubMembers = clubMembersRepository.findByClub(club); // 일반
-//        List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfile(club.getClubId()); // 성능
+//        List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfileByClubClubId(club.getClubId()); // 성능
 //
 //        // 동아리원과 프로필 조회
 //        List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
@@ -331,60 +490,102 @@ public class ClubLeaderService {
 //        return new ApiResponse<>("소속 동아리원 조회 완료", memberProfiles);
 //    }
 
-    // 소속 동아리원 조회
+    // 소속 동아리 회원 조회(가나다순 정렬)
     @Transactional(readOnly = true)
-    public ApiResponse<PageResponse<ClubMembersResponse>> getClubMembers(Long clubId, int page, int size) {
+    public ApiResponse<List<ClubMembersResponse>> getClubMembers(UUID clubUUID) {
 
-        Club club = validateLeader(clubId);
+        Club club = validateLeaderAccess(clubUUID);
 
-        PageRequest pageable = PageRequest.of(page, size);
-
-        Page<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfileByClubId(club.getClubId(), pageable);
+        List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfileByName(club.getClubId());
 
         // 동아리원과 프로필 조회
         List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
                 .map(cm -> new ClubMembersResponse(
-                        cm.getClubMemberId(),
+                        cm.getClubMemberUUID(),
                         cm.getProfile()
                 ))
                 .collect(toList());
 
-        PageResponse<ClubMembersResponse> pageResponse = new PageResponse<>(
-                memberProfiles,
-                findClubMembers.getNumber(),
-                findClubMembers.getSize(),
-                findClubMembers.getTotalElements(),
-                findClubMembers.getTotalPages()
-        );
+        return new ApiResponse<>("소속 동아리 회원 가나다순 조회 완료", memberProfiles);
+    }
 
-        return new ApiResponse<>("소속 동아리원 조회 완료", pageResponse);
+    // 소속 동아리 회원 조회(정회원/ 비회원 정렬)
+    @Transactional(readOnly = true)
+    public ApiResponse<List<ClubMembersResponse>> getClubMembersByMemberType(UUID clubUUID, MemberType memberType) {
+
+        Club club = validateLeaderAccess(clubUUID);
+
+        List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfileByMemberType(club.getClubId(), memberType);
+
+        // 동아리원과 프로필 조회
+        List<ClubMembersResponse> memberProfiles = findClubMembers.stream()
+                .map(cm -> new ClubMembersResponse(
+                        cm.getClubMemberUUID(),
+                        cm.getProfile()
+                ))
+                .collect(toList());
+
+        // memberType에 따라 메시지 변경
+        String message = switch (memberType) {
+            case REGULARMEMBER -> "소속 동아리 정회원 조회 완료";
+            case NONMEMBER -> "소속 동아리 비회원 조회 완료";
+        };
+
+        return new ApiResponse<>(message, memberProfiles);
     }
 
     // 소속 동아리원 삭제
-    public ApiResponse deleteClubMember(Long clubMemberId, Long clubId) {
+    public ApiResponse deleteClubMembers(UUID clubUUID, List<ClubMembersDeleteRequest> clubMemberUUIDList) {
 
-        Club club = validateLeader(clubId);
+        Club club = validateLeaderAccess(clubUUID);
 
-        // 동아리원 삭제
-        clubMembersRepository.deleteById(clubMemberId);
-        return new ApiResponse<>("동아리원 삭제 완료");
+        List<UUID> clubMemberUUIDs = clubMemberUUIDList.stream()
+                .map(ClubMembersDeleteRequest::getClubMemberUUID)
+                .toList();
+
+        // 동아리 회원인지 확인
+        List<ClubMembers> membersToDelete = clubMembersRepository.findByClubClubIdAndClubMemberUUIDIn(club.getClubId(), clubMemberUUIDs);
+
+        // 조회된 수와 요청한 수와 같은지(다르면 다른 동아리 회원이 존재)
+        if (membersToDelete.size() != clubMemberUUIDList.size()) {
+            throw new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS);
+        }
+
+        // 동아리 회원 삭제
+        clubMembersRepository.deleteAll(membersToDelete);
+
+        // 삭제 후 비회원이면서 어떤 동아리에도 소속돼 있지 않을 경우, 프로필 삭제
+        List<Long> profileIdsToDelete = membersToDelete.stream()
+                .map(ClubMembers::getProfile)
+                .filter(profile -> profile.getMemberType() == MemberType.NONMEMBER)
+                .map(Profile::getProfileId)
+                .toList();
+
+        List<Long> profileIdsWithoutClub = clubMembersRepository.findByProfileProfileIdsWithoutClub(profileIdsToDelete);
+
+        if (!profileIdsWithoutClub.isEmpty()) {// 삭제할 회원이 존재할 경우
+            // 삭제할 id가 있는 경우
+            profileRepository.deleteAllByIdInBatch(profileIdsWithoutClub);
+        }
+
+        return new ApiResponse<>("동아리 회원 삭제 완료", clubMemberUUIDList);
     }
 
     // 소속 동아리원 엑셀 다운
     @Transactional(readOnly = true)
-    public void downloadExcel(Long clubId, HttpServletResponse response) {
+    public void downloadExcel(UUID clubUUID, HttpServletResponse response) {
 
-        Club club = validateLeader(clubId);
+        Club club = validateLeaderAccess(clubUUID);
 
         // 해당 동아리원 조회
-        List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfile(club.getClubId());
+        List<ClubMembers> findClubMembers = clubMembersRepository.findAllWithProfileByClubClubId(club.getClubId());
 
         // 동아리원의 프로필 조회 후 동아리원 정보로 정리
-        List<ClubMembersExcelResponse> memberProfiles = findClubMembers.stream()
-                .map(cm -> new ClubMembersExcelResponse(
+        List<ClubMembersExportExcelResponse> memberProfiles = findClubMembers.stream()
+                .map(cm -> new ClubMembersExportExcelResponse(
                         cm.getProfile()
                 ))
-                .collect(toList());
+                .toList();
 
         // 파일 이름 설정
         String fileName = club.getClubName() + "_회원_명단.xlsx";
@@ -424,7 +625,7 @@ public class ClubLeaderService {
 
             // DB값 엑셀 파일에 넣기
             int rowNum = 1;
-            for (ClubMembersExcelResponse member : memberProfiles) {
+            for (ClubMembersExportExcelResponse member : memberProfiles) {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(member.getMajor());
                 row.createCell(1).setCellValue(member.getStudentNumber());
@@ -460,37 +661,24 @@ public class ClubLeaderService {
 
     // 동아리 지원자 조회
     @Transactional(readOnly = true)
-    public ApiResponse<PageResponse> getApplicants(Long clubId, int page, int size) {
-        Club club = validateLeader(clubId);
-
-        Pageable pageable = PageRequest.of(page, size);
+    public ApiResponse<List<ApplicantsResponse>> getApplicants(UUID clubUUID) {
+        Club club = validateLeaderAccess(clubUUID);
 
         // 합/불 처리되지 않은 동아리 지원자 조회
-        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubId(
-                club.getClubId(),
-                pageable,
-                false);
+        List<Aplict> aplicts = aplictRepository.findAllWithProfileByClubId(club.getClubId(), false);
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
-                        ap.getId(),
+                        ap.getAplictUUID(),
                         ap.getProfile()
                 ))
-                .collect(toList());
+                .toList();
 
-        PageResponse<ApplicantsResponse> pageResponse = new PageResponse<>(
-                applicants,
-                aplicts.getNumber(),
-                aplicts.getSize(),
-                aplicts.getTotalElements(),
-                aplicts.getTotalPages()
-        );
-
-        return new ApiResponse<>("지원자 조회 완료", pageResponse);
+        return new ApiResponse<>("최초 동아리 지원자 조회 완료", applicants);
     }
 
     // 최초 합격자 알림
-    public void updateApplicantResults(Long clubId, List<ApplicantResultsRequest> results) throws IOException {
-        Club club = validateLeader(clubId);
+    public void updateApplicantResults(UUID clubUUID, List<ApplicantResultsRequest> results) throws IOException {
+        Club club = validateLeaderAccess(clubUUID);
 
         // 동아리 지원자 전원 조회(최초 합격)
         List<Aplict> applicants = aplictRepository.findByClub_ClubIdAndChecked(club.getClubId(), false);
@@ -500,22 +688,17 @@ public class ClubLeaderService {
 
         // 지원자 검증(지원한 동아리 + 지원서 + check안된 상태)
         for (ApplicantResultsRequest result : results) {
-            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndChecked(
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndAplictUUIDAndChecked(
                             club.getClubId(),
-                            result.getAplictId(),
+                            result.getAplictUUID(),
                             false)
                     .orElseThrow(() -> new AplictException(ExceptionType.APPLICANT_NOT_EXISTS));
 
-            // 동아리원 중복 존재 검사
-            ClubMembers isInClubMember = clubMembersRepository
-                    .findByProfileProfileIdAndClubClubId(applicant.getProfile().getProfileId(), club.getClubId());
-            if (isInClubMember != null) {
-                throw new ClubMemberException(ExceptionType.CLUB_MEMBER_ALREADY_EXISTS);
-            }
+            // 중복 가입 체크
+            checkDuplicateClubMember(applicant.getProfile().getProfileId(), club.getClubId());
 
             // 합격 불합격 상태 업데이트
             // 합/불, checked, 삭제 날짜
-
             AplictStatus aplictResult = result.getAplictStatus();// 지원 결과 PASS/ FAIL
             if (aplictResult == AplictStatus.PASS) {
                 ClubMembers newClubMembers = ClubMembers.builder()
@@ -524,10 +707,10 @@ public class ClubLeaderService {
                         .build();
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
                 clubMembersRepository.save(newClubMembers);
-                log.debug("합격 처리 완료: {}", applicant.getId());
+                log.debug("합격 처리 완료: {}", applicant.getAplictUUID());
             } else if (aplictResult == AplictStatus.FAIL) {
                 applicant.updateAplictStatus(aplictResult, true, LocalDateTime.now().plusDays(4));
-                log.debug("불합격 처리 완료: {}", applicant.getId());
+                log.debug("불합격 처리 완료: {}", applicant.getAplictUUID());
             }
 
             aplictRepository.save(applicant);
@@ -535,73 +718,65 @@ public class ClubLeaderService {
         }
     }
 
+    // 동아리 회원 중복 검사
+    private void checkDuplicateClubMember(Long profileId, Long clubId) {
+        boolean isDuplicate = clubMembersRepository
+                .findByProfileProfileIdAndClubClubId(profileId, clubId)
+                .isPresent();
+
+        if (isDuplicate) {
+            throw new ClubMemberException(ExceptionType.CLUB_MEMBER_ALREADY_EXISTS);
+        }
+    }
+
     // 선택된 지원자 수와 전체 지원자 수 비교
     private void validateTotalApplicants(List<Aplict> applicants, List<ApplicantResultsRequest> results) {
-        Set<Long> applicantIds = applicants.stream()
-                .map(Aplict::getId)
+        Set<UUID> applicantUUIDs = applicants.stream()
+                .map(Aplict::getAplictUUID)
                 .collect(Collectors.toSet());
 
-        Set<Long> requestedApplicantIds = results.stream()
-                .map(ApplicantResultsRequest::getAplictId)
+        Set<UUID> requestedApplicantUUIDs = results.stream()
+                .map(ApplicantResultsRequest::getAplictUUID)
                 .collect(Collectors.toSet());
 
-        if (!requestedApplicantIds.equals(applicantIds)) {
+        if (!requestedApplicantUUIDs.equals(applicantUUIDs)) {
             throw new AplictException(ExceptionType.APPLICANT_COUNT_MISMATCH);
         }
     }
 
     // 불합격자 조회
     @Transactional(readOnly = true)
-    public ApiResponse<PageResponse> getFailedApplicants(Long clubId, int page, int size) {
-        Club club = validateLeader(clubId);
-
-        Pageable pageable = PageRequest.of(page, size);
+    public ApiResponse<List<ApplicantsResponse>> getFailedApplicants(UUID clubUUID) {
+        Club club = validateLeaderAccess(clubUUID);
 
         // 불합격자 동아리 지원자 조회
-        Page<Aplict> aplicts = aplictRepository.findAllWithProfileByClubIdAndFailed(
-                club.getClubId(),
-                pageable,
-                true,
-                AplictStatus.FAIL);
-
+        List<Aplict> aplicts = aplictRepository.findAllWithProfileByClubIdAndFailed(club.getClubId(), true, AplictStatus.FAIL);
         List<ApplicantsResponse> applicants = aplicts.stream()
                 .map(ap -> new ApplicantsResponse(
-                        ap.getId(),
+                        ap.getAplictUUID(),
                         ap.getProfile()
                 ))
-                .collect(toList());
+                .toList();
 
-        PageResponse<ApplicantsResponse> pageResponse = new PageResponse<>(
-                applicants,
-                aplicts.getNumber(),
-                aplicts.getSize(),
-                aplicts.getTotalElements(),
-                aplicts.getTotalPages()
-        );
-
-        return new ApiResponse<>("불합격자 조회 완료", pageResponse);
+        return new ApiResponse<>("불합격자 조회 완료", applicants);
     }
 
     // 동아리 지원자 추가 합격 처리
-    public void updateFailedApplicantResults(Long clubId, List<ApplicantResultsRequest> results) throws IOException {
-        Club club = validateLeader(clubId);
+    public void updateFailedApplicantResults(UUID clubUUID, List<ApplicantResultsRequest> results) throws IOException {
+        Club club = validateLeaderAccess(clubUUID);
 
         // 지원자 검증(지원한 동아리 + 지원서 + check된 상태 + 불합)
         for (ApplicantResultsRequest result : results) {
-            Aplict applicant = aplictRepository.findByClub_ClubIdAndIdAndCheckedAndAplictStatus(
+            Aplict applicant = aplictRepository.findByClub_ClubIdAndAplictUUIDAndCheckedAndAplictStatus(
                             club.getClubId(),
-                            result.getAplictId(),
+                            result.getAplictUUID(),
                             true,
                             AplictStatus.FAIL
                     )
                     .orElseThrow(() -> new AplictException(ExceptionType.ADDITIONAL_APPLICANT_NOT_EXISTS));
 
-            // 동아리원 중복 존재 검사
-            ClubMembers isInClubMember = clubMembersRepository
-                    .findByProfileProfileIdAndClubClubId(applicant.getProfile().getProfileId(), club.getClubId());
-            if (isInClubMember != null) {
-                throw new ClubMemberException(ExceptionType.CLUB_MEMBER_ALREADY_EXISTS);
-            }
+            // 중복 가입 체크
+            checkDuplicateClubMember(applicant.getProfile().getProfileId(), club.getClubId());
 
             // 합격 불합격 상태 업데이트
             // 합격
@@ -616,28 +791,390 @@ public class ClubLeaderService {
             aplictRepository.save(applicant);
 
             fcmService.sendMessageTo(applicant, aplictResult);
-            log.debug("추가 합격 처리 완료: {}", applicant.getId());
+            log.debug("추가 합격 처리 완료: {}", applicant.getAplictUUID());
         }
     }
 
-    // 회장 검증 및 소속 동아리
-    private Club validateLeader(Long clubId) {
-        // SecurityContextHolder에서 인증 정보 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomLeaderDetails leaderDetails = (CustomLeaderDetails) authentication.getPrincipal();
-        Leader leader = leaderDetails.leader();
-        log.debug("인증된 동아리 회장: {}", leader.getLeaderAccount());
 
-        // 동아리 조회
-        Club club = clubRepository.findById(leader.getClub().getClubId())
-                .orElseThrow(() -> new ClubException(ExceptionType.CLUB_NOT_EXISTS));
-        log.debug("동아리 조회 결과: {}", club.getClubName());
+    // 기존 동아리원 가져오기(엑셀 파일)
+    @Transactional(readOnly = true)
+    public ApiResponse<ClubMembersImportExcelResponse> uploadExcel(UUID clubUUID, MultipartFile clubMembersFile) throws IOException {
+        validateLeaderAccess(clubUUID);
 
-        // 요청된 clubId와 인증된 회장의 clubId 비교
-        if (!club.getClubId().equals(clubId)) {
-            throw new ClubLeaderException(ExceptionType.CLUB_LEADER_ACCESS_DENIED);
+        // 엑셀 파일의 개수 확인
+        if (clubMembersFile == null || clubMembersFile.isEmpty()) {
+            throw new FileException(ExceptionType.MAXIMUM_FILE_LIMIT_EXCEEDED);
         }
 
-        return club;
+        // 파일 확장자 확인
+        String fileExtension = validateClubMembersExcelFile(clubMembersFile);
+
+        // 엑셀 파일 확장자(구, 신버전)
+        Workbook workbook;
+        if (fileExtension.equals("xls")) {// 엑셀 버전 ~03
+            workbook = new HSSFWorkbook(clubMembersFile.getInputStream());
+        } else {// 엑셀 버전 07~
+            workbook = new XSSFWorkbook(clubMembersFile.getInputStream());
+        }
+
+        Sheet sheet = workbook.getSheetAt(0); // 첫 번째 시트 사용
+
+        // 추가 동아리 회원
+        List<ExcelProfileMemberResponse> addClubMembers = new ArrayList<>();
+        // 중복 동아리 회원
+        List<ExcelProfileMemberResponse> duplicateClubMembers = new ArrayList<>();
+
+        // 엑셀 데이터를 읽어 이름, 학번, 전화번호 수집
+        Set<String> userNames = new HashSet<>();
+        Set<String> studentNumbers = new HashSet<>();
+        Set<String> userHpNumbers = new HashSet<>();
+        // 이름_학번_전화번호를 키로 원본 데이터 저장
+        Map<String, ClubMemberExcelDataDto> rowExcelDataMap = new HashMap<>();
+
+        // 엑셀 파일 읽기
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) { // 첫 번째 행(헤더) 건너뛰기
+            Row row = sheet.getRow(i);
+            // 빈 줄은 무시
+            if (row == null || isRowEmpty(row)) {
+                continue;
+            }
+
+            // 셀 읽기
+            String userName = getCellValue(row.getCell(0)).replaceAll("\\s+", ""); // 이름
+            String studentNumber = getCellValue(row.getCell(1)).replaceAll("\\s+", ""); // 학번
+            String userHp = getCellValue(row.getCell(2)).replaceAll("-", "").replaceAll("\\s+", ""); // 전화번호
+
+            // 데이터 수집 후 한번에 조회
+            userNames.add(userName);
+            studentNumbers.add(studentNumber);
+            userHpNumbers.add(userHp);
+            rowExcelDataMap.put(userName + "_" + studentNumber + "_" + userHp, new ClubMemberExcelDataDto(userName, studentNumber, userHp));
+        }
+
+        // DB에서 중복 데이터 한 번에 확인
+        List<Profile> duplicateProfiles = profileRepository.findByUserNameInAndStudentNumberInAndUserHpIn(userNames, studentNumbers, userHpNumbers);
+
+        // 중복 데이터 매핑
+        for (Profile profile : duplicateProfiles) {
+            // 엑셀 데이터를 기반으로 매핑
+            String duplicateProfileKey = profile.getUserName() + "_" + profile.getStudentNumber() + "_" + profile.getUserHp();// key
+            ClubMemberExcelDataDto duplicateExcelData = rowExcelDataMap.get(duplicateProfileKey);// map 검색
+            if (duplicateExcelData != null) {
+                duplicateClubMembers.add(new ExcelProfileMemberResponse(
+                        profile.getUserName(),
+                        profile.getStudentNumber(),
+                        profile.getUserHp()
+                ));
+            }
+            // 확인한 key:value 삭제
+            rowExcelDataMap.remove(duplicateProfileKey);
+        }
+
+        // 중복이 아닌 데이터 추가
+        for (ClubMemberExcelDataDto addClubMember : rowExcelDataMap.values()) {
+            addClubMembers.add(new ExcelProfileMemberResponse(
+                    addClubMember.getUserName(),
+                    addClubMember.getStudentNumber(),
+                    addClubMember.getUserHp()
+            ));
+        }
+
+        ClubMembersImportExcelResponse response = new ClubMembersImportExcelResponse(addClubMembers, duplicateClubMembers);
+        return new ApiResponse<>("기존 동아리 회원 엑셀로 가져오기 완료", response);
+    }
+
+    private String validateClubMembersExcelFile(MultipartFile clubMembersFile) {
+        // 파일 확장자 확인
+        String fileExtension = FilenameUtils.getExtension(clubMembersFile.getOriginalFilename());
+        if (!fileExtension.equals("xls") && !fileExtension.equals("xlsx")) {
+            throw new FileException(ExceptionType.UNSUPPORTED_FILE_EXTENSION);
+        }
+
+        // 파일 시그니처를 통해 실제 파일 형식이 올바른지 확인
+        try {
+            if (!FileSignatureValidator.isValidFileType(clubMembersFile.getInputStream(), fileExtension)) {
+                throw new FileException(ExceptionType.UNSUPPORTED_FILE_EXTENSION);
+            }
+        } catch (IOException e) {
+            throw new FileException(ExceptionType.FILE_VALIDATION_FAILED);
+        }
+
+        return fileExtension;
+    }
+
+    private String getCellValue(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
+        if (cell.getCellType() == CellType.STRING) {
+            return cell.getStringCellValue();
+        } else if (cell.getCellType() == CellType.NUMERIC) {
+            return String.valueOf((long) cell.getNumericCellValue());
+        }
+        return "";
+    }
+
+    private boolean isRowEmpty(Row row) {
+        for (int i = 0; i < row.getLastCellNum(); i++) {
+            Cell cell = row.getCell(i);
+            if (cell != null && cell.getCellType() != CellType.BLANK) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 기존 동아리원 추가(엑셀)
+    public void addClubMembersFromExcel(UUID clubUUID, List<ClubMembersAddFromExcelRequest> clubMembersAddFromExcelRequests) {
+        Club club = validateLeaderAccess(clubUUID);
+
+        // 중복 확인 데이터 수집
+        Map<String, ClubMembersAddFromExcelRequest> requestDataMap = new HashMap<>();
+        List<Map<String, String>> duplicateUsers = new ArrayList<>();
+
+        // 요청 데이터를 키로 매핑 (이름_학번_전화번호_전공)
+        for (ClubMembersAddFromExcelRequest request : clubMembersAddFromExcelRequests) {
+            if (request.getMajor() == null || request.getMajor().trim().isEmpty()) {
+                throw new ProfileException(ExceptionType.DEPARTMENT_NOT_INPUT);
+            }
+
+            String clubMemberKey = request.getUserName() + "_"
+                    + request.getStudentNumber() + "_"
+                    + request.getUserHp() + "_"
+                    + request.getMajor();
+            requestDataMap.put(clubMemberKey, request);
+        }
+
+        // DB에서 중복 데이터 확인 (이름, 학번, 전화번호, 전공을 모두 포함)
+        List<Profile> duplicateProfiles = profileRepository.findByUserNameInAndStudentNumberInAndUserHpInAndMajorIn(
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getUserName).collect(Collectors.toSet()),
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getStudentNumber).collect(Collectors.toSet()),
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getUserHp).collect(Collectors.toSet()),
+                requestDataMap.values().stream().map(ClubMembersAddFromExcelRequest::getMajor).collect(Collectors.toSet())
+        );
+
+        // 중복 확인 및 매핑
+        for (Profile profile : duplicateProfiles) {
+            String uniqueKey = profile.getUserName() + "_" + profile.getStudentNumber() + "_" + profile.getUserHp() + "_" + profile.getMajor();
+
+            ClubMembersAddFromExcelRequest duplicateRequest = requestDataMap.get(uniqueKey);
+            if (duplicateRequest != null) {
+                duplicateUsers.add(Map.of(
+                        "이름", profile.getUserName(),
+                        "학번", profile.getStudentNumber(),
+                        "전화번호", profile.getUserHp(),
+                        "전공", profile.getMajor()
+                ));
+                requestDataMap.remove(uniqueKey); // 중복 데이터는 저장 대상에서 제거
+            }
+        }
+
+        // 중복된 데이터가 있으면 예외 처리
+        if (!duplicateUsers.isEmpty()) {
+            throw new ProfileException(ExceptionType.DUPLICATE_PROFILE, duplicateUsers);
+        }
+
+        // 중복되지 않은 데이터만 저장
+        for (ClubMembersAddFromExcelRequest validRequest : requestDataMap.values()) {
+            Profile profile = Profile.builder()
+                    .userName(validRequest.getUserName())
+                    .studentNumber(validRequest.getStudentNumber())
+                    .userHp(validRequest.getUserHp())
+                    .major(validRequest.getMajor())
+                    .profileCreatedAt(LocalDateTime.now())
+                    .profileUpdatedAt(LocalDateTime.now())
+                    .memberType(MemberType.NONMEMBER)
+                    .build();
+            profileRepository.save(profile);
+
+            ClubMembers clubMember = ClubMembers.builder()
+                    .club(club)
+                    .profile(profile)
+                    .build();
+            clubMembersRepository.save(clubMember);
+        }
+    }
+
+    // 프로필 중복 동아리 회원 추가
+    public ApiResponse addDuplicateProfileMember(UUID clubUUID, DuplicateProfileMemberRequest duplicateProfileMemberRequest) {
+        Club club = validateLeaderAccess(clubUUID);
+
+        // 프로필 중복 회원 조회
+        Profile duplicateProfile = profileRepository
+                .findByUserNameAndStudentNumberAndUserHp(
+                        duplicateProfileMemberRequest.getUserName(),
+                        duplicateProfileMemberRequest.getStudentNumber(),
+                        duplicateProfileMemberRequest.getUserHp()
+                ).orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
+
+        // 동아리 회원 중복 검사
+        checkDuplicateClubMember(duplicateProfile.getProfileId(), club.getClubId());
+
+        // 존재하면 동아리 회원으로 추가
+        ClubMembers duplicateProfileClubMember = ClubMembers.builder()
+                .club(club)
+                .profile(duplicateProfile)
+                .build();
+
+        clubMembersRepository.save(duplicateProfileClubMember);
+        return new ApiResponse<>("프로필 중복 동아리 회원 추가 완료", duplicateProfileMemberRequest);
+    }
+
+    // 비회원 프로필 업데이트
+    public ApiResponse updateNonMemberProfile(UUID clubUUID,
+                                              UUID clubMemberUUID,
+                                              ClubNonMemberUpdateRequest request) {
+        Club club = validateLeaderAccess(clubUUID);
+
+        // 동아리 회원 확인
+        ClubMembers clubMember = clubMembersRepository.findByClubClubIdAndClubMemberUUID(club.getClubId(), clubMemberUUID)
+                .orElseThrow(() -> new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS));
+
+        // 비회원 확인
+        if (clubMember.getProfile().getMemberType() != MemberType.NONMEMBER) {
+            throw new ClubMemberException(ExceptionType.NOT_NON_MEMBER);
+        }
+
+        // 프로필 업데이트
+        Profile profile = clubMember.getProfile();
+        profile.updateProfile(request.getUserName(), request.getStudentNumber(), request.getMajor(), request.getUserHp());
+        profileRepository.save(profile);
+
+        return new ApiResponse("비회원 프로필 업데이트 완료", request);
+    }
+
+    // 기존 동아리 회원 가입 요청 조회
+    @Transactional(readOnly = true)
+    public ApiResponse getSignUpRequest(UUID clubUUID) {
+        Club club = validateLeaderAccess(clubUUID);
+
+        List<ClubMemberAccountStatus> signUpClubMember = clubMemberAccountStatusRepository.findAllWithClubMemberTemp(club.getClubId());
+        List<SignUpRequestResponse> signUpRequestResponse = signUpClubMember.stream().map(
+                cmt -> new SignUpRequestResponse(
+                        cmt.getClubMemberAccountStatusUUID(),
+                        cmt.getClubMemberTemp()
+                )
+        ).toList();
+
+        return new ApiResponse("기존 동아리 회원 가입 요청 조회 완료", signUpRequestResponse);
+    }
+
+    // 기존 동아리 회원 가입 요청 삭제
+    public ApiResponse deleteSignUpRequest(UUID clubUUID, UUID clubMemberAccountStatusUUID) {
+        Club club = validateLeaderAccess(clubUUID);
+
+        // 동아리 + 기존 동아리 회원 가입 요청 확인
+        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByClubMemberAccountStatusUUIDAndClub_ClubUUID(clubMemberAccountStatusUUID, club.getClubUUID())
+                .orElseThrow(() -> new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS));
+
+        clubMemberAccountStatusRepository.delete(clubMemberAccountStatus);
+        return new ApiResponse("기존 동아리 회원 가입 요청 거절 완료");
+    }
+
+    // 기존 동아리 회원 가입 요청 수락
+    public ApiResponse acceptSignUpRequest(UUID clubUUID, ClubMembersAcceptSignUpRequest clubMembersAcceptSignUpRequest) {
+        Club club = validateLeaderAccess(clubUUID);
+
+        ClubMemberProfileRequest signUpProfile = clubMembersAcceptSignUpRequest.getSignUpProfileRequest();
+        ClubMemberProfileRequest clubNonMemberProfile = clubMembersAcceptSignUpRequest.getClubNonMemberProfileRequest();
+
+        // 요청한 프로필의 존재 여부, 필드 값 유효성 확인
+        ClubMemberAccountStatus clubMemberAccountStatus = validateSignUpProfile(signUpProfile, club.getClubId());
+        ClubMemberTemp clubMemberTemp = clubMemberAccountStatus.getClubMemberTemp();
+        Profile clubNonMember = validateClubNonMemberProfile(clubNonMemberProfile, club.getClubId());
+
+        // 두 프로필 값이 같은지 비교, 예외처리
+        compareProfile(signUpProfile, clubNonMemberProfile);
+
+        // 두 프로필이 같으면 동아리 회장 수락 횟수 증가
+        clubMemberTemp.updateClubRequestCount();
+        clubMemberTempRepository.save(clubMemberTemp);
+
+        //회원 가입 요청 삭제
+        clubMemberAccountStatusRepository.delete(clubMemberAccountStatus);
+
+        // 가입 요청 횟수와 동아리 회장 수락 횟수가 같으면 계정 생성
+        if (clubMemberTemp.getTotalClubRequest() == clubMemberTemp.getClubRequestCount()) {
+            User user = User.builder()
+                    .userAccount(clubMemberTemp.getProfileTempAccount())
+                    .userPw(clubMemberTemp.getProfileTempPw())
+                    .email(clubMemberTemp.getProfileTempEmail())
+                    .userCreatedAt(LocalDateTime.now())
+                    .userUpdatedAt(LocalDateTime.now())
+                    .role(Role.USER)
+                    .build();
+            userRepository.save(user);
+
+            // 비회원-> 정회원 변경
+            clubNonMember.updateMemberType(MemberType.REGULARMEMBER);
+
+            // 비회원의 프로필에 user 넣기(엑셀로 추가한 동아리 회원)
+            clubNonMember.updateUser(user);
+            profileRepository.save(clubNonMember);
+
+            // 계정 생성 후 필요 없는 테이블 정보 삭제
+            clubMemberTempRepository.delete(clubMemberTemp);
+
+            // 계정 생성 시 이름과 반환, 계정 생성된 사람에게 알려주는 팝업
+            return new ApiResponse<>("기존 동아리 회원 가입 요청 수락 후 계정 생성 완료", clubNonMember.getUserName());
+        }
+
+        return new ApiResponse("기존 동아리 회원 가입 요청 수락 완료");
+    }
+
+    // 기존 회원 가입 요청 검증
+    private ClubMemberAccountStatus validateSignUpProfile(ClubMemberProfileRequest signUpProfileRequest, Long clubId) {
+        ClubMemberAccountStatus clubMemberAccountStatus = clubMemberAccountStatusRepository.findByClubMemberAccountStatusUUIDAndClub_ClubId(signUpProfileRequest.getUuid(), clubId)
+                .orElseThrow(() -> new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS));
+
+        ClubMemberTemp clubMemberTemp = clubMemberAccountStatus.getClubMemberTemp();
+
+        // 요청의 필드 값과 DB와 비교
+        if (!Objects.equals(signUpProfileRequest.getUserName(), clubMemberTemp.getProfileTempName()) ||
+                !Objects.equals(signUpProfileRequest.getStudentNumber(), clubMemberTemp.getProfileTempStudentNumber()) ||
+                !Objects.equals(signUpProfileRequest.getMajor(), clubMemberTemp.getProfileTempMajor()) ||
+                !Objects.equals(signUpProfileRequest.getUserHp(), clubMemberTemp.getProfileTempHp())) {
+            throw new ClubMemberAccountStatusException(ExceptionType.CLUB_MEMBER_SIGN_UP_REQUEST_NOT_EXISTS);
+        }
+        return clubMemberAccountStatus;
+    }
+
+    // 기존 비회원 프로필 검증
+    private Profile validateClubNonMemberProfile(ClubMemberProfileRequest clubNonMemberProfileRequest, Long clubId) {
+        Profile clubNonMember = clubMembersRepository.findByClubClubIdAndClubMemberUUID(clubId, clubNonMemberProfileRequest.getUuid())
+                .map(ClubMembers::getProfile)
+                .orElseThrow(() -> new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS));
+
+        // 요청의 필드 값과 DB와 비교
+        if (!Objects.equals(clubNonMemberProfileRequest.getUserName(), clubNonMember.getUserName()) ||
+                !Objects.equals(clubNonMemberProfileRequest.getStudentNumber(), clubNonMember.getStudentNumber()) ||
+                !Objects.equals(clubNonMemberProfileRequest.getMajor(), clubNonMember.getMajor()) ||
+                !Objects.equals(clubNonMemberProfileRequest.getUserHp(), clubNonMember.getUserHp())) {
+            throw new ClubMemberException(ExceptionType.CLUB_MEMBER_NOT_EXISTS);
+        }
+        return clubNonMember;
+    }
+
+    // 두 프로필 값이 같은지 비교
+    private void compareProfile(ClubMemberProfileRequest clubMemberTempRequest, ClubMemberProfileRequest clubNonMemberRequest) {
+        List<String> message = new ArrayList<>();
+
+        if (!clubMemberTempRequest.getUserName().equals(clubNonMemberRequest.getUserName())) {
+            message.add("이름");
+        }
+        if (!clubMemberTempRequest.getStudentNumber().equals(clubNonMemberRequest.getStudentNumber())) {
+            message.add("학번");
+        }
+        if (!clubMemberTempRequest.getMajor().equals(clubNonMemberRequest.getMajor())) {
+            message.add("학과");
+        }
+        if (!clubMemberTempRequest.getUserHp().equals(clubNonMemberRequest.getUserHp())) {
+            message.add("전화번호");
+        }
+
+        // 프로필이 일치하지 않는 경우
+        if (!message.isEmpty()) {
+            throw new ProfileException(ExceptionType.PROFILE_VALUE_MISMATCH, message);
+        }
     }
 }

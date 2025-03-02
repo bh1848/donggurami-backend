@@ -1,12 +1,9 @@
 package com.USWCicrcleLink.server.user.domain;
 
 import com.USWCicrcleLink.server.global.bucket4j.ClientIdentifier;
-import com.USWCicrcleLink.server.global.security.domain.Role;
-import com.USWCicrcleLink.server.global.validation.ValidationGroups;
+import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
+import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,6 +20,7 @@ import java.util.UUID;
 @Builder
 @Table(name = "USER_TABLE")
 public class User implements ClientIdentifier {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id", nullable = false)
@@ -31,41 +29,47 @@ public class User implements ClientIdentifier {
     @Column(name = "uuid", unique = true, nullable = false)
     private UUID userUUID;
 
-    @Column(name = "user_account", unique = true, nullable = false)
-    @NotBlank(message = "아이디는 필수 입력 값입니다.",groups = ValidationGroups.NotBlankGroup.class)
-    @Size(min = 5, max = 20, message = "아이디는 5~20자 이내여야 합니다.",groups = ValidationGroups.SizeGroup.class )
-    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "아이디는 영문 대소문자 및 숫자만 가능합니다.",groups = ValidationGroups.PatternGroup.class)
+    @Column(name = "user_account", unique = true, nullable = false,length=20)
     private String userAccount;
 
     @Column(name = "user_pw", nullable = false)
-    @NotBlank(message = "비밀번호는 필수 입력 값입니다.",groups = ValidationGroups.NotBlankGroup.class)
     private String userPw;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false,length = 30)
     private String email;
 
+    @Column(name = "user_created_at", nullable = false)
     private LocalDateTime userCreatedAt;
 
+    @Column(name = "user_updated_at", nullable = false)
     private LocalDateTime userUpdatedAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role")
+    @Column(name = "role",nullable = false)
     private Role role;
+
+
+    public static User createUser(SignUpRequest request,String encodedPw,String email){
+        return User.builder()
+                .userAccount(request.getAccount())
+                .userPw(encodedPw)
+                .email(email)
+                .role(Role.USER)
+                .build();
+    }
 
     @PrePersist
     public void prePersist() {
-        this.userUUID = UUID.randomUUID();
+        if (this.userUUID == null) {
+            this.userUUID = UUID.randomUUID();  // 자동 UUID 생성
+        }
+        this.userCreatedAt = LocalDateTime.now();
+        this.userUpdatedAt = LocalDateTime.now();
     }
 
-    public static User createUser(UserTemp userTemp){
-        return User.builder()
-                .userAccount(userTemp.getTempAccount())
-                .userPw(userTemp.getTempPw())
-                .email(userTemp.getTempEmail())
-                .userCreatedAt(LocalDateTime.now())
-                .userUpdatedAt(LocalDateTime.now())
-                .role(Role.USER)
-                .build();
+    @PreUpdate
+    public void preUpdate() {
+        this.userUpdatedAt = LocalDateTime.now();
     }
 
     public void updateUserPw(String userPw){

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -17,7 +18,7 @@ public class Aplict {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "aplict_id")
-    private Long id;
+    private Long aplictId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id", nullable = false)
@@ -27,15 +28,16 @@ public class Aplict {
     @JoinColumn(name = "profile_id", nullable = false)
     private Profile profile;
 
-    @Column(name = "aplict_google_form_url", nullable = false)
-    private String aplictGoogleFormUrl;
+    @Builder.Default
+    @Column(name = "aplict_uuid", nullable = false, unique = true, updatable = false)
+    private UUID aplictUUID = UUID.randomUUID();
 
     @Column(name = "aplict_submitted_at", nullable = false)
     private LocalDateTime submittedAt;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(name = "aplict_status", nullable = false)
+    @Column(name = "aplict_status", nullable = false, length = 10)
     private AplictStatus aplictStatus = AplictStatus.WAIT;
 
     @Column(name = "aplict_checked")
@@ -43,6 +45,13 @@ public class Aplict {
 
     @Column(name = "aplict_delete_date")
     private LocalDateTime deleteDate;
+
+    @PrePersist
+    public void generateUUID() {
+        if (this.aplictUUID == null) {
+            this.aplictUUID = UUID.randomUUID();
+        }
+    }
 
     public void updateAplictStatus(AplictStatus newStatus, boolean checked, LocalDateTime deleteDate) {
         this.aplictStatus = newStatus;

@@ -3,12 +3,14 @@ package com.USWCicrcleLink.server.user.dto;
 import com.USWCicrcleLink.server.aplict.domain.AplictStatus;
 import lombok.*;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class MyAplictResponse {
 
-    private Long clubId;
+    private UUID clubUUID;
 
     private String mainPhotoPath;
 
@@ -19,6 +21,8 @@ public class MyAplictResponse {
     private String leaderHp;
 
     private String clubInsta;
+
+    private String ClubRoomNumber;
 
     private AplictStatus aplictStatus;
 

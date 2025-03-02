@@ -2,11 +2,13 @@ package com.USWCicrcleLink.server.club.club.repository;
 
 import com.USWCicrcleLink.server.club.club.domain.ClubMembers;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.USWCicrcleLink.server.profile.domain.MemberType;
+
 import java.util.List;
 
 public interface ClubMembersRepositoryCustom {
-    List<ClubMembers> findAllWithProfile(Long clubId);
-    Page<ClubMembers> findAllWithProfileByClubId(Long clubId, Pageable pageable);
+    List<ClubMembers> findAllWithProfileByClubClubId(Long clubId);
+    List<ClubMembers> findAllWithProfileByName(Long clubId);
+    List<ClubMembers> findAllWithProfileByMemberType(Long clubId, MemberType memberType);
+    List<Long> findByProfileProfileIdsWithoutClub(List<Long> profileIds);
 }
