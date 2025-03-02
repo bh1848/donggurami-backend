@@ -466,12 +466,6 @@ public class UserService {
         // 비밀번호 유효성 검사
         passwordService.validatePassword(request.getPassword(),request.getConfirmPassword());
 
-        // user테이블에서 중복 확인
-        verifyUserDuplicate(request.getEmail());
-
-        // clubMemberTemp에서 이메일로 중복 확인
-        verifyClubMemberTempDuplicate(request.getEmail());
-
         // clubMemberTemp 테이블에서 프로필 중복 확인(이름&&학번&&전화번호)
         checkClubMemberTempProfileDuplicate(request.getUserName(), request.getStudentNumber(), request.getTelephone());
     }
