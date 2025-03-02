@@ -2,12 +2,8 @@ package com.USWCicrcleLink.server.user.domain;
 
 import com.USWCicrcleLink.server.global.bucket4j.ClientIdentifier;
 import com.USWCicrcleLink.server.global.security.jwt.domain.Role;
-import com.USWCicrcleLink.server.global.validation.ValidationGroups;
 import com.USWCicrcleLink.server.user.dto.SignUpRequest;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
