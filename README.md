@@ -57,10 +57,10 @@
 
 ## 👤 My Role — *Backend Developer (방혁)*
 
-본 프로젝트에서 백엔드 기능, 보안, 데이터베이스, 인프라 전반을 직접 개발했습니다.  
+본 프로젝트에서 백엔드 기능, 보안, 데이터베이스, 인프라 전반을 담당했습니다.  
 
 ### 🔐 인증·보안
-- Spring Security + JWT 기반 인증·인가 로직 전면 구현  
+- Spring Security + JWT 기반 인증·인가 로직 구현  
 - Access/Refresh Token 발급 및 재발급 처리  
 - 사용자 입력 Validation 및 Global ExceptionHandler 구성  
 
@@ -77,7 +77,6 @@
 - AWS EC2 서버 환경 구성 및 서비스 배포   
 - RDS(MySQL) 세팅 및 운영  
 - NGINX Reverse Proxy 설정  
-- HTTPS 적용 및 운영 환경 튜닝  
 
 ### 🧩 비즈니스 로직 개발
 - Admin 서비스  
